@@ -1,0 +1,27 @@
+include: package:very_good_analysis/analysis_options.yaml
+
+analyzer:
+  exclude:
+    - build/**
+    - lib/l10n/gen/**
+    - '**/*.g.dart'
+    - android/**
+    - ios/**
+  language:
+    strict-casts: true
+    strict-inference: true
+    strict-raw-types: true
+  errors:
+    missing_required_param: error
+    missing_return: error
+
+linter:
+  rules:
+    # App code, not a published package: docs are written where they help.
+    public_member_api_docs: false
+    # Line length is the formatter's page width below.
+    lines_longer_than_80_chars: false
+
+formatter:
+  page_width: 120
+  trailing_commas: preserve
