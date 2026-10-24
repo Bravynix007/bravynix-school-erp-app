@@ -38,7 +38,13 @@ class InMemoryInstallMarker implements InstallMarker {
 /// iOS keeps Keychain items after the app is deleted, so a reinstall would
 /// open straight into the last person's session: on a shared family phone,
 /// another child's data. The first start of each install clears the tokens.
+///
+/// Called when the session is restored, after `runApp`, and only once the
+/// tokens are readable: before the phone's first unlock the preferences read
+/// as empty too, which would make every prewarmed launch look like a first
+/// start and sign the person out (re-review R-A2).
 Future<void> clearTokensOnFirstStart({required InstallMarker marker, required TokenStorage tokens}) async {
+  await tokens.waitUntilAvailable();
   if (await marker.isSet()) return;
   await tokens.clear();
   await marker.set();

@@ -241,6 +241,12 @@ abstract class AppLocalizations {
   /// **'Something went wrong. Try again.'**
   String get errorGeneric;
 
+  /// No description provided for @errorDeviceStorage.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t read or save your sign-in on this phone. Try again.'**
+  String get errorDeviceStorage;
+
   /// No description provided for @errorWithRequestId.
   ///
   /// In en, this message translates to:

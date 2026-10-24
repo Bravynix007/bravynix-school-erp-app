@@ -6,12 +6,16 @@ import 'package:bravynix_school_erp/core/network/api_failure.dart';
 import 'package:bravynix_school_erp/core/network/dio_factory.dart';
 import 'package:bravynix_school_erp/core/storage/token_storage.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import '../../helpers/fake_http.dart';
 
 /// Token storage whose Keystore access fails, as a PlatformException would.
 class _BrokenTokenStorage implements TokenStorage {
+  @override
+  Future<void> waitUntilAvailable() async {}
+
   @override
   Future<AuthTokens?> read() async => throw PlatformException(code: 'KeystoreError');
 
@@ -22,7 +26,26 @@ class _BrokenTokenStorage implements TokenStorage {
   Future<void> clear() async {}
 }
 
+/// Secure storage that reads but cannot save, as a full or damaged Keystore.
+class _FailingWrites extends FlutterSecureStorage {
+  const new();
+
+  @override
+  Future<void> write({
+    required String key,
+    required String? value,
+    AppleOptions? iOptions,
+    AndroidOptions? aOptions,
+    LinuxOptions? lOptions,
+    WebOptions? webOptions,
+    AppleOptions? mOptions,
+    WindowsOptions? wOptions,
+  }) async => throw PlatformException(code: 'KeystoreError');
+}
+
 void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
+
   const config = AppConfig(flavor: Flavor.dev, apiBaseUrl: 'http://api.test/v1');
   const device = AppDevice(platform: DevicePlatform.android, appVersion: '1.4.2');
 
@@ -116,6 +139,35 @@ void main() {
     }
     expect(adapter.requests, isEmpty);
   });
+
+  test(
+    'a refreshed pair that cannot be saved is still used, and the spent token never sent (re-review R-A6)',
+    () async {
+      FlutterSecureStorage.setMockInitialValues({'auth.tokens': '{"accessToken":"a1","refreshToken":"r1"}'});
+      final tokens = SecureTokenStorage(const _FailingWrites());
+      final refreshTokens = <Object?>[];
+      var next = 2;
+      final client = clientWith(
+        tokens,
+        FakeHttpAdapter((options) async {
+          if (options.path == 'auth/refresh') {
+            refreshTokens.add((options.data as Map<String, dynamic>)['refreshToken']);
+            final n = next++;
+            return okReply({'accessToken': 'a$n', 'refreshToken': 'r$n'});
+          }
+          // `me` needs the first refreshed token and `later` the second.
+          final wanted = options.path == 'me' ? 'Bearer a2' : 'Bearer a3';
+          return options.headers['Authorization'] == wanted ? okReply({'ok': true}) : errorReply(401, 'TOKEN_EXPIRED');
+        }),
+      );
+
+      await expectLater(client.data<Object?>('me', parse: (d) => d), completes);
+      expect(await tokens.read(), const AuthTokens(accessToken: 'a2', refreshToken: 'r2'));
+      await expectLater(client.data<Object?>('later', parse: (d) => d), completes);
+      expect(refreshTokens, ['r1', 'r2']);
+      expect(ended, isEmpty);
+    },
+  );
 
   test('an answer that does not fit its model is an ApiFailure (review A9)', () async {
     final tokens = InMemoryTokenStorage(const AuthTokens(accessToken: 'a1', refreshToken: 'r1'));

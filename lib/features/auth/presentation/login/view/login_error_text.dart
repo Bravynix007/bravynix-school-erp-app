@@ -25,6 +25,8 @@ String loginErrorText(AppLocalizations l10n, ApiFailure failure) {
     case ApiFailure.networkError:
     case ApiFailure.timeoutError:
       return l10n.errorNetwork;
+    case ApiFailure.storageError:
+      return l10n.errorDeviceStorage;
   }
   if (failure.statusCode >= 500 && failure.requestId != null) {
     return l10n.errorWithRequestId(failure.requestId!);

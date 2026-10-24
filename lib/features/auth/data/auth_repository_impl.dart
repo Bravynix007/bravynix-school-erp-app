@@ -1,7 +1,10 @@
+import 'dart:developer' show log;
+
 import 'package:bravynix_school_erp/core/device/app_device.dart';
 import 'package:bravynix_school_erp/core/network/api_client.dart';
 import 'package:bravynix_school_erp/core/network/api_events.dart';
 import 'package:bravynix_school_erp/core/network/api_failure.dart';
+import 'package:bravynix_school_erp/core/storage/install_marker.dart';
 import 'package:bravynix_school_erp/core/storage/token_storage.dart';
 import 'package:bravynix_school_erp/features/auth/data/models/auth_models.dart';
 import 'package:bravynix_school_erp/features/auth/domain/auth_entities.dart';
@@ -11,12 +14,14 @@ class AuthRepositoryImpl implements AuthRepository {
   new({
     required this._api,
     required this._tokens,
+    required this._installMarker,
     required this._device,
     required this._events,
   });
 
   final ApiClient _api;
   final TokenStorage _tokens;
+  final InstallMarker _installMarker;
   final AppDevice _device;
   final ApiEvents _events;
 
@@ -46,13 +51,17 @@ class AuthRepositoryImpl implements AuthRepository {
       body: {'email': email.trim().toLowerCase(), 'code': code, 'clientType': _mobile, 'device': _device.toJson()},
       parse: (data) => (AuthModels.tokens(data), AuthModels.session(data)),
     );
-    await _tokens.write(tokens);
+    await _secure(() => _tokens.write(tokens));
     return session;
   }
 
   @override
   Future<AuthSession?> restoreSession() async {
-    if (await _tokens.read() == null) return null;
+    final tokens = await _secure(() async {
+      await clearTokensOnFirstStart(marker: _installMarker, tokens: _tokens);
+      return await _tokens.read();
+    });
+    if (tokens == null) return null;
     try {
       // ME-01 carries the same person and contexts as the login answer.
       return await _api.data('me', parse: AuthModels.session);
@@ -71,7 +80,25 @@ class AuthRepositoryImpl implements AuthRepository {
     } on ApiFailure {
       // The server session may already be gone; signing out locally is what matters.
     } finally {
-      await _tokens.clear();
+      try {
+        await _tokens.clear();
+      } on Object catch (error, stackTrace) {
+        // The tokens are already gone from memory, so this run is signed out.
+        log('Could not delete the stored tokens', name: 'auth', error: error, stackTrace: stackTrace);
+      }
+    }
+  }
+
+  /// Runs a Keychain or Keystore call. A platform failure (a missing key, a
+  /// locked Keychain) becomes an [ApiFailure], which the splash and login
+  /// already show with a way to try again; anything else would leave them
+  /// waiting for ever (re-review R-A1).
+  Future<T> _secure<T>(Future<T> Function() action) async {
+    try {
+      return await action();
+    } on Object catch (error, stackTrace) {
+      log('Secure storage failed', name: 'auth', error: error, stackTrace: stackTrace);
+      throw const ApiFailure.storage();
     }
   }
 }

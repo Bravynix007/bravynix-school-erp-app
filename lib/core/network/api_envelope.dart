@@ -78,18 +78,25 @@ class ApiEnvelope<T> {
   );
 
   /// Turns an error envelope into an [ApiFailure]; anything else is unexpected.
+  /// It never throws: a gateway page or a half-formed body (`code: null`)
+  /// becomes UNEXPECTED_RESPONSE, or INTERNAL_ERROR for a 5xx (re-review R-A4).
   static ApiFailure failureFrom(int status, Object? body, {Duration? retryAfter, String? requestIdHeader}) {
-    if (!isEnvelope(body)) return ApiFailure.unexpected(status, requestId: requestIdHeader);
+    final code = isEnvelope(body) ? (body! as Map<String, dynamic>)['code'] : null;
+    if (code is! String || code.isEmpty) return ApiFailure.unexpected(status, requestId: requestIdHeader);
     final map = body! as Map<String, dynamic>;
     final data = map['data'];
+    final message = map['message'];
+    final requestId = map['requestId'];
+    final errors = map['errors'];
     return ApiFailure(
       statusCode: status,
-      code: map['code'] as String,
-      message: map['message'] as String? ?? '',
-      requestId: map['requestId'] as String? ?? requestIdHeader,
+      code: code,
+      message: message is String ? message : '',
+      requestId: requestId is String ? requestId : requestIdHeader,
       fieldErrors: [
-        for (final error in (map['errors'] as List<dynamic>? ?? const []))
-          if (error is Map<String, dynamic>) FieldError.fromJson(error),
+        if (errors is List)
+          for (final error in errors)
+            if (error is Map<String, dynamic>) FieldError.fromJson(error),
       ],
       // Error details such as `attemptsLeft`, `reason` or `storeUrl` come in `data` (API design 8).
       details: {if (data is Map<String, dynamic>) ...data},

@@ -37,7 +37,7 @@ void main() {
       expect(await SecureTokenStorage().read(), tokens);
     });
 
-    test('does not change the cached tokens when the write fails', () async {
+    test('keeps the new pair in memory when saving it fails (re-review R-A6)', () async {
       FlutterSecureStorage.setMockInitialValues({
         'auth.tokens': '{"accessToken":"a0","refreshToken":"r0"}',
       });
@@ -45,7 +45,8 @@ void main() {
       expect(await storage.read(), const AuthTokens(accessToken: 'a0', refreshToken: 'r0'));
 
       await expectLater(storage.write(tokens), throwsA(isA<PlatformException>()));
-      expect(await storage.read(), const AuthTokens(accessToken: 'a0', refreshToken: 'r0'));
+      // The spent r0 must never be sent again in this run.
+      expect(await storage.read(), tokens);
     });
 
     test('treats a damaged value as no session', () async {
@@ -58,6 +59,20 @@ void main() {
       await storage.write(tokens);
       await storage.clear();
       expect(await SecureTokenStorage().read(), isNull);
+    });
+
+    test('clear also deletes the key names older builds used (re-review R-A8)', () async {
+      FlutterSecureStorage.setMockInitialValues({
+        'auth.access_token': 'a0',
+        'auth.refresh_token': 'r0',
+        'unrelated': 'kept',
+      });
+      await SecureTokenStorage().clear();
+      expect(await const FlutterSecureStorage().readAll(), {'unrelated': 'kept'});
+    });
+
+    test('is available at once where there is no first-unlock wait', () async {
+      await SecureTokenStorage().waitUntilAvailable().timeout(const Duration(seconds: 1));
     });
   });
 

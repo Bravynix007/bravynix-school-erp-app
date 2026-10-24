@@ -61,7 +61,8 @@ jobs:
       - run: flutter pub get
       - run: flutter build apk --debug --flavor dev --dart-define-from-file=config/dev.json
       # A release build catches what debug hides, such as a permission only the debug manifest has.
-      - run: flutter build apk --release --flavor staging --dart-define-from-file=config/staging.json
+      # Release builds go through tool/build.dart, which checks the config file matches the flavor.
+      - run: dart run tool/build.dart apk staging
 
   ios:
     name: iOS build (no signing)

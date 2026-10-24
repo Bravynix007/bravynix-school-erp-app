@@ -1,3 +1,5 @@
+import 'dart:developer' show log;
+
 import 'package:bravynix_school_erp/core/network/api_envelope.dart';
 import 'package:bravynix_school_erp/core/network/api_events.dart';
 import 'package:bravynix_school_erp/core/network/api_failure.dart';
@@ -148,7 +150,13 @@ class AuthInterceptor extends QueuedInterceptor {
             error: refused,
           );
         case Refreshed(tokens: final fresh):
-          await storage.write(fresh);
+          try {
+            await storage.write(fresh);
+          } on Object catch (error, stackTrace) {
+            // The storage keeps the pair in memory, so this run goes on with
+            // it; the spent refresh token is never sent again (re-review R-A6).
+            log('Could not save refreshed tokens', name: 'auth', error: error, stackTrace: stackTrace);
+          }
           tokens = fresh;
       }
     }

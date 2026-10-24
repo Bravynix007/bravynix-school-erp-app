@@ -14,11 +14,16 @@ val keyProperties =
         if (file.exists()) file.inputStream().use { load(it) }
     }
 
+// A blank value counts as missing: CI expands an unset secret to an empty string.
 fun signingValue(property: String, environment: String): String? =
-    keyProperties.getProperty(property) ?: System.getenv(environment)
+    (keyProperties.getProperty(property) ?: System.getenv(environment))?.takeIf { it.isNotBlank() }
 
 val releaseStoreFile = signingValue("storeFile", "ANDROID_KEYSTORE_PATH")
-val hasReleaseKey = releaseStoreFile != null
+val releaseStorePassword = signingValue("storePassword", "ANDROID_KEYSTORE_PASSWORD")
+val releaseKeyAlias = signingValue("keyAlias", "ANDROID_KEY_ALIAS")
+val releaseKeyPassword = signingValue("keyPassword", "ANDROID_KEY_PASSWORD")
+val hasReleaseKey =
+    listOf(releaseStoreFile, releaseStorePassword, releaseKeyAlias, releaseKeyPassword).all { it != null }
 
 android {
     namespace = "com.bravynix.schoolerp"
@@ -69,9 +74,9 @@ android {
         if (hasReleaseKey) {
             create("release") {
                 storeFile = file(releaseStoreFile!!)
-                storePassword = signingValue("storePassword", "ANDROID_KEYSTORE_PASSWORD")
-                keyAlias = signingValue("keyAlias", "ANDROID_KEY_ALIAS")
-                keyPassword = signingValue("keyPassword", "ANDROID_KEY_PASSWORD")
+                storePassword = releaseStorePassword
+                keyAlias = releaseKeyAlias
+                keyPassword = releaseKeyPassword
             }
         }
     }
@@ -86,13 +91,16 @@ android {
     }
 }
 
-tasks.configureEach {
-    if (!hasReleaseKey && Regex("(assemble|bundle|package)ProdRelease").matches(name)) {
-        doFirst {
-            throw GradleException(
-                "A prod release needs the release key: android/key.properties or ANDROID_KEYSTORE_* in CI.",
-            )
-        }
+// Checked once the task graph is known and before any task runs, so no debug-signed prod APK or
+// AAB is ever written: a check in the tasks themselves ran after the bundle was packaged and signed.
+gradle.taskGraph.whenReady {
+    val buildsProdRelease = allTasks.any { it.project == project && it.name.contains("ProdRelease") }
+    if (buildsProdRelease && !hasReleaseKey) {
+        throw GradleException(
+            "A prod release needs the release key: storeFile, storePassword, keyAlias and keyPassword " +
+                "in android/key.properties, or ANDROID_KEYSTORE_PATH, ANDROID_KEYSTORE_PASSWORD, " +
+                "ANDROID_KEY_ALIAS and ANDROID_KEY_PASSWORD in CI.",
+        )
     }
 }
 

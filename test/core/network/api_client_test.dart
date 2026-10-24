@@ -211,6 +211,51 @@ void main() {
       );
     });
 
+    test('a half-formed error body is still an ApiFailure (re-review R-A4)', () async {
+      final adapter = FakeHttpAdapter(
+        (options) async => switch (options.path) {
+          'gateway' => (
+            status: 502,
+            body: {'success': false, 'statusCode': 502, 'code': null},
+            headers: const <String, String>{},
+          ),
+          _ => (
+            status: 400,
+            body: {
+              'success': false,
+              'statusCode': 400,
+              'code': 'VALIDATION_FAILED',
+              'message': 5,
+              'errors': 'not a list',
+              'requestId': 7,
+              'data': ['not', 'a', 'map'],
+            },
+            headers: const <String, String>{},
+          ),
+        },
+      );
+      final client = clientWith(adapter);
+
+      await expectLater(
+        client.data<Object?>('gateway', parse: (d) => d),
+        throwsA(isA<ApiFailure>().having((f) => f.code, 'code', 'INTERNAL_ERROR')),
+      );
+      await expectLater(
+        client.data<Object?>('odd', parse: (d) => d),
+        throwsA(
+          isA<ApiFailure>()
+              .having((f) => f.code, 'code', 'VALIDATION_FAILED')
+              .having((f) => f.message, 'message', '')
+              .having((f) => f.fieldErrors, 'fieldErrors', isEmpty)
+              .having((f) => f.details, 'details', isEmpty),
+        ),
+      );
+    });
+
+    test('a malformed field error entry is read without throwing', () {
+      expect(FieldError.fromJson(const {'field': 3, 'code': null}), const FieldError(field: '', code: '', message: ''));
+    });
+
     test('repeats array query values and drops nulls', () async {
       final adapter = FakeHttpAdapter((_) async => okReply(<Object?>[]));
       await clientWith(adapter).data<Object?>(

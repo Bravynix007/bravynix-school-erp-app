@@ -4,11 +4,14 @@ import 'package:equatable/equatable.dart';
 class FieldError extends Equatable {
   const new({required this.field, required this.code, required this.message});
 
+  /// Reads each field defensively: a malformed entry must not throw (re-review R-A4).
   factory fromJson(Map<String, dynamic> json) => FieldError(
-    field: json['field'] as String? ?? '',
-    code: json['code'] as String? ?? '',
-    message: json['message'] as String? ?? '',
+    field: _string(json['field']),
+    code: _string(json['code']),
+    message: _string(json['message']),
   );
+
+  static String _string(Object? value) => value is String ? value : '';
 
   final String field;
   final String code;
@@ -39,6 +42,10 @@ class ApiFailure extends Equatable implements Exception {
   const new timeout()
     : this(statusCode: 0, code: timeoutError, message: 'The server took too long to answer. Try again.');
 
+  /// The phone's Keychain or Keystore failed to read or save the sign-in.
+  const new storage()
+    : this(statusCode: 0, code: storageError, message: "Couldn't use this phone's secure storage. Try again.");
+
   /// An answer that is not the envelope (a proxy page, a 502 from the load balancer).
   const new unexpected(int statusCode, {String? requestId})
     : this(
@@ -50,6 +57,7 @@ class ApiFailure extends Equatable implements Exception {
 
   static const networkError = 'NETWORK_ERROR';
   static const timeoutError = 'TIMEOUT';
+  static const storageError = 'DEVICE_STORAGE_ERROR';
 
   final int statusCode;
   final String code;
@@ -61,7 +69,7 @@ class ApiFailure extends Equatable implements Exception {
   final Map<String, dynamic> details;
   final Duration? retryAfter;
 
-  bool get isNetwork => statusCode == 0;
+  bool get isNetwork => code == networkError || code == timeoutError;
 
   /// 401 other than TOKEN_EXPIRED: sign out locally (API design 8.2).
   bool get isSessionEnded => statusCode == 401 && code != 'TOKEN_EXPIRED';

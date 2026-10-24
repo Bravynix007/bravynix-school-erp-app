@@ -27,12 +27,19 @@ and so does one whose `APP_FLAVOR` differs from its `--flavor`.
 
 **Release signing.** Store builds are signed with the release key from `android/key.properties`
 (copy `android/key.properties.example`) or, in CI, the `ANDROID_KEYSTORE_PATH`,
-`ANDROID_KEYSTORE_PASSWORD`, `ANDROID_KEY_ALIAS` and `ANDROID_KEY_PASSWORD` secrets. Without a
-key, dev and staging release builds fall back to the debug key for testing on a phone, and a
-prod release build fails. Neither the key nor its properties are ever committed.
+`ANDROID_KEYSTORE_PASSWORD`, `ANDROID_KEY_ALIAS` and `ANDROID_KEY_PASSWORD` secrets; all four
+must be set and non-blank. Without a key, dev and staging release builds fall back to the debug
+key for testing on a phone, and a prod release build fails before any task runs, so no
+debug-signed prod APK or AAB is ever written. Neither the key nor its properties are ever
+committed.
 
 On iOS, flavors need Xcode schemes, which are set up with the first iOS build on a Mac. Until
 then run iOS without `--flavor`: `flutter run --dart-define-from-file=config/dev.json`.
+
+**Release builds** go through `dart run tool/build.dart <apk|appbundle|ipa> <dev|staging|prod>`,
+which picks `config/<flavor>.json` itself and refuses a file whose `APP_FLAVOR` or URL does not
+fit the flavor. On Android the app checks this again when it starts; on iOS, without schemes,
+the script is the only check, so never build an iOS release by hand.
 
 | Command                                         | What it does                                  |
 | ----------------------------------------------- | --------------------------------------------- |

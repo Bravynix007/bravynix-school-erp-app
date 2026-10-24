@@ -30,7 +30,8 @@ Future<void> configureDependencies(
   final events = ApiEvents();
   final appDevice = device ?? await AppDevice.load();
   final tokenStorage = tokens ?? SecureTokenStorage();
-  await clearTokensOnFirstStart(marker: installMarker ?? PreferencesInstallMarker(), tokens: tokenStorage);
+  // Used when the splash restores the session, after runApp (re-review R-A2).
+  final marker = installMarker ?? PreferencesInstallMarker();
 
   getIt
     ..registerSingleton<AppConfig>(config)
@@ -49,6 +50,12 @@ Future<void> configureDependencies(
       ),
     )
     ..registerLazySingleton<AuthRepository>(
-      () => AuthRepositoryImpl(api: getIt(), tokens: tokenStorage, device: appDevice, events: events),
+      () => AuthRepositoryImpl(
+        api: getIt(),
+        tokens: tokenStorage,
+        installMarker: marker,
+        device: appDevice,
+        events: events,
+      ),
     );
 }

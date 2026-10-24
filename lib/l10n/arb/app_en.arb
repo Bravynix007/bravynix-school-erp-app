@@ -28,6 +28,7 @@
   "errorAccountBlocked": "This account is blocked and can't access the app.",
   "errorNetwork": "Can't reach the server. Check your connection and try again.",
   "errorGeneric": "Something went wrong. Try again.",
+  "errorDeviceStorage": "Couldn't read or save your sign-in on this phone. Try again.",
   "errorWithRequestId": "Something went wrong. Reference: {requestId}",
   "@errorWithRequestId": { "placeholders": { "requestId": { "type": "String" } } },
   "sessionEndedTitle": "You've been signed out",

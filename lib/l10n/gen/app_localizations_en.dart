@@ -97,6 +97,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get errorGeneric => 'Something went wrong. Try again.';
 
   @override
+  String get errorDeviceStorage => 'Couldn\'t read or save your sign-in on this phone. Try again.';
+
+  @override
   String errorWithRequestId(String requestId) {
     return 'Something went wrong. Reference: $requestId';
   }

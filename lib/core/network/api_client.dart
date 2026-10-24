@@ -1,3 +1,4 @@
+import 'dart:developer' show log;
 import 'dart:io' show HttpHeaders, SocketException;
 
 import 'package:bravynix_school_erp/core/network/api_envelope.dart';
@@ -57,9 +58,11 @@ class ApiClient {
       throw failure;
     } on ApiFailure {
       rethrow;
-    } on Object {
+    } on Object catch (error, stackTrace) {
       // An answer that does not match its model (a cast or format error) is
-      // still an ApiFailure, so callers and the splash never hang on it.
+      // still an ApiFailure, so callers and the splash never hang on it. It
+      // is logged, so a parsing bug of ours is not hidden (re-review R-A9).
+      log('Unreadable answer for $path', name: 'api', error: error, stackTrace: stackTrace);
       throw ApiFailure.unexpected(response?.statusCode ?? 0, requestId: _requestId(response));
     }
   }
