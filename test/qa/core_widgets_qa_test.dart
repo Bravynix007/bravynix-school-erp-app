@@ -41,6 +41,14 @@ List<String> _clippedParagraphs(WidgetTester tester, {Finder? within, double unb
     if (!paragraph.hasSize) continue;
     final text = paragraph.text.toPlainText();
     if (paragraph.didExceedMaxLines) clipped.add('"$text" exceeds maxLines');
+    // Wrapped text squeezed into a box shorter than its lines (a parent that
+    // caps the height) loses its last lines without any ellipsis.
+    final needed = paragraph.getDryLayout(BoxConstraints(maxWidth: paragraph.size.width)).height;
+    if (needed > paragraph.size.height + 0.5) {
+      clipped.add(
+        '"$text" needs ${needed.toStringAsFixed(1)} px of height but has ${paragraph.size.height.toStringAsFixed(1)}',
+      );
+    }
     final noWrap = !paragraph.softWrap || paragraph.maxLines == 1;
     if (noWrap && paragraph.getMaxIntrinsicWidth(double.infinity) > paragraph.size.width + 0.5) {
       clipped.add(

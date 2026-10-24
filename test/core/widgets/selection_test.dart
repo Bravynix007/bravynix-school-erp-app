@@ -4,6 +4,7 @@ import 'package:bravynix_school_erp/core/widgets/app_segmented_control.dart';
 import 'package:bravynix_school_erp/core/widgets/attendance_status_selector.dart';
 import 'package:bravynix_school_erp/core/widgets/choice_chip_group.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -17,6 +18,10 @@ const _labels = <AttendanceMark, AttendanceMarkLabel>{
   AttendanceMark.halfDay: AttendanceMarkLabel(short: 'HD', full: 'Half day'),
   AttendanceMark.leave: AttendanceMarkLabel(short: 'LV', full: 'On leave'),
 };
+
+String _same(String value) => value;
+
+void _ignore(String _) {}
 
 void main() {
   testWidgets('ChoiceChipGroup marks the chosen chip and reports a tap', (tester) async {
@@ -32,15 +37,65 @@ void main() {
         ),
       ),
     );
-    expect(tester.widget<ChoiceChip>(find.widgetWithText(ChoiceChip, 'Term 1')).selected, isTrue);
-    expect(tester.widget<ChoiceChip>(find.widgetWithText(ChoiceChip, 'Term 2')).selected, isFalse);
+    expect(find.byIcon(Icons.check), findsOneWidget, reason: 'only the chosen chip has a tick');
     expect(
-      tester.getSemantics(find.widgetWithText(ChoiceChip, 'Term 1')),
-      isSemantics(label: 'Term 1', isSelected: true, isInMutuallyExclusiveGroup: true),
+      tester.getSemantics(find.text('Term 1')),
+      isSemantics(label: 'Term 1', isSelected: true, isInMutuallyExclusiveGroup: true, isButton: true),
+    );
+    expect(
+      tester.getSemantics(find.text('Term 2')),
+      isSemantics(label: 'Term 2', isSelected: false, isInMutuallyExclusiveGroup: true, isButton: true),
     );
     await tester.tap(find.text('Term 2'));
     expect(picked, 'Term 2');
     handle.dispose();
+  });
+
+  testWidgets('a chip grows to show every line of a wrapped label at 300% text', (tester) async {
+    await tester.pumpAppScaled(
+      const Scaffold(
+        body: ChoiceChipGroup<String>(
+          options: ['BravyNix Teal', 'Forest Green'],
+          labelOf: _same,
+          selected: 'Forest Green',
+          onSelected: _ignore,
+        ),
+      ),
+      textScale: 3,
+    );
+    expect(tester.takeException(), isNull);
+    for (final label in ['BravyNix Teal', 'Forest Green']) {
+      final text = tester.renderObject<RenderParagraph>(find.text(label));
+      final needed = text.getDryLayout(BoxConstraints(maxWidth: text.size.width)).height;
+      expect(text.size.height, greaterThanOrEqualTo(needed - 0.5), reason: '"$label" is not cut off');
+      final chip = tester.getRect(find.ancestor(of: find.text(label), matching: find.byType(Material)).first);
+      expect(chip.height, greaterThanOrEqualTo(needed), reason: 'the chip is at least as tall as its label');
+    }
+  });
+
+  testWidgets('keyboard focus draws the 2 px ring around a chip', (tester) async {
+    FocusManager.instance.highlightStrategy = FocusHighlightStrategy.alwaysTraditional;
+    addTearDown(() => FocusManager.instance.highlightStrategy = FocusHighlightStrategy.automatic);
+    await tester.pumpApp(
+      const Scaffold(
+        body: ChoiceChipGroup<String>(
+          options: ['Term 1', 'Term 2'],
+          labelOf: _same,
+          selected: 'Term 1',
+          onSelected: _ignore,
+        ),
+      ),
+    );
+    await tester.sendKeyEvent(LogicalKeyboardKey.tab);
+    await tester.pump();
+    await tester.sendKeyEvent(LogicalKeyboardKey.tab);
+    await tester.pump();
+    final rings = tester
+        .widgetList<DecoratedBox>(find.byType(DecoratedBox))
+        .map((box) => box.decoration)
+        .whereType<BoxDecoration>()
+        .where((d) => d.border is Border && (d.border! as Border).top.color == AppColors.focusRing);
+    expect(rings, hasLength(1), reason: 'one chip at a time');
   });
 
   group('AppSegmentedControl layout', () {
@@ -79,7 +134,7 @@ void main() {
       await pump(tester, const ['Day', 'Week', 'Month'], scale: 2);
       expect(tester.takeException(), isNull);
       expect(find.byType(SegmentedButton<String>), findsNothing);
-      expect(find.byType(ChoiceChip), findsNWidgets(3));
+      expect(find.byType(ChoiceChipGroup<String>), findsOneWidget);
       final month = tester.getRect(find.text('Month'));
       expect(month.height, lessThan(tester.textHeight('Month') + 1), reason: 'one line');
     });
