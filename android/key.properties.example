@@ -1,0 +1,8 @@
+# Copy to android/key.properties on the machine that builds store releases.
+# key.properties and the keystore are git-ignored: never commit either.
+# CI sets ANDROID_KEYSTORE_PATH, ANDROID_KEYSTORE_PASSWORD, ANDROID_KEY_ALIAS and
+# ANDROID_KEY_PASSWORD from its secrets instead.
+storeFile=/absolute/path/to/bravynix-release.jks
+storePassword=
+keyAlias=bravynix
+keyPassword=

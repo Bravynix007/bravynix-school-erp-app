@@ -1,0 +1,38 @@
+import 'package:bravynix_school_erp/features/auth/presentation/session/session_bloc.dart';
+import 'package:bravynix_school_erp/l10n/gen/app_localizations.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+
+/// Placeholder until the role-aware home (HOME-01) lands in build plan phase 8.
+class HomePage extends StatelessWidget {
+  const new({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final state = context.watch<SessionBloc>().state;
+    final name = state is SessionAuthenticated ? state.session.person.firstName : '';
+
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(l10n.homeTitle),
+        actions: [
+          IconButton(
+            key: const Key('home.logout'),
+            tooltip: l10n.logOut,
+            icon: const Icon(Icons.logout),
+            onPressed: () => context.read<SessionBloc>().add(const SessionLogoutRequested()),
+          ),
+        ],
+      ),
+      body: ListView(
+        padding: const EdgeInsets.all(16),
+        children: [
+          Text(l10n.homeWelcome(name), style: Theme.of(context).textTheme.titleLarge),
+          const SizedBox(height: 8),
+          Text(l10n.homeComingSoon, style: Theme.of(context).textTheme.bodyMedium),
+        ],
+      ),
+    );
+  }
+}

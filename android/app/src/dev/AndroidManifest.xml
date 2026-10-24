@@ -1,0 +1,5 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Dev only: the local API runs over plain HTTP on the host (10.0.2.2 from the emulator).
+         Staging and prod are HTTPS only (API design 5.1). -->
+    <application android:usesCleartextTraffic="true" />
+</manifest>
