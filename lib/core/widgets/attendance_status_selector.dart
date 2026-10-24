@@ -1,5 +1,6 @@
 import 'package:bravynix_school_erp/core/theme/app_colors.dart';
 import 'package:bravynix_school_erp/core/theme/app_spacing.dart';
+import 'package:bravynix_school_erp/core/widgets/text_measure.dart';
 import 'package:flutter/material.dart';
 
 /// The five marks a teacher can give a student for a day (PRD attendance).
@@ -45,15 +46,8 @@ class AttendanceStatusSelector extends StatelessWidget {
     // Measure the widest short label as it will be drawn (any script, any text
     // size) rather than guessing from the letter count.
     final style = Theme.of(context).textTheme.labelLarge;
-    final textScaler = MediaQuery.textScalerOf(context);
     final widest = labels.values.fold<double>(0, (widest, label) {
-      final painter = TextPainter(
-        text: TextSpan(text: label.short, style: style),
-        textDirection: Directionality.of(context),
-        textScaler: textScaler,
-      )..layout();
-      final width = painter.width;
-      painter.dispose();
+      final width = measureText(context, label.short, style);
       return width > widest ? width : widest;
     });
     return Semantics(
@@ -99,7 +93,7 @@ class AttendanceStatusSelector extends StatelessWidget {
   }
 }
 
-class _MarkButton extends StatelessWidget {
+class _MarkButton extends StatefulWidget {
   const new({required this.mark, required this.label, required this.selected, required this.onTap});
 
   final AttendanceMark mark;
@@ -108,24 +102,39 @@ class _MarkButton extends StatelessWidget {
   final VoidCallback onTap;
 
   @override
+  State<_MarkButton> createState() => _MarkButtonState();
+}
+
+class _MarkButtonState extends State<_MarkButton> {
+  bool _focused = false;
+
+  @override
   Widget build(BuildContext context) {
+    final selected = widget.selected;
     final foreground = selected ? Colors.white : AppColors.ink;
+    final showRing = _focused && FocusManager.instance.highlightMode == FocusHighlightMode.traditional;
+    final shape = RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadius.button));
     return Semantics(
       button: true,
       selected: selected,
       inMutuallyExclusiveGroup: true,
-      label: label.full,
-      onTap: onTap,
+      focusable: true,
+      focused: _focused,
+      label: widget.label.full,
+      onTap: widget.onTap,
       child: ExcludeSemantics(
         child: Material(
-          color: selected ? mark.colour : AppColors.surface,
+          color: selected ? widget.mark.colour : AppColors.surface,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(AppRadius.button),
-            side: BorderSide(color: selected ? mark.colour : AppColors.border),
+            side: showRing
+                ? const BorderSide(color: AppColors.focusRing, width: 2)
+                : BorderSide(color: selected ? widget.mark.colour : AppColors.border),
           ),
           child: InkWell(
-            onTap: onTap,
-            customBorder: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadius.button)),
+            onTap: widget.onTap,
+            customBorder: shape,
+            onFocusChange: (value) => setState(() => _focused = value),
             child: ConstrainedBox(
               constraints: const BoxConstraints(minHeight: AppSpacing.minTouchTarget),
               child: Center(
@@ -138,7 +147,7 @@ class _MarkButton extends StatelessWidget {
                       if (selected) ...[Icon(Icons.check, size: 16, color: foreground), const SizedBox(width: 2)],
                       Flexible(
                         child: Text(
-                          label.short,
+                          widget.label.short,
                           textAlign: TextAlign.center,
                           style: Theme.of(context).textTheme.labelLarge?.copyWith(color: foreground),
                         ),

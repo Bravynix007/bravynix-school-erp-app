@@ -19,6 +19,7 @@ change shows up in review. A screen never writes a colour, font size or text sty
 | `inkTertiary` | #616B74 | Hints (4.5:1 on every surface) |
 | `disabled` | #9AA3AA | Disabled text and icons |
 | `border` / `divider` | #E0DDD5 / #ECE9E2 | Card and button outlines / separators |
+| `focusRing` | #16222C (ink) | Keyboard and switch focus ring: 2 px on buttons, chips, fields, cards and list rows (`RingInkWell`). Shown only for keyboard/switch focus, not touch. |
 | `fieldBorder` | #80878D | Text field outline; 3.64 on white, 3.34 on canvas, 3.11 on sunken (WCAG 1.4.11). A disabled field keeps the light `divider` outline. |
 | `success`, `warning`, `error`, `info` | #1E7347, #9A5407, #B3261E, #2B5A94 | Status, each with a `...Bg` tint |
 | `present`, `absent`, `late`, `leave` | success, error, warning, info | Attendance marks |
@@ -81,7 +82,8 @@ switch reaches all of them, and every one is tested at large text. Text a person
 screen (it knows the language and the error code); the widgets hold no copy. A required field is flagged with the
 platform's required state and also takes `requiredLabel` (the word "Required" in the app's language) as its
 spoken hint, because VoiceOver has no required trait. At large text
-the widgets wrap or stack instead of shrinking the letters (attendance selector, person row).
+the widgets wrap or stack instead of shrinking the letters (attendance selector, person row, section header,
+`StatTileRow`; `AppSegmentedControl` falls back to `ChoiceChipGroup` when its labels do not fit).
 
 | Group | Widgets |
 | --- | --- |

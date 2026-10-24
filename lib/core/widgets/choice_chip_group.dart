@@ -28,7 +28,7 @@ class ChoiceChipGroup<T> extends StatelessWidget {
             child: Semantics(
               inMutuallyExclusiveGroup: true,
               child: ChoiceChip(
-                label: Text(labelOf(option)),
+                label: Text(labelOf(option), softWrap: true, maxLines: 3),
                 selected: option == selected,
                 showCheckmark: true,
                 onSelected: (_) => onSelected(option),

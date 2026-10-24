@@ -1,6 +1,7 @@
 import 'package:bravynix_school_erp/core/theme/app_colors.dart';
 import 'package:bravynix_school_erp/core/theme/app_spacing.dart';
 import 'package:bravynix_school_erp/core/widgets/app_avatar.dart';
+import 'package:bravynix_school_erp/core/widgets/ring_ink_well.dart';
 import 'package:flutter/material.dart';
 
 /// A row for a student, teacher or parent: avatar, name, one line of detail,
@@ -19,10 +20,10 @@ class PersonListTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final text = Theme.of(context).textTheme;
-    final stacked = MediaQuery.textScalerOf(context).scale(14) / 14 > 1.3;
+    final stacked = MediaQuery.textScalerOf(context).scale(14) / 14 >= 1.3;
     return Semantics(
       button: onTap != null,
-      child: InkWell(
+      child: RingInkWell(
         onTap: onTap,
         child: ConstrainedBox(
           constraints: const BoxConstraints(minHeight: AppSizes.listTile),

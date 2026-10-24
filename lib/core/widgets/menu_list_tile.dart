@@ -1,5 +1,6 @@
 import 'package:bravynix_school_erp/core/theme/app_colors.dart';
 import 'package:bravynix_school_erp/core/theme/app_spacing.dart';
+import 'package:bravynix_school_erp/core/widgets/ring_ink_well.dart';
 import 'package:flutter/material.dart';
 
 /// A row in a menu or settings list: icon, title, optional detail, chevron.
@@ -28,7 +29,7 @@ class MenuListTile extends StatelessWidget {
     final colour = destructive ? AppColors.error : AppColors.ink;
     return Semantics(
       button: onTap != null,
-      child: InkWell(
+      child: RingInkWell(
         onTap: onTap,
         child: ConstrainedBox(
           constraints: const BoxConstraints(minHeight: AppSizes.listTile),

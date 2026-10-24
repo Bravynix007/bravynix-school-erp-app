@@ -30,6 +30,7 @@ class AppSearchField extends StatelessWidget {
         style: Theme.of(context).textTheme.bodyMedium,
         decoration: InputDecoration(
           hintText: hint,
+          hintMaxLines: 3,
           prefixIcon: const Icon(Icons.search),
           suffixIcon: value.text.isEmpty
               ? null

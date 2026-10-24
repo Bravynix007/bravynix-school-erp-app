@@ -1,4 +1,5 @@
 import 'package:bravynix_school_erp/core/theme/app_spacing.dart';
+import 'package:bravynix_school_erp/core/widgets/ring_ink_well.dart';
 import 'package:flutter/material.dart';
 
 /// A white card with a hairline border and 16 px corners. With `onTap` the
@@ -19,7 +20,7 @@ class AppCard extends StatelessWidget {
           ? content
           : Semantics(
               button: true,
-              child: InkWell(onTap: onTap, child: content),
+              child: RingInkWell(onTap: onTap, child: content),
             ),
     );
   }

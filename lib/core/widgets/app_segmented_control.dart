@@ -1,8 +1,12 @@
+import 'package:bravynix_school_erp/core/widgets/choice_chip_group.dart';
+import 'package:bravynix_school_erp/core/widgets/text_measure.dart';
 import 'package:flutter/material.dart';
 
-/// Two to four exclusive options side by side (Day / Week / Month). At large
-/// text the tick on the chosen segment is dropped, so words are not broken to
-/// make room for it; the chosen segment is still filled.
+/// Two to four exclusive options side by side (Day / Week / Month). The labels
+/// are measured as drawn: if the tick fits, the chosen segment shows it; if
+/// only the words fit, the tick is dropped (the chosen segment is still
+/// filled); if the words do not fit side by side at the current text size, the
+/// options become wrapping chips instead of breaking words in half.
 class AppSegmentedControl<T> extends StatelessWidget {
   const new({
     required this.options,
@@ -17,15 +21,35 @@ class AppSegmentedControl<T> extends StatelessWidget {
   final T selected;
   final ValueChanged<T> onChanged;
 
+  /// Side padding of a segment, with a little to spare.
+  static const _padding = 28.0;
+
+  /// The tick and its gap.
+  static const _tick = 26.0;
+
   @override
   Widget build(BuildContext context) {
-    return SegmentedButton<T>(
-      segments: [
-        for (final option in options) ButtonSegment<T>(value: option, label: Text(labelOf(option))),
-      ],
-      selected: {selected},
-      showSelectedIcon: MediaQuery.textScalerOf(context).scale(14) / 14 <= 1.3,
-      onSelectionChanged: (values) => onChanged(values.first),
+    final style = Theme.of(context).textTheme.labelLarge;
+    final widest = options.fold<double>(0, (widest, option) {
+      final width = longestWordWidth(context, labelOf(option), style);
+      return width > widest ? width : widest;
+    });
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final fitsPlain = options.length * (widest + _padding) <= constraints.maxWidth;
+        final fitsTick = options.length * (widest + _padding + _tick) <= constraints.maxWidth;
+        if (!fitsPlain) {
+          return ChoiceChipGroup<T>(options: options, labelOf: labelOf, selected: selected, onSelected: onChanged);
+        }
+        return SegmentedButton<T>(
+          segments: [
+            for (final option in options) ButtonSegment<T>(value: option, label: Text(labelOf(option))),
+          ],
+          selected: {selected},
+          showSelectedIcon: fitsTick,
+          onSelectionChanged: (values) => onChanged(values.first),
+        );
+      },
     );
   }
 }

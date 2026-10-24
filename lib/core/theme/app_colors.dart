@@ -24,6 +24,11 @@ abstract final class AppColors {
   static const fieldBorder = Color(0xFF80878D);
   static const divider = Color(0xFFECE9E2);
 
+  /// The keyboard focus ring on buttons, chips, tiles and cards: 2 px, ink, so
+  /// it shows against every surface and every accent fill (fields use the
+  /// accent ring from the theme).
+  static const Color focusRing = ink;
+
   // Status: one value each, whatever the screen.
   static const success = Color(0xFF1E7347);
   static const successBg = Color(0xFFE6F2EA);

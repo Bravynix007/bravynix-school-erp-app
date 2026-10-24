@@ -146,6 +146,7 @@ InputDecoration fieldDecoration({
 }) {
   return InputDecoration(
     hintText: hint,
+    hintMaxLines: 3,
     helperText: helper,
     helperMaxLines: 3,
     errorText: error,

@@ -4,6 +4,14 @@ import 'package:bravynix_school_erp/features/gallery/presentation/component_gall
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+/// The gallery has a loading button whose spinner never stops, so
+/// pumpAndSettle would never return.
+Future<void> _settle(WidgetTester tester) async {
+  for (var i = 0; i < 10; i += 1) {
+    await tester.pump(const Duration(milliseconds: 100));
+  }
+}
+
 Future<void> _pump(WidgetTester tester, {double textScale = 1}) async {
   tester.view
     ..physicalSize = const Size(360, 740)
@@ -71,16 +79,16 @@ void main() {
     await _pump(tester);
     await tester.scrollUntilVisible(find.text('Open bottom sheet'), 400, scrollable: find.byType(Scrollable).first);
     await tester.tap(find.text('Open bottom sheet'));
-    await tester.pumpAndSettle();
+    await _settle(tester);
     expect(find.text('Add a note'), findsOneWidget);
     await tester.tap(find.text('Save'));
-    await tester.pumpAndSettle();
+    await _settle(tester);
     await tester.scrollUntilVisible(find.text('Open confirm dialog'), 400, scrollable: find.byType(Scrollable).first);
     await tester.tap(find.text('Open confirm dialog'));
-    await tester.pumpAndSettle();
+    await _settle(tester);
     expect(find.text('Delete this class?'), findsOneWidget);
     await tester.tap(find.text('Cancel'));
-    await tester.pumpAndSettle();
+    await _settle(tester);
     expect(tester.takeException(), isNull);
   });
 }

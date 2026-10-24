@@ -25,6 +25,7 @@ import 'package:bravynix_school_erp/core/widgets/stat_tile.dart';
 import 'package:bravynix_school_erp/core/widgets/state_panel.dart';
 import 'package:bravynix_school_erp/core/widgets/status_chip.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 
 /// Every shared widget on one page, with a switch for the seven accents. It is
 /// a developer and designer tool, reachable at `/gallery` in debug and profile
@@ -67,6 +68,9 @@ class _ComponentGalleryPageState extends State<ComponentGalleryPage> {
         builder: (context) => Scaffold(
           appBar: AppBar(title: const Text('Component gallery')),
           body: ListView(
+            // Build everything, so Tab can reach every control (a lazy list would
+            // leave the lower half without focus targets).
+            scrollCacheExtent: const ScrollCacheExtent.pixels(100000),
             padding: const EdgeInsets.all(AppSpacing.screenMargin),
             children: [
               const SectionHeader(title: 'Accent'),
@@ -158,20 +162,10 @@ class _ComponentGalleryPageState extends State<ComponentGalleryPage> {
               _gap,
               SectionHeader(title: 'Cards and lists', actionLabel: 'See all', onAction: () {}),
               const SizedBox(height: AppSpacing.xs),
-              const Row(
-                children: [
-                  Expanded(
-                    child: StatTile(
-                      label: 'Present today',
-                      value: '412',
-                      note: '96% of 429',
-                      icon: Icons.how_to_reg_outlined,
-                    ),
-                  ),
-                  SizedBox(width: AppSpacing.sm),
-                  Expanded(
-                    child: StatTile(label: 'Fees due', value: '₹1,24,500', note: '18 students'),
-                  ),
+              const StatTileRow(
+                tiles: [
+                  StatTile(label: 'Present today', value: '412', note: '96% of 429', icon: Icons.how_to_reg_outlined),
+                  StatTile(label: 'Fees due', value: '₹1,24,500', note: '18 students'),
                 ],
               ),
               const SizedBox(height: AppSpacing.sm),

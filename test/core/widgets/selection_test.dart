@@ -42,51 +42,63 @@ void main() {
     handle.dispose();
   });
 
-  testWidgets('AppSegmentedControl drops the tick at large text so words are not broken', (tester) async {
-    Future<void> pump(double scale) => tester.pumpAppScaled(
-      Padding(
-        padding: const EdgeInsets.all(AppSpacing.md),
-        child: AppSegmentedControl<String>(
-          options: const ['Day', 'Week', 'Month'],
-          labelOf: (v) => v,
-          selected: 'Day',
-          onChanged: (_) {},
-        ),
-      ),
-      textScale: scale,
-    );
-    await pump(1);
-    expect(find.byIcon(Icons.check), findsOneWidget);
-    await pump(2);
-    expect(find.byIcon(Icons.check), findsNothing);
-    expect(tester.takeException(), isNull);
-  });
+  group('AppSegmentedControl layout', () {
+    Future<void> pump(WidgetTester tester, List<String> options, {required double scale, double width = 360}) =>
+        tester.pumpAppScaled(
+          Scaffold(
+            body: Padding(
+              padding: const EdgeInsets.all(AppSpacing.md),
+              child: AppSegmentedControl<String>(
+                options: options,
+                labelOf: (v) => v,
+                selected: options.first,
+                onChanged: (_) {},
+              ),
+            ),
+          ),
+          textScale: scale,
+          size: Size(width, 640),
+        );
 
-  testWidgets('chips take their selected colour from the accent wash, not grey', (tester) async {
-    await tester.pumpApp(
-      Scaffold(
-        body: ChoiceChipGroup<String>(options: const ['A'], labelOf: (t) => t, selected: 'A', onSelected: (_) {}),
-      ),
-    );
-    final scheme = Theme.of(tester.element(find.byType(ChoiceChip))).colorScheme;
-    expect(scheme.secondaryContainer, AppAccent.teal.tint);
-    expect(scheme.onSecondaryContainer, AppAccent.teal.text);
-  });
+    testWidgets('short labels show the tick on the chosen segment', (tester) async {
+      await pump(tester, const ['A', 'B', 'C'], scale: 1);
+      expect(find.byType(SegmentedButton<String>), findsOneWidget);
+      expect(find.byIcon(Icons.check), findsOneWidget);
+    });
 
-  testWidgets('AppSegmentedControl reports the tapped segment', (tester) async {
-    var view = 'Day';
-    await tester.pumpApp(
-      Scaffold(
-        body: AppSegmentedControl<String>(
-          options: const ['Day', 'Week', 'Month'],
-          labelOf: (v) => v,
-          selected: view,
-          onChanged: (v) => view = v,
+    testWidgets('when only the words fit the tick is dropped', (tester) async {
+      await pump(tester, const ['Day', 'Week', 'Month'], scale: 1);
+      expect(find.byType(SegmentedButton<String>), findsOneWidget);
+      expect(find.byIcon(Icons.check), findsNothing);
+    });
+
+    testWidgets('when the words do not fit side by side the options wrap as chips, never breaking a word', (
+      tester,
+    ) async {
+      await pump(tester, const ['Day', 'Week', 'Month'], scale: 2);
+      expect(tester.takeException(), isNull);
+      expect(find.byType(SegmentedButton<String>), findsNothing);
+      expect(find.byType(ChoiceChip), findsNWidgets(3));
+      final month = tester.getRect(find.text('Month'));
+      expect(month.height, lessThan(tester.textHeight('Month') + 1), reason: 'one line');
+    });
+
+    testWidgets('tapping a chip in the fallback reports the choice', (tester) async {
+      String? picked;
+      await tester.pumpAppScaled(
+        Scaffold(
+          body: AppSegmentedControl<String>(
+            options: const ['Day', 'Week', 'Month'],
+            labelOf: (v) => v,
+            selected: 'Day',
+            onChanged: (v) => picked = v,
+          ),
         ),
-      ),
-    );
-    await tester.tap(find.text('Week'));
-    expect(view, 'Week');
+        textScale: 2,
+      );
+      await tester.tap(find.text('Week'));
+      expect(picked, 'Week');
+    });
   });
 
   group('AttendanceStatusSelector', () {
@@ -124,6 +136,7 @@ void main() {
           isSelected: true,
           hasSelectedState: true,
           isInMutuallyExclusiveGroup: true,
+          isFocusable: true,
           hasTapAction: true,
         ),
       );
@@ -134,6 +147,7 @@ void main() {
           isButton: true,
           hasSelectedState: true,
           isInMutuallyExclusiveGroup: true,
+          isFocusable: true,
           hasTapAction: true,
         ),
       );

@@ -88,7 +88,9 @@ class StatePanel extends StatelessWidget {
     final text = Theme.of(context).textTheme;
     return Center(
       child: SingleChildScrollView(
-        padding: const EdgeInsets.all(AppSpacing.xl),
+        padding: MediaQuery.textScalerOf(context).scale(14) / 14 > 1.3
+            ? const EdgeInsets.symmetric(vertical: AppSpacing.xs)
+            : const EdgeInsets.all(AppSpacing.xl),
         child: Semantics(
           container: true,
           liveRegion: announce,
