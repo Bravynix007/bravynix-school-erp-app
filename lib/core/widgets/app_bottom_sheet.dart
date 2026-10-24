@@ -15,37 +15,50 @@ Future<T?> showAppBottomSheet<T>({
     context: context,
     isScrollControlled: true,
     useSafeArea: true,
-    showDragHandle: true,
+    showDragHandle: isDismissible,
     isDismissible: isDismissible,
     enableDrag: isDismissible,
     backgroundColor: AppColors.surface,
-    shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(AppRadius.card))),
-    builder: (sheetContext) => Padding(
-      padding: EdgeInsets.only(bottom: MediaQuery.viewInsetsOf(sheetContext).bottom),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.screenMargin),
-            child: Semantics(
-              header: true,
-              child: Text(title, style: Theme.of(sheetContext).textTheme.headlineSmall),
-            ),
-          ),
-          const SizedBox(height: AppSpacing.sm),
-          Flexible(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.fromLTRB(
+    shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(AppRadius.sheet))),
+    builder: (sheetContext) => PopScope(
+      canPop: isDismissible,
+      child: Padding(
+        padding: EdgeInsets.only(bottom: MediaQuery.viewInsetsOf(sheetContext).bottom),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Padding(
+              padding: EdgeInsets.fromLTRB(
+                AppSpacing.screenMargin,
+                isDismissible ? 0 : AppSpacing.md,
                 AppSpacing.screenMargin,
                 0,
-                AppSpacing.screenMargin,
-                AppSpacing.screenMargin,
               ),
-              child: builder(sheetContext),
+              child: Semantics(
+                header: true,
+                child: Text(title, style: Theme.of(sheetContext).textTheme.headlineSmall),
+              ),
             ),
-          ),
-        ],
+            const SizedBox(height: AppSpacing.sm),
+            Flexible(
+              child: SingleChildScrollView(
+                // Clear of the home indicator or gesture bar; the keyboard, when
+                // open, already lifts the sheet above it.
+                padding: EdgeInsets.fromLTRB(
+                  AppSpacing.screenMargin,
+                  0,
+                  AppSpacing.screenMargin,
+                  AppSpacing.screenMargin +
+                      (MediaQuery.viewInsetsOf(sheetContext).bottom > 0
+                          ? 0
+                          : MediaQuery.paddingOf(sheetContext).bottom),
+                ),
+                child: builder(sheetContext),
+              ),
+            ),
+          ],
+        ),
       ),
     ),
   );

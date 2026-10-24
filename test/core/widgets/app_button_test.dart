@@ -45,6 +45,25 @@ void main() {
       expect(taps, 0);
     });
 
+    testWidgets('while loading it still has its name, and a disabled button stays disabled', (tester) async {
+      final handle = tester.ensureSemantics();
+      await tester.pumpApp(
+        Column(
+          children: [
+            AppButton(label: 'Save', loading: true, onPressed: () {}),
+            const AppButton(label: 'Send', loading: true, onPressed: null),
+          ],
+        ),
+      );
+      expect(find.bySemanticsLabel('Save'), findsOneWidget);
+      expect(
+        tester.getSemantics(find.bySemanticsLabel('Save')),
+        isSemantics(label: 'Save', isButton: true, hasTapAction: true),
+      );
+      expect(tester.widgetList<FilledButton>(find.byType(FilledButton)).last.onPressed, isNull);
+      handle.dispose();
+    });
+
     testWidgets('heights follow the sizes: 52, 44 and 36 px, with a 48 px hit area', (tester) async {
       for (final (size, height) in [
         (AppButtonSize.large, AppSizes.buttonLarge),
@@ -127,25 +146,24 @@ void main() {
     });
 
     testWidgets('a long label wraps at 200% text on a narrow phone instead of overflowing', (tester) async {
-      tester.view
-        ..physicalSize = const Size(320, 640)
-        ..devicePixelRatio = 1;
-      addTearDown(tester.view.reset);
-      await tester.pumpWidget(
-        MaterialApp(
-          theme: AppTheme.light(),
-          home: MediaQuery(
-            data: const MediaQueryData(size: Size(320, 640), textScaler: TextScaler.linear(2)),
-            child: Scaffold(
-              body: Padding(
-                padding: const EdgeInsets.all(16),
-                child: AppButton(label: 'Mark all students present', icon: Icons.check, onPressed: () {}),
-              ),
+      Future<(double, double)> measure(double scale) async {
+        await tester.pumpAppScaled(
+          Scaffold(
+            body: Padding(
+              padding: const EdgeInsets.all(16),
+              child: AppButton(label: 'Mark all students present', icon: Icons.check, onPressed: () {}),
             ),
           ),
-        ),
-      );
-      expect(tester.takeException(), isNull);
+          textScale: scale,
+        );
+        expect(tester.takeException(), isNull);
+        return (tester.textHeight('Mark all students present'), tester.getSize(find.byType(FilledButton)).height);
+      }
+
+      final (textAt1, _) = await measure(1);
+      final (textAt2, buttonAt2) = await measure(2);
+      expect(textAt2, greaterThan(textAt1 * 1.9), reason: 'text is really drawn at 200%, not shrunk');
+      expect(buttonAt2, greaterThan(AppSizes.buttonLarge), reason: 'the button grows to hold two lines');
     });
   });
 

@@ -5,6 +5,7 @@ import 'package:bravynix_school_erp/core/widgets/app_dropdown_field.dart';
 import 'package:bravynix_school_erp/core/widgets/app_search_field.dart';
 import 'package:bravynix_school_erp/core/widgets/app_text_field.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import '../../helpers/pump_app.dart';
@@ -23,17 +24,18 @@ void main() {
       expect(typed, 'Asha');
     });
 
-    testWidgets('a required field shows a red star that screen readers do not read, and says "required" once', (
-      tester,
-    ) async {
+    testWidgets('a required field shows a red star that screen readers skip, and is flagged required', (tester) async {
       final handle = tester.ensureSemantics();
       await tester.pumpApp(const Scaffold(body: AppTextField(label: 'Name', required: true)));
-      final star = tester.widget<Text>(
-        find.byWidgetPredicate((w) => w is Text && (w.textSpan?.toPlainText() ?? '').contains('Name')),
+      final label = tester.widget<Text>(
+        find.byWidgetPredicate((w) => w is Text && (w.textSpan?.toPlainText() ?? '') == 'Name *'),
       );
-      expect(star.textSpan!.toPlainText(), 'Name *');
-      expect(find.ancestor(of: find.byWidget(star), matching: find.byType(ExcludeSemantics)), findsOneWidget);
-      expect(find.bySemanticsLabel(RegExp('Name, required')), findsOneWidget);
+      expect(find.ancestor(of: find.byWidget(label), matching: find.byType(ExcludeSemantics)), findsOneWidget);
+      expect(
+        tester.getSemantics(find.byType(TextField)),
+        isSemantics(label: 'Name', isRequired: true, hasRequiredState: true),
+      );
+      expect(find.bySemanticsLabel(RegExp('required')), findsNothing);
       handle.dispose();
     });
 
@@ -60,7 +62,7 @@ void main() {
       expect(style?.fontFeatures, contains(const FontFeature.tabularFigures()));
     });
 
-    testWidgets('the outline is the darker field colour, and lighter when disabled', (tester) async {
+    testWidgets('a disabled field is marked disabled, and the theme gives it the lighter outline', (tester) async {
       await tester.pumpApp(
         const Scaffold(
           body: Column(
@@ -72,14 +74,20 @@ void main() {
         ),
       );
       final decorators = tester.widgetList<InputDecorator>(find.byType(InputDecorator)).toList();
-      final on =
-          decorators[0].decoration.enabledBorder ??
-          Theme.of(tester.element(find.byType(InputDecorator).first)).inputDecorationTheme.enabledBorder;
-      expect((on as OutlineInputBorder?)?.borderSide.color, AppColors.fieldBorder);
+      expect(decorators[0].decoration.enabled, isTrue);
+      expect(decorators[1].decoration.enabled, isFalse);
+      final theme = Theme.of(tester.element(find.byType(InputDecorator).first)).inputDecorationTheme;
+      expect(theme.enabledBorder?.borderSide.color, AppColors.fieldBorder);
+      expect(theme.disabledBorder?.borderSide.color, AppColors.divider);
     });
   });
 
   group('AppDropdownField', () {
+    const items = [
+      DropdownMenuItem(value: 'A', child: Text('Section A')),
+      DropdownMenuItem(value: 'B', child: Text('Section B')),
+    ];
+
     testWidgets('shows the chosen value and reports a new choice', (tester) async {
       String? value = 'A';
       await tester.pumpApp(
@@ -88,10 +96,7 @@ void main() {
             body: AppDropdownField<String>(
               label: 'Class',
               value: value,
-              items: const [
-                DropdownMenuItem(value: 'A', child: Text('Section A')),
-                DropdownMenuItem(value: 'B', child: Text('Section B')),
-              ],
+              items: items,
               onChanged: (v) => setState(() => value = v),
             ),
           ),
@@ -104,6 +109,46 @@ void main() {
       await tester.pumpAndSettle();
       expect(value, 'B');
       expect(find.text('Section B'), findsOneWidget);
+    });
+
+    testWidgets('follows a value changed by the screen', (tester) async {
+      Future<void> pump(String? value) => tester.pumpApp(
+        Scaffold(
+          body: AppDropdownField<String>(label: 'Class', value: value, items: items, onChanged: (_) {}),
+        ),
+      );
+      await pump('A');
+      expect(find.text('Section A'), findsOneWidget);
+      await pump('B');
+      expect(find.text('Section B'), findsOneWidget);
+    });
+
+    testWidgets('is as tall as a text field, and shows the error and the disabled state like one', (tester) async {
+      await tester.pumpApp(
+        Scaffold(
+          body: Column(
+            children: [
+              const AppTextField(key: Key('text'), label: 'Name'),
+              AppDropdownField<String>(key: const Key('drop'), label: 'Class', items: items, onChanged: (_) {}),
+              const AppDropdownField<String>(key: Key('off'), label: 'Class', items: items, onChanged: null),
+              AppDropdownField<String>(
+                key: const Key('err'),
+                label: 'Class',
+                items: items,
+                error: 'Pick a class',
+                onChanged: (_) {},
+              ),
+            ],
+          ),
+        ),
+      );
+      double fieldHeight(String key) =>
+          tester.getSize(find.descendant(of: find.byKey(Key(key)), matching: find.byType(InputDecorator))).height;
+      expect(fieldHeight('drop'), closeTo(fieldHeight('text'), 1));
+      expect(find.text('Pick a class'), findsOneWidget);
+      await tester.tap(find.byKey(const Key('off')), warnIfMissed: false);
+      await tester.pumpAndSettle();
+      expect(find.text('Section A'), findsNothing);
     });
   });
 
@@ -120,26 +165,75 @@ void main() {
       expect(taps, 1);
     });
 
-    testWidgets('speaks as a button with its label and value', (tester) async {
+    testWidgets('speaks as a button with its label and value, flagged required, with the error as the hint', (
+      tester,
+    ) async {
       final handle = tester.ensureSemantics();
       await tester.pumpApp(
         Scaffold(
-          body: AppDateField(label: 'Date of birth', valueText: '12 Mar 2013', required: true, onTap: () {}),
+          body: AppDateField(
+            label: 'Date of birth',
+            valueText: '12 Mar 2013',
+            required: true,
+            error: 'Pick a date before today',
+            onTap: () {},
+          ),
         ),
       );
       expect(
-        tester.getSemantics(find.bySemanticsLabel('Date of birth, required')),
+        tester.getSemantics(find.bySemanticsLabel('Date of birth')),
         matchesSemantics(
-          isButton: true,
-          isEnabled: true,
-          hasEnabledState: true,
-          label: 'Date of birth, required',
+          label: 'Date of birth',
           value: '12 Mar 2013',
-          hasTapAction: true,
+          hint: 'Pick a date before today',
+          isButton: true,
           isFocusable: true,
+          hasEnabledState: true,
+          isEnabled: true,
+          hasRequiredState: true,
+          isRequired: true,
+          hasTapAction: true,
         ),
       );
       handle.dispose();
+    });
+
+    testWidgets('a keyboard user can focus it, sees the accent focus border, and opens it with Enter', (tester) async {
+      var taps = 0;
+      await tester.pumpApp(
+        Scaffold(
+          body: AppDateField(label: 'Date', valueText: '12 Mar 2013', onTap: () => taps += 1),
+        ),
+      );
+      InputDecorator decorator() => tester.widget<InputDecorator>(find.byType(InputDecorator));
+      expect(decorator().isFocused, isFalse);
+      await tester.sendKeyEvent(LogicalKeyboardKey.tab);
+      await tester.pump();
+      expect(decorator().isFocused, isTrue);
+      await tester.sendKeyEvent(LogicalKeyboardKey.enter);
+      await tester.pump();
+      expect(taps, 1);
+    });
+
+    testWidgets('while pressed it shows a hover tint, and without onTap it is disabled', (tester) async {
+      await tester.pumpApp(
+        Scaffold(
+          body: AppDateField(label: 'Date', valueText: '12 Mar 2013', onTap: () {}),
+        ),
+      );
+      final gesture = await tester.startGesture(tester.getCenter(find.text('12 Mar 2013')));
+      await tester.pump();
+      expect(tester.widget<InputDecorator>(find.byType(InputDecorator)).isHovering, isTrue);
+      await gesture.up();
+      await tester.pump();
+      expect(tester.widget<InputDecorator>(find.byType(InputDecorator)).isHovering, isFalse);
+
+      await tester.pumpApp(
+        const Scaffold(
+          body: AppDateField(label: 'Date', valueText: '', onTap: null),
+        ),
+      );
+      expect(tester.widget<InputDecorator>(find.byType(InputDecorator)).decoration.enabled, isFalse);
     });
   });
 

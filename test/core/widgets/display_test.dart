@@ -151,39 +151,96 @@ void main() {
       expect(find.byIcon(Icons.chevron_right), findsOneWidget);
     });
 
-    testWidgets('rows stay readable at 200% text on a narrow phone', (tester) async {
-      tester.view
-        ..physicalSize = const Size(320, 640)
-        ..devicePixelRatio = 1;
-      addTearDown(tester.view.reset);
-      await tester.pumpWidget(
-        MaterialApp(
-          theme: AppTheme.light(),
-          home: MediaQuery(
-            data: const MediaQueryData(size: Size(320, 640), textScaler: TextScaler.linear(2)),
-            child: Scaffold(
-              body: ListView(
-                children: [
-                  const PersonListTile(
-                    name: 'Venkata Satya Prasad Rao',
-                    subtitle: 'Class 7-B · Roll 14',
-                    trailing: StatusChip(label: 'Overdue', tone: StatusTone.error),
-                  ),
-                  MenuListTile(
-                    icon: Icons.person,
-                    title: 'Profile and language',
-                    subtitle: 'Name, phone',
-                    onTap: () {},
-                  ),
-                  const StatTile(label: 'Fees due this term', value: '₹1,24,500', note: '18 students'),
-                  const AuditFooter(lines: ['Added by Asha Rao on 3 Mar 2026', 'Updated by Ravi Kumar on 9 Mar 2026']),
-                ],
-              ),
-            ),
+    testWidgets('a person row reads as one item, with the name once', (tester) async {
+      final handle = tester.ensureSemantics();
+      await tester.pumpApp(
+        Scaffold(
+          body: PersonListTile(
+            name: 'Asha Rao',
+            subtitle: 'Class 7-B',
+            trailing: const StatusChip(label: 'Paid', tone: StatusTone.success),
+            onTap: () {},
           ),
         ),
       );
+      expect(find.bySemanticsLabel(RegExp('Asha Rao')), findsOneWidget);
+      expect(
+        tester.getSemantics(find.bySemanticsLabel(RegExp('Asha Rao'))).label,
+        allOf(contains('Class 7-B'), contains('Paid')),
+      );
+      handle.dispose();
+    });
+
+    testWidgets('at 200% text a person row is drawn at 200%, keeps its name wide, and puts the chip under it', (
+      tester,
+    ) async {
+      Future<void> pump(double scale) => tester.pumpAppScaled(
+        Scaffold(
+          body: ListView(
+            children: const [
+              PersonListTile(
+                name: 'Venkata Satya Rao',
+                subtitle: 'Class 7-B · Roll 14',
+                trailing: StatusChip(label: 'Partly paid', tone: StatusTone.warning),
+              ),
+            ],
+          ),
+        ),
+        textScale: scale,
+      );
+      await pump(1);
+      final nameAt1 = tester.textHeight('Venkata Satya Rao');
+      final chip = tester.getRect(find.text('Partly paid'));
+      final name = tester.getRect(find.text('Venkata Satya Rao'));
+      expect(chip.top, lessThan(name.bottom), reason: 'beside the name at 1x');
+      expect(chip.left, greaterThan(name.left));
+      await pump(2);
       expect(tester.takeException(), isNull);
+      expect(tester.textHeight('Venkata Satya Rao'), greaterThanOrEqualTo(nameAt1 * 1.9));
+      expect(tester.getSize(find.text('Venkata Satya Rao')).width, greaterThan(120), reason: 'the name is not crushed');
+      expect(
+        tester.getTopLeft(find.text('Partly paid')).dy,
+        greaterThanOrEqualTo(tester.getBottomLeft(find.text('Class 7-B · Roll 14')).dy),
+        reason: 'under the detail line at 200%',
+      );
+    });
+
+    testWidgets('menu rows, stat tiles and footers lay out at 200% on a narrow phone', (tester) async {
+      await tester.pumpAppScaled(
+        Scaffold(
+          body: ListView(
+            children: [
+              MenuListTile(icon: Icons.person, title: 'Profile and language', subtitle: 'Name, phone', onTap: () {}),
+              const StatTile(label: 'Fees due this term', value: '₹1,24,500', note: '18 students'),
+              const AuditFooter(lines: ['Added by Asha Rao on 3 Mar 2026', 'Updated by Ravi Kumar on 9 Mar 2026']),
+            ],
+          ),
+        ),
+        textScale: 2,
+      );
+      expect(tester.takeException(), isNull);
+      expect(
+        tester.textHeight('₹1,24,500'),
+        greaterThan(40),
+        reason: 'headlineMedium 20 px at 200% is 28 px lines scaled',
+      );
+    });
+
+    testWidgets('tappable menu rows and cards speak as buttons', (tester) async {
+      final handle = tester.ensureSemantics();
+      await tester.pumpApp(
+        Scaffold(
+          body: Column(
+            children: [
+              MenuListTile(icon: Icons.person, title: 'Profile', onTap: () {}),
+              AppCard(onTap: () {}, child: const Text('Card')),
+            ],
+          ),
+        ),
+      );
+      expect(tester.getSemantics(find.bySemanticsLabel('Profile')).flagsCollection.isButton, isTrue);
+      expect(tester.getSemantics(find.bySemanticsLabel('Card')).flagsCollection.isButton, isTrue);
+      handle.dispose();
     });
   });
 

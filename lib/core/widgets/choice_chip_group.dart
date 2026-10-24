@@ -24,11 +24,16 @@ class ChoiceChipGroup<T> extends StatelessWidget {
       runSpacing: AppSpacing.xs,
       children: [
         for (final option in options)
-          ChoiceChip(
-            label: Text(labelOf(option)),
-            selected: option == selected,
-            showCheckmark: true,
-            onSelected: (_) => onSelected(option),
+          MergeSemantics(
+            child: Semantics(
+              inMutuallyExclusiveGroup: true,
+              child: ChoiceChip(
+                label: Text(labelOf(option)),
+                selected: option == selected,
+                showCheckmark: true,
+                onSelected: (_) => onSelected(option),
+              ),
+            ),
           ),
       ],
     );

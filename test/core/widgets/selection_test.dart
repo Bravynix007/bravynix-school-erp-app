@@ -20,6 +20,7 @@ const _labels = <AttendanceMark, AttendanceMarkLabel>{
 void main() {
   testWidgets('ChoiceChipGroup marks the chosen chip and reports a tap', (tester) async {
     String? picked;
+    final handle = tester.ensureSemantics();
     await tester.pumpApp(
       Scaffold(
         body: ChoiceChipGroup<String>(
@@ -32,8 +33,33 @@ void main() {
     );
     expect(tester.widget<ChoiceChip>(find.widgetWithText(ChoiceChip, 'Term 1')).selected, isTrue);
     expect(tester.widget<ChoiceChip>(find.widgetWithText(ChoiceChip, 'Term 2')).selected, isFalse);
+    expect(
+      tester.getSemantics(find.widgetWithText(ChoiceChip, 'Term 1')),
+      isSemantics(label: 'Term 1', isSelected: true, isInMutuallyExclusiveGroup: true),
+    );
     await tester.tap(find.text('Term 2'));
     expect(picked, 'Term 2');
+    handle.dispose();
+  });
+
+  testWidgets('AppSegmentedControl drops the tick at large text so words are not broken', (tester) async {
+    Future<void> pump(double scale) => tester.pumpAppScaled(
+      Padding(
+        padding: const EdgeInsets.all(AppSpacing.md),
+        child: AppSegmentedControl<String>(
+          options: const ['Day', 'Week', 'Month'],
+          labelOf: (v) => v,
+          selected: 'Day',
+          onChanged: (_) {},
+        ),
+      ),
+      textScale: scale,
+    );
+    await pump(1);
+    expect(find.byIcon(Icons.check), findsOneWidget);
+    await pump(2);
+    expect(find.byIcon(Icons.check), findsNothing);
+    expect(tester.takeException(), isNull);
   });
 
   testWidgets('chips take their selected colour from the accent wash, not grey', (tester) async {
@@ -92,11 +118,24 @@ void main() {
       expect(tester.getSize(find.ancestor(of: find.text('L'), matching: find.byType(InkWell))).height, 48);
       expect(
         tester.getSemantics(find.bySemanticsLabel('Late')),
-        matchesSemantics(label: 'Late', isButton: true, isSelected: true, hasSelectedState: true, hasTapAction: true),
+        matchesSemantics(
+          label: 'Late',
+          isButton: true,
+          isSelected: true,
+          hasSelectedState: true,
+          isInMutuallyExclusiveGroup: true,
+          hasTapAction: true,
+        ),
       );
       expect(
         tester.getSemantics(find.bySemanticsLabel('Present')),
-        matchesSemantics(label: 'Present', isButton: true, hasSelectedState: true, hasTapAction: true),
+        matchesSemantics(
+          label: 'Present',
+          isButton: true,
+          hasSelectedState: true,
+          isInMutuallyExclusiveGroup: true,
+          hasTapAction: true,
+        ),
       );
       handle.dispose();
     });
@@ -109,25 +148,44 @@ void main() {
       }
     });
 
-    testWidgets('fits five buttons on a 320 px phone at 200% text', (tester) async {
-      tester.view
-        ..physicalSize = const Size(320, 640)
-        ..devicePixelRatio = 1;
-      addTearDown(tester.view.reset);
-      await tester.pumpWidget(
-        MaterialApp(
-          home: MediaQuery(
-            data: const MediaQueryData(size: Size(320, 640), textScaler: TextScaler.linear(2)),
-            child: Scaffold(
-              body: Padding(
-                padding: const EdgeInsets.all(AppSpacing.md),
-                child: AttendanceStatusSelector(labels: _labels, selected: AttendanceMark.halfDay, onChanged: (_) {}),
-              ),
-            ),
-          ),
+    testWidgets('on a 360 px phone at normal text all five share one row', (tester) async {
+      await tester.pumpAppScaled(
+        Padding(
+          padding: const EdgeInsets.all(AppSpacing.md),
+          child: AttendanceStatusSelector(labels: _labels, selected: AttendanceMark.halfDay, onChanged: (_) {}),
         ),
+        size: const Size(360, 640),
       );
-      expect(tester.takeException(), isNull);
+      final tops = {
+        for (final s in ['P', 'A', 'L', 'HD', 'LV']) tester.getTopLeft(find.text(s)).dy,
+      };
+      expect(tops, hasLength(1));
+    });
+
+    testWidgets('at 200% text on a 320 px phone the letters are drawn at 200% and the buttons wrap', (tester) async {
+      Future<double> heightAt(double scale) async {
+        await tester.pumpAppScaled(
+          Padding(
+            padding: const EdgeInsets.all(AppSpacing.md),
+            child: AttendanceStatusSelector(labels: _labels, selected: AttendanceMark.halfDay, onChanged: (_) {}),
+          ),
+          textScale: scale,
+        );
+        expect(tester.takeException(), isNull);
+        return tester.textHeight('HD');
+      }
+
+      final normal = await heightAt(1);
+      final large = await heightAt(2);
+      expect(large, greaterThan(normal * 1.9), reason: 'not shrunk back down');
+      final tops = {
+        for (final s in ['P', 'A', 'L', 'HD', 'LV']) tester.getTopLeft(find.text(s)).dy,
+      };
+      expect(tops, hasLength(2), reason: 'two rows');
+      for (final s in ['P', 'A', 'L', 'HD', 'LV']) {
+        final button = find.ancestor(of: find.text(s), matching: find.byType(InkWell));
+        expect(tester.getRect(button).right, lessThanOrEqualTo(320 - AppSpacing.md + 0.5), reason: s);
+      }
     });
 
     test('white text on every chosen mark passes AA', () {

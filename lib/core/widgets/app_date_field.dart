@@ -4,8 +4,10 @@ import 'package:flutter/material.dart';
 
 /// A field that opens a date picker when tapped. The screen shows the picker
 /// and passes the formatted date back as `valueText`, so the widget has no
-/// date logic of its own.
-class AppDateField extends StatelessWidget {
+/// date logic of its own. It takes keyboard focus (Enter or Space opens the
+/// picker), shows the accent focus border, and dims while pressed. Screen
+/// readers hear the label, the date, and the helper or error as the hint.
+class AppDateField extends StatefulWidget {
   const new({
     required this.label,
     required this.valueText,
@@ -26,33 +28,59 @@ class AppDateField extends StatelessWidget {
   final bool required;
 
   @override
+  State<AppDateField> createState() => _AppDateFieldState();
+}
+
+class _AppDateFieldState extends State<AppDateField> {
+  bool _focused = false;
+  bool _pressed = false;
+
+  @override
   Widget build(BuildContext context) {
-    final style = Theme.of(context).textTheme.bodyMedium;
+    final enabled = widget.onTap != null;
+    final spokenHint = [
+      widget.error ?? widget.helper,
+      if (widget.valueText.isEmpty) widget.hint,
+    ].whereType<String>().join('. ');
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        FieldLabel(label: label, required: required),
+        FieldLabel(label: widget.label, required: widget.required),
         const SizedBox(height: AppSpacing.xxs),
         Semantics(
           button: true,
-          enabled: onTap != null,
-          focusable: onTap != null,
-          label: required ? '$label, required' : label,
-          value: valueText,
-          onTap: onTap,
+          enabled: enabled,
+          focusable: enabled,
+          focused: _focused,
+          isRequired: widget.required,
+          label: widget.label,
+          value: widget.valueText,
+          hint: spokenHint.isEmpty ? null : spokenHint,
+          onTap: widget.onTap,
           child: ExcludeSemantics(
-            child: InkWell(
-              onTap: onTap,
-              borderRadius: BorderRadius.circular(AppRadius.field),
-              child: InputDecorator(
-                isEmpty: valueText.isEmpty,
-                decoration: fieldDecoration(
-                  hint: hint,
-                  helper: helper,
-                  error: error,
-                  prefixIcon: Icons.calendar_today_outlined,
-                ).copyWith(enabled: onTap != null),
-                child: Text(valueText, style: style),
+            child: FocusableActionDetector(
+              enabled: enabled,
+              mouseCursor: enabled ? SystemMouseCursors.click : MouseCursor.defer,
+              onShowFocusHighlight: (value) => setState(() => _focused = value),
+              actions: {ActivateIntent: CallbackAction<ActivateIntent>(onInvoke: (_) => widget.onTap?.call())},
+              child: GestureDetector(
+                behavior: HitTestBehavior.opaque,
+                onTap: widget.onTap,
+                onTapDown: enabled ? (_) => setState(() => _pressed = true) : null,
+                onTapUp: (_) => setState(() => _pressed = false),
+                onTapCancel: () => setState(() => _pressed = false),
+                child: InputDecorator(
+                  isEmpty: widget.valueText.isEmpty,
+                  isFocused: _focused,
+                  isHovering: _pressed,
+                  decoration: fieldDecoration(
+                    hint: widget.hint,
+                    helper: widget.helper,
+                    error: widget.error,
+                    prefixIcon: Icons.calendar_today_outlined,
+                  ).copyWith(enabled: enabled),
+                  child: Text(widget.valueText, style: Theme.of(context).textTheme.bodyMedium),
+                ),
               ),
             ),
           ),

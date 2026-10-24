@@ -5,7 +5,9 @@ import 'package:flutter/material.dart';
 
 /// Asks the user to confirm. Resolves to true on confirm, false on cancel and
 /// null when dismissed. `destructive` makes the confirm button red, for
-/// deletes and anything that cannot be undone.
+/// deletes and anything that cannot be undone. An `icon` is drawn in a tinted
+/// circle above the title. The body scrolls, so a long translated message
+/// or large text is never clipped.
 Future<bool?> showConfirmDialog({
   required BuildContext context,
   required String title,
@@ -13,10 +15,13 @@ Future<bool?> showConfirmDialog({
   required String confirmLabel,
   required String cancelLabel,
   bool destructive = false,
+  IconData? icon,
 }) {
   return showDialog<bool>(
     context: context,
     builder: (dialogContext) => AlertDialog(
+      scrollable: true,
+      icon: icon == null ? null : _DialogIcon(icon: icon, destructive: destructive),
       backgroundColor: AppColors.surface,
       surfaceTintColor: Colors.transparent,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadius.card)),
@@ -39,4 +44,31 @@ Future<bool?> showConfirmDialog({
       ],
     ),
   );
+}
+
+class _DialogIcon extends StatelessWidget {
+  const new({required this.icon, required this.destructive});
+
+  final IconData icon;
+  final bool destructive;
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    return ExcludeSemantics(
+      child: Center(
+        heightFactor: 1,
+        child: DecoratedBox(
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            color: destructive ? AppColors.errorBg : scheme.primaryContainer,
+          ),
+          child: SizedBox.square(
+            dimension: 64,
+            child: Icon(icon, size: 28, color: destructive ? AppColors.error : scheme.onPrimaryContainer),
+          ),
+        ),
+      ),
+    );
+  }
 }

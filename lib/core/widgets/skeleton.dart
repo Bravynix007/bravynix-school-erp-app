@@ -24,7 +24,8 @@ class _SkeletonBoxState extends State<SkeletonBox> with SingleTickerProviderStat
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    if (MediaQuery.disableAnimationsOf(context)) {
+    final reduceMotion = View.of(context).platformDispatcher.accessibilityFeatures.reduceMotion;
+    if (MediaQuery.disableAnimationsOf(context) || reduceMotion) {
       _controller
         ..stop()
         ..value = 0;

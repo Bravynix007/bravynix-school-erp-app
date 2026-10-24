@@ -280,6 +280,7 @@ class _ComponentGalleryPageState extends State<ComponentGalleryPage> {
                   context: context,
                   title: 'Delete this class?',
                   message: 'Its students stay, but they will have no class.',
+                  icon: Icons.delete_outline,
                   confirmLabel: 'Delete',
                   cancelLabel: 'Cancel',
                   destructive: true,

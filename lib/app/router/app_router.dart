@@ -14,7 +14,9 @@ import 'package:go_router/go_router.dart';
 /// unit tested on its own. Screens are hidden by role for convenience only;
 /// the API checks every call (system design 13).
 String? sessionRedirect(SessionState session, String location) {
-  if (location == AppRoutes.updateRequired || location == AppRoutes.gallery) return null;
+  if (location == AppRoutes.updateRequired) return null;
+  // The gallery route exists only in non-release builds.
+  if (!kReleaseMode && location == AppRoutes.gallery) return null;
   return switch (session) {
     SessionUnknown() || SessionRestoreFailed() => location == AppRoutes.splash ? null : AppRoutes.splash,
     SessionUnauthenticated() => location == AppRoutes.login ? null : AppRoutes.login,

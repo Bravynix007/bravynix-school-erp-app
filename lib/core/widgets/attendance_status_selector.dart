@@ -26,6 +26,9 @@ class AttendanceMarkLabel {
 
 /// One tap to mark a student. The chosen mark fills with its colour and shows
 /// a tick; the letters stay on every button, so colour is never the only cue.
+/// Five buttons share one row while the letters fit. When they would not (a
+/// narrow phone, or large text) they wrap to rows of three at the full text
+/// size instead of shrinking the letters.
 class AttendanceStatusSelector extends StatelessWidget {
   const new({required this.labels, required this.selected, required this.onChanged, super.key})
     : assert(labels.length == 5, 'Give a label for every AttendanceMark');
@@ -34,22 +37,48 @@ class AttendanceStatusSelector extends StatelessWidget {
   final AttendanceMark? selected;
   final ValueChanged<AttendanceMark> onChanged;
 
+  /// Room a two-letter mark with its tick needs, per 1x of text size, plus the
+  /// tick, its gap and the side padding.
+  static const _widthPerScale = 28.0;
+  static const _fixedWidth = 28.0;
+
   @override
   Widget build(BuildContext context) {
-    return Row(
-      children: [
-        for (final mark in AttendanceMark.values) ...[
-          if (mark != AttendanceMark.present) const SizedBox(width: AppSpacing.xs),
-          Expanded(
-            child: _MarkButton(
-              mark: mark,
-              label: labels[mark]!,
-              selected: mark == selected,
-              onTap: () => onChanged(mark),
-            ),
-          ),
-        ],
-      ],
+    final scale = MediaQuery.textScalerOf(context).scale(14) / 14;
+    return Semantics(
+      container: true,
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          const gap = AppSpacing.xs;
+          const marks = AttendanceMark.values;
+          final rowCell = (constraints.maxWidth - gap * (marks.length - 1)) / marks.length;
+          Widget button(AttendanceMark mark) => _MarkButton(
+            mark: mark,
+            label: labels[mark]!,
+            selected: mark == selected,
+            onTap: () => onChanged(mark),
+          );
+
+          if (rowCell >= _widthPerScale * scale + _fixedWidth) {
+            return Row(
+              children: [
+                for (final mark in marks) ...[
+                  if (mark != marks.first) const SizedBox(width: gap),
+                  Expanded(child: button(mark)),
+                ],
+              ],
+            );
+          }
+          final wrapCell = (constraints.maxWidth - gap * 2) / 3;
+          return Wrap(
+            spacing: gap,
+            runSpacing: gap,
+            children: [
+              for (final mark in marks) SizedBox(width: wrapCell, child: button(mark)),
+            ],
+          );
+        },
+      ),
     );
   }
 }
@@ -68,6 +97,7 @@ class _MarkButton extends StatelessWidget {
     return Semantics(
       button: true,
       selected: selected,
+      inMutuallyExclusiveGroup: true,
       label: label.full,
       onTap: onTap,
       child: ExcludeSemantics(
@@ -84,17 +114,14 @@ class _MarkButton extends StatelessWidget {
               constraints: const BoxConstraints(minHeight: AppSpacing.minTouchTarget),
               child: Center(
                 heightFactor: 1,
-                child: FittedBox(
-                  fit: BoxFit.scaleDown,
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xxs),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        if (selected) ...[Icon(Icons.check, size: 16, color: foreground), const SizedBox(width: 2)],
-                        Text(label.short, style: Theme.of(context).textTheme.labelLarge?.copyWith(color: foreground)),
-                      ],
-                    ),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xxs, vertical: AppSpacing.xxs),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      if (selected) ...[Icon(Icons.check, size: 16, color: foreground), const SizedBox(width: 2)],
+                      Text(label.short, style: Theme.of(context).textTheme.labelLarge?.copyWith(color: foreground)),
+                    ],
                   ),
                 ),
               ),

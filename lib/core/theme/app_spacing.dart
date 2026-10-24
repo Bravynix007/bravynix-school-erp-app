@@ -21,6 +21,9 @@ abstract final class AppRadius {
   static const button = 12.0;
   static const field = 14.0;
   static const card = 16.0;
+
+  /// The top corners of a bottom sheet (Stitch prompt: 25 px).
+  static const sheet = 25.0;
   static const pillNav = 26.0;
   static const full = 999.0;
 }

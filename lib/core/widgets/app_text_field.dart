@@ -67,7 +67,8 @@ class AppTextField extends StatelessWidget {
         FieldLabel(label: label, required: required),
         const SizedBox(height: AppSpacing.xxs),
         Semantics(
-          label: required ? '$label, required' : label,
+          label: label,
+          isRequired: required,
           child: TextField(
             controller: controller,
             enabled: enabled,
@@ -97,8 +98,9 @@ class AppTextField extends StatelessWidget {
   }
 }
 
-/// The text above a field. The star is hidden from screen readers, which are
-/// told "required" by the field instead.
+/// The text above a field. The label and its star are hidden from screen
+/// readers: the field speaks its own label and a "required" state (spoken in
+/// the phone's language by the platform), so nothing is said twice.
 class FieldLabel extends StatelessWidget {
   const new({required this.label, this.required = false, super.key});
 

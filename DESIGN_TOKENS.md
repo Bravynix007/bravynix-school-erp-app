@@ -65,7 +65,7 @@ License; static files so the phone's Bold Text setting and bold spans pick the r
 ## Spacing, radius, size (`app_spacing.dart`, `app_shadows.dart`)
 
 - Spacing: 4, 8, 12, 16, 20, 24, 32. Screen margin 16. Touch targets at least 48.
-- Radius: 8 small, 12 buttons, 14 fields, 16 cards, 26 floating tab bar, full for pills.
+- Radius: 8 small, 12 buttons, 14 fields, 16 cards, 25 bottom sheet top corners, 26 floating tab bar, full for pills.
 - Heights: buttons 52 / 44 / 36, floating tab bar 64.
 - Shadows: `card`, `sheet`, `floatingNav`.
 
@@ -78,7 +78,9 @@ License; static files so the phone's Bold Text setting and bold spans pick the r
 
 Screens use these instead of building their own. Every one takes its colours from the theme, so the accent
 switch reaches all of them, and every one is tested at large text. Text a person reads is passed in by the
-screen (it knows the language and the error code); the widgets hold no copy.
+screen (it knows the language and the error code); the widgets hold no copy. Required fields are flagged to
+screen readers with the platform's own "required" state, so no English is spoken by a widget. At large text
+the widgets wrap or stack instead of shrinking the letters (attendance selector, person row).
 
 | Group | Widgets |
 | --- | --- |
@@ -88,7 +90,7 @@ screen (it knows the language and the error code); the widgets hold no copy.
 | Cards and lists | `AppCard`, `SectionHeader`, `StatTile`, `PersonListTile`, `MenuListTile`, `AuditFooter` |
 | Labels | `StatusChip` (five tones, each with an icon), `AppTag`, `AppAvatar` |
 | Messages and states | `InlineMessage` (error, warning, info), `StatePanel` (empty, error, offline, forbidden, conflict), `SkeletonBox`, `SkeletonList` |
-| Overlays | `showAppBottomSheet`, `showConfirmDialog` |
+| Overlays | `showAppBottomSheet` (drag handle only when dismissible; clear of the home indicator), `showConfirmDialog` (optional 64 px tinted icon; scrolls) |
 
 The component gallery (`/gallery`, debug and profile builds only) shows all of them with the accent switch.
 The shell pieces (top bar, module header, floating tab bar, FAB, sticky actions) come in App PR 3.

@@ -49,8 +49,12 @@ class AppButton extends StatelessWidget {
         ? Theme.of(context).textTheme.labelMedium
         : Theme.of(context).textTheme.labelLarge;
     final padding = EdgeInsets.symmetric(horizontal: size == AppButtonSize.small ? AppSpacing.sm : AppSpacing.md);
-    final callback = loading ? () {} : onPressed;
-    final child = loading ? const _Spinner() : _Label(label: label, icon: icon);
+    // While loading a live button stays enabled (so it keeps its colour) but
+    // does nothing; a button that was disabled stays disabled.
+    final callback = loading && onPressed != null ? () {} : onPressed;
+    final child = loading
+        ? Semantics(label: label, excludeSemantics: true, child: const _Spinner())
+        : _Label(label: label, icon: icon);
 
     return switch (variant) {
       AppButtonVariant.primary => FilledButton(

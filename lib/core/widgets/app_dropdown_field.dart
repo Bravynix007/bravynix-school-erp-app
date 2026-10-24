@@ -2,8 +2,9 @@ import 'package:bravynix_school_erp/core/theme/app_spacing.dart';
 import 'package:bravynix_school_erp/core/widgets/app_text_field.dart';
 import 'package:flutter/material.dart';
 
-/// A single-choice dropdown that looks like [AppTextField]. Controlled: the
-/// caller holds the value.
+/// A single-choice dropdown that looks and behaves like [AppTextField]: same
+/// outline, accent focus border, disabled look and error line. Controlled:
+/// the caller holds the value.
 class AppDropdownField<T> extends StatelessWidget {
   const new({
     required this.label,
@@ -20,6 +21,8 @@ class AppDropdownField<T> extends StatelessWidget {
   final String label;
   final T? value;
   final List<DropdownMenuItem<T>> items;
+
+  /// Null disables the field.
   final ValueChanged<T?>? onChanged;
   final String? hint;
   final String? helper;
@@ -34,21 +37,20 @@ class AppDropdownField<T> extends StatelessWidget {
         FieldLabel(label: label, required: required),
         const SizedBox(height: AppSpacing.xxs),
         Semantics(
-          label: required ? '$label, required' : label,
-          child: InputDecorator(
-            isEmpty: value == null,
-            decoration: fieldDecoration(helper: helper, error: error),
-            child: DropdownButtonHideUnderline(
-              child: DropdownButton<T>(
-                value: value,
-                items: items,
-                onChanged: onChanged,
-                isExpanded: true,
-                hint: hint == null ? null : Text(hint!),
-                borderRadius: BorderRadius.circular(AppRadius.field),
-                style: Theme.of(context).textTheme.bodyMedium,
-                padding: EdgeInsets.zero,
-              ),
+          label: label,
+          isRequired: required,
+          child: DropdownButtonFormField<T>(
+            initialValue: value,
+            items: items,
+            onChanged: onChanged,
+            isExpanded: true,
+            hint: hint == null ? null : Text(hint!),
+            borderRadius: BorderRadius.circular(AppRadius.field),
+            style: Theme.of(context).textTheme.bodyMedium,
+            // The dropdown's arrow makes its content 4 px taller than text, so the
+            // padding is trimmed to keep the field level with a text field.
+            decoration: fieldDecoration(helper: helper, error: error).copyWith(
+              contentPadding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.xs),
             ),
           ),
         ),

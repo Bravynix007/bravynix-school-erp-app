@@ -14,6 +14,7 @@ class StatePanel extends StatelessWidget {
     this.actionLabel,
     this.onAction,
     this.iconColor = AppColors.inkSecondary,
+    this.announce = false,
     super.key,
   }) : assert((actionLabel == null) == (onAction == null), 'Give both actionLabel and onAction, or neither');
 
@@ -32,6 +33,7 @@ class StatePanel extends StatelessWidget {
         key: key,
         icon: Icons.error_outline,
         iconColor: AppColors.error,
+        announce: true,
         title: title,
         message: message,
         actionLabel: actionLabel,
@@ -42,6 +44,7 @@ class StatePanel extends StatelessWidget {
     : this(
         key: key,
         icon: Icons.wifi_off_outlined,
+        announce: true,
         title: title,
         message: message,
         actionLabel: actionLabel,
@@ -77,6 +80,9 @@ class StatePanel extends StatelessWidget {
   final String? actionLabel;
   final VoidCallback? onAction;
 
+  /// Read out when it appears (a failure the person did not ask to see).
+  final bool announce;
+
   @override
   Widget build(BuildContext context) {
     final text = Theme.of(context).textTheme;
@@ -85,6 +91,7 @@ class StatePanel extends StatelessWidget {
         padding: const EdgeInsets.all(AppSpacing.xl),
         child: Semantics(
           container: true,
+          liveRegion: announce,
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
