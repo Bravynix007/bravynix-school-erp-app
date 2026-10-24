@@ -99,3 +99,7 @@ move to `core/`.
   times 24 h in IST.
 - **No passwords anywhere.** Login is email plus a 6-digit code.
 - Comments cite the doc section they implement, e.g. "API design 6.2".
+- **Colours, text styles, spacing and radii come from `lib/core/theme/`** (see
+  `DESIGN_TOKENS.md`). A screen never writes a `Color(0x...)`, a `fontSize` or a `TextStyle(`;
+  a test fails the build if one appears outside the theme folder. The theme switch changes the
+  accent only: status and attendance colours never follow it.

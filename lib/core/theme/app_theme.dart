@@ -1,20 +1,25 @@
 import 'package:bravynix_school_erp/core/theme/app_colors.dart';
+import 'package:bravynix_school_erp/core/theme/app_spacing.dart';
+import 'package:bravynix_school_erp/core/theme/app_text_styles.dart';
 import 'package:flutter/material.dart';
 
-/// Material 3 theme from the BravyNix tokens. Spacing is on a 4 px grid;
-/// touch targets are at least 48 px.
+/// Material 3 theme from the "Warm Campus Harmony" tokens. The `accent` is the
+/// only thing the theme switch changes: primary buttons, accent text, tonal
+/// fills, the active tab and the focus ring. The accent header belongs to the
+/// module-header widget (App PR 3); the plain app bar here is white. Neutrals
+/// and status colours stay fixed.
 abstract final class AppTheme {
-  static const _radius = 8.0;
-
-  static ThemeData light() {
-    const scheme = ColorScheme(
+  static ThemeData light({AppAccent accent = AppAccent.defaultAccent}) {
+    final scheme = ColorScheme(
       brightness: Brightness.light,
-      primary: AppColors.primary,
-      onPrimary: Colors.white,
-      primaryContainer: AppColors.primaryTint,
-      onPrimaryContainer: AppColors.primaryPressed,
+      primary: accent.primary,
+      onPrimary: accent.onPrimary,
+      primaryContainer: accent.tint,
+      onPrimaryContainer: accent.pressed,
       secondary: AppColors.inkSecondary,
       onSecondary: Colors.white,
+      secondaryContainer: accent.tint,
+      onSecondaryContainer: accent.text,
       error: AppColors.error,
       onError: Colors.white,
       errorContainer: AppColors.errorBg,
@@ -30,69 +35,87 @@ abstract final class AppTheme {
       outlineVariant: AppColors.divider,
     );
 
-    final base = ThemeData(useMaterial3: true, colorScheme: scheme, scaffoldBackgroundColor: AppColors.canvas);
-    final text = base.textTheme.apply(bodyColor: AppColors.ink, displayColor: AppColors.ink);
-    final shape = RoundedRectangleBorder(borderRadius: BorderRadius.circular(_radius));
+    // apply() sets the colour on every body, title and label style, so it runs
+    // first and the caption colour is set after it.
+    final base = TextTheme(
+      displayMedium: AppTextStyles.display,
+      headlineLarge: AppTextStyles.headlineLg,
+      headlineMedium: AppTextStyles.headlineMd,
+      headlineSmall: AppTextStyles.headlineSm,
+      titleLarge: AppTextStyles.headlineSm,
+      titleMedium: AppTextStyles.labelLg,
+      titleSmall: AppTextStyles.labelMd,
+      bodyLarge: AppTextStyles.bodyLg,
+      bodyMedium: AppTextStyles.bodyMd,
+      bodySmall: AppTextStyles.bodySm,
+      labelLarge: AppTextStyles.labelLg,
+      labelMedium: AppTextStyles.labelMd,
+      labelSmall: AppTextStyles.labelSm,
+    ).apply(bodyColor: AppColors.ink, displayColor: AppColors.ink);
+    final textTheme = base.copyWith(bodySmall: base.bodySmall?.copyWith(color: AppColors.inkSecondary));
 
-    return base.copyWith(
-      textTheme: text.copyWith(
-        headlineSmall: text.headlineSmall?.copyWith(fontSize: 24, height: 32 / 24, fontWeight: FontWeight.w600),
-        titleLarge: text.titleLarge?.copyWith(fontSize: 18, height: 26 / 18, fontWeight: FontWeight.w600),
-        bodyLarge: text.bodyLarge?.copyWith(fontSize: 16, height: 24 / 16),
-        bodyMedium: text.bodyMedium?.copyWith(fontSize: 14, height: 22 / 14),
-        labelLarge: text.labelLarge?.copyWith(fontSize: 14, fontWeight: FontWeight.w500),
-        bodySmall: text.bodySmall?.copyWith(fontSize: 12, height: 16 / 12, color: AppColors.inkSecondary),
-      ),
-      appBarTheme: const AppBarTheme(
+    final buttonShape = RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadius.button));
+    OutlineInputBorder fieldBorder(Color color, {double width = 1}) => OutlineInputBorder(
+      borderRadius: BorderRadius.circular(AppRadius.field),
+      borderSide: BorderSide(color: color, width: width),
+    );
+
+    return ThemeData(
+      useMaterial3: true,
+      colorScheme: scheme,
+      scaffoldBackgroundColor: AppColors.canvas,
+      fontFamily: AppTextStyles.family,
+      textTheme: textTheme,
+      appBarTheme: AppBarTheme(
         backgroundColor: AppColors.surface,
         foregroundColor: AppColors.ink,
         elevation: 0,
         scrolledUnderElevation: 0.5,
         centerTitle: false,
+        titleTextStyle: textTheme.titleLarge,
       ),
       filledButtonTheme: FilledButtonThemeData(
         style: FilledButton.styleFrom(
-          minimumSize: const Size.fromHeight(48),
-          shape: shape,
+          minimumSize: const Size.fromHeight(AppSizes.buttonLarge),
+          shape: buttonShape,
+          textStyle: textTheme.labelLarge,
           disabledBackgroundColor: AppColors.sunken,
           disabledForegroundColor: AppColors.disabled,
         ),
       ),
       outlinedButtonTheme: OutlinedButtonThemeData(
         style: OutlinedButton.styleFrom(
-          minimumSize: const Size.fromHeight(48),
-          shape: shape,
+          minimumSize: const Size.fromHeight(AppSizes.buttonLarge),
+          shape: buttonShape,
+          textStyle: textTheme.labelLarge,
           side: const BorderSide(color: AppColors.border),
           foregroundColor: AppColors.ink,
         ),
       ),
       textButtonTheme: TextButtonThemeData(
-        style: TextButton.styleFrom(minimumSize: const Size(48, 48), foregroundColor: AppColors.primary),
+        style: TextButton.styleFrom(
+          minimumSize: const Size(AppSpacing.minTouchTarget, AppSpacing.minTouchTarget),
+          textStyle: textTheme.labelLarge,
+          foregroundColor: accent.text,
+        ),
       ),
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
         fillColor: AppColors.surface,
-        contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
-        border: OutlineInputBorder(borderRadius: BorderRadius.circular(_radius)),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(_radius),
-          borderSide: const BorderSide(color: AppColors.border),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(_radius),
-          borderSide: const BorderSide(color: AppColors.primary, width: 2),
-        ),
-        errorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(_radius),
-          borderSide: const BorderSide(color: AppColors.error),
-        ),
+        contentPadding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.sm + 2),
+        border: fieldBorder(AppColors.border),
+        enabledBorder: fieldBorder(AppColors.border),
+        disabledBorder: fieldBorder(AppColors.divider),
+        focusedBorder: fieldBorder(accent.primary, width: 2),
+        errorBorder: fieldBorder(AppColors.error),
+        focusedErrorBorder: fieldBorder(AppColors.error, width: 2),
       ),
       cardTheme: CardThemeData(
         color: AppColors.surface,
         elevation: 0,
         margin: EdgeInsets.zero,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(AppRadius.card),
           side: const BorderSide(color: AppColors.border),
         ),
       ),

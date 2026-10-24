@@ -23,7 +23,7 @@ class SplashPage extends StatelessWidget {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Text(l10n.appName, style: Theme.of(context).textTheme.headlineSmall),
+                Text(l10n.appName, style: Theme.of(context).textTheme.headlineLarge),
                 const SizedBox(height: 24),
                 if (state is SessionRestoreFailed) ...[
                   InlineMessage.error(loginErrorText(l10n, state.failure)),
