@@ -56,7 +56,8 @@ class AppSegmentedControl<T> extends StatelessWidget {
                   ? style?.copyWith(
                       decoration: TextDecoration.underline,
                       decorationColor: AppColors.focusRing,
-                      decorationThickness: 2,
+                      // A multiplier of the font's own underline (40/1000 em): 3.6 draws about 2 px at 14 px.
+                      decorationThickness: 3.6,
                     )
                   : null,
             ),
