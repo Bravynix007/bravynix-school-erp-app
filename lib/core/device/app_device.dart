@@ -1,6 +1,5 @@
-import 'dart:io' show Platform;
-
 import 'package:equatable/equatable.dart';
+import 'package:flutter/foundation.dart' show TargetPlatform, defaultTargetPlatform, kIsWeb;
 import 'package:package_info_plus/package_info_plus.dart';
 
 enum DevicePlatform {
@@ -22,10 +21,12 @@ class AppDevice extends Equatable {
 
   static Future<AppDevice> load() async {
     final info = await PackageInfo.fromPlatform();
+    // `dart:io` Platform throws in a browser. The API knows two platforms
+    // (API design 5.2), so a web run, for development only, counts as Android.
     return AppDevice(
-      platform: Platform.isIOS ? DevicePlatform.ios : DevicePlatform.android,
+      platform: defaultTargetPlatform == TargetPlatform.iOS ? DevicePlatform.ios : DevicePlatform.android,
       appVersion: info.version,
-      label: Platform.operatingSystem,
+      label: kIsWeb ? 'web' : defaultTargetPlatform.name,
     );
   }
 
