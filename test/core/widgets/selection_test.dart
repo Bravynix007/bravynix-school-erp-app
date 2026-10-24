@@ -73,6 +73,21 @@ void main() {
     }
   });
 
+  testWidgets('one-letter chips (sections, blood groups) are still 48 x 48 touch targets', (tester) async {
+    final handle = tester.ensureSemantics();
+    await tester.pumpApp(
+      const Scaffold(
+        body: ChoiceChipGroup<String>(options: ['A', 'B', 'O-'], labelOf: _same, selected: 'A', onSelected: _ignore),
+      ),
+    );
+    await expectLater(tester, meetsGuideline(androidTapTargetGuideline));
+    await expectLater(tester, meetsGuideline(iOSTapTargetGuideline));
+    final chip = tester.getSize(find.ancestor(of: find.text('B'), matching: find.byType(Material)).first);
+    expect(chip.width, greaterThanOrEqualTo(48));
+    expect(chip.height, greaterThanOrEqualTo(48));
+    handle.dispose();
+  });
+
   testWidgets('keyboard focus draws the 2 px ring around a chip', (tester) async {
     FocusManager.instance.highlightStrategy = FocusHighlightStrategy.alwaysTraditional;
     addTearDown(() => FocusManager.instance.highlightStrategy = FocusHighlightStrategy.automatic);
@@ -85,6 +100,13 @@ void main() {
           onSelected: _ignore,
         ),
       ),
+    );
+    expect(
+      tester
+          .widgetList<Material>(find.ancestor(of: find.text('Term 1'), matching: find.byType(Material)))
+          .where((m) => m.shape is RoundedRectangleBorder && m.borderOnForeground),
+      isEmpty,
+      reason: 'the chip hairline sits under the ring',
     );
     await tester.sendKeyEvent(LogicalKeyboardKey.tab);
     await tester.pump();

@@ -104,6 +104,8 @@ abstract final class AppTheme {
         ).copyWith(side: ringOr(null)),
       ),
       iconButtonTheme: IconButtonThemeData(style: ButtonStyle(side: ringOr(null))),
+      // Option pickers use ChoiceChipGroup (it draws its own chip). This keeps any other Material chip on the
+      // same outline and focus ring.
       chipTheme: ChipThemeData(
         side: WidgetStateBorderSide.resolveWith(
           (states) => states.contains(WidgetState.focused)

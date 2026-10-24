@@ -66,7 +66,7 @@ License; static files so the phone's Bold Text setting and bold spans pick the r
 ## Spacing, radius, size (`app_spacing.dart`, `app_shadows.dart`)
 
 - Spacing: 4, 8, 12, 16, 20, 24, 32. Screen margin 16. Touch targets at least 48.
-- Radius: 8 small, 12 buttons, 14 fields, 16 cards, 25 bottom sheet top corners, 26 floating tab bar, full for pills.
+- Radius: 8 small, 12 buttons, 14 fields, 16 cards, 24 option chips, 25 bottom sheet top corners, 26 floating tab bar, full for pills.
 - Heights: buttons 52 / 44 / 36, floating tab bar 64.
 - Shadows: `card`, `sheet`, `floatingNav`.
 
@@ -89,7 +89,7 @@ the widgets wrap or stack instead of shrinking the letters (attendance selector,
 | --- | --- |
 | Buttons | `AppButton` (primary, secondary, tonal, text, danger; large 52, medium 44, small 36; icon; loading), `AppIconButton` |
 | Fields | `AppTextField` (label above, required star, helper or error, mono), `AppDropdownField`, `AppDateField`, `AppSearchField` |
-| Choices | `ChoiceChipGroup`, `AppSegmentedControl`, `AttendanceStatusSelector` (P, A, L, HD, LV) |
+| Choices | `ChoiceChipGroup` (draws its own chip so a wrapped label is never cut off; option pickers use it, not Material's `ChoiceChip`), `AppSegmentedControl`, `AttendanceStatusSelector` (P, A, L, HD, LV) |
 | Cards and lists | `AppCard`, `SectionHeader`, `StatTile`, `PersonListTile`, `MenuListTile`, `AuditFooter` |
 | Labels | `StatusChip` (five tones, each with an icon), `AppTag`, `AppAvatar` |
 | Messages and states | `InlineMessage` (error, warning, info), `StatePanel` (empty, error, offline, forbidden, conflict), `SkeletonBox`, `SkeletonList` |

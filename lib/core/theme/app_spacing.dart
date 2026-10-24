@@ -22,6 +22,9 @@ abstract final class AppRadius {
   static const field = 14.0;
   static const card = 16.0;
 
+  /// Option chips (Stitch prompt: 24 px). Not `full`, so a chip with a wrapped label does not become a stadium.
+  static const chip = 24.0;
+
   /// The top corners of a bottom sheet (Stitch prompt: 25 px).
   static const sheet = 25.0;
   static const pillNav = 26.0;

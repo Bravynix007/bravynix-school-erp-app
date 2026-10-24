@@ -56,9 +56,11 @@ class _OptionChip extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
-    final shape = BorderRadius.circular(AppRadius.button);
+    final shape = BorderRadius.circular(AppRadius.chip);
     final foreground = selected ? scheme.onSecondaryContainer : scheme.onSurface;
     return Material(
+      // The hairline is painted under the focus ring, not over its outer pixel.
+      borderOnForeground: false,
       color: selected ? scheme.secondaryContainer : scheme.surface,
       shape: RoundedRectangleBorder(
         borderRadius: shape,
@@ -68,11 +70,12 @@ class _OptionChip extends StatelessWidget {
         onTap: onTap,
         borderRadius: shape,
         child: ConstrainedBox(
-          constraints: const BoxConstraints(minHeight: AppSpacing.minTouchTarget),
+          constraints: const BoxConstraints(minWidth: AppSpacing.minTouchTarget, minHeight: AppSpacing.minTouchTarget),
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm, vertical: AppSpacing.xs),
             child: Row(
               mainAxisSize: MainAxisSize.min,
+              mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 if (selected) ...[
                   Icon(Icons.check, size: 18, color: foreground),
@@ -81,8 +84,6 @@ class _OptionChip extends StatelessWidget {
                 Flexible(
                   child: Text(
                     label,
-                    softWrap: true,
-                    maxLines: 3,
                     style: theme.textTheme.labelLarge?.copyWith(color: foreground),
                   ),
                 ),
