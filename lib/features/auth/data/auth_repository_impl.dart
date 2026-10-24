@@ -37,15 +37,17 @@ class AuthRepositoryImpl implements AuthRepository {
 
   @override
   Future<AuthSession> verifyOtp({required String email, required String code}) async {
-    final data = await _api.data<Map<String, dynamic>>(
+    // Both parse inside the client, so a malformed answer is an ApiFailure and
+    // no tokens are stored for a session the app could not read.
+    final (tokens, session) = await _api.data(
       'auth/otp/verify',
       method: HttpMethod.post,
       anonymous: true,
       body: {'email': email.trim().toLowerCase(), 'code': code, 'clientType': _mobile, 'device': _device.toJson()},
-      parse: (data) => data! as Map<String, dynamic>,
+      parse: (data) => (AuthModels.tokens(data), AuthModels.session(data)),
     );
-    await _tokens.write(AuthModels.tokens(data));
-    return AuthModels.session(data);
+    await _tokens.write(tokens);
+    return session;
   }
 
   @override

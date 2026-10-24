@@ -7,10 +7,30 @@ import 'package:dio/dio.dart';
 /// Marks a request that must go without the access token (the OTP calls).
 const anonymousExtra = 'anonymous';
 
-/// Exchanges a refresh token for a new pair (AUTH-05). Returns null when the
-/// session cannot be continued.
+/// What a refresh came to. Only a 401 from the API ends the session; any
+/// other failure (offline, timeout, 5xx, 426) is thrown as a [DioException]
+/// and leaves the tokens alone (API design 8.2).
+sealed class RefreshResult {
+  const new();
+}
+
+class Refreshed extends RefreshResult {
+  const new(this.tokens);
+
+  final AuthTokens tokens;
+}
+
+/// The API refused the refresh token: the session is over, for [failure]'s reason.
+class RefreshRefused extends RefreshResult {
+  const new(this.failure);
+
+  final ApiFailure failure;
+}
+
+/// Exchanges a refresh token for a new pair (AUTH-05).
 abstract class TokenRefresher {
-  Future<AuthTokens?> refresh(String refreshToken);
+  /// Throws a [DioException] when the API could not answer.
+  Future<RefreshResult> refresh(String refreshToken);
 }
 
 class DioTokenRefresher implements TokenRefresher {
@@ -20,17 +40,28 @@ class DioTokenRefresher implements TokenRefresher {
   final Dio _dio;
 
   @override
-  Future<AuthTokens?> refresh(String refreshToken) async {
+  Future<RefreshResult> refresh(String refreshToken) async {
+    final Response<Object?> response;
     try {
-      final response = await _dio.post<Map<String, dynamic>>('auth/refresh', data: {'refreshToken': refreshToken});
-      final data = response.data?['data'];
-      if (data is! Map<String, dynamic>) return null;
-      final access = data['accessToken'] as String?;
-      final refresh = data['refreshToken'] as String?;
-      return access != null && refresh != null ? AuthTokens(accessToken: access, refreshToken: refresh) : null;
-    } on DioException {
-      return null;
+      response = await _dio.post<Object?>('auth/refresh', data: {'refreshToken': refreshToken});
+    } on DioException catch (error) {
+      final answer = error.response;
+      if (answer?.statusCode == 401) return RefreshRefused(ApiEnvelope.failureFrom(401, answer?.data));
+      rethrow;
     }
+    final body = response.data;
+    final data = body is Map<String, dynamic> ? body['data'] : null;
+    final access = data is Map<String, dynamic> ? data['accessToken'] : null;
+    final refresh = data is Map<String, dynamic> ? data['refreshToken'] : null;
+    if (access is String && refresh is String) {
+      return Refreshed(AuthTokens(accessToken: access, refreshToken: refresh));
+    }
+    throw DioException(
+      requestOptions: response.requestOptions,
+      response: response,
+      type: DioExceptionType.badResponse,
+      error: ApiFailure.unexpected(response.statusCode ?? 0),
+    );
   }
 }
 
@@ -40,7 +71,9 @@ class DioTokenRefresher implements TokenRefresher {
 /// It is a [QueuedInterceptor], so errors are handled one at a time and
 /// refreshes are serialised: a refresh token is single use and a second use
 /// ends the session (API design 10.3). A request that failed with an older
-/// token than the stored one is simply repeated with the new token.
+/// token than the stored one is simply repeated with the new token. Every
+/// path calls the handler exactly once, even when storage throws, because a
+/// handler left uncalled stalls the whole queue.
 class AuthInterceptor extends QueuedInterceptor {
   new({required this.storage, required this.refresher, required this.retryDio, required this.events});
 
@@ -55,56 +88,80 @@ class AuthInterceptor extends QueuedInterceptor {
 
   @override
   Future<void> onRequest(RequestOptions options, RequestInterceptorHandler handler) async {
-    if (options.extra[anonymousExtra] != true) {
-      final tokens = await storage.read();
-      if (tokens != null) {
-        options.headers['Authorization'] = 'Bearer ${tokens.accessToken}';
-        options.extra[_usedTokenExtra] = tokens.accessToken;
+    try {
+      if (options.extra[anonymousExtra] != true) {
+        final tokens = await storage.read();
+        if (tokens != null) {
+          options.headers['Authorization'] = 'Bearer ${tokens.accessToken}';
+          options.extra[_usedTokenExtra] = tokens.accessToken;
+        }
       }
+      handler.next(options);
+    } on Object catch (error, stackTrace) {
+      handler.reject(DioException(requestOptions: options, error: error, stackTrace: stackTrace));
     }
-    handler.next(options);
   }
 
   @override
   Future<void> onError(DioException err, ErrorInterceptorHandler handler) async {
+    try {
+      final response = await _recover(err);
+      if (response != null) return handler.resolve(response);
+      handler.next(err);
+    } on DioException catch (error) {
+      handler.next(error);
+    } on Object catch (error, stackTrace) {
+      handler.next(DioException(requestOptions: err.requestOptions, error: error, stackTrace: stackTrace));
+    }
+  }
+
+  /// The repeated call's response, or null to pass [err] on. Throws the
+  /// [DioException] to pass on instead.
+  Future<Response<dynamic>?> _recover(DioException err) async {
     final options = err.requestOptions;
     final response = err.response;
-    if (response?.statusCode != 401 || options.extra[anonymousExtra] == true) {
-      return handler.next(err);
-    }
+    if (response?.statusCode != 401 || options.extra[anonymousExtra] == true) return null;
 
     final failure = ApiEnvelope.failureFrom(401, response?.data);
     if (failure.code != 'TOKEN_EXPIRED') {
       await _endSession(failure);
-      return handler.next(err);
+      return null;
     }
 
     final current = await storage.read();
     if (current == null) {
       await _endSession(_expired(failure));
-      return handler.next(err);
+      return null;
     }
 
     var tokens = current;
     if (current.accessToken == options.extra[_usedTokenExtra]) {
-      final refreshed = await refresher.refresh(current.refreshToken);
-      if (refreshed == null) {
-        await _endSession(_expired(failure));
-        return handler.next(err);
+      // A network failure here is thrown on as it is: the tokens stay.
+      switch (await refresher.refresh(current.refreshToken)) {
+        case RefreshRefused(failure: final refused):
+          // Keep the server's reason: REFRESH_TOKEN_REUSED, blocked, logout_all.
+          await _endSession(refused);
+          throw DioException(
+            requestOptions: options,
+            response: response,
+            type: DioExceptionType.badResponse,
+            error: refused,
+          );
+        case Refreshed(tokens: final fresh):
+          await storage.write(fresh);
+          tokens = fresh;
       }
-      await storage.write(refreshed);
-      tokens = refreshed;
     }
 
+    options.headers['Authorization'] = 'Bearer ${tokens.accessToken}';
+    options.extra[_usedTokenExtra] = tokens.accessToken;
     try {
-      options.headers['Authorization'] = 'Bearer ${tokens.accessToken}';
-      options.extra[_usedTokenExtra] = tokens.accessToken;
-      handler.resolve(await retryDio.fetch<dynamic>(options));
+      return await retryDio.fetch<dynamic>(options);
     } on DioException catch (retryError) {
       if (retryError.response?.statusCode == 401) {
         await _endSession(ApiEnvelope.failureFrom(401, retryError.response?.data));
       }
-      handler.next(retryError);
+      rethrow;
     }
   }
 
@@ -117,7 +174,10 @@ class AuthInterceptor extends QueuedInterceptor {
   );
 
   Future<void> _endSession(ApiFailure failure) async {
-    await storage.clear();
-    events.emitSessionEnded(failure);
+    try {
+      await storage.clear();
+    } finally {
+      events.emitSessionEnded(failure);
+    }
   }
 }

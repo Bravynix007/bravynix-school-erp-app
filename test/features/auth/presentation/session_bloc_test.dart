@@ -85,6 +85,13 @@ void main() {
         ApiFailure(statusCode: 401, code: 'SESSION_ENDED', message: '', details: {'reason': reason});
     expect(SessionEndReason.from(withReason('expired')), SessionEndReason.expired);
     expect(SessionEndReason.from(withReason('logout_all')), SessionEndReason.signedOutElsewhere);
+    expect(SessionEndReason.from(withReason('token_reused')), SessionEndReason.signedOutElsewhere);
+    expect(SessionEndReason.from(withReason('admin_revoked')), SessionEndReason.adminRevoked);
+    expect(SessionEndReason.from(withReason('email_changed')), SessionEndReason.emailChanged);
     expect(SessionEndReason.from(withReason('something_new')), SessionEndReason.other);
+    expect(
+      SessionEndReason.from(const ApiFailure(statusCode: 401, code: 'REFRESH_TOKEN_REUSED', message: '')),
+      SessionEndReason.signedOutElsewhere,
+    );
   });
 }

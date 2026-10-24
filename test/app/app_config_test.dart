@@ -15,4 +15,47 @@ void main() {
   });
 
   test('unknown flavors are rejected', () => expect(() => Flavor.parse('qa'), throwsArgumentError));
+
+  group('resolve (review A8)', () {
+    test('a debug run without a config file uses the local API', () {
+      final config = AppConfig.resolve(flavor: '', apiBaseUrl: '', buildFlavor: null, release: false);
+      expect(config, const AppConfig(flavor: Flavor.dev, apiBaseUrl: AppConfig.localApiBaseUrl));
+    });
+
+    test('a release build without a config file refuses to start', () {
+      expect(
+        () => AppConfig.resolve(flavor: '', apiBaseUrl: '', buildFlavor: 'prod', release: true),
+        throwsStateError,
+      );
+    });
+
+    test('the config file must match the build flavor', () {
+      expect(
+        () => AppConfig.resolve(
+          flavor: 'dev',
+          apiBaseUrl: 'http://10.0.2.2:3000/v1',
+          buildFlavor: 'prod',
+          release: true,
+        ),
+        throwsStateError,
+      );
+    });
+
+    test('a matching prod config resolves', () {
+      final config = AppConfig.resolve(
+        flavor: 'prod',
+        apiBaseUrl: 'https://api.bravynix.in/v1',
+        buildFlavor: 'prod',
+        release: true,
+      );
+      expect(config.isProduction, isTrue);
+    });
+
+    test('half a config is refused', () {
+      expect(
+        () => AppConfig.resolve(flavor: 'staging', apiBaseUrl: '', buildFlavor: null, release: false),
+        throwsStateError,
+      );
+    });
+  });
 }

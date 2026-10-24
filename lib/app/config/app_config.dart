@@ -1,4 +1,6 @@
 import 'package:equatable/equatable.dart';
+import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
 
 /// The three build environments. Each is an Android product flavor with its
 /// own application id, so they install side by side.
@@ -18,10 +20,37 @@ enum Flavor {
 class AppConfig extends Equatable {
   const new({required this.flavor, required this.apiBaseUrl});
 
-  factory fromEnvironment() {
-    const flavor = String.fromEnvironment('APP_FLAVOR', defaultValue: 'dev');
-    const apiBaseUrl = String.fromEnvironment('API_BASE_URL', defaultValue: 'http://10.0.2.2:3000/v1');
-    return AppConfig(flavor: Flavor.parse(flavor), apiBaseUrl: apiBaseUrl)..validate();
+  factory fromEnvironment() => AppConfig.resolve(
+    flavor: const String.fromEnvironment('APP_FLAVOR'),
+    apiBaseUrl: const String.fromEnvironment('API_BASE_URL'),
+    buildFlavor: appFlavor,
+    release: kReleaseMode,
+  );
+
+  /// The local API, for a debug run started without a config file.
+  static const localApiBaseUrl = 'http://10.0.2.2:3000/v1';
+
+  /// Checks the compiled-in values. A release build must come with its config
+  /// file, and the file's `APP_FLAVOR` must match the `--flavor` it was built
+  /// with, so a prod build can never carry dev settings or plain HTTP.
+  static AppConfig resolve({
+    required String flavor,
+    required String apiBaseUrl,
+    required String? buildFlavor,
+    required bool release,
+  }) {
+    if (flavor.isEmpty && apiBaseUrl.isEmpty) {
+      if (release) throw StateError('A release build needs --dart-define-from-file=config/<flavor>.json');
+      return const AppConfig(flavor: Flavor.dev, apiBaseUrl: localApiBaseUrl)..validate();
+    }
+    if (flavor.isEmpty || apiBaseUrl.isEmpty) {
+      throw StateError('Set both APP_FLAVOR and API_BASE_URL (config/<flavor>.json)');
+    }
+    final config = AppConfig(flavor: Flavor.parse(flavor), apiBaseUrl: apiBaseUrl)..validate();
+    if (buildFlavor != null && buildFlavor.isNotEmpty && buildFlavor != config.flavor.name) {
+      throw StateError('APP_FLAVOR "$flavor" does not match the build flavor "$buildFlavor"');
+    }
+    return config;
   }
 
   final Flavor flavor;

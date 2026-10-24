@@ -74,6 +74,8 @@ class LoginView extends StatelessWidget {
     SessionEndReason.expired => l10n.sessionEndedExpired,
     SessionEndReason.blocked => l10n.sessionEndedBlocked,
     SessionEndReason.signedOutElsewhere => l10n.sessionEndedElsewhere,
+    SessionEndReason.adminRevoked => l10n.sessionEndedAdminRevoked,
+    SessionEndReason.emailChanged => l10n.sessionEndedEmailChanged,
     SessionEndReason.other => l10n.sessionEndedGeneric,
   };
 }

@@ -114,6 +114,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get sessionEndedElsewhere => 'You were signed out from another device.';
 
   @override
+  String get sessionEndedAdminRevoked =>
+      'Your Institution Admin access was removed. Sign in again to use your other roles.';
+
+  @override
+  String get sessionEndedEmailChanged => 'The email for this account was changed. Sign in with the new address.';
+
+  @override
   String get sessionEndedGeneric => 'Your session has ended. Sign in again.';
 
   @override

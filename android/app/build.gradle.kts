@@ -1,8 +1,24 @@
+import java.util.Properties
+
 plugins {
     id("com.android.application")
     // The Flutter Gradle Plugin must be applied after the Android and Kotlin Gradle plugins.
     id("dev.flutter.flutter-gradle-plugin")
 }
+
+// The release key comes from android/key.properties on a release machine, or from CI secrets
+// (ANDROID_KEYSTORE_PATH and friends). Neither is ever committed.
+val keyProperties =
+    Properties().apply {
+        val file = rootProject.file("key.properties")
+        if (file.exists()) file.inputStream().use { load(it) }
+    }
+
+fun signingValue(property: String, environment: String): String? =
+    keyProperties.getProperty(property) ?: System.getenv(environment)
+
+val releaseStoreFile = signingValue("storeFile", "ANDROID_KEYSTORE_PATH")
+val hasReleaseKey = releaseStoreFile != null
 
 android {
     namespace = "com.bravynix.schoolerp"
@@ -49,11 +65,33 @@ android {
         }
     }
 
+    signingConfigs {
+        if (hasReleaseKey) {
+            create("release") {
+                storeFile = file(releaseStoreFile!!)
+                storePassword = signingValue("storePassword", "ANDROID_KEYSTORE_PASSWORD")
+                keyAlias = signingValue("keyAlias", "ANDROID_KEY_ALIAS")
+                keyPassword = signingValue("keyPassword", "ANDROID_KEY_PASSWORD")
+            }
+        }
+    }
+
     buildTypes {
         release {
-            // Release signing comes from the CI keystore when store builds start (build plan phase 10).
-            // Until then release builds are signed with the debug key so `flutter run --release` works.
-            signingConfig = signingConfigs.getByName("debug")
+            // Without the release key, dev and staging release builds fall back to the debug key
+            // so `flutter run --release` works on a developer's phone. A prod release refuses
+            // (below): a store build signed with the debug key could never be updated.
+            signingConfig = signingConfigs.getByName(if (hasReleaseKey) "release" else "debug")
+        }
+    }
+}
+
+tasks.configureEach {
+    if (!hasReleaseKey && Regex("(assemble|bundle|package)ProdRelease").matches(name)) {
+        doFirst {
+            throw GradleException(
+                "A prod release needs the release key: android/key.properties or ANDROID_KEYSTORE_* in CI.",
+            )
         }
     }
 }

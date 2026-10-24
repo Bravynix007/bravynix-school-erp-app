@@ -271,6 +271,18 @@ abstract class AppLocalizations {
   /// **'You were signed out from another device.'**
   String get sessionEndedElsewhere;
 
+  /// No description provided for @sessionEndedAdminRevoked.
+  ///
+  /// In en, this message translates to:
+  /// **'Your Institution Admin access was removed. Sign in again to use your other roles.'**
+  String get sessionEndedAdminRevoked;
+
+  /// No description provided for @sessionEndedEmailChanged.
+  ///
+  /// In en, this message translates to:
+  /// **'The email for this account was changed. Sign in with the new address.'**
+  String get sessionEndedEmailChanged;
+
   /// No description provided for @sessionEndedGeneric.
   ///
   /// In en, this message translates to:

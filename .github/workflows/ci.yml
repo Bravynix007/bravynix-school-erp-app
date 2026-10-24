@@ -43,7 +43,7 @@ jobs:
           retention-days: 7
 
   android:
-    name: Android build (dev flavor)
+    name: Android builds (dev debug, staging release)
     runs-on: ubuntu-latest
     timeout-minutes: 30
     needs: checks
@@ -60,6 +60,8 @@ jobs:
           cache: true
       - run: flutter pub get
       - run: flutter build apk --debug --flavor dev --dart-define-from-file=config/dev.json
+      # A release build catches what debug hides, such as a permission only the debug manifest has.
+      - run: flutter build apk --release --flavor staging --dart-define-from-file=config/staging.json
 
   ios:
     name: iOS build (no signing)

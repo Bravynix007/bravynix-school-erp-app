@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:equatable/equatable.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
@@ -32,8 +34,10 @@ class SecureTokenStorage implements TokenStorage {
             iOptions: IOSOptions(accessibility: KeychainAccessibility.first_unlock_this_device),
           );
 
-  static const _accessKey = 'auth.access_token';
-  static const _refreshKey = 'auth.refresh_token';
+  /// Both tokens in one value, so a write is all or nothing: a kill between
+  /// two writes could otherwise keep a spent refresh token, whose next use
+  /// ends the session as REFRESH_TOKEN_REUSED (API design 6.3).
+  static const _key = 'auth.tokens';
 
   final FlutterSecureStorage _storage;
   AuthTokens? _cache;
@@ -42,27 +46,40 @@ class SecureTokenStorage implements TokenStorage {
   @override
   Future<AuthTokens?> read() async {
     if (_loaded) return _cache;
-    final access = await _storage.read(key: _accessKey);
-    final refresh = await _storage.read(key: _refreshKey);
-    _cache = access != null && refresh != null ? AuthTokens(accessToken: access, refreshToken: refresh) : null;
+    _cache = _decode(await _storage.read(key: _key));
     _loaded = true;
     return _cache;
   }
 
   @override
   Future<void> write(AuthTokens tokens) async {
+    await _storage.write(
+      key: _key,
+      value: jsonEncode({'accessToken': tokens.accessToken, 'refreshToken': tokens.refreshToken}),
+    );
+    // Only once the write has landed, so memory never runs ahead of storage.
     _cache = tokens;
     _loaded = true;
-    await _storage.write(key: _accessKey, value: tokens.accessToken);
-    await _storage.write(key: _refreshKey, value: tokens.refreshToken);
   }
 
   @override
   Future<void> clear() async {
+    await _storage.delete(key: _key);
     _cache = null;
     _loaded = true;
-    await _storage.delete(key: _accessKey);
-    await _storage.delete(key: _refreshKey);
+  }
+
+  static AuthTokens? _decode(String? value) {
+    if (value == null) return null;
+    try {
+      final json = jsonDecode(value);
+      if (json case {'accessToken': final String access, 'refreshToken': final String refresh}) {
+        return AuthTokens(accessToken: access, refreshToken: refresh);
+      }
+    } on FormatException {
+      // A damaged value is treated as no session.
+    }
+    return null;
   }
 }
 

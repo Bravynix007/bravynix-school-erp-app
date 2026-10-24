@@ -6,18 +6,28 @@ import 'package:bravynix_school_erp/features/auth/domain/auth_entities.dart';
 import 'package:bravynix_school_erp/features/auth/domain/auth_repository.dart';
 import 'package:equatable/equatable.dart';
 
-/// Why the app signed out on its own (API design 6.5).
+/// Why the app signed out on its own: the `reason` values of API design 6.4,
+/// and the refresh codes of 10.3.
 enum SessionEndReason {
   expired,
   blocked,
   signedOutElsewhere,
+  adminRevoked,
+  emailChanged,
   other;
 
   static SessionEndReason from(ApiFailure failure) => switch (failure.details['reason']) {
     'expired' => expired,
     'blocked' => blocked,
-    'logout_all' || 'revoked' || 'reuse' || 'email_changed' => signedOutElsewhere,
-    _ => failure.code == 'REFRESH_TOKEN_REUSED' ? signedOutElsewhere : other,
+    'logout' || 'logout_all' || 'token_reused' => signedOutElsewhere,
+    'admin_revoked' => adminRevoked,
+    'email_changed' => emailChanged,
+    _ => switch (failure.code) {
+      'TOKEN_EXPIRED' || 'REFRESH_TOKEN_INVALID' => expired,
+      'REFRESH_TOKEN_REUSED' => signedOutElsewhere,
+      'ACCOUNT_BLOCKED' => blocked,
+      _ => other,
+    },
   };
 }
 

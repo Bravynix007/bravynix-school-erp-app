@@ -2,6 +2,7 @@ import 'package:bravynix_school_erp/app/app.dart';
 import 'package:bravynix_school_erp/app/config/app_config.dart';
 import 'package:bravynix_school_erp/app/di/injection.dart';
 import 'package:bravynix_school_erp/core/device/app_device.dart';
+import 'package:bravynix_school_erp/core/storage/install_marker.dart';
 import 'package:bravynix_school_erp/core/storage/token_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -19,7 +20,13 @@ void main() {
     AuthTokens? tokens,
   }) async {
     final adapter = FakeHttpAdapter((options) => reply(options.path));
-    await configureDependencies(config, device: device, tokens: InMemoryTokenStorage(tokens), httpAdapter: adapter);
+    await configureDependencies(
+      config,
+      device: device,
+      tokens: InMemoryTokenStorage(tokens),
+      installMarker: InMemoryInstallMarker(started: true),
+      httpAdapter: adapter,
+    );
     await tester.pumpWidget(const App());
     await tester.pumpAndSettle();
     return adapter;

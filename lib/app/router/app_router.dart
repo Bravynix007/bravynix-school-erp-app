@@ -21,8 +21,9 @@ String? sessionRedirect(SessionState session, String location) {
   };
 }
 
-/// Re-runs the redirect whenever the session changes.
-class _StreamListenable extends ChangeNotifier {
+/// Re-runs the redirect whenever the session changes. GoRouter does not own
+/// its `refreshListenable`, so whoever creates this disposes it.
+class SessionChanges extends ChangeNotifier {
   new(Stream<Object?> stream) {
     _subscription = stream.listen((_) => notifyListeners());
   }
@@ -36,10 +37,10 @@ class _StreamListenable extends ChangeNotifier {
   }
 }
 
-GoRouter createRouter(SessionBloc session) {
+GoRouter createRouter(SessionBloc session, {required SessionChanges changes}) {
   return GoRouter(
     initialLocation: AppRoutes.splash,
-    refreshListenable: _StreamListenable(session.stream),
+    refreshListenable: changes,
     redirect: (context, state) => sessionRedirect(session.state, state.matchedLocation),
     routes: [
       GoRoute(path: AppRoutes.splash, builder: (_, _) => const SplashPage()),

@@ -21,7 +21,15 @@ flutter run --flavor dev --dart-define-from-file=config/dev.json
 | `prod`    | `com.bravynix.schoolerp`      | `https://api.bravynix.in/v1`          | `config/prod.json`    |
 
 The staging and production domains are placeholders until the domain is fixed at setup (API
-design 5.1). Config values are compiled into the app: nothing secret goes in `config/`.
+design 5.1). Config values are compiled into the app: nothing secret goes in `config/`. A debug
+run without a config file talks to the local API; a release build without one refuses to start,
+and so does one whose `APP_FLAVOR` differs from its `--flavor`.
+
+**Release signing.** Store builds are signed with the release key from `android/key.properties`
+(copy `android/key.properties.example`) or, in CI, the `ANDROID_KEYSTORE_PATH`,
+`ANDROID_KEYSTORE_PASSWORD`, `ANDROID_KEY_ALIAS` and `ANDROID_KEY_PASSWORD` secrets. Without a
+key, dev and staging release builds fall back to the debug key for testing on a phone, and a
+prod release build fails. Neither the key nor its properties are ever committed.
 
 On iOS, flavors need Xcode schemes, which are set up with the first iOS build on a Mac. Until
 then run iOS without `--flavor`: `flutter run --dart-define-from-file=config/dev.json`.
@@ -67,9 +75,11 @@ move to `core/`.
   call is authorised by the API (system design 13).
 - **All API calls go through `ApiClient`** in a repository. Blocs and widgets never see Dio.
   Failures are `ApiFailure`; branch on `failure.code`, never on `message` (API design 8).
-- **Tokens live in secure storage only** (Keychain / Keystore, never backed up). The auth
-  interceptor adds the access token, refreshes once on `TOKEN_EXPIRED` with refreshes
-  serialised (a refresh token is single use), and signs out on any other 401.
+- **Tokens live in secure storage only** (Keychain / Keystore, never backed up), both in one
+  value so a write is all or nothing. The first start of each install clears them, because the
+  iOS Keychain outlives an uninstall. The auth interceptor adds the access token, refreshes once
+  on `TOKEN_EXPIRED` with refreshes serialised (a refresh token is single use), and signs out on
+  any other 401. A refresh that fails without a 401 (offline, 5xx, 426) keeps the tokens.
 - **Every request carries `X-App-Version`, `X-App-Platform`, `X-Request-Id` and
   `Accept-Language`.** A 426 opens the "Update required" screen.
 - **State lives in blocs and cubits** with `Equatable` states; dependencies come through

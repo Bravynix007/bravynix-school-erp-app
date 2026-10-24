@@ -153,15 +153,23 @@ void main() {
       await pumpEventQueue();
 
       expect(await tokens.read(), isNull);
-      expect(ended.single.code, 'SESSION_ENDED');
-      expect(ended.single.details['reason'], 'expired');
+      // The server's own failure, not a generic "expired" (review A4).
+      expect(ended.single.code, 'REFRESH_TOKEN_REUSED');
     });
 
     test('SESSION_ENDED signs out locally with the reason', () async {
       await tokens.write(const AuthTokens(accessToken: 'a', refreshToken: 'r'));
       final ended = <ApiFailure>[];
       events.sessionEnded.listen(ended.add);
-      final adapter = FakeHttpAdapter((_) async => errorReply(401, 'SESSION_ENDED', extra: {'reason': 'blocked'}));
+      final adapter = FakeHttpAdapter(
+        (_) async => errorReply(
+          401,
+          'SESSION_ENDED',
+          extra: {
+            'data': {'reason': 'blocked'},
+          },
+        ),
+      );
 
       await expectLater(clientWith(adapter).data('me', parse: asMap), throwsA(isA<ApiFailure>()));
       await pumpEventQueue();
@@ -174,7 +182,13 @@ void main() {
       final updates = <ApiFailure>[];
       events.updateRequired.listen(updates.add);
       final adapter = FakeHttpAdapter(
-        (_) async => errorReply(426, 'APP_UPDATE_REQUIRED', extra: {'storeUrl': 'https://play.google.com/store'}),
+        (_) async => errorReply(
+          426,
+          'APP_UPDATE_REQUIRED',
+          extra: {
+            'data': {'storeUrl': 'https://play.google.com/store'},
+          },
+        ),
       );
 
       await expectLater(clientWith(adapter).data('me', parse: asMap), throwsA(isA<ApiFailure>()));

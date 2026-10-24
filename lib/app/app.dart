@@ -34,7 +34,8 @@ class AppView extends StatefulWidget {
 }
 
 class _AppViewState extends State<AppView> {
-  late final GoRouter _router = createRouter(context.read<SessionBloc>());
+  late final SessionChanges _sessionChanges = SessionChanges(context.read<SessionBloc>().stream);
+  late final GoRouter _router = createRouter(context.read<SessionBloc>(), changes: _sessionChanges);
   late final StreamSubscription<ApiFailure> _updates;
 
   @override
@@ -47,6 +48,7 @@ class _AppViewState extends State<AppView> {
   void dispose() {
     unawaited(_updates.cancel());
     _router.dispose();
+    _sessionChanges.dispose();
     super.dispose();
   }
 

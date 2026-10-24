@@ -32,8 +32,9 @@ class ApiClient {
     Duration? timeout,
     CancelToken? cancelToken,
   }) async {
+    Response<Object?>? response;
     try {
-      final response = await _dio.request<Object?>(
+      response = await _dio.request<Object?>(
         path,
         data: body,
         queryParameters: _query(query),
@@ -54,6 +55,12 @@ class ApiClient {
       final failure = _toFailure(error);
       if (failure.isUpdateRequired) _events.emitUpdateRequired(failure);
       throw failure;
+    } on ApiFailure {
+      rethrow;
+    } on Object {
+      // An answer that does not match its model (a cast or format error) is
+      // still an ApiFailure, so callers and the splash never hang on it.
+      throw ApiFailure.unexpected(response?.statusCode ?? 0, requestId: _requestId(response));
     }
   }
 

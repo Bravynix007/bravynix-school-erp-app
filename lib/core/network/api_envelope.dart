@@ -61,8 +61,6 @@ class ApiEnvelope<T> {
   final PageInfo? meta;
   final String requestId;
 
-  static const _envelopeKeys = {'success', 'statusCode', 'code', 'message', 'data', 'meta', 'errors', 'requestId'};
-
   static bool isEnvelope(Object? body) =>
       body is Map<String, dynamic> &&
       body.containsKey('success') &&
@@ -93,11 +91,8 @@ class ApiEnvelope<T> {
         for (final error in (map['errors'] as List<dynamic>? ?? const []))
           if (error is Map<String, dynamic>) FieldError.fromJson(error),
       ],
-      details: {
-        if (data is Map<String, dynamic>) ...data,
-        for (final entry in map.entries)
-          if (!_envelopeKeys.contains(entry.key)) entry.key: entry.value,
-      },
+      // Error details such as `attemptsLeft`, `reason` or `storeUrl` come in `data` (API design 8).
+      details: {if (data is Map<String, dynamic>) ...data},
       retryAfter: retryAfter,
     );
   }

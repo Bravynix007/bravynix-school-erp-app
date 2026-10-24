@@ -57,7 +57,7 @@ class ApiFailure extends Equatable implements Exception {
   final String? requestId;
   final List<FieldError> fieldErrors;
 
-  /// Error `data` such as `attemptsLeft`, and extra fields such as `reason` or `storeUrl`.
+  /// The error's `data`, such as `attemptsLeft`, `reason` or `storeUrl` (API design 8).
   final Map<String, dynamic> details;
   final Duration? retryAfter;
 
