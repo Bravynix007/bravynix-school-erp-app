@@ -27,7 +27,7 @@ Status and attendance colours are fixed. They never follow the accent.
 
 ## Accents (`AppAccent`)
 
-The only themed colour: header, primary buttons, the active tab and the focus ring. White text
+The only themed colour: primary buttons, accent text, tonal fills (selected chips, the attendance control, the nav indicator), the active tab and the focus ring. The accent header comes with the module-header widget. White text
 on each passes WCAG AA (4.5:1). `AppTheme.light(accent: ...)` takes it as a parameter.
 
 | Accent | Value |
@@ -40,12 +40,12 @@ on each passes WCAG AA (4.5:1). `AppTheme.light(accent: ...)` takes it as a para
 | Sunset Orange | #B15F1F |
 | Dark Cyan | #327F7F |
 
-`pressed` is the accent 20% darker; `tint` is a 12% wash of it over white.
+`pressed` is the accent 20% darker, and `text` (the same shade) is what accent-coloured text and icons use on light surfaces, since six of the seven accents are under 4.5:1 there; `tint` is a 12% wash of it over white.
 
 ## Text styles (`app_text_styles.dart`)
 
-Plus Jakarta Sans, bundled as a variable font (`assets/fonts/plus_jakarta_sans/`, SIL Open Font
-License). Colour comes from the theme, not the style. Sizes scale with the phone's font setting.
+Plus Jakarta Sans, bundled as static weights 400, 500, 600 and 700 (`assets/fonts/plus_jakarta_sans/`, SIL Open Font
+License; static files so the phone's Bold Text setting and bold spans pick the right file). Colour comes from the theme, not the style. Sizes scale with the phone's font setting.
 
 | Style | Size / line | Weight |
 | --- | --- | --- |

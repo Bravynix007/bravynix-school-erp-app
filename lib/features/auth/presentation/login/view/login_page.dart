@@ -46,7 +46,7 @@ class LoginView extends StatelessWidget {
                     Text(
                       l10n.appName,
                       textAlign: TextAlign.center,
-                      style: Theme.of(context).textTheme.headlineSmall,
+                      style: Theme.of(context).textTheme.headlineLarge,
                     ),
                     const SizedBox(height: 32),
                     if (endReason != null) ...[

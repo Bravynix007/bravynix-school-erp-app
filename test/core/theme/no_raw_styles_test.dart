@@ -7,7 +7,10 @@ import 'package:flutter_test/flutter_test.dart';
 /// change to a token reaches all of them.
 void main() {
   test('no raw colours or font sizes outside the theme folder', () {
-    final raw = RegExp(r'Color\(0x|(?<![A-Za-z])Colors\.(?!transparent|white|black)\w|fontSize:|TextStyle\(');
+    final raw = RegExp(
+      r'Color\(0[xX]|Color\.from(ARGB|RGBO)|(?<![A-Za-z])Colors\.(?!transparent|white|black\b)\w|CupertinoColors\.'
+      r'|Colors\.(black|white)(\d+|Accent)|fontSize:|letterSpacing:|(?<![A-Za-z_])TextStyle\(',
+    );
     final offenders = <String>[];
     for (final file in Directory('lib').listSync(recursive: true).whereType<File>()) {
       final path = file.path.replaceAll(r'\', '/');

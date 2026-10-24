@@ -63,6 +63,11 @@ enum AppAccent {
   /// The pressed state of [primary].
   Color get pressed => Color.lerp(primary, Colors.black, 0.2)!;
 
+  /// Accent-coloured text and icons on the light surfaces (canvas, white,
+  /// sunken, [tint]). Six of the seven [primary] values are under 4.5:1 there,
+  /// so text uses the darker [pressed] shade.
+  Color get text => pressed;
+
   /// A light wash of [primary] for selected rows and tonal buttons.
   Color get tint => Color.lerp(AppColors.surface, primary, 0.12)!;
 

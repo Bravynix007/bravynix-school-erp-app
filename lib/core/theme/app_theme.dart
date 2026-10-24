@@ -4,8 +4,10 @@ import 'package:bravynix_school_erp/core/theme/app_text_styles.dart';
 import 'package:flutter/material.dart';
 
 /// Material 3 theme from the "Warm Campus Harmony" tokens. The `accent` is the
-/// only thing the theme switch changes: header, primary buttons, the active
-/// tab and the focus ring. Neutrals and status colours stay fixed.
+/// only thing the theme switch changes: primary buttons, accent text, tonal
+/// fills, the active tab and the focus ring. The accent header belongs to the
+/// module-header widget (App PR 3); the plain app bar here is white. Neutrals
+/// and status colours stay fixed.
 abstract final class AppTheme {
   static ThemeData light({AppAccent accent = AppAccent.defaultAccent}) {
     final scheme = ColorScheme(
@@ -16,6 +18,8 @@ abstract final class AppTheme {
       onPrimaryContainer: accent.pressed,
       secondary: AppColors.inkSecondary,
       onSecondary: Colors.white,
+      secondaryContainer: accent.tint,
+      onSecondaryContainer: accent.text,
       error: AppColors.error,
       onError: Colors.white,
       errorContainer: AppColors.errorBg,
@@ -31,7 +35,9 @@ abstract final class AppTheme {
       outlineVariant: AppColors.divider,
     );
 
-    final textTheme = TextTheme(
+    // apply() sets the colour on every body, title and label style, so it runs
+    // first and the caption colour is set after it.
+    final base = TextTheme(
       displayMedium: AppTextStyles.display,
       headlineLarge: AppTextStyles.headlineLg,
       headlineMedium: AppTextStyles.headlineMd,
@@ -41,11 +47,12 @@ abstract final class AppTheme {
       titleSmall: AppTextStyles.labelMd,
       bodyLarge: AppTextStyles.bodyLg,
       bodyMedium: AppTextStyles.bodyMd,
-      bodySmall: AppTextStyles.bodySm.copyWith(color: AppColors.inkSecondary),
+      bodySmall: AppTextStyles.bodySm,
       labelLarge: AppTextStyles.labelLg,
       labelMedium: AppTextStyles.labelMd,
       labelSmall: AppTextStyles.labelSm,
     ).apply(bodyColor: AppColors.ink, displayColor: AppColors.ink);
+    final textTheme = base.copyWith(bodySmall: base.bodySmall?.copyWith(color: AppColors.inkSecondary));
 
     final buttonShape = RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadius.button));
     OutlineInputBorder fieldBorder(Color color, {double width = 1}) => OutlineInputBorder(
@@ -65,13 +72,13 @@ abstract final class AppTheme {
         elevation: 0,
         scrolledUnderElevation: 0.5,
         centerTitle: false,
-        titleTextStyle: AppTextStyles.headlineSm.copyWith(color: AppColors.ink),
+        titleTextStyle: textTheme.titleLarge,
       ),
       filledButtonTheme: FilledButtonThemeData(
         style: FilledButton.styleFrom(
           minimumSize: const Size.fromHeight(AppSizes.buttonLarge),
           shape: buttonShape,
-          textStyle: AppTextStyles.labelLg,
+          textStyle: textTheme.labelLarge,
           disabledBackgroundColor: AppColors.sunken,
           disabledForegroundColor: AppColors.disabled,
         ),
@@ -80,7 +87,7 @@ abstract final class AppTheme {
         style: OutlinedButton.styleFrom(
           minimumSize: const Size.fromHeight(AppSizes.buttonLarge),
           shape: buttonShape,
-          textStyle: AppTextStyles.labelLg,
+          textStyle: textTheme.labelLarge,
           side: const BorderSide(color: AppColors.border),
           foregroundColor: AppColors.ink,
         ),
@@ -88,8 +95,8 @@ abstract final class AppTheme {
       textButtonTheme: TextButtonThemeData(
         style: TextButton.styleFrom(
           minimumSize: const Size(AppSpacing.minTouchTarget, AppSpacing.minTouchTarget),
-          textStyle: AppTextStyles.labelLg,
-          foregroundColor: accent.primary,
+          textStyle: textTheme.labelLarge,
+          foregroundColor: accent.text,
         ),
       ),
       inputDecorationTheme: InputDecorationTheme(
@@ -98,6 +105,7 @@ abstract final class AppTheme {
         contentPadding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.sm + 2),
         border: fieldBorder(AppColors.border),
         enabledBorder: fieldBorder(AppColors.border),
+        disabledBorder: fieldBorder(AppColors.divider),
         focusedBorder: fieldBorder(accent.primary, width: 2),
         errorBorder: fieldBorder(AppColors.error),
         focusedErrorBorder: fieldBorder(AppColors.error, width: 2),

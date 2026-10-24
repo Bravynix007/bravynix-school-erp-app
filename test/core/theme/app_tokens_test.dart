@@ -34,6 +34,14 @@ void main() {
       );
     });
 
+    test('accent text and icons pass AA on canvas, white, sunken and the tint', () {
+      for (final accent in AppAccent.values) {
+        for (final bg in [AppColors.canvas, AppColors.surface, AppColors.sunken, accent.tint]) {
+          expect(contrast(accent.text, bg), greaterThanOrEqualTo(4.5), reason: '${accent.label} on $bg');
+        }
+      }
+    });
+
     test('keep white text on the accent at WCAG AA (4.5:1)', () {
       for (final accent in AppAccent.values) {
         expect(contrast(accent.primary, accent.onPrimary), greaterThanOrEqualTo(4.5), reason: accent.label);
@@ -106,10 +114,13 @@ void main() {
       }
     });
 
-    test('use Plus Jakarta Sans, with the weight set on the variable axis too', () {
+    test('use Plus Jakarta Sans by weight only, so a bolder weight can replace it', () {
       expect(AppTextStyles.headlineMd.fontFamily, 'PlusJakartaSans');
       expect(AppTextStyles.headlineMd.fontWeight, FontWeight.w600);
-      expect(AppTextStyles.headlineMd.fontVariations, [const FontVariation('wght', 600)]);
+      expect(AppTextStyles.headlineMd.fontVariations, isNull);
+      final bold = AppTextStyles.bodyMd.merge(const TextStyle(fontWeight: FontWeight.bold));
+      expect(bold.fontWeight, FontWeight.bold);
+      expect(bold.fontVariations, isNull);
     });
 
     test('carry no colour, so the theme decides', () {

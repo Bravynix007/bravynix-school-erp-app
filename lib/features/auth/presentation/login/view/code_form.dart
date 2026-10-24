@@ -78,8 +78,8 @@ class _CodeFormState extends State<CodeForm> {
               autofillHints: const [AutofillHints.oneTimeCode],
               inputFormatters: [FilteringTextInputFormatter.digitsOnly, LengthLimitingTextInputFormatter(6)],
               textAlign: TextAlign.center,
-              style: textTheme.headlineSmall?.copyWith(
-                letterSpacing: 12,
+              style: textTheme.headlineLarge?.copyWith(
+                letterSpacing: 12, // token-ok: spreads the six OTP digits
                 fontFeatures: const [FontFeature.tabularFigures()],
               ),
               decoration: InputDecoration(labelText: l10n.codeLabel, errorText: codeError),
