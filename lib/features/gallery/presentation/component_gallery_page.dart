@@ -107,7 +107,12 @@ class _ComponentGalleryPageState extends State<ComponentGalleryPage> {
               _gap,
               const SectionHeader(title: 'Fields'),
               const SizedBox(height: AppSpacing.xs),
-              const AppTextField(label: 'Student name', hint: 'As on the birth certificate', required: true),
+              const AppTextField(
+                label: 'Student name',
+                hint: 'As on the birth certificate',
+                required: true,
+                requiredLabel: 'Required',
+              ),
               const SizedBox(height: AppSpacing.sm),
               const AppTextField(label: 'Admission number', mono: true, helper: 'Printed on the fee receipt'),
               const SizedBox(height: AppSpacing.sm),
@@ -117,6 +122,7 @@ class _ComponentGalleryPageState extends State<ComponentGalleryPage> {
                 label: 'Class',
                 value: _class,
                 required: true,
+                requiredLabel: 'Required',
                 items: const [
                   DropdownMenuItem(value: '7-A', child: Text('7-A')),
                   DropdownMenuItem(value: '7-B', child: Text('7-B')),

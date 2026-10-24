@@ -15,15 +15,29 @@ class SkeletonBox extends StatefulWidget {
   State<SkeletonBox> createState() => _SkeletonBoxState();
 }
 
-class _SkeletonBoxState extends State<SkeletonBox> with SingleTickerProviderStateMixin {
+class _SkeletonBoxState extends State<SkeletonBox> with SingleTickerProviderStateMixin, WidgetsBindingObserver {
   late final AnimationController _controller = AnimationController(
     vsync: this,
     duration: const Duration(milliseconds: 900),
   );
 
   @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  /// The person turned "reduce motion" on or off while the screen is open.
+  @override
+  void didChangeAccessibilityFeatures() => _syncMotion();
+
+  @override
   void didChangeDependencies() {
     super.didChangeDependencies();
+    _syncMotion();
+  }
+
+  void _syncMotion() {
     final reduceMotion = View.of(context).platformDispatcher.accessibilityFeatures.reduceMotion;
     if (MediaQuery.disableAnimationsOf(context) || reduceMotion) {
       _controller
@@ -36,6 +50,7 @@ class _SkeletonBoxState extends State<SkeletonBox> with SingleTickerProviderStat
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _controller.dispose();
     super.dispose();
   }

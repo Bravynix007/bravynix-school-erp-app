@@ -317,6 +317,22 @@ void main() {
       await tester.pumpAndSettle();
     });
 
+    testWidgets('stops when reduce motion is switched on while the screen is open', (tester) async {
+      await tester.pumpApp(const Scaffold(body: SkeletonBox(width: 100)));
+      final box = find.descendant(of: find.byType(SkeletonBox), matching: find.byType(DecoratedBox));
+      Color? colour() => (tester.widget<DecoratedBox>(box).decoration as BoxDecoration).color;
+      await tester.pump(const Duration(milliseconds: 450));
+      final moving = colour();
+      tester.platformDispatcher.accessibilityFeaturesTestValue = const FakeAccessibilityFeatures(reduceMotion: true);
+      addTearDown(tester.platformDispatcher.clearAccessibilityFeaturesTestValue);
+      await tester.pump();
+      final stopped = colour();
+      await tester.pump(const Duration(milliseconds: 450));
+      expect(colour(), stopped);
+      expect(stopped, isNot(moving));
+      await tester.pumpAndSettle();
+    });
+
     testWidgets('SkeletonList speaks one label for the whole list', (tester) async {
       final handle = tester.ensureSemantics();
       await tester.pumpApp(const Scaffold(body: SkeletonList(semanticLabel: 'Loading students')));

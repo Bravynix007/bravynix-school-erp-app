@@ -15,6 +15,7 @@ class AppTextField extends StatelessWidget {
     this.helper,
     this.error,
     this.required = false,
+    this.requiredLabel,
     this.mono = false,
     this.enabled = true,
     this.readOnly = false,
@@ -41,6 +42,11 @@ class AppTextField extends StatelessWidget {
   /// Shown under the field in red, with an icon, and replaces the helper.
   final String? error;
   final bool required;
+
+  /// The word "Required" in the app's language, spoken as a hint. VoiceOver
+  /// has no required trait and older TalkBack ignores it, so the spoken word
+  /// is passed in by the screen like every other string.
+  final String? requiredLabel;
   final bool mono;
   final bool enabled;
   final bool readOnly;
@@ -59,6 +65,7 @@ class AppTextField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    assert(!required || requiredLabel != null, 'A required field needs requiredLabel (the spoken word "Required")');
     final theme = Theme.of(context);
     final style = mono ? theme.textTheme.bodyMedium?.merge(AppTextStyles.code) : theme.textTheme.bodyMedium;
     return Column(
@@ -69,6 +76,7 @@ class AppTextField extends StatelessWidget {
         Semantics(
           label: label,
           isRequired: required,
+          hint: required ? requiredLabel : null,
           child: TextField(
             controller: controller,
             enabled: enabled,
@@ -99,8 +107,8 @@ class AppTextField extends StatelessWidget {
 }
 
 /// The text above a field. The label and its star are hidden from screen
-/// readers: the field speaks its own label and a "required" state (spoken in
-/// the phone's language by the platform), so nothing is said twice.
+/// readers: the field speaks its own label, the platform's required state
+/// and the `requiredLabel` hint, so nothing is said twice.
 class FieldLabel extends StatelessWidget {
   const new({required this.label, this.required = false, super.key});
 

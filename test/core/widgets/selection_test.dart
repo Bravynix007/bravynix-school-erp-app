@@ -188,6 +188,26 @@ void main() {
       }
     });
 
+    testWidgets('long labels in other scripts are measured, so they wrap instead of overflowing', (tester) async {
+      const hindi = <AttendanceMark, AttendanceMarkLabel>{
+        AttendanceMark.present: AttendanceMarkLabel(short: 'उपस्थित', full: 'उपस्थित'),
+        AttendanceMark.absent: AttendanceMarkLabel(short: 'अनुपस्थित', full: 'अनुपस्थित'),
+        AttendanceMark.late: AttendanceMarkLabel(short: 'देर', full: 'देर से'),
+        AttendanceMark.halfDay: AttendanceMarkLabel(short: 'आधा दिन', full: 'आधा दिन'),
+        AttendanceMark.leave: AttendanceMarkLabel(short: 'छुट्टी', full: 'छुट्टी'),
+      };
+      await tester.pumpAppScaled(
+        Padding(
+          padding: const EdgeInsets.all(AppSpacing.md),
+          child: AttendanceStatusSelector(labels: hindi, selected: AttendanceMark.halfDay, onChanged: (_) {}),
+        ),
+        size: const Size(360, 640),
+      );
+      expect(tester.takeException(), isNull);
+      final tops = {for (final mark in hindi.values) tester.getTopLeft(find.text(mark.short)).dy};
+      expect(tops.length, greaterThan(1), reason: 'wrapped onto more rows');
+    });
+
     test('white text on every chosen mark passes AA', () {
       for (final mark in AttendanceMark.values) {
         expect(contrast(Colors.white, mark.colour), greaterThanOrEqualTo(4.5), reason: mark.name);

@@ -16,6 +16,7 @@ class AppDateField extends StatefulWidget {
     this.helper,
     this.error,
     this.required = false,
+    this.requiredLabel,
     super.key,
   });
 
@@ -27,6 +28,9 @@ class AppDateField extends StatefulWidget {
   final String? error;
   final bool required;
 
+  /// The word "Required" in the app's language, spoken as a hint.
+  final String? requiredLabel;
+
   @override
   State<AppDateField> createState() => _AppDateFieldState();
 }
@@ -37,8 +41,13 @@ class _AppDateFieldState extends State<AppDateField> {
 
   @override
   Widget build(BuildContext context) {
+    assert(
+      !widget.required || widget.requiredLabel != null,
+      'A required field needs requiredLabel (the spoken word "Required")',
+    );
     final enabled = widget.onTap != null;
     final spokenHint = [
+      if (widget.required) widget.requiredLabel,
       widget.error ?? widget.helper,
       if (widget.valueText.isEmpty) widget.hint,
     ].whereType<String>().join('. ');

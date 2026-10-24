@@ -26,17 +26,26 @@ void main() {
 
     testWidgets('a required field shows a red star that screen readers skip, and is flagged required', (tester) async {
       final handle = tester.ensureSemantics();
-      await tester.pumpApp(const Scaffold(body: AppTextField(label: 'Name', required: true)));
+      await tester.pumpApp(
+        const Scaffold(
+          body: AppTextField(label: 'Name', required: true, requiredLabel: 'Required'),
+        ),
+      );
       final label = tester.widget<Text>(
         find.byWidgetPredicate((w) => w is Text && (w.textSpan?.toPlainText() ?? '') == 'Name *'),
       );
       expect(find.ancestor(of: find.byWidget(label), matching: find.byType(ExcludeSemantics)), findsOneWidget);
       expect(
         tester.getSemantics(find.byType(TextField)),
-        isSemantics(label: 'Name', isRequired: true, hasRequiredState: true),
+        isSemantics(label: 'Name', hint: 'Required', isRequired: true, hasRequiredState: true),
       );
       expect(find.bySemanticsLabel(RegExp('required')), findsNothing);
       handle.dispose();
+    });
+
+    testWidgets('a required field must be given the spoken word, so none is hard-coded', (tester) async {
+      await tester.pumpApp(const Scaffold(body: AppTextField(label: 'Name', required: true)));
+      expect(tester.takeException(), isA<AssertionError>());
     });
 
     testWidgets('shows helper text, and the error replaces it', (tester) async {
@@ -175,6 +184,7 @@ void main() {
             label: 'Date of birth',
             valueText: '12 Mar 2013',
             required: true,
+            requiredLabel: 'Required',
             error: 'Pick a date before today',
             onTap: () {},
           ),
@@ -185,7 +195,7 @@ void main() {
         matchesSemantics(
           label: 'Date of birth',
           value: '12 Mar 2013',
-          hint: 'Pick a date before today',
+          hint: 'Required. Pick a date before today',
           isButton: true,
           isFocusable: true,
           hasEnabledState: true,

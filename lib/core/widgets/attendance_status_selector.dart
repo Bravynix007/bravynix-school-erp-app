@@ -27,8 +27,8 @@ class AttendanceMarkLabel {
 /// One tap to mark a student. The chosen mark fills with its colour and shows
 /// a tick; the letters stay on every button, so colour is never the only cue.
 /// Five buttons share one row while the letters fit. When they would not (a
-/// narrow phone, or large text) they wrap to rows of three at the full text
-/// size instead of shrinking the letters.
+/// narrow phone, or large text) they wrap to rows of three, two or one at the full
+/// text size instead of shrinking the letters.
 class AttendanceStatusSelector extends StatelessWidget {
   const new({required this.labels, required this.selected, required this.onChanged, super.key})
     : assert(labels.length == 5, 'Give a label for every AttendanceMark');
@@ -37,14 +37,25 @@ class AttendanceStatusSelector extends StatelessWidget {
   final AttendanceMark? selected;
   final ValueChanged<AttendanceMark> onChanged;
 
-  /// Room a two-letter mark with its tick needs, per 1x of text size, plus the
-  /// tick, its gap and the side padding.
-  static const _widthPerScale = 28.0;
-  static const _fixedWidth = 28.0;
+  /// The tick, its gap, the side padding and the border.
+  static const double _chrome = 16.0 + 2 + AppSpacing.xxs * 2 + 2;
 
   @override
   Widget build(BuildContext context) {
-    final scale = MediaQuery.textScalerOf(context).scale(14) / 14;
+    // Measure the widest short label as it will be drawn (any script, any text
+    // size) rather than guessing from the letter count.
+    final style = Theme.of(context).textTheme.labelLarge;
+    final textScaler = MediaQuery.textScalerOf(context);
+    final widest = labels.values.fold<double>(0, (widest, label) {
+      final painter = TextPainter(
+        text: TextSpan(text: label.short, style: style),
+        textDirection: Directionality.of(context),
+        textScaler: textScaler,
+      )..layout();
+      final width = painter.width;
+      painter.dispose();
+      return width > widest ? width : widest;
+    });
     return Semantics(
       container: true,
       child: LayoutBuilder(
@@ -59,7 +70,7 @@ class AttendanceStatusSelector extends StatelessWidget {
             onTap: () => onChanged(mark),
           );
 
-          if (rowCell >= _widthPerScale * scale + _fixedWidth) {
+          if (rowCell >= widest + _chrome) {
             return Row(
               children: [
                 for (final mark in marks) ...[
@@ -69,7 +80,12 @@ class AttendanceStatusSelector extends StatelessWidget {
               ],
             );
           }
-          final wrapCell = (constraints.maxWidth - gap * 2) / 3;
+          // Too wide for one row: three, then two, then one per row.
+          var columns = 3;
+          while (columns > 1 && (constraints.maxWidth - gap * (columns - 1)) / columns < widest + _chrome) {
+            columns -= 1;
+          }
+          final wrapCell = (constraints.maxWidth - gap * (columns - 1)) / columns;
           return Wrap(
             spacing: gap,
             runSpacing: gap,
@@ -120,7 +136,13 @@ class _MarkButton extends StatelessWidget {
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       if (selected) ...[Icon(Icons.check, size: 16, color: foreground), const SizedBox(width: 2)],
-                      Text(label.short, style: Theme.of(context).textTheme.labelLarge?.copyWith(color: foreground)),
+                      Flexible(
+                        child: Text(
+                          label.short,
+                          textAlign: TextAlign.center,
+                          style: Theme.of(context).textTheme.labelLarge?.copyWith(color: foreground),
+                        ),
+                      ),
                     ],
                   ),
                 ),

@@ -15,6 +15,7 @@ class AppDropdownField<T> extends StatelessWidget {
     this.helper,
     this.error,
     this.required = false,
+    this.requiredLabel,
     super.key,
   });
 
@@ -29,8 +30,12 @@ class AppDropdownField<T> extends StatelessWidget {
   final String? error;
   final bool required;
 
+  /// The word "Required" in the app's language, spoken as a hint.
+  final String? requiredLabel;
+
   @override
   Widget build(BuildContext context) {
+    assert(!required || requiredLabel != null, 'A required field needs requiredLabel (the spoken word "Required")');
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -39,6 +44,7 @@ class AppDropdownField<T> extends StatelessWidget {
         Semantics(
           label: label,
           isRequired: required,
+          hint: required ? requiredLabel : null,
           child: DropdownButtonFormField<T>(
             initialValue: value,
             items: items,

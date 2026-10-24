@@ -78,8 +78,9 @@ License; static files so the phone's Bold Text setting and bold spans pick the r
 
 Screens use these instead of building their own. Every one takes its colours from the theme, so the accent
 switch reaches all of them, and every one is tested at large text. Text a person reads is passed in by the
-screen (it knows the language and the error code); the widgets hold no copy. Required fields are flagged to
-screen readers with the platform's own "required" state, so no English is spoken by a widget. At large text
+screen (it knows the language and the error code); the widgets hold no copy. A required field is flagged with the
+platform's required state and also takes `requiredLabel` (the word "Required" in the app's language) as its
+spoken hint, because VoiceOver has no required trait. At large text
 the widgets wrap or stack instead of shrinking the letters (attendance selector, person row).
 
 | Group | Widgets |
