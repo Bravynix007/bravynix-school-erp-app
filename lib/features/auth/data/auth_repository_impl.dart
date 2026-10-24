@@ -57,15 +57,16 @@ class AuthRepositoryImpl implements AuthRepository {
 
   @override
   Future<AuthSession?> restoreSession() async {
+    final tokens = await _readSaved();
     try {
-      await clearTokensOnFirstStart(marker: _installMarker, tokens: _tokens);
+      // After the read, which proves the preferences are readable too.
+      if (await clearTokensOnFirstStart(marker: _installMarker, tokens: _tokens)) return null;
     } on Object catch (error, stackTrace) {
       // Fail closed: tokens that were due to go are never restored. They are
       // already gone from memory, and the next start tries again (final pass).
       log('Could not clear the stored tokens on start', name: 'auth', error: error, stackTrace: stackTrace);
       return null;
     }
-    final tokens = await _readSaved();
     if (tokens == null) return null;
     try {
       // ME-01 carries the same person and contexts as the login answer.

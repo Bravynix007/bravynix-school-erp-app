@@ -136,7 +136,7 @@ void main() {
       storage.failClears = false;
       final (repository: nextStart, :adapter) = build(storage, marker: marker);
       expect(await nextStart.restoreSession(), isNull);
-      expect(storage.calls.last, 'read');
+      expect(storage.calls, contains('clear'));
       expect(storage.tokens, isNull);
       expect(await marker.isSignOutPending(), isFalse);
       expect(adapter.requests, isEmpty);
@@ -170,17 +170,25 @@ void main() {
       expect(adapter.requests, isEmpty);
     });
 
-    test('a launch while the phone is locked restores the session without waiting or clearing', () async {
-      // The preferences can read as empty while locked, so the marker is not trusted then.
+    test('a launch while the phone is locked restores the session without waiting', () async {
       final storage = _FakeStorage(tokens: saved, available: false);
-      final marker = InMemoryInstallMarker();
-      final (:repository, adapter: _) = build(storage, marker: marker);
+      final (:repository, adapter: _) = build(storage, marker: InMemoryInstallMarker(started: true));
 
       expect(await repository.restoreSession(), isNotNull);
       // Read by the repository, then by the interceptor for ME-01; never cleared.
       expect(storage.calls, ['read', 'read']);
       expect(storage.tokens, saved);
-      expect(await marker.isSet(), isFalse);
+    });
+
+    test('a locked launch still finishes a pending sign-out once the tokens are readable', () async {
+      final storage = _FakeStorage(tokens: saved, available: false);
+      final marker = InMemoryInstallMarker(started: true, signOutPending: true);
+      final (:repository, :adapter) = build(storage, marker: marker);
+
+      expect(await repository.restoreSession(), isNull);
+      expect(storage.tokens, isNull);
+      expect(await marker.isSignOutPending(), isFalse);
+      expect(adapter.requests, isEmpty);
     });
   });
 }

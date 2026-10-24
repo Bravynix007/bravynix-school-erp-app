@@ -61,18 +61,22 @@ class InMemoryInstallMarker implements InstallMarker {
 /// another child's data. The first start of each install clears the tokens,
 /// as does the first start after a logout that could not delete them.
 ///
-/// Called when the session is restored, after `runApp`. While protected data
-/// is unavailable (a locked phone) the preferences can read as empty, which
-/// would make a prewarmed launch look like a first start and sign the person
-/// out (re-review R-A2), so the check waits for a launch where it is
-/// available instead of holding this one up (final pass).
-Future<void> clearTokensOnFirstStart({required InstallMarker marker, required TokenStorage tokens}) async {
-  if (!await tokens.isProtectedDataAvailable()) return;
+/// Called when the session is restored, after `runApp`, and only once the
+/// stored tokens have been read. Before the phone's first unlock the
+/// preferences read as empty, which would make a prewarmed launch look like a
+/// first start and sign the person out (re-review R-A2); the tokens
+/// (first_unlock_this_device) cannot be read then either, so a read that
+/// worked means the preferences can be trusted, even on a locked phone
+/// (final pass). Returns whether the tokens were cleared.
+Future<bool> clearTokensOnFirstStart({required InstallMarker marker, required TokenStorage tokens}) async {
+  var cleared = false;
   if (await marker.isSignOutPending()) {
     await tokens.clear();
     await marker.setSignOutPending(pending: false);
+    cleared = true;
   }
-  if (await marker.isSet()) return;
+  if (await marker.isSet()) return cleared;
   await tokens.clear();
   await marker.set();
+  return true;
 }
