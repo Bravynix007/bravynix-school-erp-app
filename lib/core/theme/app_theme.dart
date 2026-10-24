@@ -114,7 +114,9 @@ abstract final class AppTheme {
         ),
       ),
       segmentedButtonTheme: SegmentedButtonThemeData(
-        style: ButtonStyle(side: ringOr(const BorderSide(color: AppColors.border))),
+        style: ButtonStyle(
+          side: ringOr(const BorderSide(color: AppColors.border)),
+        ),
       ),
       inputDecorationTheme: InputDecorationTheme(
         filled: true,

@@ -16,11 +16,12 @@ class AppCard extends StatelessWidget {
     final content = Padding(padding: padding, child: child);
     return Card(
       clipBehavior: Clip.antiAlias,
+      borderOnForeground: false,
       child: onTap == null
           ? content
           : Semantics(
               button: true,
-              child: RingInkWell(onTap: onTap, child: content),
+              child: RingInkWell(onTap: onTap, borderRadius: BorderRadius.circular(AppRadius.card), child: content),
             ),
     );
   }

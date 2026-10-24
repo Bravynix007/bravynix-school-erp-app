@@ -1,3 +1,4 @@
+import 'package:bravynix_school_erp/core/theme/app_colors.dart';
 import 'package:bravynix_school_erp/core/widgets/choice_chip_group.dart';
 import 'package:bravynix_school_erp/core/widgets/text_measure.dart';
 import 'package:flutter/material.dart';
@@ -47,6 +48,19 @@ class AppSegmentedControl<T> extends StatelessWidget {
           ],
           selected: {selected},
           showSelectedIcon: fitsTick,
+          // SegmentedButton resolves the theme's `side` once for the whole control, so the segment with
+          // keyboard focus is marked by its own label as well.
+          style: ButtonStyle(
+            textStyle: WidgetStateProperty.resolveWith(
+              (states) => states.contains(WidgetState.focused)
+                  ? style?.copyWith(
+                      decoration: TextDecoration.underline,
+                      decorationColor: AppColors.focusRing,
+                      decorationThickness: 2,
+                    )
+                  : null,
+            ),
+          ),
           onSelectionChanged: (values) => onChanged(values.first),
         );
       },

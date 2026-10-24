@@ -1,4 +1,5 @@
 import 'package:bravynix_school_erp/core/theme/app_colors.dart';
+import 'package:bravynix_school_erp/core/theme/app_spacing.dart';
 import 'package:bravynix_school_erp/core/theme/app_theme.dart';
 import 'package:bravynix_school_erp/core/widgets/app_avatar.dart';
 import 'package:bravynix_school_erp/core/widgets/app_card.dart';
@@ -10,6 +11,7 @@ import 'package:bravynix_school_erp/core/widgets/section_header.dart';
 import 'package:bravynix_school_erp/core/widgets/stat_tile.dart';
 import 'package:bravynix_school_erp/core/widgets/status_chip.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import '../../helpers/contrast.dart';
@@ -242,6 +244,28 @@ void main() {
       expect(tester.getSemantics(find.bySemanticsLabel('Card')).flagsCollection.isButton, isTrue);
       handle.dispose();
     });
+  });
+
+  testWidgets('a focused tappable AppCard draws the ring inside the rounded corners', (tester) async {
+    FocusManager.instance.highlightStrategy = FocusHighlightStrategy.alwaysTraditional;
+    addTearDown(() => FocusManager.instance.highlightStrategy = FocusHighlightStrategy.automatic);
+    await tester.pumpApp(
+      Scaffold(
+        body: AppCard(onTap: () {}, child: const Text('Card')),
+      ),
+    );
+    expect(tester.widget<Card>(find.byType(Card)).borderOnForeground, isFalse, reason: 'hairline stays under the ring');
+
+    await tester.sendKeyEvent(LogicalKeyboardKey.tab);
+    await tester.pump();
+    final ring = tester
+        .widgetList<DecoratedBox>(find.descendant(of: find.byType(AppCard), matching: find.byType(DecoratedBox)))
+        .map((box) => box.decoration)
+        .whereType<BoxDecoration>()
+        .singleWhere((d) => d.border != null);
+    expect(ring.borderRadius, BorderRadius.circular(AppRadius.card));
+    expect((ring.border! as Border).top.color, AppColors.focusRing);
+    expect((ring.border! as Border).top.width, 2);
   });
 
   testWidgets('StatTile shows label, figure and note, with tabular figures', (tester) async {

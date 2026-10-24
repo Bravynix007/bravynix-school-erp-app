@@ -4,6 +4,7 @@ import 'package:bravynix_school_erp/core/widgets/app_segmented_control.dart';
 import 'package:bravynix_school_erp/core/widgets/attendance_status_selector.dart';
 import 'package:bravynix_school_erp/core/widgets/choice_chip_group.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import '../../helpers/contrast.dart';
@@ -98,6 +99,36 @@ void main() {
       );
       await tester.tap(find.text('Week'));
       expect(picked, 'Week');
+    });
+
+    testWidgets('keyboard focus marks only the focused segment', (tester) async {
+      FocusManager.instance.highlightStrategy = FocusHighlightStrategy.alwaysTraditional;
+      addTearDown(() => FocusManager.instance.highlightStrategy = FocusHighlightStrategy.automatic);
+      await tester.pumpApp(
+        Scaffold(
+          body: AppSegmentedControl<String>(
+            options: const ['Day', 'Week', 'Month'],
+            labelOf: (v) => v,
+            selected: 'Day',
+            onChanged: (_) {},
+          ),
+        ),
+      );
+      TextDecoration? decorationOf(String label) =>
+          DefaultTextStyle.of(tester.element(find.text(label))).style.decoration;
+
+      await tester.sendKeyEvent(LogicalKeyboardKey.tab);
+      await tester.pump();
+      Future<List<String>> tabAndRead() async {
+        await tester.sendKeyEvent(LogicalKeyboardKey.tab);
+        await tester.pump(const Duration(seconds: 1));
+        return ['Day', 'Week', 'Month'].where((l) => decorationOf(l) == TextDecoration.underline).toList();
+      }
+
+      await tester.sendKeyEvent(LogicalKeyboardKey.tab);
+      await tester.pump(const Duration(seconds: 1));
+      expect(await tabAndRead(), ['Week'], reason: 'one segment at a time shows the ring, and it follows focus');
+      expect(await tabAndRead(), ['Month']);
     });
   });
 
