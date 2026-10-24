@@ -99,6 +99,15 @@ void main() {
     expect(find.text('You were signed out from another device.'), findsOneWidget);
   });
 
+  testWidgets('says when logging out could not finish on this phone', (tester) async {
+    when(() => session.state).thenReturn(const SessionUnauthenticated(endReason: SessionEndReason.signOutIncomplete));
+    await pumpLogin(tester);
+    expect(
+      find.text("You're signed out, but this phone couldn't forget your sign-in. Sign in and log out again to finish."),
+      findsOneWidget,
+    );
+  });
+
   testWidgets('is usable with a large text scale', (tester) async {
     tester.platformDispatcher.textScaleFactorTestValue = 2;
     addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);

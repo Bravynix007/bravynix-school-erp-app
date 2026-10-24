@@ -1,5 +1,3 @@
-import 'dart:async';
-
 import 'package:bravynix_school_erp/app/config/app_config.dart';
 import 'package:bravynix_school_erp/core/device/app_device.dart';
 import 'package:bravynix_school_erp/core/network/api_events.dart';
@@ -13,20 +11,19 @@ import 'package:flutter_test/flutter_test.dart';
 
 import '../../../helpers/fake_http.dart';
 
-/// Token storage whose Keychain or Keystore calls can fail or wait for the first unlock.
+/// Token storage whose Keychain or Keystore calls can fail, on a phone that can be locked.
 class _FakeStorage implements TokenStorage {
-  new({this.tokens, this.failReads = false, this.failWrites = false, this.failClears = false, Future<void>? unlocked})
-    : _unlocked = unlocked ?? Future.value();
+  new({this.tokens, this.failReads = false, this.failWrites = false, this.failClears = false, this.available = true});
 
   AuthTokens? tokens;
-  final bool failReads;
+  bool failReads;
   final bool failWrites;
-  final bool failClears;
-  final Future<void> _unlocked;
+  bool failClears;
+  bool available;
   final List<String> calls = [];
 
   @override
-  Future<void> waitUntilAvailable() => _unlocked;
+  Future<bool> isProtectedDataAvailable() async => available;
 
   @override
   Future<AuthTokens?> read() async {
@@ -48,6 +45,14 @@ class _FakeStorage implements TokenStorage {
     if (failClears) throw PlatformException(code: 'KeystoreError');
     tokens = null;
   }
+}
+
+/// A marker whose preferences cannot be saved.
+class _BrokenMarker extends InMemoryInstallMarker {
+  new() : super(started: true);
+
+  @override
+  Future<void> setSignOutPending({required bool pending}) async => throw PlatformException(code: 'PrefsError');
 }
 
 void main() {
@@ -94,9 +99,11 @@ void main() {
   }
 
   group('secure storage failures become ApiFailures (re-review R-A1)', () {
-    test('a failed read while restoring lets the splash offer Try again', () async {
-      final (:repository, :adapter) = build(_FakeStorage(tokens: saved, failReads: true));
+    test('a failed read while the phone is locked lets the splash offer Try again', () async {
+      final storage = _FakeStorage(tokens: saved, failReads: true, available: false);
+      final (:repository, :adapter) = build(storage);
       await expectLater(repository.restoreSession(), throwsA(storageFailure));
+      expect(storage.calls, ['read']);
       expect(adapter.requests, isEmpty);
     });
 
@@ -104,12 +111,50 @@ void main() {
       final (:repository, adapter: _) = build(_FakeStorage(failWrites: true));
       await expectLater(repository.verifyOtp(email: 'diya@two-worlds.test', code: '482017'), throwsA(storageFailure));
     });
+  });
 
-    test('a failed delete on logout still signs out', () async {
+  group('a read that fails on every launch (final pass)', () {
+    test('clears the tokens and signs out instead of offering Try again for ever', () async {
+      final storage = _FakeStorage(tokens: saved, failReads: true);
+      final (:repository, :adapter) = build(storage);
+      expect(await repository.restoreSession(), isNull);
+      expect(storage.calls, ['read', 'clear']);
+      expect(storage.tokens, isNull);
+      expect(adapter.requests, isEmpty);
+    });
+  });
+
+  group('logout that cannot delete the stored tokens (final pass)', () {
+    test('marks them, and the next start deletes them before reading', () async {
       final storage = _FakeStorage(tokens: saved, failClears: true);
-      final (:repository, adapter: _) = build(storage, reply: (_) async => okReply(null));
+      final marker = InMemoryInstallMarker(started: true);
+      final (:repository, adapter: _) = build(storage, marker: marker, reply: (_) async => okReply(null));
       await repository.logout();
-      expect(storage.calls, contains('clear'));
+      expect(await marker.isSignOutPending(), isTrue);
+      expect(storage.tokens, saved);
+
+      storage.failClears = false;
+      final (repository: nextStart, :adapter) = build(storage, marker: marker);
+      expect(await nextStart.restoreSession(), isNull);
+      expect(storage.calls.last, 'read');
+      expect(storage.tokens, isNull);
+      expect(await marker.isSignOutPending(), isFalse);
+      expect(adapter.requests, isEmpty);
+    });
+
+    test('throws when the tokens can be neither deleted nor marked', () async {
+      final storage = _FakeStorage(tokens: saved, failClears: true);
+      final (:repository, adapter: _) = build(storage, marker: _BrokenMarker(), reply: (_) async => okReply(null));
+      await expectLater(repository.logout(), throwsA(storageFailure));
+    });
+
+    test('a start whose delete fails again signs out rather than restoring', () async {
+      final storage = _FakeStorage(tokens: saved, failClears: true);
+      final marker = InMemoryInstallMarker(started: true, signOutPending: true);
+      final (:repository, :adapter) = build(storage, marker: marker);
+      expect(await repository.restoreSession(), isNull);
+      expect(await marker.isSignOutPending(), isTrue);
+      expect(adapter.requests, isEmpty);
     });
   });
 
@@ -125,23 +170,17 @@ void main() {
       expect(adapter.requests, isEmpty);
     });
 
-    test('waits for the first unlock before deciding anything', () async {
-      final unlocked = Completer<void>();
-      final storage = _FakeStorage(tokens: saved, unlocked: unlocked.future);
-      final marker = InMemoryInstallMarker(started: true);
+    test('a launch while the phone is locked restores the session without waiting or clearing', () async {
+      // The preferences can read as empty while locked, so the marker is not trusted then.
+      final storage = _FakeStorage(tokens: saved, available: false);
+      final marker = InMemoryInstallMarker();
       final (:repository, adapter: _) = build(storage, marker: marker);
 
-      var restored = false;
-      final restoring = repository.restoreSession().then((_) => restored = true);
-      await pumpEventQueue();
-      expect(storage.calls, isEmpty);
-      expect(restored, isFalse);
-
-      unlocked.complete();
-      await restoring;
+      expect(await repository.restoreSession(), isNotNull);
       // Read by the repository, then by the interceptor for ME-01; never cleared.
       expect(storage.calls, ['read', 'read']);
       expect(storage.tokens, saved);
+      expect(await marker.isSet(), isFalse);
     });
   });
 }

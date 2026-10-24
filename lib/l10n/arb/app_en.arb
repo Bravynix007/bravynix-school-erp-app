@@ -38,6 +38,7 @@
   "sessionEndedAdminRevoked": "Your Institution Admin access was removed. Sign in again to use your other roles.",
   "sessionEndedEmailChanged": "The email for this account was changed. Sign in with the new address.",
   "sessionEndedGeneric": "Your session has ended. Sign in again.",
+  "signOutIncomplete": "You're signed out, but this phone couldn't forget your sign-in. Sign in and log out again to finish.",
   "updateRequiredTitle": "Update required",
   "updateRequiredBody": "This version of the app is no longer supported. Update it from the store to continue.",
   "homeTitle": "Home",

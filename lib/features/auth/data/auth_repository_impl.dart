@@ -57,10 +57,15 @@ class AuthRepositoryImpl implements AuthRepository {
 
   @override
   Future<AuthSession?> restoreSession() async {
-    final tokens = await _secure(() async {
+    try {
       await clearTokensOnFirstStart(marker: _installMarker, tokens: _tokens);
-      return await _tokens.read();
-    });
+    } on Object catch (error, stackTrace) {
+      // Fail closed: tokens that were due to go are never restored. They are
+      // already gone from memory, and the next start tries again (final pass).
+      log('Could not clear the stored tokens on start', name: 'auth', error: error, stackTrace: stackTrace);
+      return null;
+    }
+    final tokens = await _readSaved();
     if (tokens == null) return null;
     try {
       // ME-01 carries the same person and contexts as the login answer.
@@ -73,19 +78,40 @@ class AuthRepositoryImpl implements AuthRepository {
     }
   }
 
+  /// The saved tokens. A read that fails while the phone's protected data is
+  /// available will fail on every launch (a damaged Keystore entry), so the
+  /// tokens are cleared and the person signs in again rather than meeting
+  /// Try again for ever (final pass). While the phone is locked the failure
+  /// may pass, so the splash offers Try again.
+  Future<AuthTokens?> _readSaved() async {
+    try {
+      return await _tokens.read();
+    } on Object catch (error, stackTrace) {
+      log('Could not read the stored tokens', name: 'auth', error: error, stackTrace: stackTrace);
+      final available = await _secure(_tokens.isProtectedDataAvailable);
+      if (!available) throw const ApiFailure.storage();
+      await _secure(_tokens.clear);
+      return null;
+    }
+  }
+
+  /// Ends the session here even if the server cannot be told. Throws
+  /// [ApiFailure.storage] only when the stored tokens could neither be
+  /// deleted nor marked for deletion, so the next start could restore them.
   @override
   Future<void> logout({bool everywhere = false}) async {
     try {
       await _api.data<void>(everywhere ? 'auth/logout-all' : 'auth/logout', method: HttpMethod.post, parse: (_) {});
     } on ApiFailure {
       // The server session may already be gone; signing out locally is what matters.
-    } finally {
-      try {
-        await _tokens.clear();
-      } on Object catch (error, stackTrace) {
-        // The tokens are already gone from memory, so this run is signed out.
-        log('Could not delete the stored tokens', name: 'auth', error: error, stackTrace: stackTrace);
-      }
+    }
+    try {
+      await _tokens.clear();
+    } on Object catch (error, stackTrace) {
+      // The tokens are gone from memory, so this run is signed out; the next
+      // start deletes the stored ones before reading them (final pass).
+      log('Could not delete the stored tokens', name: 'auth', error: error, stackTrace: stackTrace);
+      await _secure(() => _installMarker.setSignOutPending(pending: true));
     }
   }
 

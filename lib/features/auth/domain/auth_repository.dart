@@ -14,6 +14,7 @@ abstract class AuthRepository {
   Future<AuthSession?> restoreSession();
 
   /// AUTH-07, or AUTH-08 with [everywhere]. Local tokens are cleared even if the call fails.
+  /// Throws [ApiFailure.storage] if the phone may still restore the session on its next start.
   Future<void> logout({bool everywhere = false});
 
   /// 401s that ended the session elsewhere (blocked, signed out on another device).

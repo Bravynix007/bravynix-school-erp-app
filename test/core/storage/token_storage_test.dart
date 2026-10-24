@@ -71,8 +71,8 @@ void main() {
       expect(await const FlutterSecureStorage().readAll(), {'unrelated': 'kept'});
     });
 
-    test('is available at once where there is no first-unlock wait', () async {
-      await SecureTokenStorage().waitUntilAvailable().timeout(const Duration(seconds: 1));
+    test('reports protected data as available where the platform has no such state', () async {
+      expect(await SecureTokenStorage().isProtectedDataAvailable(), isTrue);
     });
   });
 

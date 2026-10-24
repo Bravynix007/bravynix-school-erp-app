@@ -80,6 +80,17 @@ void main() {
     verify: (_) => verify(() => auth.logout(everywhere: true)).called(1),
   );
 
+  blocTest<SessionBloc, SessionState>(
+    'logout that cannot remove the sign-in from the phone signs out and says so',
+    build: () {
+      when(() => auth.logout(everywhere: any(named: 'everywhere'))).thenThrow(const ApiFailure.storage());
+      return SessionBloc(auth);
+    },
+    seed: () => const SessionAuthenticated(testSession),
+    act: (bloc) => bloc.add(const SessionLogoutRequested()),
+    expect: () => [const SessionUnauthenticated(endReason: SessionEndReason.signOutIncomplete)],
+  );
+
   test('end reasons map from the API', () {
     ApiFailure withReason(String reason) =>
         ApiFailure(statusCode: 401, code: 'SESSION_ENDED', message: '', details: {'reason': reason});

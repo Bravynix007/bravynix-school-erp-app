@@ -21,10 +21,11 @@ class AuthTokens extends Equatable {
 /// Where the session's tokens live. The app keeps them in the Keychain or
 /// Keystore only (system design 13, mobile row), and caches them in memory.
 abstract class TokenStorage {
-  /// Completes once the stored tokens can be read. On iOS the Keychain is out
-  /// of reach until the phone's first unlock, which a prewarmed or background
-  /// launch can come before.
-  Future<void> waitUntilAvailable();
+  /// Whether the phone's protected data can be read now. False on iOS while
+  /// the phone is locked, and before its first unlock, when the app's
+  /// preferences also read as empty. The tokens themselves stay readable after
+  /// the first unlock (first_unlock_this_device), so a launch never waits.
+  Future<bool> isProtectedDataAvailable();
   Future<AuthTokens?> read();
 
   /// Keeps [tokens] in memory first, so they are used even if saving them
@@ -56,11 +57,9 @@ class SecureTokenStorage implements TokenStorage {
   bool _loaded = false;
 
   @override
-  Future<void> waitUntilAvailable() async {
-    // null on Android and other platforms, where there is nothing to wait for.
-    if (await _storage.isCupertinoProtectedDataAvailable() ?? true) return;
-    await _storage.onCupertinoProtectedDataAvailabilityChanged?.firstWhere((available) => available);
-  }
+  Future<bool> isProtectedDataAvailable() async =>
+      // null on Android and other platforms, where data is always available.
+      await _storage.isCupertinoProtectedDataAvailable() ?? true;
 
   @override
   Future<AuthTokens?> read() async {
@@ -115,7 +114,7 @@ class InMemoryTokenStorage implements TokenStorage {
   AuthTokens? _tokens;
 
   @override
-  Future<void> waitUntilAvailable() async {}
+  Future<bool> isProtectedDataAvailable() async => true;
 
   @override
   Future<AuthTokens?> read() async => _tokens;

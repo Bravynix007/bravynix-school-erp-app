@@ -14,7 +14,7 @@ import '../../helpers/fake_http.dart';
 /// Token storage whose Keystore access fails, as a PlatformException would.
 class _BrokenTokenStorage implements TokenStorage {
   @override
-  Future<void> waitUntilAvailable() async {}
+  Future<bool> isProtectedDataAvailable() async => true;
 
   @override
   Future<AuthTokens?> read() async => throw PlatformException(code: 'KeystoreError');

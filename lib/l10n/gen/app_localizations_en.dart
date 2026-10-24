@@ -127,6 +127,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get sessionEndedGeneric => 'Your session has ended. Sign in again.';
 
   @override
+  String get signOutIncomplete =>
+      'You\'re signed out, but this phone couldn\'t forget your sign-in. Sign in and log out again to finish.';
+
+  @override
   String get updateRequiredTitle => 'Update required';
 
   @override

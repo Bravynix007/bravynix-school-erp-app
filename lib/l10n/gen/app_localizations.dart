@@ -295,6 +295,12 @@ abstract class AppLocalizations {
   /// **'Your session has ended. Sign in again.'**
   String get sessionEndedGeneric;
 
+  /// No description provided for @signOutIncomplete.
+  ///
+  /// In en, this message translates to:
+  /// **'You\'re signed out, but this phone couldn\'t forget your sign-in. Sign in and log out again to finish.'**
+  String get signOutIncomplete;
+
   /// No description provided for @updateRequiredTitle.
   ///
   /// In en, this message translates to:

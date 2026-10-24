@@ -1,17 +1,24 @@
 import 'package:bravynix_school_erp/core/storage/token_storage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-/// Remembers that this install has started before. It lives in the app's
-/// preferences, which are deleted with the app, unlike the iOS Keychain.
+/// Remembers that this install has started before, and that a sign-out still
+/// has stored tokens to delete. It lives in the app's preferences, which are
+/// deleted with the app, unlike the iOS Keychain.
 abstract class InstallMarker {
   Future<bool> isSet();
   Future<void> set();
+
+  /// Set when logging out could not delete the stored tokens, so the next
+  /// start deletes them before anything reads them.
+  Future<bool> isSignOutPending();
+  Future<void> setSignOutPending({required bool pending});
 }
 
 class PreferencesInstallMarker implements InstallMarker {
   new([SharedPreferencesAsync? preferences]) : _preferences = preferences ?? SharedPreferencesAsync();
 
   static const _key = 'app.install_started';
+  static const _signOutKey = 'auth.sign_out_pending';
 
   final SharedPreferencesAsync _preferences;
 
@@ -20,31 +27,51 @@ class PreferencesInstallMarker implements InstallMarker {
 
   @override
   Future<void> set() => _preferences.setBool(_key, true);
+
+  @override
+  Future<bool> isSignOutPending() async => await _preferences.getBool(_signOutKey) ?? false;
+
+  @override
+  Future<void> setSignOutPending({required bool pending}) =>
+      pending ? _preferences.setBool(_signOutKey, true) : _preferences.remove(_signOutKey);
 }
 
 /// For tests and previews.
 class InMemoryInstallMarker implements InstallMarker {
-  new({this._started = false});
+  new({this._started = false, this._signOutPending = false});
 
   bool _started;
+  bool _signOutPending;
 
   @override
   Future<bool> isSet() async => _started;
 
   @override
   Future<void> set() async => _started = true;
+
+  @override
+  Future<bool> isSignOutPending() async => _signOutPending;
+
+  @override
+  Future<void> setSignOutPending({required bool pending}) async => _signOutPending = pending;
 }
 
 /// iOS keeps Keychain items after the app is deleted, so a reinstall would
 /// open straight into the last person's session: on a shared family phone,
-/// another child's data. The first start of each install clears the tokens.
+/// another child's data. The first start of each install clears the tokens,
+/// as does the first start after a logout that could not delete them.
 ///
-/// Called when the session is restored, after `runApp`, and only once the
-/// tokens are readable: before the phone's first unlock the preferences read
-/// as empty too, which would make every prewarmed launch look like a first
-/// start and sign the person out (re-review R-A2).
+/// Called when the session is restored, after `runApp`. While protected data
+/// is unavailable (a locked phone) the preferences can read as empty, which
+/// would make a prewarmed launch look like a first start and sign the person
+/// out (re-review R-A2), so the check waits for a launch where it is
+/// available instead of holding this one up (final pass).
 Future<void> clearTokensOnFirstStart({required InstallMarker marker, required TokenStorage tokens}) async {
-  await tokens.waitUntilAvailable();
+  if (!await tokens.isProtectedDataAvailable()) return;
+  if (await marker.isSignOutPending()) {
+    await tokens.clear();
+    await marker.setSignOutPending(pending: false);
+  }
   if (await marker.isSet()) return;
   await tokens.clear();
   await marker.set();

@@ -14,6 +14,9 @@ enum SessionEndReason {
   signedOutElsewhere,
   adminRevoked,
   emailChanged,
+
+  /// Not from the server: logging out could not remove the sign-in from the phone.
+  signOutIncomplete,
   other;
 
   static SessionEndReason from(ApiFailure failure) => switch (failure.details['reason']) {
@@ -136,8 +139,14 @@ class SessionBloc extends Bloc<SessionEvent, SessionState> {
   }
 
   Future<void> _onLogout(SessionLogoutRequested event, Emitter<SessionState> emit) async {
-    await _auth.logout(everywhere: event.everywhere);
-    emit(const SessionUnauthenticated());
+    try {
+      await _auth.logout(everywhere: event.everywhere);
+      emit(const SessionUnauthenticated());
+    } on ApiFailure {
+      // Signed out in this run, but the phone may restore the session on the
+      // next start, so the login screen says so.
+      emit(const SessionUnauthenticated(endReason: SessionEndReason.signOutIncomplete));
+    }
   }
 
   void _onEnded(_SessionEnded event, Emitter<SessionState> emit) {
