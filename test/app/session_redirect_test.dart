@@ -32,4 +32,10 @@ void main() {
       expect(sessionRedirect(state, AppRoutes.updateRequired), isNull);
     }
   });
+
+  test('the component gallery is open to everyone, signed in or not', () {
+    for (final state in [const SessionUnknown(), const SessionUnauthenticated(), const SessionAuthenticated(session)]) {
+      expect(sessionRedirect(state, AppRoutes.gallery), isNull);
+    }
+  });
 }

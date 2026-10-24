@@ -4,6 +4,7 @@ import 'package:bravynix_school_erp/app/router/app_routes.dart';
 import 'package:bravynix_school_erp/features/auth/presentation/login/view/login_page.dart';
 import 'package:bravynix_school_erp/features/auth/presentation/session/session_bloc.dart';
 import 'package:bravynix_school_erp/features/auth/presentation/splash/splash_page.dart';
+import 'package:bravynix_school_erp/features/gallery/presentation/component_gallery_page.dart';
 import 'package:bravynix_school_erp/features/home/presentation/home_page.dart';
 import 'package:bravynix_school_erp/features/update_required/presentation/update_required_page.dart';
 import 'package:flutter/foundation.dart';
@@ -13,7 +14,7 @@ import 'package:go_router/go_router.dart';
 /// unit tested on its own. Screens are hidden by role for convenience only;
 /// the API checks every call (system design 13).
 String? sessionRedirect(SessionState session, String location) {
-  if (location == AppRoutes.updateRequired) return null;
+  if (location == AppRoutes.updateRequired || location == AppRoutes.gallery) return null;
   return switch (session) {
     SessionUnknown() || SessionRestoreFailed() => location == AppRoutes.splash ? null : AppRoutes.splash,
     SessionUnauthenticated() => location == AppRoutes.login ? null : AppRoutes.login,
@@ -47,6 +48,7 @@ GoRouter createRouter(SessionBloc session, {required SessionChanges changes}) {
       GoRoute(path: AppRoutes.login, builder: (_, _) => const LoginPage()),
       GoRoute(path: AppRoutes.home, builder: (_, _) => const HomePage()),
       GoRoute(path: AppRoutes.updateRequired, builder: (_, _) => const UpdateRequiredPage()),
+      if (!kReleaseMode) GoRoute(path: AppRoutes.gallery, builder: (_, _) => const ComponentGalleryPage()),
     ],
     debugLogDiagnostics: kDebugMode,
   );

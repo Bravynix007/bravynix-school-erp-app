@@ -16,7 +16,12 @@ abstract final class AppColors {
   static const disabled = Color(0xFF9AA3AA);
 
   // Lines
+  /// Cards, outlined buttons and chips: decoration, not a control boundary.
   static const border = Color(0xFFE0DDD5);
+
+  /// The outline of a text field. A field's edge must be 3:1 against what it
+  /// sits on (WCAG 1.4.11), which [border] is not.
+  static const fieldBorder = Color(0xFF80878D);
   static const divider = Color(0xFFECE9E2);
 
   // Status: one value each, whatever the screen.

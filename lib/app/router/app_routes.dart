@@ -5,6 +5,9 @@ abstract final class AppRoutes {
   static const home = '/home';
   static const updateRequired = '/update-required';
 
+  /// The component gallery, registered in debug and profile builds only.
+  static const gallery = '/gallery';
+
   /// Reachable without a session.
   static const Set<String> public = {splash, login, updateRequired};
 }

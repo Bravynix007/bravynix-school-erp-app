@@ -67,7 +67,7 @@ void main() {
   test('a disabled field has a lighter outline than an enabled one', () {
     final theme = AppTheme.light().inputDecorationTheme;
     expect(theme.disabledBorder?.borderSide.color, AppColors.divider);
-    expect(theme.enabledBorder?.borderSide.color, AppColors.border);
+    expect(theme.enabledBorder?.borderSide.color, AppColors.fieldBorder);
   });
 
   test('controls follow the designs: 52 px buttons, 12/14/16 corners', () {

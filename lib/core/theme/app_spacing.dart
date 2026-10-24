@@ -31,4 +31,7 @@ abstract final class AppSizes {
   static const buttonMedium = 44.0;
   static const buttonSmall = 36.0;
   static const pillNavHeight = 64.0;
+
+  /// The shortest list row (person, menu item); it grows with large text.
+  static const listTile = 56.0;
 }

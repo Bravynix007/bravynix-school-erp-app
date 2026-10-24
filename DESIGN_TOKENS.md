@@ -18,7 +18,8 @@ change shows up in review. A screen never writes a colour, font size or text sty
 | `inkSecondary` | #56626C | Secondary text |
 | `inkTertiary` | #616B74 | Hints (4.5:1 on every surface) |
 | `disabled` | #9AA3AA | Disabled text and icons |
-| `border` / `divider` | #E0DDD5 / #ECE9E2 | Outlines / separators |
+| `border` / `divider` | #E0DDD5 / #ECE9E2 | Card and button outlines / separators |
+| `fieldBorder` | #80878D | Text field outline; 3.64 on white, 3.34 on canvas, 3.11 on sunken (WCAG 1.4.11). A disabled field keeps the light `divider` outline. |
 | `success`, `warning`, `error`, `info` | #1E7347, #9A5407, #B3261E, #2B5A94 | Status, each with a `...Bg` tint |
 | `present`, `absent`, `late`, `leave` | success, error, warning, info | Attendance marks |
 | `halfDay`, `holiday` | #6B4FA0, #FBA86F (dark text) | Attendance marks |
@@ -72,3 +73,23 @@ License; static files so the phone's Bold Text setting and bold spans pick the r
 
 - Dark mode. Tokens are named by job, so a dark set can be added without renaming anything.
 - The accent picker screen and saving the choice on the device (with the Profile feature).
+
+## Shared widgets (`lib/core/widgets/`)
+
+Screens use these instead of building their own. Every one takes its colours from the theme, so the accent
+switch reaches all of them, and every one is tested at large text. Text a person reads is passed in by the
+screen (it knows the language and the error code); the widgets hold no copy.
+
+| Group | Widgets |
+| --- | --- |
+| Buttons | `AppButton` (primary, secondary, tonal, text, danger; large 52, medium 44, small 36; icon; loading), `AppIconButton` |
+| Fields | `AppTextField` (label above, required star, helper or error, mono), `AppDropdownField`, `AppDateField`, `AppSearchField` |
+| Choices | `ChoiceChipGroup`, `AppSegmentedControl`, `AttendanceStatusSelector` (P, A, L, HD, LV) |
+| Cards and lists | `AppCard`, `SectionHeader`, `StatTile`, `PersonListTile`, `MenuListTile`, `AuditFooter` |
+| Labels | `StatusChip` (five tones, each with an icon), `AppTag`, `AppAvatar` |
+| Messages and states | `InlineMessage` (error, warning, info), `StatePanel` (empty, error, offline, forbidden, conflict), `SkeletonBox`, `SkeletonList` |
+| Overlays | `showAppBottomSheet`, `showConfirmDialog` |
+
+The component gallery (`/gallery`, debug and profile builds only) shows all of them with the accent switch.
+The shell pieces (top bar, module header, floating tab bar, FAB, sticky actions) come in App PR 3.
+
