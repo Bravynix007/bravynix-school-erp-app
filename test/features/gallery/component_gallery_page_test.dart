@@ -41,7 +41,7 @@ void main() {
   for (final scale in [1.3, 2.0]) {
     testWidgets('lays out at ${scale * 100}% text on a 360 px phone from top to bottom', (tester) async {
       await _pump(tester, textScale: scale);
-      for (var i = 0; i < 32; i += 1) {
+      for (var i = 0; i < 44; i += 1) {
         await tester.drag(find.byType(ListView), const Offset(0, -700));
         await tester.pump();
         expect(tester.takeException(), isNull, reason: 'screen $i at $scale');
@@ -89,6 +89,28 @@ void main() {
     expect(find.text('Delete this class?'), findsOneWidget);
     await tester.tap(find.text('Cancel'));
     await _settle(tester);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('the snackbars open from the gallery, and the error one stays until dismissed', (tester) async {
+    await _pump(tester);
+    await tester.scrollUntilVisible(find.text('Show snackbar'), 400, scrollable: find.byType(Scrollable).first);
+    await tester.tap(find.text('Show snackbar'));
+    await _settle(tester);
+    expect(find.text('Attendance saved'), findsOneWidget);
+    await tester.scrollUntilVisible(
+      find.text('Show error snackbar'),
+      400,
+      scrollable: find.byType(Scrollable).first,
+    );
+    await tester.tap(find.text('Show error snackbar'));
+    await _settle(tester);
+    expect(find.text('Could not save. Try again.'), findsOneWidget);
+    await tester.pump(const Duration(seconds: 30));
+    expect(find.text('Could not save. Try again.'), findsOneWidget);
+    await tester.tap(find.text('Dismiss'));
+    await _settle(tester);
+    expect(find.text('Could not save. Try again.'), findsNothing);
     expect(tester.takeException(), isNull);
   });
 

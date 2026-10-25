@@ -1,6 +1,7 @@
 import 'package:bravynix_school_erp/core/theme/app_colors.dart';
 import 'package:bravynix_school_erp/core/theme/app_spacing.dart';
 import 'package:bravynix_school_erp/core/theme/app_theme.dart';
+import 'package:bravynix_school_erp/core/widgets/amount_text.dart';
 import 'package:bravynix_school_erp/core/widgets/app_avatar.dart';
 import 'package:bravynix_school_erp/core/widgets/app_bottom_sheet.dart';
 import 'package:bravynix_school_erp/core/widgets/app_button.dart';
@@ -10,25 +11,32 @@ import 'package:bravynix_school_erp/core/widgets/app_dialog.dart';
 import 'package:bravynix_school_erp/core/widgets/app_dropdown_field.dart';
 import 'package:bravynix_school_erp/core/widgets/app_filter_bar.dart';
 import 'package:bravynix_school_erp/core/widgets/app_icon_button.dart';
+import 'package:bravynix_school_erp/core/widgets/app_progress.dart';
 import 'package:bravynix_school_erp/core/widgets/app_search_field.dart';
 import 'package:bravynix_school_erp/core/widgets/app_segmented_control.dart';
+import 'package:bravynix_school_erp/core/widgets/app_snackbar.dart';
 import 'package:bravynix_school_erp/core/widgets/app_switch_tile.dart';
 import 'package:bravynix_school_erp/core/widgets/app_tag.dart';
 import 'package:bravynix_school_erp/core/widgets/app_text_field.dart';
 import 'package:bravynix_school_erp/core/widgets/attendance_status_selector.dart';
 import 'package:bravynix_school_erp/core/widgets/audit_footer.dart';
 import 'package:bravynix_school_erp/core/widgets/choice_chip_group.dart';
+import 'package:bravynix_school_erp/core/widgets/date_badge_card.dart';
 import 'package:bravynix_school_erp/core/widgets/form_section_card.dart';
+import 'package:bravynix_school_erp/core/widgets/greeting_card.dart';
 import 'package:bravynix_school_erp/core/widgets/inline_message.dart';
+import 'package:bravynix_school_erp/core/widgets/key_value_row.dart';
 import 'package:bravynix_school_erp/core/widgets/menu_list_tile.dart';
 import 'package:bravynix_school_erp/core/widgets/person_list_tile.dart';
 import 'package:bravynix_school_erp/core/widgets/photo_upload_tile.dart';
+import 'package:bravynix_school_erp/core/widgets/quick_access_tile.dart';
 import 'package:bravynix_school_erp/core/widgets/section_header.dart';
 import 'package:bravynix_school_erp/core/widgets/selection_tile.dart';
 import 'package:bravynix_school_erp/core/widgets/skeleton.dart';
 import 'package:bravynix_school_erp/core/widgets/stat_tile.dart';
 import 'package:bravynix_school_erp/core/widgets/state_panel.dart';
 import 'package:bravynix_school_erp/core/widgets/status_chip.dart';
+import 'package:bravynix_school_erp/core/widgets/timeline_row.dart';
 import 'package:bravynix_school_erp/features/gallery/presentation/shell_gallery_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
@@ -323,6 +331,63 @@ class _ComponentGalleryPageState extends State<ComponentGalleryPage> {
                 ),
               ],
               _gap,
+              const SectionHeader(title: 'Display'),
+              const SizedBox(height: AppSpacing.xs),
+              const GreetingCard(
+                greeting: 'Good afternoon',
+                name: 'Asha Rao',
+                message: '3 classes left today',
+                trailing: Icon(Icons.wb_sunny_outlined),
+              ),
+              const SizedBox(height: AppSpacing.sm),
+              QuickAccessGrid(
+                tiles: [
+                  QuickAccessTile(icon: Icons.fact_check_outlined, label: 'Attendance', onTap: () {}),
+                  QuickAccessTile(icon: Icons.payments_outlined, label: 'Fees', onTap: () {}),
+                  QuickAccessTile(icon: Icons.menu_book_outlined, label: 'Homework', onTap: () {}),
+                  QuickAccessTile(icon: Icons.event_outlined, label: 'Events', onTap: () {}),
+                ],
+              ),
+              const SizedBox(height: AppSpacing.sm),
+              const AppCard(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    AmountSplitRow(label: 'Tuition fee', amount: '40000', note: 'Due 5 Apr'),
+                    AmountSplitRow(label: 'Transport', amount: '6500.5'),
+                    Divider(),
+                    AmountSplitRow(label: 'Total', amount: '46500.50', emphasis: true),
+                    SizedBox(height: AppSpacing.xs),
+                    AppProgressBar(value: 0.62, semanticLabel: 'Fee collected'),
+                    SizedBox(height: AppSpacing.sm),
+                    KeyValueRow(label: 'Admission no.', value: 'STU-2291', mono: true),
+                    KeyValueRow(label: 'Class', value: '7-B'),
+                  ],
+                ),
+              ),
+              const SizedBox(height: AppSpacing.sm),
+              const Center(
+                child: AppProgressRing(value: 0.94, semanticLabel: 'Attendance', center: Text('94%')),
+              ),
+              const SizedBox(height: AppSpacing.sm),
+              const TimelineRow(
+                title: 'Application received',
+                subtitle: 'Submitted by the guardian',
+                time: '3 Mar, 10:15 am',
+                icon: Icons.check,
+                isFirst: true,
+              ),
+              const TimelineRow(title: 'Interview scheduled', subtitle: 'Admissions office', time: '12 Mar'),
+              const TimelineRow(title: 'Decision', done: false, isLast: true),
+              const SizedBox(height: AppSpacing.sm),
+              DateBadgeCard(
+                date: DateTime(2026, 3, 7),
+                title: 'Annual Day',
+                subtitle: 'Auditorium, 10 am',
+                trailing: const Icon(Icons.chevron_right),
+                onTap: () {},
+              ),
+              _gap,
               const SectionHeader(title: 'Overlays'),
               const SizedBox(height: AppSpacing.xs),
               AppButton(
@@ -352,6 +417,25 @@ class _ComponentGalleryPageState extends State<ComponentGalleryPage> {
                   confirmLabel: 'Delete',
                   cancelLabel: 'Cancel',
                   destructive: true,
+                ),
+              ),
+              const SizedBox(height: AppSpacing.xs),
+              AppButton(
+                label: 'Show snackbar',
+                variant: AppButtonVariant.secondary,
+                onPressed: () => AppSnackbar.show(context, message: 'Attendance saved', kind: AppSnackbarKind.success),
+              ),
+              const SizedBox(height: AppSpacing.xs),
+              AppButton(
+                label: 'Show error snackbar',
+                variant: AppButtonVariant.secondary,
+                onPressed: () => AppSnackbar.show(
+                  context,
+                  message: 'Could not save. Try again.',
+                  kind: AppSnackbarKind.error,
+                  actionLabel: 'Retry',
+                  onAction: () {},
+                  dismissLabel: 'Dismiss',
                 ),
               ),
               const SizedBox(height: AppSpacing.xxl),
