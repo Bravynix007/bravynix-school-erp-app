@@ -2,6 +2,7 @@ import 'package:bravynix_school_erp/core/theme/app_colors.dart';
 import 'package:bravynix_school_erp/core/theme/app_spacing.dart';
 import 'package:bravynix_school_erp/core/widgets/text_measure.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/semantics.dart';
 import 'package:flutter/services.dart';
 
 /// The accent header every module screen starts with, as a sliver for a
@@ -41,6 +42,9 @@ class ModuleHeader extends StatelessWidget {
 
   static const double _iconBox = 40;
 
+  /// The room right of the last action; the full screen margin when there is none, so the title does not touch the edge.
+  static double _endGap(ModuleHeader header) => header.actions.isEmpty ? AppSpacing.screenMargin : AppSpacing.xxs;
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -53,7 +57,7 @@ class ModuleHeader extends StatelessWidget {
     // The title row. Beside the back button and the actions if its longest word fits there,
     // else on a line of its own under them. A word wider than the screen is scaled down to fit.
     final backWidth = onBack != null ? AppSpacing.minTouchTarget : AppSpacing.screenMargin;
-    final beside = width - backWidth - actions.length * AppSpacing.minTouchTarget - AppSpacing.xxs;
+    final beside = width - backWidth - actions.length * AppSpacing.minTouchTarget - _endGap(this);
     final stackedTitle = longestWordWidth(context, title, titleStyle) > beside;
     final titleRoom = stackedTitle ? width - 2 * AppSpacing.screenMargin : beside;
     final titleScaler = fitWordScaler(context, title, titleStyle, titleRoom);
@@ -147,7 +151,15 @@ class _Delegate extends SliverPersistentHeaderDelegate {
     final onAccent = scheme.onPrimary;
     final accentTheme = theme.copyWith(
       iconTheme: theme.iconTheme.copyWith(color: onAccent),
-      iconButtonTheme: IconButtonThemeData(style: IconButton.styleFrom(foregroundColor: onAccent)),
+      // The app's icon button theme draws an ink focus ring, 2.13:1 on Teal; on the accent the ring is white
+      // (4.6:1 or more on every accent). This theme replaces the app's, so the ring is set here too.
+      iconButtonTheme: IconButtonThemeData(
+        style: IconButton.styleFrom(foregroundColor: onAccent).copyWith(
+          side: WidgetStateProperty.resolveWith(
+            (states) => states.contains(WidgetState.focused) ? BorderSide(color: onAccent, width: 2) : null,
+          ),
+        ),
+      ),
     );
     final title = Semantics(
       header: true,
@@ -167,70 +179,93 @@ class _Delegate extends SliverPersistentHeaderDelegate {
         : const SizedBox(width: AppSpacing.screenMargin);
 
     return AnnotatedRegion<SystemUiOverlayStyle>(
-      value: SystemUiOverlayStyle.light,
+      value: SystemUiOverlayStyle.light.copyWith(statusBarColor: Colors.transparent),
       child: Theme(
         data: accentTheme,
         child: ColoredBox(
           color: scheme.primary,
           child: Stack(
             children: [
+              // Below the title row only, so the fading card never paints over the back button or the title.
+              Positioned(
+                left: 0,
+                right: 0,
+                top: layout.top + layout.toolbar,
+                bottom: 0,
+                child: ClipRect(
+                  child: Stack(
+                    clipBehavior: Clip.none,
+                    children: [
+                      Positioned(
+                        left: AppSpacing.screenMargin,
+                        right: AppSpacing.screenMargin,
+                        bottom: AppSpacing.lg,
+                        height: layout.heroHeight,
+                        // The hero is painted first (under the title row) but read after it.
+                        child: Semantics(
+                          sortKey: const OrdinalSortKey(1),
+                          explicitChildNodes: true,
+                          child: ExcludeSemantics(
+                            excluding: heroOpacity == 0,
+                            child: IgnorePointer(
+                              child: Opacity(
+                                opacity: heroOpacity,
+                                child: DecoratedBox(
+                                  decoration: BoxDecoration(
+                                    color: AppColors.raised(scheme.primary),
+                                    borderRadius: BorderRadius.circular(AppRadius.card),
+                                  ),
+                                  child: Padding(
+                                    padding: const EdgeInsets.all(AppSpacing.md),
+                                    child: _hero(theme, onAccent),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
               Positioned(
                 left: 0,
                 right: 0,
                 top: layout.top,
                 height: layout.toolbar,
-                child: layout.stackedTitle
-                    ? Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          SizedBox(
-                            height: ModuleHeader.toolbarHeight,
-                            child: Row(
-                              children: [
-                                back,
-                                const Spacer(),
-                                ...header.actions,
-                                const SizedBox(width: AppSpacing.xxs),
-                              ],
+                child: Semantics(
+                  sortKey: const OrdinalSortKey(0),
+                  explicitChildNodes: true,
+                  child: layout.stackedTitle
+                      ? Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            SizedBox(
+                              height: ModuleHeader.toolbarHeight,
+                              child: Row(
+                                children: [
+                                  back,
+                                  const Spacer(),
+                                  ...header.actions,
+                                  SizedBox(width: ModuleHeader._endGap(header)),
+                                ],
+                              ),
                             ),
-                          ),
-                          Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.screenMargin),
-                            child: title,
-                          ),
-                        ],
-                      )
-                    : Row(
-                        children: [
-                          back,
-                          Expanded(child: title),
-                          ...header.actions,
-                          const SizedBox(width: AppSpacing.xxs),
-                        ],
-                      ),
-              ),
-              Positioned(
-                left: AppSpacing.screenMargin,
-                right: AppSpacing.screenMargin,
-                bottom: AppSpacing.lg,
-                height: layout.heroHeight,
-                child: ExcludeSemantics(
-                  excluding: heroOpacity == 0,
-                  child: IgnorePointer(
-                    child: Opacity(
-                      opacity: heroOpacity,
-                      child: DecoratedBox(
-                        decoration: BoxDecoration(
-                          color: AppColors.raised(scheme.primary),
-                          borderRadius: BorderRadius.circular(AppRadius.card),
+                            Padding(
+                              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.screenMargin),
+                              child: title,
+                            ),
+                          ],
+                        )
+                      : Row(
+                          children: [
+                            back,
+                            Expanded(child: title),
+                            ...header.actions,
+                            SizedBox(width: ModuleHeader._endGap(header)),
+                          ],
                         ),
-                        child: Padding(
-                          padding: const EdgeInsets.all(AppSpacing.md),
-                          child: _hero(theme, onAccent),
-                        ),
-                      ),
-                    ),
-                  ),
                 ),
               ),
             ],

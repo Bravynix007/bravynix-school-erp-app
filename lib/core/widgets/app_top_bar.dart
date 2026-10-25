@@ -2,6 +2,7 @@ import 'package:bravynix_school_erp/core/theme/app_colors.dart';
 import 'package:bravynix_school_erp/core/theme/app_spacing.dart';
 import 'package:bravynix_school_erp/core/widgets/text_measure.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 /// The white bar at the top of the home screen and plain screens: an optional
 /// logo (or any leading widget), a small label over the title, and actions
@@ -25,7 +26,9 @@ class AppTopBar extends StatelessWidget {
   /// A small line above the title ("Good afternoon").
   final String? overline;
 
-  /// A logo tile or similar, shown when there is no back button.
+  /// A logo tile or similar, shown when there is no back button. It is assumed
+  /// to be 40 px wide (a [_leadingWidth] with its gap); other widths make the
+  /// "does the title fit beside it" decision a few pixels off.
   final Widget? leading;
   final VoidCallback? onBack;
   final String? backTooltip;
@@ -54,64 +57,69 @@ class AppTopBar extends StatelessWidget {
         ? AppSpacing.minTouchTarget + AppSpacing.xxs
         : (leading == null ? 0.0 : _leadingWidth);
 
-    return Material(
-      color: AppColors.surface,
-      child: SafeArea(
-        bottom: false,
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(minHeight: height),
-          child: Padding(
-            padding: EdgeInsetsDirectional.only(start: start, end: end, top: AppSpacing.xs, bottom: AppSpacing.xs),
-            child: LayoutBuilder(
-              builder: (context, constraints) {
-                final overlineStyle = theme.textTheme.labelMedium?.copyWith(color: AppColors.inkSecondary);
-                final titleStyle = theme.textTheme.titleLarge;
-                // Beside the logo and actions only if the longest word fits there; else on a line of its own.
-                final beside = constraints.maxWidth - leadWidth - actions.length * AppSpacing.minTouchTarget;
-                final need = [
-                  longestWordWidth(context, title, titleStyle),
-                  if (overline != null) longestWordWidth(context, overline!, overlineStyle),
-                ].reduce((a, b) => a > b ? a : b);
-                final stacked = need > beside;
-                final room = stacked ? constraints.maxWidth : beside;
-                final text = Semantics(
-                  header: true,
-                  container: true,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      if (overline != null)
-                        Text(
-                          overline!,
-                          style: overlineStyle,
-                          textScaler: fitWordScaler(context, overline!, overlineStyle, room),
+    // AppBar normally sets the status bar style; this bar replaces it, so it does. Dark icons on white,
+    // else a module header's light icons would stay on after going back.
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+      value: SystemUiOverlayStyle.dark.copyWith(statusBarColor: Colors.transparent),
+      child: Material(
+        color: AppColors.surface,
+        child: SafeArea(
+          bottom: false,
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(minHeight: height),
+            child: Padding(
+              padding: EdgeInsetsDirectional.only(start: start, end: end, top: AppSpacing.xs, bottom: AppSpacing.xs),
+              child: LayoutBuilder(
+                builder: (context, constraints) {
+                  final overlineStyle = theme.textTheme.labelMedium?.copyWith(color: AppColors.inkSecondary);
+                  final titleStyle = theme.textTheme.titleLarge;
+                  // Beside the logo and actions only if the longest word fits there; else on a line of its own.
+                  final beside = constraints.maxWidth - leadWidth - actions.length * AppSpacing.minTouchTarget;
+                  final need = [
+                    longestWordWidth(context, title, titleStyle),
+                    if (overline != null) longestWordWidth(context, overline!, overlineStyle),
+                  ].reduce((a, b) => a > b ? a : b);
+                  final stacked = need > beside;
+                  final room = stacked ? constraints.maxWidth : beside;
+                  final text = Semantics(
+                    header: true,
+                    container: true,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        if (overline != null)
+                          Text(
+                            overline!,
+                            style: overlineStyle,
+                            textScaler: fitWordScaler(context, overline!, overlineStyle, room),
+                          ),
+                        Text(title, style: titleStyle, textScaler: fitWordScaler(context, title, titleStyle, room)),
+                      ],
+                    ),
+                  );
+                  if (stacked) {
+                    return Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(children: [?lead, const Spacer(), ...actions]),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(vertical: AppSpacing.xxs),
+                          child: text,
                         ),
-                      Text(title, style: titleStyle, textScaler: fitWordScaler(context, title, titleStyle, room)),
-                    ],
-                  ),
-                );
-                if (stacked) {
-                  return Column(
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                      ],
+                    );
+                  }
+                  return Row(
                     children: [
-                      Row(children: [?lead, const Spacer(), ...actions]),
-                      Padding(
-                        padding: const EdgeInsets.symmetric(vertical: AppSpacing.xxs),
-                        child: text,
-                      ),
+                      if (lead != null) ...[lead, SizedBox(width: onBack != null ? AppSpacing.xxs : AppSpacing.sm)],
+                      Expanded(child: text),
+                      ...actions,
                     ],
                   );
-                }
-                return Row(
-                  children: [
-                    if (lead != null) ...[lead, SizedBox(width: onBack != null ? AppSpacing.xxs : AppSpacing.sm)],
-                    Expanded(child: text),
-                    ...actions,
-                  ],
-                );
-              },
+                },
+              ),
             ),
           ),
         ),

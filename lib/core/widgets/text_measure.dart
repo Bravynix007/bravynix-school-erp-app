@@ -47,5 +47,13 @@ TextScaler fitWordScaler(BuildContext context, String text, TextStyle? style, do
   final widest = longestWordWidth(context, text, style);
   if (widest <= maxWidth || widest == 0) return scaler;
   final fontSize = style?.fontSize ?? 14;
-  return TextScaler.linear(scaler.scale(fontSize) / fontSize * (maxWidth / widest));
+  // Width does not scale exactly with the factor (letter spacing, rounded glyph advances), so check
+  // the result and step down until the word really fits.
+  var factor = scaler.scale(fontSize) / fontSize * (maxWidth / widest) * 0.98;
+  for (var i = 0; i < 6; i++) {
+    final candidate = TextScaler.linear(factor);
+    if (longestWordWidth(context, text, style, scaler: candidate) <= maxWidth) return candidate;
+    factor *= 0.96;
+  }
+  return TextScaler.linear(factor);
 }

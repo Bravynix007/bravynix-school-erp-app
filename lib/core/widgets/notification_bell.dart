@@ -30,28 +30,28 @@ class NotificationBell extends StatelessWidget {
     final white = theme.colorScheme.onPrimary;
     final spoken = count > 0 && unreadLabel != null ? '$tooltip, $unreadLabel' : tooltip;
     final badge = count > 9 ? '9+' : '$count';
-    return Semantics(
-      container: true,
-      button: true,
-      label: spoken,
-      onTap: onPressed,
-      excludeSemantics: true,
-      child: Tooltip(
-        message: tooltip,
-        excludeFromSemantics: true,
-        child: Stack(
-          clipBehavior: Clip.none,
-          alignment: Alignment.center,
-          children: [
-            IconButton(
-              onPressed: onPressed,
-              icon: Icon(Icons.notifications_none, color: onAccent ? white : null),
-              style: IconButton.styleFrom(minimumSize: const Size.square(AppSpacing.minTouchTarget)),
-            ),
-            if (count > 0)
-              PositionedDirectional(
-                top: AppSpacing.xxs,
-                end: AppSpacing.xxs,
+    // The IconButton carries the spoken name, so it stays focusable and focused for a screen reader.
+    final bell = IconButton(
+      onPressed: onPressed,
+      icon: Semantics(
+        label: spoken,
+        child: Icon(Icons.notifications_none, color: onAccent ? white : null),
+      ),
+      style: IconButton.styleFrom(minimumSize: const Size.square(AppSpacing.minTouchTarget)),
+    );
+    return Tooltip(
+      message: tooltip,
+      excludeFromSemantics: true,
+      child: Stack(
+        clipBehavior: Clip.none,
+        alignment: Alignment.center,
+        children: [
+          bell,
+          if (count > 0)
+            PositionedDirectional(
+              top: AppSpacing.xxs,
+              end: AppSpacing.xxs,
+              child: ExcludeSemantics(
                 child: IgnorePointer(
                   child: Container(
                     constraints: const BoxConstraints(minWidth: 18, minHeight: 18),
@@ -64,6 +64,8 @@ class NotificationBell extends StatelessWidget {
                     ),
                     child: Text(
                       badge,
+                      // The count is spoken too, so the badge does not need to grow past the bell.
+                      textScaler: MediaQuery.textScalerOf(context).clamp(maxScaleFactor: 1.5),
                       style: theme.textTheme.labelSmall?.copyWith(
                         color: Colors.white,
                         textBaseline: TextBaseline.alphabetic,
@@ -72,8 +74,8 @@ class NotificationBell extends StatelessWidget {
                   ),
                 ),
               ),
-          ],
-        ),
+            ),
+        ],
       ),
     );
   }

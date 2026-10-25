@@ -1,6 +1,7 @@
 import 'package:bravynix_school_erp/core/theme/app_shadows.dart';
 import 'package:bravynix_school_erp/core/theme/app_spacing.dart';
 import 'package:bravynix_school_erp/core/widgets/ring_ink_well.dart';
+import 'package:bravynix_school_erp/core/widgets/text_measure.dart';
 import 'package:flutter/material.dart';
 
 /// The one extended floating action button of a module screen: an accent pill
@@ -20,6 +21,9 @@ class AppFab extends StatelessWidget {
     final scheme = theme.colorScheme;
     final radius = BorderRadius.circular(AppRadius.full);
     final maxWidth = MediaQuery.sizeOf(context).width - 2 * AppSpacing.screenMargin;
+    final labelStyle = theme.textTheme.labelLarge?.copyWith(color: scheme.onPrimary);
+    // Room for the label inside the widest pill: its padding, the 24 px icon and the gap.
+    final labelRoom = maxWidth - 2 * AppSpacing.lg - 24 - AppSpacing.xs;
     return ConstrainedBox(
       constraints: BoxConstraints(minWidth: 56, minHeight: 56, maxWidth: maxWidth),
       child: DecoratedBox(
@@ -42,7 +46,11 @@ class AppFab extends StatelessWidget {
                     Icon(icon, size: 24, color: scheme.onPrimary),
                     const SizedBox(width: AppSpacing.xs),
                     Flexible(
-                      child: Text(label, style: theme.textTheme.labelLarge?.copyWith(color: scheme.onPrimary)),
+                      child: Text(
+                        label,
+                        style: labelStyle,
+                        textScaler: fitWordScaler(context, label, labelStyle, labelRoom),
+                      ),
                     ),
                   ],
                 ),

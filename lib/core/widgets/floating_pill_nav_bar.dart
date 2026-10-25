@@ -1,8 +1,10 @@
+import 'package:bravynix_school_erp/core/a11y/reduce_motion.dart';
 import 'package:bravynix_school_erp/core/theme/app_colors.dart';
 import 'package:bravynix_school_erp/core/theme/app_shadows.dart';
 import 'package:bravynix_school_erp/core/theme/app_spacing.dart';
 import 'package:bravynix_school_erp/core/widgets/ring_ink_well.dart';
 import 'package:bravynix_school_erp/core/widgets/text_measure.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter/semantics.dart';
 
@@ -36,7 +38,7 @@ class FloatingPillNavBar extends StatelessWidget {
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
     final localizations = MaterialLocalizations.of(context);
-    final duration = MediaQuery.disableAnimationsOf(context) ? Duration.zero : const Duration(milliseconds: 200);
+    final duration = reduceMotion(context) ? Duration.zero : const Duration(milliseconds: 200);
 
     return SafeArea(
       top: false,
@@ -73,7 +75,8 @@ class FloatingPillNavBar extends StatelessWidget {
                               item: items[i],
                               selected: i == currentIndex,
                               showLabel: showLabel,
-                              hint: localizations.tabLabel(tabIndex: i + 1, tabCount: items.length),
+                              // The web's role="tab" already announces the position; saying it twice is noise (as TabBar does).
+                              hint: kIsWeb ? null : localizations.tabLabel(tabIndex: i + 1, tabCount: items.length),
                               duration: duration,
                               onTap: () => onSelected(i),
                             ),
@@ -98,9 +101,9 @@ class _Tab extends StatelessWidget {
     required this.item,
     required this.selected,
     required this.showLabel,
-    required this.hint,
     required this.duration,
     required this.onTap,
+    this.hint,
   });
 
   final PillNavItem item;
@@ -109,7 +112,7 @@ class _Tab extends StatelessWidget {
   /// False when the label cannot fit beside the icon: the chosen tab is then
   /// the white pill with the icon alone, and the label is spoken and shown as a tooltip.
   final bool showLabel;
-  final String hint;
+  final String? hint;
   final Duration duration;
   final VoidCallback onTap;
 

@@ -61,14 +61,28 @@ void main() {
     testWidgets('speaks its name and the unread count as one button', (tester) async {
       final handle = tester.ensureSemantics();
       await pump(tester, 3);
+      // The IconButton carries the name, so the node stays focusable for a screen reader (QA D2).
       expect(
-        tester.getSemantics(find.byType(NotificationBell)),
-        isSemantics(label: 'Notifications, 3 unread', isButton: true, hasTapAction: true),
+        tester.getSemantics(find.byType(IconButton)),
+        isSemantics(
+          label: 'Notifications, 3 unread',
+          isButton: true,
+          isFocusable: true,
+          hasTapAction: true,
+          hasFocusAction: true,
+        ),
       );
+      expect(find.bySemanticsLabel('3'), findsNothing, reason: 'the badge is not read on its own');
       await pump(tester, 0);
       expect(
-        tester.getSemantics(find.byType(NotificationBell)),
-        isSemantics(label: 'Notifications', isButton: true, hasTapAction: true),
+        tester.getSemantics(find.byType(IconButton)),
+        isSemantics(
+          label: 'Notifications',
+          isButton: true,
+          isFocusable: true,
+          hasTapAction: true,
+          hasFocusAction: true,
+        ),
       );
       handle.dispose();
     });
@@ -726,11 +740,7 @@ void main() {
           textScale: scale,
         );
         expect(tester.takeException(), isNull);
-        expect(
-          clippedParagraphs(tester, unbreakable: 288),
-          isEmpty,
-          reason: 'a word wider than the screen cannot fit any box',
-        );
+        expect(clippedParagraphs(tester), isEmpty);
       });
     }
   });
