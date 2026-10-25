@@ -130,19 +130,24 @@ class _ModuleDemo extends StatelessWidget {
             backTooltip: 'Back',
             actions: [NotificationBell(tooltip: 'Notifications', onPressed: () {}, onAccent: true)],
           ),
-          SliverPadding(
-            // The button floats over the list: leave room to scroll the last row clear of it.
-            padding: EdgeInsets.fromLTRB(
-              AppSpacing.screenMargin,
-              AppSpacing.screenMargin,
-              AppSpacing.screenMargin,
-              AppFab.listClearance(context, 'Add student'),
-            ),
-            sliver: SliverList.separated(
-              itemCount: 12,
-              separatorBuilder: (_, _) => const SizedBox(height: AppSpacing.xs),
-              itemBuilder: (_, index) =>
-                  PersonListTile(name: 'Student ${index + 1}', subtitle: 'Roll ${index + 1} · UID STU-${2290 + index}'),
+          // A Builder, so the clearance is read inside the Scaffold body (see AppFab.listClearance).
+          Builder(
+            builder: (context) => SliverPadding(
+              // The button floats over the list: leave room to scroll the last row clear of it.
+              padding: EdgeInsets.fromLTRB(
+                AppSpacing.screenMargin,
+                AppSpacing.screenMargin,
+                AppSpacing.screenMargin,
+                AppFab.listClearance(context, 'Add student'),
+              ),
+              sliver: SliverList.separated(
+                itemCount: 12,
+                separatorBuilder: (_, _) => const SizedBox(height: AppSpacing.xs),
+                itemBuilder: (_, index) => PersonListTile(
+                  name: 'Student ${index + 1}',
+                  subtitle: 'Roll ${index + 1} · UID STU-${2290 + index}',
+                ),
+              ),
             ),
           ),
         ],
