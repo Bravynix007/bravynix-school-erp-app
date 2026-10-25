@@ -131,7 +131,13 @@ class _ModuleDemo extends StatelessWidget {
             actions: [NotificationBell(tooltip: 'Notifications', onPressed: () {}, onAccent: true)],
           ),
           SliverPadding(
-            padding: const EdgeInsets.all(AppSpacing.screenMargin),
+            // The button floats over the list: leave room to scroll the last row clear of it.
+            padding: EdgeInsets.fromLTRB(
+              AppSpacing.screenMargin,
+              AppSpacing.screenMargin,
+              AppSpacing.screenMargin,
+              AppFab.listClearance(context, 'Add student'),
+            ),
             sliver: SliverList.separated(
               itemCount: 12,
               separatorBuilder: (_, _) => const SizedBox(height: AppSpacing.xs),

@@ -485,6 +485,11 @@ void main() {
       await tester.tap(find.byIcon(Icons.person_outline));
       await tester.pump();
       expect(find.text('Profile'), findsOneWidget);
+      expect(find.byType(AnimatedSize), findsNothing);
+      expect(
+        tester.getSize(find.ancestor(of: find.text('Profile'), matching: find.byType(Material)).first).width,
+        greaterThan(100),
+      );
       expect(tester.hasRunningAnimations, isFalse);
     });
 
@@ -558,7 +563,10 @@ void main() {
       });
     }
 
-    testWidgets('at 300% text a long label wraps within the screen and the pill grows', (tester) async {
+    testWidgets('at 300% text the label no longer fits, so it is the icon alone and the label is its name', (
+      tester,
+    ) async {
+      final handle = tester.ensureSemantics();
       await tester.pumpAppScaled(
         Scaffold(
           floatingActionButton: AppFab(icon: Icons.add, label: 'Add institution', onPressed: () {}),
@@ -566,14 +574,52 @@ void main() {
         textScale: 3,
       );
       expect(tester.takeException(), isNull);
-      final text = tester.renderObject<RenderParagraph>(find.text('Add institution'));
-      final needed = text.getDryLayout(BoxConstraints(maxWidth: text.size.width)).height;
-      expect(text.size.height, greaterThanOrEqualTo(needed - 0.5));
-      final fab = tester.getRect(find.byType(AppFab));
-      expect(fab.left, greaterThanOrEqualTo(0));
-      expect(fab.right, lessThanOrEqualTo(320));
-      expect(fab.height, greaterThan(56));
+      expect(find.text('Add institution'), findsNothing);
+      expect(tester.getSize(find.byType(AppFab)), const Size(56, 56));
+      expect(
+        tester.getSemantics(find.byIcon(Icons.add)),
+        isSemantics(label: 'Add institution', isButton: true, hasTapAction: true, isFocusable: true),
+      );
+      await expectLater(tester, meetsGuideline(androidTapTargetGuideline));
+      handle.dispose();
     });
+
+    testWidgets('keeps its label while the whole label fits on one line', (tester) async {
+      await tester.pumpAppScaled(
+        Scaffold(
+          floatingActionButton: AppFab(icon: Icons.add, label: 'Add student', onPressed: () {}),
+        ),
+        textScale: 1.3,
+      );
+      expect(find.text('Add student'), findsOneWidget);
+      expect(tester.getSize(find.byType(AppFab)).width, greaterThan(56));
+    });
+
+    for (final scale in [1.0, 1.3, 2.0, 3.0]) {
+      testWidgets('listClearance lets the last row scroll clear of the button at ${scale * 100}%', (tester) async {
+        final controller = ScrollController();
+        addTearDown(controller.dispose);
+        await tester.pumpAppScaled(
+          Builder(
+            builder: (context) => Scaffold(
+              body: ListView.builder(
+                controller: controller,
+                padding: EdgeInsets.only(bottom: AppFab.listClearance(context, 'Add student')),
+                itemCount: 12,
+                itemBuilder: (_, i) => SizedBox(height: 56, child: Text('Row $i')),
+              ),
+              floatingActionButton: AppFab(icon: Icons.add, label: 'Add student', onPressed: () {}),
+            ),
+          ),
+          textScale: scale,
+        );
+        controller.jumpTo(controller.position.maxScrollExtent);
+        await tester.pump();
+        final row = tester.getRect(find.text('Row 11'));
+        final fab = tester.getRect(find.byType(AppFab));
+        expect(row.bottom, lessThanOrEqualTo(fab.top), reason: 'the last row ends above the button');
+      });
+    }
   });
 
   group('StickyBottomActions', () {

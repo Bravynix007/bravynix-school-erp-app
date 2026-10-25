@@ -93,7 +93,11 @@ class FloatingPillNavBar extends StatelessWidget {
     );
   }
 
-  static Widget _wrap({required bool selected, required Widget child}) => selected ? Flexible(child: child) : child;
+  /// Every tab sits in a [Flexible] and only the chosen one has a flex. Giving
+  /// the tabs different parent widgets would rebuild a tab from scratch when the
+  /// choice moves, and its [AnimatedSize] would never run.
+  static Widget _wrap({required bool selected, required Widget child}) =>
+      Flexible(flex: selected ? 1 : 0, child: child);
 }
 
 class _Tab extends StatelessWidget {
@@ -158,7 +162,7 @@ class _Tab extends StatelessWidget {
         selected: selected,
         inMutuallyExclusiveGroup: true,
         hint: hint,
-        child: AnimatedSize(
+        child: _Resize(
           duration: duration,
           child: ConstrainedBox(
             constraints: const BoxConstraints(
@@ -185,4 +189,17 @@ class _Tab extends StatelessWidget {
       ),
     );
   }
+}
+
+/// Animates the tab's width change, or applies it at once for Reduce Motion
+/// (even a zero-length [AnimatedSize] needs a frame to land).
+class _Resize extends StatelessWidget {
+  const new({required this.duration, required this.child});
+
+  final Duration duration;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) =>
+      duration == Duration.zero ? child : AnimatedSize(duration: duration, child: child);
 }
