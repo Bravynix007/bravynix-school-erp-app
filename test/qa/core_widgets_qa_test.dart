@@ -200,7 +200,13 @@ void main() {
       testWidgets('scale $scale: the sheet and the dialog open without errors and close', (tester) async {
         await tester.pumpAppScaled(const ComponentGalleryPage(), textScale: scale, bottomPadding: 34);
         await _settle(tester);
-        await tester.scrollUntilVisible(find.text('Open bottom sheet'), 200, scrollable: find.byType(Scrollable).first);
+        // The gallery grows with every widget group; at 300% text it is many screens long.
+        await tester.scrollUntilVisible(
+          find.text('Open bottom sheet'),
+          200,
+          scrollable: find.byType(Scrollable).first,
+          maxScrolls: 400,
+        );
         await tester.drag(find.byType(Scrollable).first, const Offset(0, -200));
         await _settle(tester);
         await tester.tap(find.text('Open bottom sheet'));
@@ -219,6 +225,7 @@ void main() {
           find.text('Open confirm dialog'),
           200,
           scrollable: find.byType(Scrollable).first,
+          maxScrolls: 400,
         );
         await tester.drag(find.byType(Scrollable).first, const Offset(0, -200));
         await _settle(tester);
