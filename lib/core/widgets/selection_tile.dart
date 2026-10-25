@@ -26,6 +26,9 @@ class SelectionTile extends StatelessWidget {
   /// A round mark that excludes its siblings, instead of a square one.
   final bool radio;
   final VoidCallback? onTap;
+
+  /// At the end of the row. It is part of the row's one control, so it must be
+  /// plain (a count, an icon, a tag), never a button of its own.
   final Widget? trailing;
 
   @override
@@ -109,6 +112,9 @@ class AppCheckboxTile extends StatelessWidget {
   final String? subtitle;
   final bool value;
   final ValueChanged<bool>? onChanged;
+
+  /// At the end of the row. It is part of the row's one control, so it must be
+  /// plain (a count, an icon, a tag), never a button of its own.
   final Widget? trailing;
 
   @override
@@ -140,6 +146,9 @@ class AppRadioTile<T> extends StatelessWidget {
   final T value;
   final T? groupValue;
   final ValueChanged<T>? onChanged;
+
+  /// At the end of the row. It is part of the row's one control, so it must be
+  /// plain (a count, an icon, a tag), never a button of its own.
   final Widget? trailing;
 
   @override

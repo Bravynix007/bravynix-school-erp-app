@@ -1,6 +1,7 @@
 import 'package:bravynix_school_erp/core/theme/app_spacing.dart';
 import 'package:bravynix_school_erp/core/widgets/app_card.dart';
 import 'package:bravynix_school_erp/core/widgets/app_tag.dart';
+import 'package:bravynix_school_erp/core/widgets/text_measure.dart';
 import 'package:flutter/material.dart';
 
 /// One numbered part of a long form ("1  Student details", with a "Step 1/5"
@@ -13,9 +14,10 @@ class FormSectionCard extends StatelessWidget {
     required this.title,
     required this.child,
     this.stepLabel,
+    this.stepSpokenLabel,
     this.subtitle,
     super.key,
-  });
+  }) : assert((stepLabel == null) == (stepSpokenLabel == null), 'Give both step labels, or neither');
 
   final int number;
   final String title;
@@ -23,6 +25,10 @@ class FormSectionCard extends StatelessWidget {
 
   /// "Step 1/5", shown as a tag under the title.
   final String? stepLabel;
+
+  /// The same in words for a screen reader: "Step 1 of 5". "1/5" is read as a
+  /// fraction or a date. Both come from the caller, so they are translated.
+  final String? stepSpokenLabel;
   final Widget child;
 
   @override
@@ -57,13 +63,31 @@ class FormSectionCard extends StatelessWidget {
               ),
               const SizedBox(width: AppSpacing.sm),
               Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Semantics(header: true, container: true, child: Text(title, style: theme.textTheme.titleLarge)),
-                    if (subtitle != null) Text(subtitle!, style: theme.textTheme.bodySmall),
-                    if (stepLabel != null) ...[const SizedBox(height: AppSpacing.xxs), AppTag(stepLabel!)],
-                  ],
+                // Title, note and step are read together as the section's heading.
+                child: MergeSemantics(
+                  child: Semantics(
+                    header: true,
+                    child: LayoutBuilder(
+                      builder: (context, constraints) {
+                        final titleStyle = theme.textTheme.titleLarge;
+                        return Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              title,
+                              style: titleStyle,
+                              textScaler: fitWordScaler(context, title, titleStyle, constraints.maxWidth),
+                            ),
+                            if (subtitle != null) Text(subtitle!, style: theme.textTheme.bodySmall),
+                            if (stepLabel != null) ...[
+                              const SizedBox(height: AppSpacing.xxs),
+                              Semantics(label: stepSpokenLabel, excludeSemantics: true, child: AppTag(stepLabel!)),
+                            ],
+                          ],
+                        );
+                      },
+                    ),
+                  ),
                 ),
               ),
             ],

@@ -189,6 +189,7 @@ class _ComponentGalleryPageState extends State<ComponentGalleryPage> {
                 title: 'Student details',
                 subtitle: 'As on the admission form',
                 stepLabel: 'Step 1/5',
+                stepSpokenLabel: 'Step 1 of 5',
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
