@@ -24,12 +24,15 @@ import 'package:bravynix_school_erp/core/widgets/skeleton.dart';
 import 'package:bravynix_school_erp/core/widgets/stat_tile.dart';
 import 'package:bravynix_school_erp/core/widgets/state_panel.dart';
 import 'package:bravynix_school_erp/core/widgets/status_chip.dart';
+import 'package:bravynix_school_erp/features/gallery/presentation/shell_gallery_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 
 /// Every shared widget on one page, with a switch for the seven accents. It is
 /// a developer and designer tool, reachable at `/gallery` in debug and profile
 /// builds only, so its sample text is plain English and not in the ARB files.
+/// The shell pieces (top bar, tab bar, FAB, sticky actions, module header) have
+/// their own page, opened from the first button, to keep this one short.
 class ComponentGalleryPage extends StatefulWidget {
   const new({super.key});
 
@@ -80,6 +83,16 @@ class _ComponentGalleryPageState extends State<ComponentGalleryPage> {
                 labelOf: (accent) => accent.label,
                 selected: _accent,
                 onSelected: (accent) => setState(() => _accent = accent),
+              ),
+              const SizedBox(height: AppSpacing.xs),
+              AppButton(
+                label: 'Open the shell pieces',
+                variant: AppButtonVariant.tonal,
+                onPressed: () => Navigator.of(context).push(
+                  MaterialPageRoute<void>(
+                    builder: (_) => Theme(data: Theme.of(context), child: const ShellGalleryPage()),
+                  ),
+                ),
               ),
               _gap,
               const SectionHeader(title: 'Buttons'),

@@ -29,6 +29,9 @@ abstract final class AppColors {
   /// accent ring from the theme).
   static const Color focusRing = ink;
 
+  /// An accent a little darker, for a card raised on the accent header.
+  static Color raised(Color accent) => Color.alphaBlend(const Color(0x24000000), accent);
+
   // Status: one value each, whatever the screen.
   static const success = Color(0xFF1E7347);
   static const successBg = Color(0xFFE6F2EA);
@@ -83,4 +86,8 @@ enum AppAccent {
 
   /// Text and icons on [primary].
   Color get onPrimary => Colors.white;
+
+  /// The raised card inside the module header: [primary] a little darker, so
+  /// white text on it is at least as readable as on the header itself.
+  Color get raised => AppColors.raised(primary);
 }

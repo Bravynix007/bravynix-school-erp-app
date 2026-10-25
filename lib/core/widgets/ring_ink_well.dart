@@ -5,11 +5,20 @@ import 'package:flutter/material.dart';
 /// on every surface). The ring shows only while the person is using a
 /// keyboard or switch, not after a tap.
 class RingInkWell extends StatefulWidget {
-  const new({required this.child, this.onTap, this.borderRadius = BorderRadius.zero, super.key});
+  const new({
+    required this.child,
+    this.onTap,
+    this.borderRadius = BorderRadius.zero,
+    this.ringColor = AppColors.focusRing,
+    super.key,
+  });
 
   final Widget child;
   final VoidCallback? onTap;
   final BorderRadius borderRadius;
+
+  /// Ink by default; white on an accent fill, where ink would not stand out.
+  final Color ringColor;
 
   @override
   State<RingInkWell> createState() => _RingInkWellState();
@@ -25,7 +34,7 @@ class _RingInkWellState extends State<RingInkWell> {
       position: DecorationPosition.foreground,
       decoration: BoxDecoration(
         borderRadius: widget.borderRadius,
-        border: showRing ? Border.all(color: AppColors.focusRing, width: 2) : null,
+        border: showRing ? Border.all(color: widget.ringColor, width: 2) : null,
       ),
       child: InkWell(
         onTap: widget.onTap,
