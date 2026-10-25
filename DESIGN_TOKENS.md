@@ -94,6 +94,7 @@ the widgets wrap or stack instead of shrinking the letters (attendance selector,
 | Labels | `StatusChip` (five tones, each with an icon), `AppTag`, `AppAvatar` |
 | Messages and states | `InlineMessage` (error, warning, info), `StatePanel` (empty, error, offline, forbidden, conflict), `SkeletonBox`, `SkeletonList` |
 | Shell | `AppTopBar` (64 px, logo or back arrow, small label, actions; grows with text), `NotificationBell` (badge, "9+" above nine), `ModuleHeader` (pinned accent sliver, 260 px, hero card; shrinks to the back button and title), `FloatingPillNavBar` (64 px, radius 26, 2 to 5 tabs), `AppFab` (extended pill), `StickyBottomActions` (primary, or Cancel and primary) |
+| Forms and settings (App PR 4) | `AppSwitchTile` (the row toggles; the drawn switch is not a second focus stop; moves under the text when a word would not fit beside it), `AppCheckboxTile`, `AppRadioTile` and `AppRadioGroup` (square or round mark, empty mark in the field outline colour for 3:1, whole row is the target), `PhotoUploadTile` (empty tile or chosen picture with Change and Remove; picking is the caller's), `FormSectionCard` (numbered section with a "Step 1/5" tag), `AppFilterBar` (pills that wrap, applied ones show value and a tick, Clear only when something is applied) |
 | Overlays | `showAppBottomSheet` (drag handle only when dismissible; clear of the home indicator), `showConfirmDialog` (optional 64 px tinted icon; scrolls) |
 
 The component gallery (`/gallery`, debug and profile builds only) shows all of them with the accent switch.

@@ -141,6 +141,31 @@ abstract final class AppTheme {
         ),
       ),
       dividerTheme: const DividerThemeData(color: AppColors.divider, space: 1),
+      // The row is the control (AppSwitchTile); the switch only has to be readable: its off track is outlined in
+      // the field colour (3:1), the on track is the accent.
+      switchTheme: SwitchThemeData(
+        thumbColor: WidgetStateProperty.resolveWith(
+          (states) => states.contains(WidgetState.disabled)
+              ? AppColors.disabled
+              : states.contains(WidgetState.selected)
+              ? accent.onPrimary
+              : AppColors.inkSecondary,
+        ),
+        trackColor: WidgetStateProperty.resolveWith(
+          (states) => states.contains(WidgetState.disabled)
+              ? AppColors.sunken
+              : states.contains(WidgetState.selected)
+              ? accent.primary
+              : AppColors.sunken,
+        ),
+        trackOutlineColor: WidgetStateProperty.resolveWith(
+          (states) => states.contains(WidgetState.disabled)
+              ? AppColors.divider
+              : states.contains(WidgetState.selected)
+              ? accent.primary
+              : AppColors.fieldBorder,
+        ),
+      ),
       snackBarTheme: const SnackBarThemeData(behavior: SnackBarBehavior.floating, backgroundColor: AppColors.ink),
     );
   }

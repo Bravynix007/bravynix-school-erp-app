@@ -8,18 +8,23 @@ import 'package:bravynix_school_erp/core/widgets/app_card.dart';
 import 'package:bravynix_school_erp/core/widgets/app_date_field.dart';
 import 'package:bravynix_school_erp/core/widgets/app_dialog.dart';
 import 'package:bravynix_school_erp/core/widgets/app_dropdown_field.dart';
+import 'package:bravynix_school_erp/core/widgets/app_filter_bar.dart';
 import 'package:bravynix_school_erp/core/widgets/app_icon_button.dart';
 import 'package:bravynix_school_erp/core/widgets/app_search_field.dart';
 import 'package:bravynix_school_erp/core/widgets/app_segmented_control.dart';
+import 'package:bravynix_school_erp/core/widgets/app_switch_tile.dart';
 import 'package:bravynix_school_erp/core/widgets/app_tag.dart';
 import 'package:bravynix_school_erp/core/widgets/app_text_field.dart';
 import 'package:bravynix_school_erp/core/widgets/attendance_status_selector.dart';
 import 'package:bravynix_school_erp/core/widgets/audit_footer.dart';
 import 'package:bravynix_school_erp/core/widgets/choice_chip_group.dart';
+import 'package:bravynix_school_erp/core/widgets/form_section_card.dart';
 import 'package:bravynix_school_erp/core/widgets/inline_message.dart';
 import 'package:bravynix_school_erp/core/widgets/menu_list_tile.dart';
 import 'package:bravynix_school_erp/core/widgets/person_list_tile.dart';
+import 'package:bravynix_school_erp/core/widgets/photo_upload_tile.dart';
 import 'package:bravynix_school_erp/core/widgets/section_header.dart';
+import 'package:bravynix_school_erp/core/widgets/selection_tile.dart';
 import 'package:bravynix_school_erp/core/widgets/skeleton.dart';
 import 'package:bravynix_school_erp/core/widgets/stat_tile.dart';
 import 'package:bravynix_school_erp/core/widgets/state_panel.dart';
@@ -46,6 +51,10 @@ class _ComponentGalleryPageState extends State<ComponentGalleryPage> {
   String _view = 'Week';
   AttendanceMark? _mark = AttendanceMark.present;
   String? _class = '7-B';
+  bool _notify = true;
+  bool _copyOffice = false;
+  String _frequency = 'Monthly';
+  String? _filterClass = '7-B';
   bool _loading = false;
   final _search = TextEditingController();
 
@@ -171,6 +180,52 @@ class _ComponentGalleryPageState extends State<ComponentGalleryPage> {
                 labels: _labels,
                 selected: _mark,
                 onChanged: (mark) => setState(() => _mark = mark),
+              ),
+              _gap,
+              const SectionHeader(title: 'Forms and settings'),
+              const SizedBox(height: AppSpacing.xs),
+              FormSectionCard(
+                number: 1,
+                title: 'Student details',
+                subtitle: 'As on the admission form',
+                stepLabel: 'Step 1/5',
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    PhotoUploadTile(label: 'Add photo', onPick: () {}, errorText: 'A photo is needed for the ID card'),
+                    const SizedBox(height: AppSpacing.sm),
+                    AppSwitchTile(
+                      title: 'Notify parents when marked absent',
+                      subtitle: 'Sent by SMS at 10 am',
+                      icon: Icons.notifications_outlined,
+                      value: _notify,
+                      onChanged: (value) => setState(() => _notify = value),
+                    ),
+                    AppCheckboxTile(
+                      title: 'Send a copy to the office',
+                      value: _copyOffice,
+                      onChanged: (value) => setState(() => _copyOffice = value),
+                    ),
+                    AppRadioGroup<String>(
+                      label: 'Fee frequency',
+                      options: const ['Monthly', 'Quarterly', 'Yearly'],
+                      titleOf: (option) => option,
+                      subtitleOf: (option) => option == 'Yearly' ? 'Due in April' : null,
+                      value: _frequency,
+                      onChanged: (option) => setState(() => _frequency = option),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: AppSpacing.sm),
+              AppFilterBar(
+                clearLabel: 'Clear filters',
+                onClear: () => setState(() => _filterClass = null),
+                filters: [
+                  AppFilter(label: 'Class', value: _filterClass, onTap: () => setState(() => _filterClass = '7-B')),
+                  AppFilter(label: 'Section', onTap: () {}),
+                  AppFilter(label: 'Fee status', onTap: () {}),
+                ],
               ),
               _gap,
               SectionHeader(title: 'Cards and lists', actionLabel: 'See all', onAction: () {}),
