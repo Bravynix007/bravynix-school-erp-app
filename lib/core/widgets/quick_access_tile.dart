@@ -21,7 +21,7 @@ class QuickAccessTile extends StatelessWidget {
       longestWordWidth(context, label, Theme.of(context).textTheme.labelMedium) + 2 * AppSpacing.sm + 2;
 
   QuickAccessTile withLabelRoom(double room) =>
-      QuickAccessTile(icon: icon, label: label, onTap: onTap, labelRoom: room);
+      QuickAccessTile(key: key, icon: icon, label: label, onTap: onTap, labelRoom: room);
 
   @override
   Widget build(BuildContext context) {

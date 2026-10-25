@@ -99,7 +99,12 @@ class TimelineRow extends StatelessWidget {
                           textScaler: fitWordScaler(context, title, titleStyle, textRoom),
                         ),
                         if (statusLabel != null) Semantics(label: statusLabel, child: const SizedBox.shrink()),
-                        if (subtitle != null) Text(subtitle!, style: text.bodyMedium),
+                        if (subtitle != null)
+                          Text(
+                            subtitle!,
+                            style: text.bodyMedium,
+                            textScaler: fitWordScaler(context, subtitle!, text.bodyMedium, textRoom),
+                          ),
                         if (time != null) Text(time!, style: text.bodySmall),
                       ],
                     ),

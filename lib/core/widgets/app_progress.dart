@@ -29,6 +29,7 @@ class AppProgressBar extends StatelessWidget {
     final fill = color ?? Theme.of(context).colorScheme.primary;
     final duration = reduceMotion(context) ? Duration.zero : const Duration(milliseconds: 200);
     return Semantics(
+      container: true,
       role: SemanticsRole.progressBar,
       label: semanticLabel,
       value: '${_percent(value)}%',
@@ -38,6 +39,7 @@ class AppProgressBar extends StatelessWidget {
         child: ClipRRect(
           borderRadius: BorderRadius.circular(AppRadius.full),
           child: SizedBox(
+            width: double.infinity,
             height: height,
             child: TweenAnimationBuilder<double>(
               tween: Tween(end: value),
@@ -92,6 +94,7 @@ class AppProgressRing extends StatelessWidget {
     final wanted = size * (scale < 1 ? 1.0 : scale);
     final duration = reduceMotion(context) ? Duration.zero : const Duration(milliseconds: 200);
     return Semantics(
+      container: true,
       role: SemanticsRole.progressBar,
       label: semanticLabel,
       value: '${_percent(value)}%',

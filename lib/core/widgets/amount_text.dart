@@ -86,8 +86,17 @@ class AmountSplitRow extends StatelessWidget {
             final words = Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(label, style: labelStyle),
-                if (note != null) Text(note!, style: text.bodySmall),
+                Text(
+                  label,
+                  style: labelStyle,
+                  textScaler: fitWordScaler(context, label, labelStyle, constraints.maxWidth),
+                ),
+                if (note != null)
+                  Text(
+                    note!,
+                    style: text.bodySmall,
+                    textScaler: fitWordScaler(context, note!, text.bodySmall, constraints.maxWidth),
+                  ),
               ],
             );
             if (sideBySide) {

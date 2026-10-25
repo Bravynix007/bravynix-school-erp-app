@@ -74,51 +74,49 @@ class DateBadgeCard extends StatelessWidget {
     );
     return AppCard(
       onTap: onTap,
-      child: MergeSemantics(
-        child: LayoutBuilder(
-          builder: (context, constraints) {
-            final badgeWidth = [
-              56.0,
-              measureText(context, month, theme.textTheme.labelSmall),
-              measureText(context, day, theme.textTheme.headlineMedium),
-            ].reduce((a, b) => a > b ? a : b);
-            final longest = [
-              longestWordWidth(context, title, theme.textTheme.titleMedium),
-              if (subtitle != null) longestWordWidth(context, subtitle!, theme.textTheme.bodySmall),
-            ].reduce((a, b) => a > b ? a : b);
-            final room =
-                constraints.maxWidth -
-                (badgeWidth + 2 * AppSpacing.xs) -
-                AppSpacing.sm -
-                (trailing == null ? 0 : _trailingRoom);
-            if (longest <= room) {
-              return Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  badge,
-                  const SizedBox(width: AppSpacing.sm),
-                  Expanded(child: words(context, room)),
-                  if (trailing != null) ...[const SizedBox(width: AppSpacing.xs), trailing!],
-                ],
-              );
-            }
-            // A word would break beside the badge (large text): the text goes under it.
-            return Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final badgeWidth = [
+            56.0,
+            measureText(context, month, theme.textTheme.labelSmall),
+            measureText(context, day, theme.textTheme.headlineMedium),
+          ].reduce((a, b) => a > b ? a : b);
+          final longest = [
+            longestWordWidth(context, title, theme.textTheme.titleMedium),
+            if (subtitle != null) longestWordWidth(context, subtitle!, theme.textTheme.bodySmall),
+          ].reduce((a, b) => a > b ? a : b);
+          final room =
+              constraints.maxWidth -
+              (badgeWidth + 2 * AppSpacing.xs) -
+              AppSpacing.sm -
+              (trailing == null ? 0 : _trailingRoom);
+          if (longest <= room) {
+            return Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Row(
-                  children: [
-                    badge,
-                    const Spacer(),
-                    ?trailing,
-                  ],
-                ),
-                const SizedBox(height: AppSpacing.xs),
-                words(context, constraints.maxWidth),
+                badge,
+                const SizedBox(width: AppSpacing.sm),
+                Expanded(child: words(context, room)),
+                if (trailing != null) ...[const SizedBox(width: AppSpacing.xs), trailing!],
               ],
             );
-          },
-        ),
+          }
+          // A word would break beside the badge (large text): the text goes under it.
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Row(
+                children: [
+                  badge,
+                  const Spacer(),
+                  ?trailing,
+                ],
+              ),
+              const SizedBox(height: AppSpacing.xs),
+              words(context, constraints.maxWidth),
+            ],
+          );
+        },
       ),
     );
   }

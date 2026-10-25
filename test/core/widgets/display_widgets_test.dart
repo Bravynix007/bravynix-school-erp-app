@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:bravynix_school_erp/core/theme/app_colors.dart';
 import 'package:bravynix_school_erp/core/theme/app_theme.dart';
 import 'package:bravynix_school_erp/core/widgets/amount_text.dart';
@@ -208,6 +210,16 @@ void main() {
       expect(await say(0), '0%');
       expect(await say(1), '100%');
       handle.dispose();
+    });
+
+    testWidgets('the track is full width in a Column that does not stretch', (tester) async {
+      await tester.pumpApp(
+        const Scaffold(
+          body: Column(children: [AppProgressBar(value: 0.25, semanticLabel: 'x')]),
+        ),
+      );
+      expect(tester.getSize(find.byType(AppProgressBar)).width, 800);
+      expect(tester.getSize(find.byType(FractionallySizedBox)).width, 200);
     });
 
     testWidgets('rounds the percentage', (tester) async {
@@ -616,6 +628,9 @@ void main() {
   });
 
   group('AppSnackbar', () {
+    setUp(AppSnackbar.debugReset);
+    tearDown(AppSnackbar.debugReset);
+
     Future<void> open(
       WidgetTester tester, {
       AppSnackbarKind kind = AppSnackbarKind.info,
@@ -855,6 +870,130 @@ void main() {
       );
       await tester.sendKeyEvent(LogicalKeyboardKey.escape);
       expect(dismissed, 1);
+    });
+
+    testWidgets('an action that opens another page leaves focus on that page, not on Save underneath', (tester) async {
+      await tester.pumpApp(
+        SnackbarEscape(
+          child: Scaffold(
+            body: Builder(
+              builder: (context) => ElevatedButton(
+                onPressed: () => AppSnackbar.show(
+                  context,
+                  message: 'Saved',
+                  actionLabel: 'View',
+                  onAction: () => Navigator.of(context).push(
+                    MaterialPageRoute<void>(builder: (_) => const Scaffold(body: Text('Details page'))),
+                  ),
+                  dismissLabel: 'Dismiss',
+                ),
+                child: const Text('Save'),
+              ),
+            ),
+          ),
+        ),
+      );
+      FocusManager.instance.highlightStrategy = FocusHighlightStrategy.alwaysTraditional;
+      addTearDown(() => FocusManager.instance.highlightStrategy = FocusHighlightStrategy.automatic);
+      await tester.sendKeyEvent(LogicalKeyboardKey.tab);
+      await tester.sendKeyEvent(LogicalKeyboardKey.enter);
+      await tester.pump(const Duration(milliseconds: 400));
+      FocusManager.instance.primaryFocus!.nextFocus();
+      await tester.pump();
+      expect(Focus.of(tester.element(find.text('View'))).hasPrimaryFocus, isTrue);
+      await tester.sendKeyEvent(LogicalKeyboardKey.enter);
+      await tester.pumpAndSettle();
+      expect(find.text('Details page'), findsOneWidget);
+      expect(Focus.maybeOf(tester.element(find.text('Save', skipOffstage: false)))?.hasPrimaryFocus, isNot(true));
+    });
+
+    testWidgets('a touch user with nothing focused: tapping Dismiss moves no focus', (tester) async {
+      final field = FocusNode();
+      addTearDown(field.dispose);
+      await tester.pumpApp(
+        SnackbarEscape(
+          child: Scaffold(
+            body: Column(
+              children: [
+                TextField(focusNode: field),
+                Builder(
+                  builder: (context) => TextButton(
+                    onPressed: () => AppSnackbar.show(
+                      context,
+                      message: 'Could not save',
+                      kind: AppSnackbarKind.error,
+                      dismissLabel: 'Dismiss',
+                    ),
+                    child: const Text('Save'),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+      final context = tester.element(find.text('Save'));
+      void show() => AppSnackbar.show(
+        context,
+        message: 'Could not save',
+        kind: AppSnackbarKind.error,
+        dismissLabel: 'Dismiss',
+      );
+      // A first message appears while the field has focus...
+      field.requestFocus();
+      await tester.pump();
+      show();
+      await tester.pumpAndSettle();
+      // ...then focus is gone (touch), a second message replaces it, and Dismiss is tapped.
+      field.unfocus();
+      await tester.pump();
+      show();
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Dismiss'));
+      await tester.pumpAndSettle();
+      expect(find.text('Could not save'), findsNothing);
+      expect(field.hasFocus, isFalse, reason: 'an old field must not take focus (and open the keyboard)');
+    });
+
+    testWidgets('Escape with a dialog open closes the dialog and leaves the message', (tester) async {
+      await tester.pumpApp(
+        SnackbarEscape(
+          child: Scaffold(
+            body: Builder(
+              builder: (context) => TextButton(
+                onPressed: () {
+                  AppSnackbar.show(
+                    context,
+                    message: 'Could not save',
+                    kind: AppSnackbarKind.error,
+                    dismissLabel: 'Dismiss',
+                  );
+                  unawaited(
+                    showDialog<void>(
+                      context: context,
+                      builder: (_) => const AlertDialog(title: Text('Sure?')),
+                    ),
+                  );
+                },
+                child: const Text('Go'),
+              ),
+            ),
+          ),
+        ),
+      );
+      FocusManager.instance.highlightStrategy = FocusHighlightStrategy.alwaysTraditional;
+      addTearDown(() => FocusManager.instance.highlightStrategy = FocusHighlightStrategy.automatic);
+      await tester.tap(find.text('Go'));
+      await tester.pump(const Duration(milliseconds: 400));
+      expect(find.text('Sure?'), findsOneWidget);
+      await tester.sendKeyEvent(LogicalKeyboardKey.escape);
+      await tester.pumpAndSettle(
+        const Duration(milliseconds: 100),
+        EnginePhase.sendSemanticsUpdate,
+        const Duration(seconds: 2),
+      );
+      expect(find.text('Sure?'), findsNothing);
+      expect(find.text('Could not save'), findsOneWidget);
     });
 
     testWidgets('the message is announced as a live region', (tester) async {

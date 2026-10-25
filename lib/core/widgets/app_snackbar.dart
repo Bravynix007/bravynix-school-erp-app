@@ -23,15 +23,28 @@ enum AppSnackbarKind { info, success, error }
 /// words into a narrow column (Material's own action and close icon would).
 abstract final class AppSnackbar {
   /// The control that was focused when the message appeared (usually the
-  /// button that caused it). Focus goes back there when a snackbar button
-  /// removes the message, so a keyboard or switch user keeps their place.
+  /// button that caused it). When a keyboard or switch user closes the message
+  /// from one of its buttons, focus goes back there so they keep their place.
+  /// It is null when nothing was focused (a touch user), so a tap never moves
+  /// focus or opens the keyboard.
   static FocusNode? _returnTo;
   static ScaffoldFeatureController<SnackBar, SnackBarClosedReason>? _current;
 
+  /// Forgets the message and the focus to return to. For tests, which share these statics.
+  @visibleForTesting
+  static void debugReset() {
+    _current = null;
+    _returnTo = null;
+  }
+
+  static bool _focusIsOnSnackbar() =>
+      FocusManager.instance.primaryFocus?.context?.findAncestorWidgetOfExactType<SnackBar>() != null;
+
   /// Closes the message on screen, if any. Used by Escape (see [SnackbarEscape]).
   static void _close() {
+    final fromSnackbar = _focusIsOnSnackbar();
     _current?.close();
-    _restoreFocus();
+    if (fromSnackbar) _restoreFocus();
   }
 
   /// Once the message has left (it animates out first, and the button keeps
@@ -39,10 +52,21 @@ abstract final class AppSnackbar {
   static void _restoreFocus() {
     final leaving = _current;
     void restore() => WidgetsBinding.instance.addPostFrameCallback((_) {
+      final target = _returnTo;
+      final context = target?.context;
+      if (target == null || context == null || !context.mounted) return;
       final focus = FocusManager.instance.primaryFocus;
       final lost = focus == null || focus is FocusScopeNode || focus.context == null;
-      final target = _returnTo;
-      if (lost && target != null && target.context != null && target.canRequestFocus) target.requestFocus();
+      if (!(ModalRoute.of(context)?.isCurrent ?? true)) {
+        // The action opened another page or a dialog. Focus belongs there; left alone, Flutter
+        // would fall back to the control on the page underneath.
+        final focusRoute = focus?.context == null ? null : ModalRoute.of(focus!.context!);
+        if (lost || !(focusRoute?.isCurrent ?? true)) {
+          Navigator.maybeOf(context)?.focusNode.enclosingScope?.requestFocus();
+        }
+        return;
+      }
+      if (lost && target.canRequestFocus) target.requestFocus();
     });
     if (leaving == null) {
       restore();
@@ -70,9 +94,11 @@ abstract final class AppSnackbar {
       AppSnackbarKind.success => Icons.check_circle_outline,
       AppSnackbarKind.error => Icons.error_outline,
     };
-    final focus = FocusManager.instance.primaryFocus;
-    final onSnackbar = focus?.context?.findAncestorWidgetOfExactType<SnackBar>() != null;
-    if (focus != null && focus is! FocusScopeNode && !onSnackbar) _returnTo = focus;
+    // A message that replaces another keeps the control the first one remembered.
+    if (!_focusIsOnSnackbar()) {
+      final focus = FocusManager.instance.primaryFocus;
+      _returnTo = focus == null || focus is FocusScopeNode ? null : focus;
+    }
     final messenger = ScaffoldMessenger.of(context)..hideCurrentSnackBar();
     final controller = messenger.showSnackBar(
       SnackBar(
@@ -102,17 +128,19 @@ abstract final class AppSnackbar {
                       _SnackbarButton(
                         label: actionLabel,
                         onPressed: () {
+                          final fromSnackbar = _focusIsOnSnackbar();
                           messenger.hideCurrentSnackBar(reason: SnackBarClosedReason.action);
                           onAction!();
-                          _restoreFocus();
+                          if (fromSnackbar) _restoreFocus();
                         },
                       ),
                     if (dismissLabel != null)
                       _SnackbarButton(
                         label: dismissLabel,
                         onPressed: () {
+                          final fromSnackbar = _focusIsOnSnackbar();
                           messenger.hideCurrentSnackBar(reason: SnackBarClosedReason.dismiss);
-                          _restoreFocus();
+                          if (fromSnackbar) _restoreFocus();
                         },
                       ),
                   ],

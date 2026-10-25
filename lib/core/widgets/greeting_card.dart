@@ -35,6 +35,7 @@ class GreetingCard extends StatelessWidget {
                     children: [
                       Text(greeting, style: theme.textTheme.bodyMedium?.copyWith(color: scheme.onPrimaryContainer)),
                       Semantics(
+                        container: true,
                         header: true,
                         child: Text(
                           name,
@@ -44,7 +45,16 @@ class GreetingCard extends StatelessWidget {
                       ),
                       if (message != null) ...[
                         const SizedBox(height: AppSpacing.xxs),
-                        Text(message!, style: theme.textTheme.bodyMedium?.copyWith(color: scheme.onPrimaryContainer)),
+                        Text(
+                          message!,
+                          style: theme.textTheme.bodyMedium?.copyWith(color: scheme.onPrimaryContainer),
+                          textScaler: fitWordScaler(
+                            context,
+                            message!,
+                            theme.textTheme.bodyMedium,
+                            constraints.maxWidth,
+                          ),
+                        ),
                       ],
                     ],
                   );
