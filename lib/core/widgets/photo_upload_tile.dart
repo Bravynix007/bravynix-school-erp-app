@@ -60,36 +60,45 @@ class PhotoUploadTile extends StatelessWidget {
               child: Image(image: image!, width: size, height: size, fit: BoxFit.cover, excludeFromSemantics: true),
             ),
           )
-        : Semantics(
-            button: true,
-            child: Material(
-              color: AppColors.sunken,
-              borderOnForeground: false,
-              shape: RoundedRectangleBorder(
-                borderRadius: shape,
-                side: BorderSide(color: borderColour, width: error ? 2 : 1),
-              ),
-              child: RingInkWell(
-                onTap: onPick,
-                borderRadius: shape,
-                child: ConstrainedBox(
-                  constraints: BoxConstraints(minWidth: size, minHeight: size),
-                  child: Padding(
-                    padding: const EdgeInsets.all(AppSpacing.xs),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        ExcludeSemantics(
-                          child: Icon(
-                            Icons.photo_camera_outlined,
-                            size: 28,
-                            color: theme.colorScheme.onPrimaryContainer,
+        : MergeSemantics(
+            child: Semantics(
+              button: true,
+              enabled: onPick != null,
+              child: Material(
+                color: AppColors.sunken,
+                borderOnForeground: false,
+                shape: RoundedRectangleBorder(
+                  borderRadius: shape,
+                  side: BorderSide(color: borderColour, width: error ? 2 : 1),
+                ),
+                child: RingInkWell(
+                  onTap: onPick,
+                  borderRadius: shape,
+                  child: ConstrainedBox(
+                    constraints: BoxConstraints(minWidth: size, minHeight: size),
+                    child: Padding(
+                      padding: const EdgeInsets.all(AppSpacing.xs),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          ExcludeSemantics(
+                            child: Icon(
+                              Icons.photo_camera_outlined,
+                              size: 28,
+                              color: theme.colorScheme.onPrimaryContainer,
+                            ),
                           ),
-                        ),
-                        const SizedBox(height: AppSpacing.xxs),
-                        Text(label, textAlign: TextAlign.center, style: theme.textTheme.labelMedium),
-                      ],
+                          const SizedBox(height: AppSpacing.xxs),
+                          Text(
+                            label,
+                            textAlign: TextAlign.center,
+                            style: theme.textTheme.labelMedium?.copyWith(
+                              color: onPick == null ? AppColors.disabled : null,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 ),
@@ -125,6 +134,7 @@ class PhotoUploadTile extends StatelessWidget {
         if (error) ...[
           const SizedBox(height: AppSpacing.xxs),
           Semantics(
+            container: true,
             liveRegion: true,
             child: Text(errorText!, style: theme.textTheme.bodySmall?.copyWith(color: AppColors.error)),
           ),

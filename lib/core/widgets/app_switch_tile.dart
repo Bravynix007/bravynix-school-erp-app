@@ -27,7 +27,8 @@ class AppSwitchTile extends StatelessWidget {
   final bool value;
   final ValueChanged<bool>? onChanged;
 
-  static const _switchWidth = 52.0;
+  /// The room the drawn switch takes (its track and the padding Material gives it).
+  static const double switchWidth = 60;
   static const double _iconWidth = 24.0 + AppSpacing.sm;
 
   @override
@@ -58,7 +59,7 @@ class AppSwitchTile extends StatelessWidget {
               padding: const EdgeInsets.symmetric(vertical: AppSpacing.xs),
               child: LayoutBuilder(
                 builder: (context, constraints) {
-                  final inlineRoom = constraints.maxWidth - leading - _switchWidth - AppSpacing.sm;
+                  final inlineRoom = constraints.maxWidth - leading - switchWidth - AppSpacing.sm;
                   final stackedRoom = constraints.maxWidth - leading;
                   bool fits(double room) =>
                       longestWordWidth(context, title, titleStyle) <= room &&

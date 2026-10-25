@@ -1,6 +1,7 @@
 import 'package:bravynix_school_erp/core/theme/app_colors.dart';
 import 'package:bravynix_school_erp/core/theme/app_spacing.dart';
 import 'package:bravynix_school_erp/core/widgets/ring_ink_well.dart';
+import 'package:bravynix_school_erp/core/widgets/text_measure.dart';
 import 'package:flutter/material.dart';
 
 /// One filter of an [AppFilterBar]: a name ("Class"), and what is chosen
@@ -18,8 +19,11 @@ class AppFilter {
 /// sideways scroll that hides some of them), and a "Clear" button once any is
 /// applied. An applied pill shows its value, a tick and the accent wash; the
 /// words, not the colour alone, say which are on.
-class AppFilterBar extends StatelessWidget {
-  const new({required this.filters, required this.clearLabel, this.onClear, super.key});
+///
+/// The Clear button removes itself once it has worked, so focus moves to the
+/// first pill, not to nowhere (WCAG 2.4.3).
+class AppFilterBar extends StatefulWidget {
+  const new({required this.filters, required this.clearLabel, this.onClear, this.pillHint, super.key});
 
   final List<AppFilter> filters;
 
@@ -29,25 +33,53 @@ class AppFilterBar extends StatelessWidget {
   /// Called by the Clear button; the button shows only when some filter has a value.
   final VoidCallback? onClear;
 
+  /// Said after each pill's name by a screen reader, so that it is clear a
+  /// picker opens: "Opens choices".
+  final String? pillHint;
+
+  @override
+  State<AppFilterBar> createState() => _AppFilterBarState();
+}
+
+class _AppFilterBarState extends State<AppFilterBar> {
+  final _firstPill = FocusNode(debugLabel: 'First filter');
+
+  @override
+  void dispose() {
+    _firstPill.dispose();
+    super.dispose();
+  }
+
+  void _clear() {
+    widget.onClear!();
+    // The button is gone after this frame; put focus where the person can go on.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted && _firstPill.context != null) _firstPill.requestFocus();
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
-    final anyApplied = filters.any((f) => f.value != null);
+    final anyApplied = widget.filters.any((f) => f.value != null);
     return Wrap(
       spacing: AppSpacing.xs,
       runSpacing: AppSpacing.xs,
       crossAxisAlignment: WrapCrossAlignment.center,
       children: [
-        for (final filter in filters) _FilterPill(filter: filter),
-        if (anyApplied && onClear != null) TextButton(onPressed: onClear, child: Text(clearLabel)),
+        for (final (index, filter) in widget.filters.indexed)
+          _FilterPill(filter: filter, hint: widget.pillHint, focusNode: index == 0 ? _firstPill : null),
+        if (anyApplied && widget.onClear != null) TextButton(onPressed: _clear, child: Text(widget.clearLabel)),
       ],
     );
   }
 }
 
 class _FilterPill extends StatelessWidget {
-  const new({required this.filter});
+  const new({required this.filter, this.hint, this.focusNode});
 
   final AppFilter filter;
+  final String? hint;
+  final FocusNode? focusNode;
 
   @override
   Widget build(BuildContext context) {
@@ -60,6 +92,7 @@ class _FilterPill extends StatelessWidget {
       child: Semantics(
         button: true,
         selected: applied,
+        hint: hint,
         child: Material(
           borderOnForeground: false,
           color: applied ? scheme.secondaryContainer : scheme.surface,
@@ -69,6 +102,7 @@ class _FilterPill extends StatelessWidget {
           ),
           child: RingInkWell(
             onTap: filter.onTap,
+            focusNode: focusNode,
             borderRadius: shape,
             child: ConstrainedBox(
               constraints: const BoxConstraints(
@@ -90,9 +124,16 @@ class _FilterPill extends StatelessWidget {
                       const SizedBox(width: AppSpacing.xs),
                     ],
                     Flexible(
-                      child: Text(
-                        applied ? '${filter.label}: ${filter.value}' : filter.label,
-                        style: theme.textTheme.labelLarge?.copyWith(color: foreground),
+                      child: LayoutBuilder(
+                        builder: (context, constraints) {
+                          final text = applied ? '${filter.label}: ${filter.value}' : filter.label;
+                          final style = theme.textTheme.labelLarge?.copyWith(color: foreground);
+                          return Text(
+                            text,
+                            style: style,
+                            textScaler: fitWordScaler(context, text, style, constraints.maxWidth),
+                          );
+                        },
                       ),
                     ),
                     Icon(Icons.arrow_drop_down, color: foreground),

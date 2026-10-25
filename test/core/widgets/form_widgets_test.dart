@@ -80,11 +80,27 @@ void main() {
       expect(borders, isNotEmpty);
       await tester.sendKeyEvent(LogicalKeyboardKey.tab);
       await tester.pump();
+      final focused = FocusManager.instance.primaryFocus;
       expect(
-        find.descendant(of: find.byType(AppSwitchTile), matching: find.byType(Focus)).evaluate().isNotEmpty,
+        focused == null ||
+            focused.context == null ||
+            find
+                .descendant(of: find.byType(Switch), matching: find.byWidget(focused.context!.widget))
+                .evaluate()
+                .isEmpty,
         isTrue,
+        reason: 'the drawn switch is not a second stop',
       );
       FocusManager.instance.highlightStrategy = FocusHighlightStrategy.automatic;
+    });
+
+    testWidgets('the drawn switch is as wide as the layout assumes', (tester) async {
+      await tester.pumpApp(
+        Scaffold(
+          body: AppSwitchTile(title: 'Notify', value: true, onChanged: (_) {}),
+        ),
+      );
+      expect(tester.getSize(find.byType(Switch)).width, AppSwitchTile.switchWidth);
     });
 
     testWidgets('disabled does nothing and is announced as disabled', (tester) async {
@@ -96,9 +112,17 @@ void main() {
       );
       await tester.tap(find.text('Notify'));
       await tester.pump();
+      expect(tester.widget<Switch>(find.byType(Switch)).value, isFalse);
       expect(
         tester.getSemantics(find.text('Notify')),
-        isSemantics(label: 'Notify', hasToggledState: true, hasEnabledState: true),
+        isSemantics(
+          label: 'Notify',
+          hasToggledState: true,
+          isToggled: false,
+          hasEnabledState: true,
+          isEnabled: false,
+          hasTapAction: false,
+        ),
       );
       handle.dispose();
     });
@@ -223,10 +247,48 @@ void main() {
       expect(size.height, greaterThanOrEqualTo(96));
       expect(
         tester.getSemantics(find.text('Add photo')),
-        isSemantics(label: 'Add photo', isButton: true, hasTapAction: true, isFocusable: true),
+        isSemantics(
+          label: 'Add photo',
+          isButton: true,
+          hasEnabledState: true,
+          isEnabled: true,
+          hasTapAction: true,
+          isFocusable: true,
+        ),
       );
       await tester.tap(find.text('Add photo'));
       expect(picks, 1);
+      handle.dispose();
+    });
+
+    testWidgets('without onPick it is announced as disabled and does nothing', (tester) async {
+      final handle = tester.ensureSemantics();
+      await tester.pumpApp(const Scaffold(body: PhotoUploadTile(label: 'Add photo', onPick: null)));
+      expect(
+        tester.getSemantics(find.text('Add photo')),
+        isSemantics(label: 'Add photo', isButton: true, hasEnabledState: true, isEnabled: false, hasTapAction: false),
+      );
+      handle.dispose();
+    });
+
+    testWidgets('inside a section card it is its own button, named by its label alone', (tester) async {
+      final handle = tester.ensureSemantics();
+      await tester.pumpApp(
+        Scaffold(
+          body: FormSectionCard(
+            number: 1,
+            title: 'Student details',
+            subtitle: 'As on the admission form',
+            stepLabel: 'Step 1/5',
+            stepSpokenLabel: 'Step 1 of 5',
+            child: PhotoUploadTile(label: 'Add photo', onPick: () {}, errorText: 'A photo is needed'),
+          ),
+        ),
+      );
+      final button = tester.getSemantics(find.text('Add photo'));
+      expect(button.label, 'Add photo');
+      expect(button.flagsCollection.isButton, isTrue);
+      expect(find.bySemanticsLabel('A photo is needed'), findsOneWidget);
       handle.dispose();
     });
 
@@ -287,6 +349,7 @@ void main() {
             title: 'Guardian details',
             subtitle: 'Who we call first',
             stepLabel: 'Step 2/5',
+            stepSpokenLabel: 'Step 2 of 5',
             child: Text('Fields'),
           ),
         ),
@@ -294,10 +357,12 @@ void main() {
       expect(find.text('2'), findsOneWidget);
       expect(find.text('Step 2/5'), findsOneWidget);
       expect(find.text('Fields'), findsOneWidget);
+      // One heading says the title, the note and the step in words ("Step 2 of 5", not "two fifths").
       expect(
         tester.getSemantics(find.text('Guardian details')),
-        isSemantics(label: 'Guardian details', isHeader: true),
+        isSemantics(label: 'Guardian details\nWho we call first\nStep 2 of 5', isHeader: true),
       );
+      expect(find.bySemanticsLabel('Step 2/5'), findsNothing);
       // The number is decoration: the title and the step tag say it.
       expect(find.bySemanticsLabel('2'), findsNothing);
       handle.dispose();
@@ -305,6 +370,60 @@ void main() {
   });
 
   group('AppFilterBar', () {
+    testWidgets('after Clear, focus moves to the first pill instead of being lost', (tester) async {
+      var cls = '7-B' as String?;
+      await tester.pumpApp(
+        Scaffold(
+          body: StatefulBuilder(
+            builder: (context, setState) => AppFilterBar(
+              clearLabel: 'Clear filters',
+              onClear: () => setState(() => cls = null),
+              filters: [
+                AppFilter(label: 'Class', value: cls, onTap: () {}),
+                AppFilter(label: 'Section', onTap: () {}),
+              ],
+            ),
+          ),
+        ),
+      );
+      FocusManager.instance.highlightStrategy = FocusHighlightStrategy.alwaysTraditional;
+      // Pills first, then Clear.
+      await tester.sendKeyEvent(LogicalKeyboardKey.tab);
+      await tester.sendKeyEvent(LogicalKeyboardKey.tab);
+      await tester.sendKeyEvent(LogicalKeyboardKey.tab);
+      await tester.pump();
+      expect(
+        Focus.of(tester.element(find.text('Clear filters'))).hasPrimaryFocus,
+        isTrue,
+        reason: 'Clear filters has focus before it is pressed',
+      );
+      await tester.sendKeyEvent(LogicalKeyboardKey.enter);
+      await tester.pump();
+      await tester.pump();
+      expect(find.text('Clear filters'), findsNothing);
+      expect(
+        Focus.of(tester.element(find.text('Class'))).hasPrimaryFocus,
+        isTrue,
+        reason: 'focus is on the first filter, not nowhere',
+      );
+      FocusManager.instance.highlightStrategy = FocusHighlightStrategy.automatic;
+    });
+
+    testWidgets('each pill carries the hint that a picker opens', (tester) async {
+      final handle = tester.ensureSemantics();
+      await tester.pumpApp(
+        Scaffold(
+          body: AppFilterBar(
+            clearLabel: 'Clear filters',
+            pillHint: 'Opens choices',
+            filters: [AppFilter(label: 'Class', onTap: () {})],
+          ),
+        ),
+      );
+      expect(tester.getSemantics(find.text('Class')).hint, 'Opens choices');
+      handle.dispose();
+    });
+
     testWidgets('an applied filter shows its value and a tick, Clear shows only then', (tester) async {
       final handle = tester.ensureSemantics();
       var cleared = 0;
@@ -382,6 +501,7 @@ void main() {
                 title: 'Guardian details',
                 subtitle: 'Who we call first',
                 stepLabel: 'Step 3/5',
+                stepSpokenLabel: 'Step 3 of 5',
                 child: Text('Name and phone number'),
               ),
               const SizedBox(height: 8),

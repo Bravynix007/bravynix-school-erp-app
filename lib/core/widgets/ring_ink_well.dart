@@ -10,6 +10,7 @@ class RingInkWell extends StatefulWidget {
     this.onTap,
     this.borderRadius = BorderRadius.zero,
     this.ringColor = AppColors.focusRing,
+    this.focusNode,
     super.key,
   });
 
@@ -19,6 +20,10 @@ class RingInkWell extends StatefulWidget {
 
   /// Ink by default; white on an accent fill, where ink would not stand out.
   final Color ringColor;
+
+  /// Lets a screen move focus here, for example after a button that removed
+  /// itself.
+  final FocusNode? focusNode;
 
   @override
   State<RingInkWell> createState() => _RingInkWellState();
@@ -38,6 +43,7 @@ class _RingInkWellState extends State<RingInkWell> {
       ),
       child: InkWell(
         onTap: widget.onTap,
+        focusNode: widget.focusNode,
         borderRadius: widget.borderRadius,
         onFocusChange: (value) => setState(() => _focused = value),
         child: widget.child,
