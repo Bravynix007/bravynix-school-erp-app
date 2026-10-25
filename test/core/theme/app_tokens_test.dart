@@ -4,12 +4,7 @@ import 'package:bravynix_school_erp/core/theme/app_text_styles.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-/// WCAG contrast ratio of two opaque colours.
-double contrast(Color a, Color b) {
-  final lighter = a.computeLuminance() > b.computeLuminance() ? a : b;
-  final darker = identical(lighter, a) ? b : a;
-  return (lighter.computeLuminance() + 0.05) / (darker.computeLuminance() + 0.05);
-}
+import '../../helpers/contrast.dart';
 
 void main() {
   group('accents (UI alignment spec, Theme switch)', () {
@@ -76,6 +71,12 @@ void main() {
         expect(contrast(AppColors.ink, surface), greaterThanOrEqualTo(7));
         expect(contrast(AppColors.inkSecondary, surface), greaterThanOrEqualTo(4.5));
         expect(contrast(AppColors.inkTertiary, surface), greaterThanOrEqualTo(4.5));
+      }
+    });
+
+    test('a text field outline is 3:1 on every surface a field sits on (WCAG 1.4.11)', () {
+      for (final surface in [AppColors.surface, AppColors.canvas, AppColors.sunken]) {
+        expect(contrast(AppColors.fieldBorder, surface), greaterThanOrEqualTo(3));
       }
     });
 

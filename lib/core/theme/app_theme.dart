@@ -54,6 +54,11 @@ abstract final class AppTheme {
     ).apply(bodyColor: AppColors.ink, displayColor: AppColors.ink);
     final textTheme = base.copyWith(bodySmall: base.bodySmall?.copyWith(color: AppColors.inkSecondary));
 
+    const focusSide = BorderSide(color: AppColors.focusRing, width: 2);
+    // A ring on keyboard focus; `rest` is the outline otherwise.
+    WidgetStateProperty<BorderSide?> ringOr(BorderSide? rest) =>
+        WidgetStateProperty.resolveWith((states) => states.contains(WidgetState.focused) ? focusSide : rest);
+
     final buttonShape = RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadius.button));
     OutlineInputBorder fieldBorder(Color color, {double width = 1}) => OutlineInputBorder(
       borderRadius: BorderRadius.circular(AppRadius.field),
@@ -81,30 +86,46 @@ abstract final class AppTheme {
           textStyle: textTheme.labelLarge,
           disabledBackgroundColor: AppColors.sunken,
           disabledForegroundColor: AppColors.disabled,
-        ),
+        ).copyWith(side: ringOr(null)),
       ),
       outlinedButtonTheme: OutlinedButtonThemeData(
         style: OutlinedButton.styleFrom(
           minimumSize: const Size.fromHeight(AppSizes.buttonLarge),
           shape: buttonShape,
           textStyle: textTheme.labelLarge,
-          side: const BorderSide(color: AppColors.border),
           foregroundColor: AppColors.ink,
-        ),
+        ).copyWith(side: ringOr(const BorderSide(color: AppColors.border))),
       ),
       textButtonTheme: TextButtonThemeData(
         style: TextButton.styleFrom(
           minimumSize: const Size(AppSpacing.minTouchTarget, AppSpacing.minTouchTarget),
           textStyle: textTheme.labelLarge,
           foregroundColor: accent.text,
+        ).copyWith(side: ringOr(null)),
+      ),
+      iconButtonTheme: IconButtonThemeData(style: ButtonStyle(side: ringOr(null))),
+      // Option pickers use ChoiceChipGroup (it draws its own chip). This keeps any other Material chip on the
+      // same outline and focus ring.
+      chipTheme: ChipThemeData(
+        side: WidgetStateBorderSide.resolveWith(
+          (states) => states.contains(WidgetState.focused)
+              ? focusSide
+              : states.contains(WidgetState.selected)
+              ? BorderSide.none
+              : const BorderSide(color: AppColors.border),
+        ),
+      ),
+      segmentedButtonTheme: SegmentedButtonThemeData(
+        style: ButtonStyle(
+          side: ringOr(const BorderSide(color: AppColors.border)),
         ),
       ),
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
         fillColor: AppColors.surface,
         contentPadding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.sm + 2),
-        border: fieldBorder(AppColors.border),
-        enabledBorder: fieldBorder(AppColors.border),
+        border: fieldBorder(AppColors.fieldBorder),
+        enabledBorder: fieldBorder(AppColors.fieldBorder),
         disabledBorder: fieldBorder(AppColors.divider),
         focusedBorder: fieldBorder(accent.primary, width: 2),
         errorBorder: fieldBorder(AppColors.error),
