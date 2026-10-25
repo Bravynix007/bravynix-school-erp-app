@@ -379,7 +379,7 @@ class _ComponentGalleryPageState extends State<ComponentGalleryPage> {
                 isFirst: true,
               ),
               const TimelineRow(title: 'Interview scheduled', subtitle: 'Admissions office', time: '12 Mar'),
-              const TimelineRow(title: 'Decision', done: false, isLast: true),
+              const TimelineRow(title: 'Decision', done: false, statusLabel: 'Waiting', isLast: true),
               const SizedBox(height: AppSpacing.sm),
               DateBadgeCard(
                 date: DateTime(2026, 3, 7),

@@ -18,7 +18,9 @@ class AppProgressBar extends StatelessWidget {
   final double value;
   final String semanticLabel;
 
-  /// The fill; the accent by default. A status colour for a fee that is overdue.
+  /// The fill; the accent by default. A status colour for a fee that is overdue,
+  /// but the status must also be in words, in the label or beside the bar
+  /// (WCAG 1.4.1).
   final Color? color;
   final double height;
 
@@ -29,7 +31,7 @@ class AppProgressBar extends StatelessWidget {
     return Semantics(
       role: SemanticsRole.progressBar,
       label: semanticLabel,
-      value: '${(value * 100).round()}%',
+      value: '${_percent(value)}%',
       minValue: '0',
       maxValue: '100',
       child: ExcludeSemantics(
@@ -92,7 +94,7 @@ class AppProgressRing extends StatelessWidget {
     return Semantics(
       role: SemanticsRole.progressBar,
       label: semanticLabel,
-      value: '${(value * 100).round()}%',
+      value: '${_percent(value)}%',
       minValue: '0',
       maxValue: '100',
       child: ExcludeSemantics(
@@ -132,4 +134,13 @@ class AppProgressRing extends StatelessWidget {
       ),
     );
   }
+}
+
+/// Whole percent for a screen reader. Never says 100% until it is complete, nor
+/// 0% once there is some progress ("Fee collected 100%" while money is due would
+/// be wrong).
+int _percent(double value) {
+  if (value >= 1) return 100;
+  if (value <= 0) return 0;
+  return (value * 100).round().clamp(1, 99);
 }

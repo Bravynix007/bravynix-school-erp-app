@@ -1,4 +1,5 @@
 import 'package:bravynix_school_erp/core/theme/app_spacing.dart';
+import 'package:bravynix_school_erp/core/widgets/text_measure.dart';
 import 'package:flutter/material.dart';
 
 /// The welcome at the top of a home screen: "Good afternoon" over the person's
@@ -26,22 +27,28 @@ class GreetingCard extends StatelessWidget {
         child: Row(
           children: [
             Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(greeting, style: theme.textTheme.bodyMedium?.copyWith(color: scheme.onPrimaryContainer)),
-                  Semantics(
-                    header: true,
-                    child: Text(
-                      name,
-                      style: theme.textTheme.headlineMedium?.copyWith(color: scheme.onPrimaryContainer),
-                    ),
-                  ),
-                  if (message != null) ...[
-                    const SizedBox(height: AppSpacing.xxs),
-                    Text(message!, style: theme.textTheme.bodyMedium?.copyWith(color: scheme.onPrimaryContainer)),
-                  ],
-                ],
+              child: LayoutBuilder(
+                builder: (context, constraints) {
+                  final nameStyle = theme.textTheme.headlineMedium?.copyWith(color: scheme.onPrimaryContainer);
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(greeting, style: theme.textTheme.bodyMedium?.copyWith(color: scheme.onPrimaryContainer)),
+                      Semantics(
+                        header: true,
+                        child: Text(
+                          name,
+                          style: nameStyle,
+                          textScaler: fitWordScaler(context, name, nameStyle, constraints.maxWidth),
+                        ),
+                      ),
+                      if (message != null) ...[
+                        const SizedBox(height: AppSpacing.xxs),
+                        Text(message!, style: theme.textTheme.bodyMedium?.copyWith(color: scheme.onPrimaryContainer)),
+                      ],
+                    ],
+                  );
+                },
               ),
             ),
             if (trailing != null) ...[const SizedBox(width: AppSpacing.sm), trailing!],

@@ -11,7 +11,9 @@ import 'package:bravynix_school_erp/core/widgets/timeline_row.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/semantics.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:intl/date_symbol_data_local.dart';
 
 import '../../helpers/clipped_text.dart';
 import '../../helpers/contrast.dart';
@@ -141,17 +143,38 @@ void main() {
       );
     });
 
-    testWidgets('is read as the label then the value', (tester) async {
+    testWidgets('is one stop, read as the label then the value', (tester) async {
       final handle = tester.ensureSemantics();
       await tester.pumpApp(
         const Scaffold(
           body: KeyValueRow(label: 'Class', value: '7-B'),
         ),
       );
-      expect(find.bySemanticsLabel(RegExp('Class')), findsWidgets);
-      expect(find.bySemanticsLabel(RegExp('7-B')), findsWidgets);
+      expect(tester.getSemantics(find.text('Class')).label, 'Class\n7-B');
       handle.dispose();
     });
+
+    for (final (label, value, mono) in [
+      ('Email', 'parent.of.student@example.com', false),
+      ('Roll no.', 'ADM-2026-000123', true),
+    ]) {
+      for (final width in [320.0, 360.0]) {
+        testWidgets('"$label" with a long value is not broken mid-word on $width px at 100%', (tester) async {
+          await tester.pumpAppScaled(
+            Scaffold(
+              body: Padding(
+                padding: const EdgeInsets.all(16),
+                child: KeyValueRow(label: label, value: value, mono: mono),
+              ),
+            ),
+            size: Size(width, 640),
+          );
+          expect(clippedParagraphs(tester), isEmpty);
+          // The value cannot fit its half, so it goes under the label.
+          expect(tester.getTopLeft(find.text(value)).dy, greaterThan(tester.getTopLeft(find.text(label)).dy));
+        });
+      }
+    }
   });
 
   group('AppProgressBar', () {
@@ -166,6 +189,24 @@ void main() {
       expect(node.label, 'Fee collected');
       expect(node.value, '62%');
       expect(node.role, SemanticsRole.progressBar);
+      handle.dispose();
+    });
+
+    testWidgets('never says 100% before it is complete, or 0% once there is progress', (tester) async {
+      final handle = tester.ensureSemantics();
+      Future<String> say(double v) async {
+        await tester.pumpApp(
+          Scaffold(
+            body: AppProgressBar(value: v, semanticLabel: 'Fee collected'),
+          ),
+        );
+        return tester.getSemantics(find.byType(AppProgressBar)).value;
+      }
+
+      expect(await say(0.996), '99%');
+      expect(await say(0.004), '1%');
+      expect(await say(0), '0%');
+      expect(await say(1), '100%');
       handle.dispose();
     });
 
@@ -375,6 +416,49 @@ void main() {
       handle.dispose();
     });
 
+    testWidgets('a step still to come says so after its title', (tester) async {
+      final handle = tester.ensureSemantics();
+      await tester.pumpApp(
+        const Scaffold(
+          body: TimelineRow(
+            title: 'Interview scheduled',
+            subtitle: 'Admissions office',
+            done: false,
+            statusLabel: 'Waiting',
+          ),
+        ),
+      );
+      expect(
+        tester.getSemantics(find.text('Interview scheduled')).label,
+        'Interview scheduled\nWaiting\nAdmissions office',
+      );
+      handle.dispose();
+    });
+
+    testWidgets('a step still to come without words for its state is refused', (tester) async {
+      expect(() => TimelineRow(title: 'Interview', done: false), throwsAssertionError);
+    });
+
+    testWidgets('the marker sits level with the first line of the title', (tester) async {
+      await tester.pumpApp(
+        const Scaffold(
+          body: TimelineRow(title: 'Fee paid', subtitle: 'UPI\nsecond line\nthird line', isFirst: true),
+        ),
+      );
+      final marker = tester.getRect(
+        find
+            .descendant(of: find.byType(TimelineRow), matching: find.byType(DecoratedBox))
+            .evaluate()
+            .map((e) => find.byWidget(e.widget))
+            .firstWhere((f) {
+              final d = tester.widget<DecoratedBox>(f).decoration;
+              return d is BoxDecoration && d.shape == BoxShape.circle;
+            }),
+      );
+      final title = tester.getRect(find.text('Fee paid'));
+      expect((marker.center.dy - title.center.dy).abs(), lessThan(6));
+    });
+
     testWidgets('a finished step is the accent and a step to come is an outline', (tester) async {
       Color? fillOf(WidgetTester t, int index) {
         final boxes = t
@@ -392,7 +476,7 @@ void main() {
           body: Column(
             children: [
               TimelineRow(title: 'Applied', isFirst: true),
-              TimelineRow(title: 'Interview', done: false, isLast: true),
+              TimelineRow(title: 'Interview', done: false, statusLabel: 'Waiting', isLast: true),
             ],
           ),
         ),
@@ -450,6 +534,23 @@ void main() {
       expect(label, contains('Annual Day'));
       expect(label, contains('Auditorium, 10 am'));
       handle.dispose();
+    });
+
+    testWidgets('the day uses the language own digits', (tester) async {
+      await tester.runAsync(() => initializeDateFormatting('ar_EG'));
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: AppTheme.light(),
+          locale: const Locale('ar', 'EG'),
+          localizationsDelegates: GlobalMaterialLocalizations.delegates,
+          supportedLocales: const [Locale('ar', 'EG')],
+          home: Scaffold(
+            body: DateBadgeCard(date: DateTime(2026, 3, 7), title: 'x'),
+          ),
+        ),
+      );
+      expect(find.text('7'), findsNothing);
+      expect(find.text('٧'), findsOneWidget);
     });
 
     testWidgets('is a button only when it has a tap', (tester) async {
@@ -659,11 +760,109 @@ void main() {
       expect(button.style!.side!.resolve({}), isNull);
     });
 
+    Future<void> pumpFocusPage(WidgetTester tester) async {
+      await tester.pumpApp(
+        SnackbarEscape(
+          child: Scaffold(
+            body: Column(
+              children: [
+                Builder(
+                  builder: (context) => ElevatedButton(
+                    onPressed: () => AppSnackbar.show(
+                      context,
+                      message: 'Could not save',
+                      kind: AppSnackbarKind.error,
+                      actionLabel: 'Retry',
+                      onAction: () {},
+                      dismissLabel: 'Dismiss',
+                    ),
+                    child: const Text('Save'),
+                  ),
+                ),
+                TextButton(onPressed: () {}, child: const Text('Other')),
+              ],
+            ),
+          ),
+        ),
+      );
+      FocusManager.instance.highlightStrategy = FocusHighlightStrategy.alwaysTraditional;
+      addTearDown(() => FocusManager.instance.highlightStrategy = FocusHighlightStrategy.automatic);
+      await tester.sendKeyEvent(LogicalKeyboardKey.tab);
+      await tester.pump();
+      expect(Focus.of(tester.element(find.text('Save'))).hasPrimaryFocus, isTrue);
+      await tester.sendKeyEvent(LogicalKeyboardKey.enter);
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 400));
+    }
+
+    for (final label in ['Retry', 'Dismiss']) {
+      testWidgets('pressing $label gives focus back to the control that caused the message', (tester) async {
+        await pumpFocusPage(tester);
+        await tester.tap(find.text(label));
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 400));
+        await tester.pump();
+        expect(find.text('Could not save'), findsNothing);
+        expect(Focus.of(tester.element(find.text('Save'))).hasPrimaryFocus, isTrue, reason: 'focus is back on Save');
+      });
+    }
+
+    testWidgets('focus stays on Retry until it is pressed, then returns to Save by keyboard', (tester) async {
+      await pumpFocusPage(tester);
+      FocusManager.instance.primaryFocus!.nextFocus();
+      await tester.pump();
+      var guard = 0;
+      while (!Focus.of(tester.element(find.text('Retry'))).hasPrimaryFocus && guard++ < 6) {
+        FocusManager.instance.primaryFocus!.nextFocus();
+        await tester.pump();
+      }
+      expect(Focus.of(tester.element(find.text('Retry'))).hasPrimaryFocus, isTrue);
+      await tester.sendKeyEvent(LogicalKeyboardKey.enter);
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 400));
+      await tester.pump();
+      expect(Focus.of(tester.element(find.text('Save'))).hasPrimaryFocus, isTrue);
+    });
+
+    testWidgets('Escape closes a message that stays, and focus does not move', (tester) async {
+      await pumpFocusPage(tester);
+      expect(find.text('Could not save'), findsOneWidget);
+      await tester.sendKeyEvent(LogicalKeyboardKey.escape);
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 400));
+      expect(find.text('Could not save'), findsNothing);
+      expect(Focus.of(tester.element(find.text('Save'))).hasPrimaryFocus, isTrue);
+    });
+
+    testWidgets('Escape with no message on screen is left for others', (tester) async {
+      var dismissed = 0;
+      await tester.pumpApp(
+        SnackbarEscape(
+          child: Scaffold(
+            body: Actions(
+              actions: {
+                DismissIntent: CallbackAction<DismissIntent>(
+                  onInvoke: (_) {
+                    dismissed += 1;
+                    return null;
+                  },
+                ),
+              },
+              child: TextButton(autofocus: true, onPressed: () {}, child: const Text('Go')),
+            ),
+          ),
+        ),
+      );
+      await tester.sendKeyEvent(LogicalKeyboardKey.escape);
+      expect(dismissed, 1);
+    });
+
     testWidgets('the message is announced as a live region', (tester) async {
       final handle = tester.ensureSemantics();
       await open(tester);
       final node = tester.getSemantics(find.text('Attendance saved'));
       expect(node.label, contains('Attendance saved'));
+      expect(node.flagsCollection.isLiveRegion, isTrue);
       handle.dispose();
     });
   });
@@ -705,7 +904,13 @@ void main() {
                 icon: Icons.check,
                 isFirst: true,
               ),
-              const TimelineRow(title: 'Interview scheduled', subtitle: 'Admissions office', done: false, isLast: true),
+              const TimelineRow(
+                title: 'Interview scheduled',
+                subtitle: 'Admissions office',
+                done: false,
+                statusLabel: 'Waiting',
+                isLast: true,
+              ),
               const SizedBox(height: 12),
               DateBadgeCard(
                 date: DateTime(2026, 3, 7),

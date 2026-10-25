@@ -7,6 +7,7 @@ import 'package:bravynix_school_erp/core/l10n/app_language.dart';
 import 'package:bravynix_school_erp/core/network/api_events.dart';
 import 'package:bravynix_school_erp/core/network/api_failure.dart';
 import 'package:bravynix_school_erp/core/theme/app_theme.dart';
+import 'package:bravynix_school_erp/core/widgets/app_snackbar.dart';
 import 'package:bravynix_school_erp/features/auth/domain/auth_repository.dart';
 import 'package:bravynix_school_erp/features/auth/presentation/session/session_bloc.dart';
 import 'package:bravynix_school_erp/l10n/gen/app_localizations.dart';
@@ -69,6 +70,7 @@ class _AppViewState extends State<AppView> {
           localizationsDelegates: AppLocalizations.localizationsDelegates,
           supportedLocales: AppLocalizations.supportedLocales,
           debugShowCheckedModeBanner: false,
+          builder: (context, child) => SnackbarEscape(child: child!),
         ),
       ),
     );

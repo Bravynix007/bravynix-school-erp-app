@@ -10,6 +10,10 @@ import 'package:flutter/material.dart';
 /// is drawn smaller. A malformed amount throws, so a wrong figure is never shown.
 ///
 /// Screens with translated spoken forms can pass [semanticsLabel].
+///
+/// When the first money screen is built, parse amounts as the API response is
+/// decoded (a small `Money` value type), so that a bad value becomes that
+/// screen's error state and this widget takes the parsed value.
 class AmountText extends StatelessWidget {
   const new(
     this.amount, {
