@@ -93,8 +93,19 @@ the widgets wrap or stack instead of shrinking the letters (attendance selector,
 | Cards and lists | `AppCard`, `SectionHeader`, `StatTile`, `PersonListTile`, `MenuListTile`, `AuditFooter` |
 | Labels | `StatusChip` (five tones, each with an icon), `AppTag`, `AppAvatar` |
 | Messages and states | `InlineMessage` (error, warning, info), `StatePanel` (empty, error, offline, forbidden, conflict), `SkeletonBox`, `SkeletonList` |
+| Shell | `AppTopBar` (64 px, logo or back arrow, small label, actions; grows with text), `NotificationBell` (badge, "9+" above nine), `ModuleHeader` (pinned accent sliver, 260 px, hero card; shrinks to the back button and title), `FloatingPillNavBar` (64 px, radius 26, 2 to 5 tabs), `AppFab` (extended pill), `StickyBottomActions` (primary, or Cancel and primary) |
 | Overlays | `showAppBottomSheet` (drag handle only when dismissible; clear of the home indicator), `showConfirmDialog` (optional 64 px tinted icon; scrolls) |
 
 The component gallery (`/gallery`, debug and profile builds only) shows all of them with the accent switch.
-The shell pieces (top bar, module header, floating tab bar, FAB, sticky actions) come in App PR 3.
+The shell pieces are described below.
+
+### Shell (App PR 3)
+
+- **Top bar** is a normal widget (put it at the top of a Column), not `Scaffold.appBar`, because a fixed-height app bar would cut a title at large text.
+- **Module header** is a sliver for a `CustomScrollView`. Expanded height is 260 px including the status bar, and more when large text needs it. It is pinned: scrolling shrinks it to a 56 px row with the back button and the title, and the hero card fades out. The hero card is the accent a little darker (`AppAccent.raised`), so white text on it keeps 4.5:1 on all seven accents.
+- **Floating tab bar** is the accent at 100% opacity (BravyNix approved) with a `floatingNav` shadow. The chosen tab is a white pill with its icon and label in the accent text shade; the others are white icons 48 px wide, named for screen readers (and as a tooltip on long-press). If the chosen label cannot fit beside the icon (many tabs, very large text) the pill keeps the icon alone and the name is still spoken; layouts do not break a word or cut a line. Tabs carry the tab role and "Tab 2 of 5".
+- **FAB** is one extended pill, bottom right, only when the role may add. When the label no longer fits on one line it becomes the icon alone (56 px circle, label spoken and as tooltip). It floats over the list, so lists use `AppFab.listClearance` as bottom padding.
+- **Sticky actions** put Cancel on the left of the primary when both labels fit in half the width each, and stack with the primary on top when they do not. The bar clears the home indicator, and pads itself by the keyboard height (a `Scaffold` moves only its body for the keyboard, not `bottomNavigationBar`). A label word wider than its room is drawn smaller rather than broken (`AppButton.labelRoom`, `fitWordScaler`).
+- **Focus on the accent header** is a white 2 px ring (ink is 2.13:1 on Teal). The top bar sets dark status bar icons, the module header light ones, both on a transparent bar. `reduceMotion(context)` (Android and iOS) is the one question every animated widget asks.
+- Focus rings: ink on white or light surfaces, white on the accent (FAB and the icon tabs).
 

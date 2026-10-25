@@ -41,7 +41,7 @@ void main() {
   for (final scale in [1.3, 2.0]) {
     testWidgets('lays out at ${scale * 100}% text on a 360 px phone from top to bottom', (tester) async {
       await _pump(tester, textScale: scale);
-      for (var i = 0; i < 25; i += 1) {
+      for (var i = 0; i < 32; i += 1) {
         await tester.drag(find.byType(ListView), const Offset(0, -700));
         await tester.pump();
         expect(tester.takeException(), isNull, reason: 'screen $i at $scale');
@@ -91,4 +91,57 @@ void main() {
     await _settle(tester);
     expect(tester.takeException(), isNull);
   });
+
+  testWidgets('the module screen opens from the gallery and its header shrinks when scrolled', (tester) async {
+    await _pump(tester);
+    await tester.tap(find.text('Open the shell pieces'));
+    await _settle(tester);
+    expect(find.text('Fee receipt'), findsOneWidget, reason: 'the back variant of the top bar');
+    await tester.scrollUntilVisible(find.text('Open a module screen'), 400, scrollable: find.byType(Scrollable).first);
+    await tester.tap(find.text('Open a module screen'));
+    await _settle(tester);
+    expect(find.text('Attendance'), findsOneWidget);
+    expect(find.text("Mark today's attendance for your section"), findsOneWidget);
+    final header = find.descendant(of: find.byType(SliverPersistentHeader), matching: find.byType(ColoredBox)).first;
+    final expanded = tester.getSize(header).height;
+    expect(expanded, greaterThanOrEqualTo(260));
+    await tester.drag(find.byType(CustomScrollView), const Offset(0, -600));
+    await _settle(tester);
+    expect(tester.getSize(header).height, lessThan(expanded));
+    expect(find.text('Attendance'), findsOneWidget, reason: 'the title stays pinned');
+    expect(tester.takeException(), isNull);
+  });
+
+  for (final scale in [1.3, 2.0, 3.0]) {
+    testWidgets('the shell page lays out at ${scale * 100}% text on a 320 px phone from top to bottom', (tester) async {
+      tester.view
+        ..physicalSize = const Size(320, 640)
+        ..devicePixelRatio = 1;
+      addTearDown(tester.view.reset);
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: AppTheme.light(),
+          home: MediaQuery(
+            data: MediaQueryData(size: const Size(320, 640), textScaler: TextScaler.linear(scale)),
+            child: const ComponentGalleryPage(),
+          ),
+        ),
+      );
+      await tester.scrollUntilVisible(
+        find.text('Open the shell pieces'),
+        200,
+        scrollable: find.byType(Scrollable).first,
+      );
+      await tester.ensureVisible(find.text('Open the shell pieces'));
+      await tester.pump();
+      await tester.tap(find.text('Open the shell pieces'));
+      await _settle(tester);
+      expect(find.text('Fee receipt'), findsOneWidget, reason: 'the shell page is open');
+      for (var i = 0; i < 12; i += 1) {
+        await tester.drag(find.byType(ListView), const Offset(0, -500));
+        await tester.pump();
+        expect(tester.takeException(), isNull, reason: 'screen $i at $scale');
+      }
+    });
+  }
 }

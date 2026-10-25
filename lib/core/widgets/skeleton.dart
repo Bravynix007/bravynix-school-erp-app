@@ -1,3 +1,4 @@
+import 'package:bravynix_school_erp/core/a11y/reduce_motion.dart';
 import 'package:bravynix_school_erp/core/theme/app_colors.dart';
 import 'package:bravynix_school_erp/core/theme/app_spacing.dart';
 import 'package:flutter/material.dart';
@@ -38,8 +39,7 @@ class _SkeletonBoxState extends State<SkeletonBox> with SingleTickerProviderStat
   }
 
   void _syncMotion() {
-    final reduceMotion = View.of(context).platformDispatcher.accessibilityFeatures.reduceMotion;
-    if (MediaQuery.disableAnimationsOf(context) || reduceMotion) {
+    if (reduceMotion(context)) {
       _controller
         ..stop()
         ..value = 0;

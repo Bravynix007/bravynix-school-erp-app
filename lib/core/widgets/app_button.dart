@@ -1,5 +1,6 @@
 import 'package:bravynix_school_erp/core/theme/app_colors.dart';
 import 'package:bravynix_school_erp/core/theme/app_spacing.dart';
+import 'package:bravynix_school_erp/core/widgets/text_measure.dart';
 import 'package:flutter/material.dart';
 
 enum AppButtonVariant { primary, secondary, tonal, text, danger }
@@ -28,6 +29,7 @@ class AppButton extends StatelessWidget {
     this.icon,
     this.loading = false,
     this.expand,
+    this.labelRoom,
     super.key,
   });
 
@@ -40,6 +42,11 @@ class AppButton extends StatelessWidget {
 
   /// Fill the available width. Defaults to true for large buttons only.
   final bool? expand;
+
+  /// The width the label has, when the caller knows it (a bar that lays two
+  /// buttons out). A word wider than that is drawn smaller instead of being
+  /// broken in half, as a last resort at the largest text sizes.
+  final double? labelRoom;
 
   @override
   Widget build(BuildContext context) {
@@ -54,7 +61,7 @@ class AppButton extends StatelessWidget {
     final callback = loading && onPressed != null ? () {} : onPressed;
     final child = loading
         ? Semantics(label: label, excludeSemantics: true, child: const _Spinner())
-        : _Label(label: label, icon: icon);
+        : _Label(label: label, icon: icon, style: textStyle, room: labelRoom);
 
     return switch (variant) {
       AppButtonVariant.primary => FilledButton(
@@ -95,14 +102,20 @@ class AppButton extends StatelessWidget {
 }
 
 class _Label extends StatelessWidget {
-  const new({required this.label, this.icon});
+  const new({required this.label, required this.style, this.icon, this.room});
 
   final String label;
+  final TextStyle? style;
   final IconData? icon;
+  final double? room;
 
   @override
   Widget build(BuildContext context) {
-    final text = Text(label, textAlign: TextAlign.center);
+    final text = Text(
+      label,
+      textAlign: TextAlign.center,
+      textScaler: room == null ? null : fitWordScaler(context, label, style, room!),
+    );
     if (icon == null) return text;
     return Row(
       mainAxisSize: MainAxisSize.min,
