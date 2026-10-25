@@ -6,6 +6,7 @@ double measureText(BuildContext context, String text, TextStyle? style, {TextSca
   final painter = TextPainter(
     text: TextSpan(text: text, style: style),
     textDirection: Directionality.of(context),
+    locale: Localizations.maybeLocaleOf(context),
     textScaler: scaler ?? MediaQuery.textScalerOf(context),
     maxLines: 1,
   )..layout();
@@ -31,6 +32,7 @@ double measureTextHeight(BuildContext context, String text, TextStyle? style, do
   final painter = TextPainter(
     text: TextSpan(text: text, style: style),
     textDirection: Directionality.of(context),
+    locale: Localizations.maybeLocaleOf(context),
     textScaler: scaler ?? MediaQuery.textScalerOf(context),
   )..layout(maxWidth: maxWidth);
   final height = painter.height;

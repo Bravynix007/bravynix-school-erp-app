@@ -34,12 +34,18 @@ class AppFab extends StatelessWidget {
       measureText(context, label, _labelStyle(context)) <= _labelRoom(context);
 
   /// Bottom padding for a list under the button: its height at the current
-  /// text size, the margin the Scaffold keeps around it, and a gap.
+  /// text size, the margin the Scaffold keeps around it (which includes the home
+  /// indicator when there is no bottom bar), and a gap. Call it from inside the
+  /// Scaffold's body (a `Builder`), where the Scaffold has already taken the
+  /// bottom inset away if a bottom bar covers it.
   static double listClearance(BuildContext context, String label) {
     final textHeight = _extended(context, label)
         ? measureTextHeight(context, label, _labelStyle(context), _labelRoom(context)) + 2 * AppSpacing.sm
         : 0.0;
-    return math.max(_minSize, textHeight) + kFloatingActionButtonMargin + AppSpacing.md;
+    return math.max(_minSize, textHeight) +
+        kFloatingActionButtonMargin +
+        MediaQuery.paddingOf(context).bottom +
+        AppSpacing.md;
   }
 
   @override
@@ -51,6 +57,28 @@ class AppFab extends StatelessWidget {
     final maxWidth = MediaQuery.sizeOf(context).width - 2 * AppSpacing.screenMargin;
     final labelStyle = _labelStyle(context)?.copyWith(color: scheme.onPrimary);
     final iconWidget = Icon(icon, size: 24, color: scheme.onPrimary, semanticLabel: extended ? null : label);
+    final ink = RingInkWell(
+      onTap: onPressed,
+      borderRadius: radius,
+      ringColor: scheme.onPrimary,
+      child: extended
+          ? Padding(
+              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: AppSpacing.sm),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  iconWidget,
+                  const SizedBox(width: AppSpacing.xs),
+                  Flexible(child: Text(label, style: labelStyle)),
+                ],
+              ),
+            )
+          : SizedBox.square(
+              dimension: _minSize,
+              child: Center(child: iconWidget),
+            ),
+    );
     return ConstrainedBox(
       constraints: BoxConstraints(minWidth: _minSize, minHeight: _minSize, maxWidth: maxWidth),
       child: DecoratedBox(
@@ -60,32 +88,8 @@ class AppFab extends StatelessWidget {
           borderRadius: radius,
           child: Semantics(
             button: true,
-            child: Tooltip(
-              message: label,
-              excludeFromSemantics: true,
-              child: RingInkWell(
-                onTap: onPressed,
-                borderRadius: radius,
-                ringColor: scheme.onPrimary,
-                child: extended
-                    ? Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: AppSpacing.sm),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            iconWidget,
-                            const SizedBox(width: AppSpacing.xs),
-                            Flexible(child: Text(label, style: labelStyle)),
-                          ],
-                        ),
-                      )
-                    : SizedBox.square(
-                        dimension: _minSize,
-                        child: Center(child: iconWidget),
-                      ),
-              ),
-            ),
+            // The label is on screen when extended; the tooltip names the bare icon.
+            child: extended ? ink : Tooltip(message: label, excludeFromSemantics: true, child: ink),
           ),
         ),
       ),
