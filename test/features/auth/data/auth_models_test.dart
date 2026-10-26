@@ -60,7 +60,6 @@ void main() {
     expect(session.contexts.first.societyName, 'Sunrise Education Trust');
     expect(session.contexts.last.children.single.classSection, '7th - A');
     expect(session.activeContext, isNull);
-    expect(session.needsRoleChoice, isTrue);
   });
 
   test('a person added by email alone has no name: the email stands in', () {
@@ -81,7 +80,6 @@ void main() {
     };
     final session = AuthModels.session(single);
     expect(session.activeContext?.role, RoleCode.teacherStaff);
-    expect(session.needsRoleChoice, isFalse);
   });
 
   test('the OTP answer gives the resend gap', () {

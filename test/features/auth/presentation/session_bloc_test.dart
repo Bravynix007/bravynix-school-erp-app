@@ -105,4 +105,20 @@ void main() {
       SessionEndReason.signedOutElsewhere,
     );
   });
+
+  blocTest<SessionBloc, SessionState>(
+    'choosing a role makes it the active one',
+    build: () => SessionBloc(auth),
+    seed: () => const SessionAuthenticated(twoRoleSession),
+    act: (bloc) => bloc.add(const SessionContextChosen(ownerSouth)),
+    expect: () => [SessionAuthenticated(twoRoleSession.withActiveContext(ownerSouth))],
+  );
+
+  blocTest<SessionBloc, SessionState>(
+    'a role chosen after the session ended changes nothing',
+    build: () => SessionBloc(auth),
+    seed: () => const SessionUnauthenticated(),
+    act: (bloc) => bloc.add(const SessionContextChosen(ownerSouth)),
+    expect: () => <SessionState>[],
+  );
 }

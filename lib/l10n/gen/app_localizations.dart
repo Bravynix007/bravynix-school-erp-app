@@ -367,6 +367,126 @@ abstract class AppLocalizations {
   /// **'Log out'**
   String get logOut;
 
+  /// No description provided for @back.
+  ///
+  /// In en, this message translates to:
+  /// **'Back'**
+  String get back;
+
+  /// No description provided for @roleSuperAdmin.
+  ///
+  /// In en, this message translates to:
+  /// **'Super Admin'**
+  String get roleSuperAdmin;
+
+  /// No description provided for @roleSocietyOwner.
+  ///
+  /// In en, this message translates to:
+  /// **'Society Owner'**
+  String get roleSocietyOwner;
+
+  /// No description provided for @roleInstitutionAdmin.
+  ///
+  /// In en, this message translates to:
+  /// **'Institution Admin'**
+  String get roleInstitutionAdmin;
+
+  /// No description provided for @roleTeacherStaff.
+  ///
+  /// In en, this message translates to:
+  /// **'Teacher / Staff'**
+  String get roleTeacherStaff;
+
+  /// No description provided for @roleStudentParent.
+  ///
+  /// In en, this message translates to:
+  /// **'Parent / Student'**
+  String get roleStudentParent;
+
+  /// No description provided for @roleBlocked.
+  ///
+  /// In en, this message translates to:
+  /// **'Blocked'**
+  String get roleBlocked;
+
+  /// No description provided for @chooseRoleTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose how to continue'**
+  String get chooseRoleTitle;
+
+  /// No description provided for @chooseRoleSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Your email has more than one role. You can change this later from Profile.'**
+  String get chooseRoleSubtitle;
+
+  /// No description provided for @noRoleTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'No role available'**
+  String get noRoleTitle;
+
+  /// No description provided for @noRoleBody.
+  ///
+  /// In en, this message translates to:
+  /// **'This account has no active role. Ask your Society to add you, then sign in again.'**
+  String get noRoleBody;
+
+  /// No description provided for @errorContextNotAvailable.
+  ///
+  /// In en, this message translates to:
+  /// **'You no longer have that role. Choose another one or sign in again.'**
+  String get errorContextNotAvailable;
+
+  /// No description provided for @errorAccessBlocked.
+  ///
+  /// In en, this message translates to:
+  /// **'Access is blocked for that role. Choose another one or contact your Society.'**
+  String get errorAccessBlocked;
+
+  /// No description provided for @profileTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Profile'**
+  String get profileTitle;
+
+  /// No description provided for @profileEmail.
+  ///
+  /// In en, this message translates to:
+  /// **'Email'**
+  String get profileEmail;
+
+  /// No description provided for @profileRole.
+  ///
+  /// In en, this message translates to:
+  /// **'Role'**
+  String get profileRole;
+
+  /// No description provided for @profileSociety.
+  ///
+  /// In en, this message translates to:
+  /// **'Society'**
+  String get profileSociety;
+
+  /// No description provided for @switchRole.
+  ///
+  /// In en, this message translates to:
+  /// **'Switch role'**
+  String get switchRole;
+
+  /// No description provided for @switchRoleDetail.
+  ///
+  /// In en, this message translates to:
+  /// **'Use the app as another role'**
+  String get switchRoleDetail;
+
+  /// No description provided for @openProfile.
+  ///
+  /// In en, this message translates to:
+  /// **'Profile'**
+  String get openProfile;
+
   /// No description provided for @loading.
   ///
   /// In en, this message translates to:

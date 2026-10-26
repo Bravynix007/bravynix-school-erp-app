@@ -1,4 +1,4 @@
-// Sign-in against the real API, not a fake: AUTH-01, AUTH-02, ME-01, AUTH-03
+// Sign-in against the real API, not a fake: AUTH-01, AUTH-02, AUTH-06, ME-01, AUTH-03
 // and AUTH-04 through the app's own client, repository and models. It is not
 // part of `flutter test`; see "Live checks" in the README.
 import 'dart:convert';
@@ -115,6 +115,22 @@ void main() {
     final restored = await repository.restoreSession();
     expect(restored?.person.id, session.person.id);
     expect(restored?.contexts, session.contexts);
+  });
+
+  test('AUTH-06 switches to a held role with a new access token, and refuses one that is not held', () async {
+    final before = (await tokens.read())!;
+    await repository.switchContext(session.contexts.first);
+    final after = (await tokens.read())!;
+    expect(after.accessToken, isNotEmpty);
+    expect(after.refreshToken, before.refreshToken);
+    // The new token works: ME-01 answers for the same person.
+    expect((await repository.restoreSession())?.person.id, session.person.id);
+
+    await expectLater(
+      repository.switchContext(const AuthContext(role: RoleCode.studentParent)),
+      throwsA(isA<ApiFailure>().having((f) => f.code, 'code', 'CONTEXT_NOT_AVAILABLE')),
+    );
+    expect((await tokens.read())?.accessToken, after.accessToken);
   });
 
   test('AUTH-04 signs out here and on the server', () async {

@@ -52,7 +52,7 @@ the script is the only check, so never build an iOS release by hand.
 ## Live checks
 
 `flutter test` never touches a network. `live_test/` signs in against a real backend through the app's own
-client, repository and models (AUTH-01 to AUTH-04, ME-01 and the lock after five wrong codes). It is run by hand:
+client, repository and models (AUTH-01 to AUTH-04, AUTH-06, ME-01 and the lock after five wrong codes). It is run by hand:
 
 ```bash
 # In bravynix-school-erp-backend: a freshly migrated and seeded database, and

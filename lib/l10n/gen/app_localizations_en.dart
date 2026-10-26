@@ -187,5 +187,65 @@ class AppLocalizationsEn extends AppLocalizations {
   String get logOut => 'Log out';
 
   @override
+  String get back => 'Back';
+
+  @override
+  String get roleSuperAdmin => 'Super Admin';
+
+  @override
+  String get roleSocietyOwner => 'Society Owner';
+
+  @override
+  String get roleInstitutionAdmin => 'Institution Admin';
+
+  @override
+  String get roleTeacherStaff => 'Teacher / Staff';
+
+  @override
+  String get roleStudentParent => 'Parent / Student';
+
+  @override
+  String get roleBlocked => 'Blocked';
+
+  @override
+  String get chooseRoleTitle => 'Choose how to continue';
+
+  @override
+  String get chooseRoleSubtitle => 'Your email has more than one role. You can change this later from Profile.';
+
+  @override
+  String get noRoleTitle => 'No role available';
+
+  @override
+  String get noRoleBody => 'This account has no active role. Ask your Society to add you, then sign in again.';
+
+  @override
+  String get errorContextNotAvailable => 'You no longer have that role. Choose another one or sign in again.';
+
+  @override
+  String get errorAccessBlocked => 'Access is blocked for that role. Choose another one or contact your Society.';
+
+  @override
+  String get profileTitle => 'Profile';
+
+  @override
+  String get profileEmail => 'Email';
+
+  @override
+  String get profileRole => 'Role';
+
+  @override
+  String get profileSociety => 'Society';
+
+  @override
+  String get switchRole => 'Switch role';
+
+  @override
+  String get switchRoleDetail => 'Use the app as another role';
+
+  @override
+  String get openProfile => 'Profile';
+
+  @override
   String get loading => 'Loading';
 }

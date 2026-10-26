@@ -6,6 +6,7 @@ import 'package:bravynix_school_erp/core/network/dio_factory.dart';
 import 'package:bravynix_school_erp/core/storage/install_marker.dart';
 import 'package:bravynix_school_erp/core/storage/token_storage.dart';
 import 'package:bravynix_school_erp/features/auth/data/auth_repository_impl.dart';
+import 'package:bravynix_school_erp/features/auth/domain/auth_entities.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -189,6 +190,54 @@ void main() {
       expect(storage.tokens, isNull);
       expect(await marker.isSignOutPending(), isFalse);
       expect(adapter.requests, isEmpty);
+    });
+  });
+
+  group('switchContext (AUTH-06)', () {
+    const owner = AuthContext(role: RoleCode.societyOwner, societyId: 's2');
+    const parent = AuthContext(role: RoleCode.studentParent);
+
+    test('sends the role and Society, and keeps the new access token with the same refresh token', () async {
+      final storage = _FakeStorage(tokens: saved);
+      final (:repository, :adapter) = build(storage, reply: (_) async => okReply({'accessToken': 'a9'}));
+      await repository.switchContext(owner);
+      expect(adapter.requests.single.uri.path, '/v1/auth/context');
+      expect(adapter.requests.single.data, {'roleCode': 2, 'societyId': 's2'});
+      expect(storage.tokens, const AuthTokens(accessToken: 'a9', refreshToken: 'r1'));
+    });
+
+    test('leaves the Society out for a parent, whose role spans Societies', () async {
+      final (:repository, :adapter) = build(
+        _FakeStorage(tokens: saved),
+        reply: (_) async => okReply({'accessToken': 'a9'}),
+      );
+      await repository.switchContext(parent);
+      expect(adapter.requests.single.data, {'roleCode': 5});
+    });
+
+    test('a refusal keeps the tokens as they were', () async {
+      final storage = _FakeStorage(tokens: saved);
+      final (:repository, adapter: _) = build(storage, reply: (_) async => errorReply(403, 'CONTEXT_NOT_AVAILABLE'));
+      await expectLater(
+        repository.switchContext(owner),
+        throwsA(isA<ApiFailure>().having((f) => f.code, 'code', 'CONTEXT_NOT_AVAILABLE')),
+      );
+      expect(storage.tokens, saved);
+    });
+
+    test('an answer without an access token is an error, not a half-switched session', () async {
+      final storage = _FakeStorage(tokens: saved);
+      final (:repository, adapter: _) = build(storage, reply: (_) async => okReply({'activeContext': null}));
+      await expectLater(repository.switchContext(owner), throwsA(isA<ApiFailure>()));
+      expect(storage.tokens, saved);
+    });
+
+    test('a failed save is a storage failure', () async {
+      final (:repository, adapter: _) = build(
+        _FakeStorage(tokens: saved, failWrites: true),
+        reply: (_) async => okReply({'accessToken': 'a9'}),
+      );
+      await expectLater(repository.switchContext(owner), throwsA(storageFailure));
     });
   });
 }
