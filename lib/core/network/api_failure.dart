@@ -77,6 +77,12 @@ class ApiFailure extends Equatable implements Exception {
   /// 429 and 503 (502 and 504 count as 503) may be retried after [retryAfter].
   bool get isRetryable => statusCode == 429 || statusCode == 503 || statusCode == 502 || statusCode == 504;
 
+  /// The email is locked out of signing in: a new code cannot be requested
+  /// until [retryAfter] has passed (API design 6.2). The fifth wrong code
+  /// answers OTP_ATTEMPTS_EXCEEDED with the lock's length; without one the
+  /// code is only dead.
+  bool get isLockedOut => code == 'AUTH_LOCKED' || (code == 'OTP_ATTEMPTS_EXCEEDED' && retryAfter != null);
+
   /// 426: the app is below the minimum supported version (API design 5.2).
   bool get isUpdateRequired => statusCode == 426 || code == 'APP_UPDATE_REQUIRED';
 

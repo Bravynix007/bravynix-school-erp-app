@@ -199,6 +199,12 @@ abstract class AppLocalizations {
   /// **'Too many incorrect codes. Request a new one.'**
   String get errorOtpAttemptsExceeded;
 
+  /// No description provided for @errorOtpAttemptsLocked.
+  ///
+  /// In en, this message translates to:
+  /// **'Too many incorrect codes. Try again in {duration}.'**
+  String errorOtpAttemptsLocked(String duration);
+
   /// No description provided for @errorOtpResendTooSoon.
   ///
   /// In en, this message translates to:
@@ -216,6 +222,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Too many failed sign-ins. This email is locked for 30 minutes.'**
   String get errorAuthLocked;
+
+  /// No description provided for @errorAuthLockedFor.
+  ///
+  /// In en, this message translates to:
+  /// **'Too many failed sign-ins. Try again in {duration}.'**
+  String errorAuthLockedFor(String duration);
+
+  /// No description provided for @durationMinutes.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 minute} other{{count} minutes}}'**
+  String durationMinutes(int count);
+
+  /// No description provided for @durationHours.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 hour} other{{count} hours}}'**
+  String durationHours(int count);
+
+  /// No description provided for @startAgain.
+  ///
+  /// In en, this message translates to:
+  /// **'Start again'**
+  String get startAgain;
 
   /// No description provided for @errorRateLimited.
   ///

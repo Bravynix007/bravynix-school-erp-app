@@ -104,14 +104,8 @@ class LoginCubit extends Cubit<LoginState> {
       final session = await _auth.verifyOtp(email: state.email, code: code);
       emit(state.copyWith(status: LoginStatus.success, session: session));
     } on ApiFailure catch (failure) {
-      emit(
-        state.copyWith(
-          status: LoginStatus.idle,
-          failure: () => failure,
-          // A locked email goes back to the start; a dead code waits for Resend.
-          step: failure.code == 'AUTH_LOCKED' ? LoginStep.email : null,
-        ),
-      );
+      // A locked email stays on this step: the screen offers only a fresh start.
+      emit(state.copyWith(status: LoginStatus.idle, failure: () => failure));
     }
   }
 

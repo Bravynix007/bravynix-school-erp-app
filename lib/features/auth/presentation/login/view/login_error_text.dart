@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:bravynix_school_erp/core/network/api_failure.dart';
 import 'package:bravynix_school_erp/l10n/gen/app_localizations.dart';
 
@@ -11,13 +13,15 @@ String loginErrorText(AppLocalizations l10n, ApiFailure failure) {
     case 'OTP_EXPIRED':
       return l10n.errorOtpExpired;
     case 'OTP_ATTEMPTS_EXCEEDED':
-      return l10n.errorOtpAttemptsExceeded;
+      final lock = failure.retryAfter;
+      return lock == null ? l10n.errorOtpAttemptsExceeded : l10n.errorOtpAttemptsLocked(_lockLength(l10n, lock));
     case 'OTP_RESEND_TOO_SOON':
       return l10n.errorOtpResendTooSoon;
     case 'OTP_REQUEST_LIMIT':
       return l10n.errorOtpRequestLimit;
     case 'AUTH_LOCKED':
-      return l10n.errorAuthLocked;
+      final lock = failure.retryAfter;
+      return lock == null ? l10n.errorAuthLocked : l10n.errorAuthLockedFor(_lockLength(l10n, lock));
     case 'RATE_LIMITED':
       return l10n.errorRateLimited;
     case 'ACCOUNT_BLOCKED':
@@ -32,4 +36,13 @@ String loginErrorText(AppLocalizations l10n, ApiFailure failure) {
     return l10n.errorWithRequestId(failure.requestId!);
   }
   return failure.message.isNotEmpty ? failure.message : l10n.errorGeneric;
+}
+
+/// A lock of 30 minutes or 24 hours, as the lockout email words it. It rounds
+/// up, so nobody tries again a minute early and is refused.
+String _lockLength(AppLocalizations l10n, Duration lock) {
+  if (lock.inSeconds >= Duration.secondsPerHour) {
+    return l10n.durationHours((lock.inSeconds / Duration.secondsPerHour).ceil());
+  }
+  return l10n.durationMinutes(max(1, (lock.inSeconds / Duration.secondsPerMinute).ceil()));
 }

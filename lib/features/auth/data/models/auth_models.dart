@@ -25,7 +25,7 @@ abstract final class AuthModels {
     return Person(
       id: map['id'] as String,
       email: map['email'] as String,
-      firstName: map['firstName'] as String,
+      firstName: map['firstName'] as String?,
       lastName: map['lastName'] as String?,
       preferredLanguage: map['preferredLanguage'] as String? ?? 'en',
     );

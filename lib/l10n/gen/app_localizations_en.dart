@@ -76,6 +76,11 @@ class AppLocalizationsEn extends AppLocalizations {
   String get errorOtpAttemptsExceeded => 'Too many incorrect codes. Request a new one.';
 
   @override
+  String errorOtpAttemptsLocked(String duration) {
+    return 'Too many incorrect codes. Try again in $duration.';
+  }
+
+  @override
   String get errorOtpResendTooSoon => 'Wait a minute before asking for another code.';
 
   @override
@@ -83,6 +88,36 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get errorAuthLocked => 'Too many failed sign-ins. This email is locked for 30 minutes.';
+
+  @override
+  String errorAuthLockedFor(String duration) {
+    return 'Too many failed sign-ins. Try again in $duration.';
+  }
+
+  @override
+  String durationMinutes(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count minutes',
+      one: '1 minute',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String durationHours(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count hours',
+      one: '1 hour',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get startAgain => 'Start again';
 
   @override
   String get errorRateLimited => 'Too many attempts. Try again shortly.';

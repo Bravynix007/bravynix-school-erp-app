@@ -63,6 +63,17 @@ void main() {
     expect(session.needsRoleChoice, isTrue);
   });
 
+  test('a person added by email alone has no name: the email stands in', () {
+    final nameless = {
+      ...verify,
+      'person': {...(verify['person'] as Map<String, dynamic>), 'firstName': null, 'lastName': null},
+    };
+    final person = AuthModels.session(nameless).person;
+    expect(person.firstName, isNull);
+    expect(person.displayName, 'asha.rao@example.com');
+    expect(person.greetingName, 'asha.rao@example.com');
+  });
+
   test('one context becomes the active one', () {
     final single = {
       ...verify,
