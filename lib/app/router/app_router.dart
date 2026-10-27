@@ -2,10 +2,12 @@ import 'dart:async';
 
 import 'package:bravynix_school_erp/app/router/app_routes.dart';
 import 'package:bravynix_school_erp/features/auth/presentation/login/view/login_page.dart';
+import 'package:bravynix_school_erp/features/auth/presentation/role/view/role_chooser_page.dart';
 import 'package:bravynix_school_erp/features/auth/presentation/session/session_bloc.dart';
 import 'package:bravynix_school_erp/features/auth/presentation/splash/splash_page.dart';
 import 'package:bravynix_school_erp/features/gallery/presentation/component_gallery_page.dart';
 import 'package:bravynix_school_erp/features/home/presentation/home_page.dart';
+import 'package:bravynix_school_erp/features/profile/presentation/profile_page.dart';
 import 'package:bravynix_school_erp/features/update_required/presentation/update_required_page.dart';
 import 'package:flutter/foundation.dart';
 import 'package:go_router/go_router.dart';
@@ -20,6 +22,9 @@ String? sessionRedirect(SessionState session, String location) {
   return switch (session) {
     SessionUnknown() || SessionRestoreFailed() => location == AppRoutes.splash ? null : AppRoutes.splash,
     SessionUnauthenticated() => location == AppRoutes.login ? null : AppRoutes.login,
+    // Nothing but the chooser until a role is active; it also says when the account has none.
+    SessionAuthenticated(:final session) when session.activeContext == null =>
+      location == AppRoutes.chooseRole ? null : AppRoutes.chooseRole,
     SessionAuthenticated() => AppRoutes.public.contains(location) ? AppRoutes.home : null,
   };
 }
@@ -49,6 +54,8 @@ GoRouter createRouter(SessionBloc session, {required SessionChanges changes}) {
       GoRoute(path: AppRoutes.splash, builder: (_, _) => const SplashPage()),
       GoRoute(path: AppRoutes.login, builder: (_, _) => const LoginPage()),
       GoRoute(path: AppRoutes.home, builder: (_, _) => const HomePage()),
+      GoRoute(path: AppRoutes.chooseRole, builder: (_, _) => const RoleChooserPage()),
+      GoRoute(path: AppRoutes.profile, builder: (_, _) => const ProfilePage()),
       GoRoute(path: AppRoutes.updateRequired, builder: (_, _) => const UpdateRequiredPage()),
       if (!kReleaseMode) GoRoute(path: AppRoutes.gallery, builder: (_, _) => const ComponentGalleryPage()),
     ],

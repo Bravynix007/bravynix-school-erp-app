@@ -55,6 +55,16 @@ final class SessionSignedIn extends SessionEvent {
   List<Object?> get props => [session];
 }
 
+/// The person chose a role (AUTH-06 succeeded).
+final class SessionContextChosen extends SessionEvent {
+  const new(this.context);
+
+  final AuthContext context;
+
+  @override
+  List<Object?> get props => [context];
+}
+
 final class SessionLogoutRequested extends SessionEvent {
   const new({this.everywhere = false});
 
@@ -120,6 +130,7 @@ class SessionBloc extends Bloc<SessionEvent, SessionState> {
   new(this._auth) : super(const SessionUnknown()) {
     on<SessionStarted>(_onStarted);
     on<SessionSignedIn>((event, emit) => emit(SessionAuthenticated(event.session)));
+    on<SessionContextChosen>(_onContextChosen);
     on<SessionLogoutRequested>(_onLogout);
     on<_SessionEnded>(_onEnded);
     _ended = _auth.sessionEnded.listen((failure) => add(_SessionEnded(failure)));
@@ -136,6 +147,11 @@ class SessionBloc extends Bloc<SessionEvent, SessionState> {
     } on ApiFailure catch (failure) {
       emit(SessionRestoreFailed(failure));
     }
+  }
+
+  void _onContextChosen(SessionContextChosen event, Emitter<SessionState> emit) {
+    final current = state;
+    if (current is SessionAuthenticated) emit(SessionAuthenticated(current.session.withActiveContext(event.context)));
   }
 
   Future<void> _onLogout(SessionLogoutRequested event, Emitter<SessionState> emit) async {

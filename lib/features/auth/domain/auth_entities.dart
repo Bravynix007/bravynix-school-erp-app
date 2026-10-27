@@ -118,11 +118,13 @@ class AuthSession extends Equatable {
   final Person person;
   final List<AuthContext> contexts;
 
-  /// Set by the server when there is exactly one context; otherwise the app
-  /// shows the role chooser (API design 6.3, build plan phase 1).
+  /// Set by the server when there is exactly one context; until the person
+  /// chooses one (AUTH-06) it is null and the app shows the role chooser
+  /// (API design 6.3, build plan phase 1).
   final AuthContext? activeContext;
 
-  bool get needsRoleChoice => activeContext == null && contexts.length > 1;
+  AuthSession withActiveContext(AuthContext context) =>
+      AuthSession(person: person, contexts: contexts, activeContext: context);
 
   @override
   List<Object?> get props => [person, contexts, activeContext];

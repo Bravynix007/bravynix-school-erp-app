@@ -56,6 +56,22 @@ class AuthRepositoryImpl implements AuthRepository {
   }
 
   @override
+  Future<void> switchContext(AuthContext context) async {
+    final accessToken = await _api.data(
+      'auth/context',
+      method: HttpMethod.post,
+      body: {'roleCode': context.role.code, 'societyId': ?context.societyId},
+      parse: (data) => data is Map<String, dynamic> && data['accessToken'] is String
+          ? data['accessToken']! as String
+          : throw const FormatException('Expected an access token'),
+    );
+    // The refresh token is unchanged: only the access token carries the new role.
+    final saved = await _secure(_tokens.read);
+    if (saved == null) throw const ApiFailure.storage();
+    await _secure(() => _tokens.write(AuthTokens(accessToken: accessToken, refreshToken: saved.refreshToken)));
+  }
+
+  @override
   Future<AuthSession?> restoreSession() async {
     final tokens = await _readSaved();
     try {

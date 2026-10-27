@@ -60,7 +60,6 @@ void main() {
     expect(session.contexts.first.societyName, 'Sunrise Education Trust');
     expect(session.contexts.last.children.single.classSection, '7th - A');
     expect(session.activeContext, isNull);
-    expect(session.needsRoleChoice, isTrue);
   });
 
   test('a person added by email alone has no name: the email stands in', () {
@@ -81,12 +80,27 @@ void main() {
     };
     final session = AuthModels.session(single);
     expect(session.activeContext?.role, RoleCode.teacherStaff);
-    expect(session.needsRoleChoice, isFalse);
   });
 
   test('the OTP answer gives the resend gap', () {
     final sent = AuthModels.otpRequested({'resendAfterSeconds': 60, 'expiresInSeconds': 600});
     expect(sent.resendAfter, const Duration(minutes: 1));
     expect(sent.expiresIn, const Duration(minutes: 10));
+  });
+
+  test('the active context from the session is the listed one, with its Society name', () {
+    final session = AuthModels.session({
+      'person': {'id': 'p1', 'email': 'a@example.com', 'preferredLanguage': 'en'},
+      'session': {
+        'id': 's',
+        'activeContext': {'roleCode': 2, 'societyId': 's2'},
+      },
+      'contexts': [
+        {'roleCode': 2, 'societyId': 's1', 'societyName': 'North Trust'},
+        {'roleCode': 2, 'societyId': 's2', 'societyName': 'South Trust'},
+      ],
+    });
+    expect(session.activeContext, session.contexts.last);
+    expect(session.activeContext?.societyName, 'South Trust');
   });
 }

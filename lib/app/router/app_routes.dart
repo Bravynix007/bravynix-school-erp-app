@@ -4,6 +4,8 @@ abstract final class AppRoutes {
   static const login = '/login';
   static const home = '/home';
   static const updateRequired = '/update-required';
+  static const chooseRole = '/choose-role';
+  static const profile = '/profile';
 
   /// The component gallery, registered in debug and profile builds only.
   static const gallery = '/gallery';

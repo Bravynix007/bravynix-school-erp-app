@@ -13,6 +13,9 @@ abstract class AuthRepository {
   /// On app start: the stored session, if its tokens still work, else null.
   Future<AuthSession?> restoreSession();
 
+  /// AUTH-06. Makes [context] the session's role and keeps the new access token.
+  Future<void> switchContext(AuthContext context);
+
   /// AUTH-07, or AUTH-08 with [everywhere]. Local tokens are cleared even if the call fails.
   /// Throws [ApiFailure.storage] if the phone may still restore the session on its next start.
   Future<void> logout({bool everywhere = false});

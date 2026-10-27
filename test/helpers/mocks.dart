@@ -17,3 +17,9 @@ const testSession = AuthSession(
   contexts: [AuthContext(role: RoleCode.teacherStaff, societyId: 's1', societyName: 'Sunrise Education Trust')],
   activeContext: AuthContext(role: RoleCode.teacherStaff, societyId: 's1', societyName: 'Sunrise Education Trust'),
 );
+
+const ownerNorth = AuthContext(role: RoleCode.societyOwner, societyId: 's1', societyName: 'North Trust');
+const ownerSouth = AuthContext(role: RoleCode.societyOwner, societyId: 's2', societyName: 'South Trust');
+
+/// Two roles and no active one: the role chooser shows.
+const twoRoleSession = AuthSession(person: testPerson, contexts: [ownerNorth, ownerSouth]);
