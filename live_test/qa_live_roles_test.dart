@@ -114,6 +114,9 @@ void main() {
     stdout.writeln('R1 contexts: ${signedIn.contexts.map((c) => '${c.role.code}/${c.societyName}').join(', ')}');
     expect(signedIn.contexts, hasLength(2));
     expect(signedIn.activeContext, isNull);
+    // The chooser can tell the two seats apart.
+    expect(signedIn.contexts.map((c) => c.societyName).toSet(), {'Society A', 'Society B'});
+    expect(signedIn.contexts.every((c) => !c.isBlocked), isTrue);
   });
 
   test('R2 the chosen role survives ME-01 and a refresh, as the same context the list shows', () async {
@@ -128,6 +131,7 @@ void main() {
       'name=${restored.activeContext?.societyName}',
     );
     expect(restored.activeContext?.societyId, _societyB);
+    expect(restored.activeContext?.societyName, 'Society B');
     // Profile shows the active context's Society, and the chooser compares it with the list.
     expect(
       restored.activeContext,
