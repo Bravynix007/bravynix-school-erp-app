@@ -24,20 +24,29 @@ class Person extends Equatable {
   const new({
     required this.id,
     required this.email,
-    required this.firstName,
     required this.preferredLanguage,
+    this.firstName,
     this.lastName,
   });
 
   final String id;
   final String email;
-  final String firstName;
+
+  /// A person added by email alone has no name yet (API design 6.3).
+  final String? firstName;
   final String? lastName;
 
   /// en, hi, kn, ml, mr, ta or te (PRD 11.3).
   final String preferredLanguage;
 
-  String get displayName => lastName == null || lastName!.isEmpty ? firstName : '$firstName $lastName';
+  /// First and last name, or the email while neither is set.
+  String get displayName {
+    final name = [firstName, lastName].whereType<String>().where((part) => part.isNotEmpty).join(' ');
+    return name.isEmpty ? email : name;
+  }
+
+  /// What a greeting calls the person.
+  String get greetingName => firstName == null || firstName!.isEmpty ? email : firstName!;
 
   @override
   List<Object?> get props => [id, email, firstName, lastName, preferredLanguage];

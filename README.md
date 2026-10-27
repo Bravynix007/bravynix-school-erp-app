@@ -49,6 +49,21 @@ the script is the only check, so never build an iOS release by hand.
 | `flutter gen-l10n`                              | Regenerates `lib/l10n/gen` from the ARB files |
 | `flutter build apk --flavor dev --dart-define-from-file=config/dev.json` | Android build |
 
+## Live checks
+
+`flutter test` never touches a network. `live_test/` signs in against a real backend through the app's own
+client, repository and models (AUTH-01 to AUTH-04, ME-01 and the lock after five wrong codes). It is run by hand:
+
+```bash
+# In bravynix-school-erp-backend: a freshly migrated and seeded database, and
+#   OTP_DEV_ECHO=true EMAIL_DRIVER=memory node dist/main.js
+flutter test live_test --dart-define=LIVE_API=http://localhost:3000/v1
+```
+
+It uses the seeded `so-a1`, `so-a2` and `so-a3` accounts (`LIVE_EMAIL`, `LIVE_OTHER_EMAIL` and
+`LIVE_LOCK_EMAIL` change them). The last test leaves `LIVE_LOCK_EMAIL` locked for 30 minutes, so reseed before
+a second run. Without `LIVE_API` the file is skipped.
+
 ## Layout
 
 ```

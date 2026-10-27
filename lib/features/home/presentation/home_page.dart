@@ -11,7 +11,7 @@ class HomePage extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final state = context.watch<SessionBloc>().state;
-    final name = state is SessionAuthenticated ? state.session.person.firstName : '';
+    final name = state is SessionAuthenticated ? state.session.person.greetingName : '';
 
     return Scaffold(
       appBar: AppBar(

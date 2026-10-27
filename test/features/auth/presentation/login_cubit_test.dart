@@ -79,7 +79,7 @@ void main() {
   );
 
   blocTest<LoginCubit, LoginState>(
-    'a locked email goes back to the email step',
+    'a locked email stays on the code step with the failure, for the screen to offer a fresh start',
     build: build,
     seed: () => codeStep,
     setUp: () =>
@@ -93,7 +93,39 @@ void main() {
         ),
     act: (cubit) => cubit.submitCode('111111'),
     skip: 1,
-    expect: () => [isA<LoginState>().having((s) => s.step, 'step', LoginStep.email)],
+    expect: () => [
+      isA<LoginState>()
+          .having((s) => s.step, 'step', LoginStep.code)
+          .having((s) => s.failure?.isLockedOut, 'locked', isTrue),
+    ],
+  );
+
+  blocTest<LoginCubit, LoginState>(
+    'Resend answered with a lock stays on the code step, for the screen to offer a fresh start',
+    build: build,
+    seed: () => codeStep,
+    setUp: () => when(() => auth.requestOtp(any())).thenThrow(
+      const ApiFailure(statusCode: 423, code: 'AUTH_LOCKED', message: '', retryAfter: Duration(minutes: 30)),
+    ),
+    act: (cubit) => cubit.resend(),
+    skip: 1,
+    expect: () => [
+      isA<LoginState>()
+          .having((s) => s.step, 'step', LoginStep.code)
+          .having((s) => s.failure?.isLockedOut, 'locked', isTrue),
+    ],
+  );
+
+  blocTest<LoginCubit, LoginState>(
+    'Start again after a lock clears the failure and returns to the email step',
+    build: build,
+    seed: () => codeStep.copyWith(
+      failure: () => const ApiFailure(statusCode: 423, code: 'AUTH_LOCKED', message: ''),
+    ),
+    act: (cubit) => cubit.changeEmail(),
+    expect: () => [
+      isA<LoginState>().having((s) => s.step, 'step', LoginStep.email).having((s) => s.failure, 'failure', isNull),
+    ],
   );
 
   blocTest<LoginCubit, LoginState>(

@@ -57,6 +57,11 @@ class _CodeFormState extends State<CodeForm> {
         final waiting = left != null && left > Duration.zero;
         final codeError = state.failure?.code == 'OTP_INVALID' ? loginErrorText(l10n, state.failure!) : null;
 
+        // Locked out: no code field and no Resend, only a way back to the start.
+        if (state.failure case final locked? when locked.isLockedOut) {
+          return _LockedPanel(message: loginErrorText(l10n, locked), onStartAgain: cubit.changeEmail);
+        }
+
         return Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
@@ -121,6 +126,35 @@ class _CodeFormState extends State<CodeForm> {
           ],
         );
       },
+    );
+  }
+}
+
+/// The email is locked, so the code step has nothing left to offer but "Start
+/// again", which takes focus so a keyboard or screen reader user lands on it.
+class _LockedPanel extends StatelessWidget {
+  const new({required this.message, required this.onStartAgain});
+
+  final String message;
+  final VoidCallback onStartAgain;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Text(l10n.codeTitle, style: Theme.of(context).textTheme.titleLarge),
+        const SizedBox(height: 24),
+        InlineMessage.error(message),
+        const SizedBox(height: 24),
+        FilledButton(
+          key: const Key('login.startAgain'),
+          autofocus: true,
+          onPressed: onStartAgain,
+          child: Text(l10n.startAgain),
+        ),
+      ],
     );
   }
 }

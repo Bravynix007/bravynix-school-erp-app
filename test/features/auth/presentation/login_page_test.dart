@@ -93,6 +93,73 @@ void main() {
     expect(find.text('Incorrect code. 3 attempts left.'), findsOneWidget);
   });
 
+  group('when the email is locked', () {
+    Future<void> reachLock(WidgetTester tester, {ApiFailure? failure}) async {
+      when(() => auth.requestOtp(any())).thenAnswer(
+        (_) async => const OtpRequested(resendAfter: Duration(seconds: 60), expiresIn: Duration(minutes: 10)),
+      );
+      when(
+        () => auth.verifyOtp(
+          email: any(named: 'email'),
+          code: any(named: 'code'),
+        ),
+      ).thenThrow(
+        failure ??
+            const ApiFailure(
+              statusCode: 423,
+              code: 'OTP_ATTEMPTS_EXCEEDED',
+              message: '',
+              retryAfter: Duration(minutes: 30),
+            ),
+      );
+      await tester.enterText(find.byKey(const Key('login.email')), 'asha.rao@example.com');
+      await tester.tap(find.byKey(const Key('login.sendCode')));
+      await tester.pumpAndSettle();
+      await tester.enterText(find.byKey(const Key('login.code')), '111111');
+      await tester.pumpAndSettle();
+    }
+
+    testWidgets('the screen says for how long and offers only Start again, which has focus', (tester) async {
+      await pumpLogin(tester);
+      await reachLock(tester);
+
+      expect(find.text('Too many incorrect codes. Try again in 30 minutes.'), findsOneWidget);
+      expect(find.byKey(const Key('login.code')), findsNothing);
+      expect(find.byKey(const Key('login.resend')), findsNothing);
+      expect(find.byKey(const Key('login.verify')), findsNothing);
+      final focused = FocusManager.instance.primaryFocus?.context;
+      expect(focused?.findAncestorWidgetOfExactType<FilledButton>()?.key, const Key('login.startAgain'));
+    });
+
+    testWidgets('Start again returns to the email form', (tester) async {
+      await pumpLogin(tester);
+      await reachLock(
+        tester,
+        failure: const ApiFailure(
+          statusCode: 423,
+          code: 'AUTH_LOCKED',
+          message: '',
+          retryAfter: Duration(hours: 24),
+        ),
+      );
+      expect(find.text('Too many failed sign-ins. Try again in 24 hours.'), findsOneWidget);
+
+      await tester.tap(find.byKey(const Key('login.startAgain')));
+      await tester.pumpAndSettle();
+      expect(find.byKey(const Key('login.email')), findsOneWidget);
+      expect(find.textContaining('Too many'), findsNothing);
+    });
+
+    testWidgets('fits a small screen at a large text scale', (tester) async {
+      tester.platformDispatcher.textScaleFactorTestValue = 2;
+      addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
+      await pumpLogin(tester);
+      await reachLock(tester);
+      expect(tester.takeException(), isNull);
+      expect(find.byKey(const Key('login.startAgain')), findsOneWidget);
+    });
+  });
+
   testWidgets('says why the app signed out', (tester) async {
     when(() => session.state).thenReturn(const SessionUnauthenticated(endReason: SessionEndReason.signedOutElsewhere));
     await pumpLogin(tester);
