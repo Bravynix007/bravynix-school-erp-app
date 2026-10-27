@@ -45,7 +45,11 @@ class HomePage extends StatelessWidget {
           if (active != null) ...[
             BlockedAccessNotice(active: active),
             if (active.role == RoleCode.societyOwner)
-              SocietyBlocksSection(key: const Key('home.blocks'), societyName: active.societyName ?? ''),
+              SocietyBlocksSection(
+                // One cubit per Society, so switching Society reads that Society's blocks again.
+                key: ValueKey('home.blocks.${active.societyId}'),
+                societyName: active.societyName ?? '',
+              ),
             const SizedBox(height: 8),
           ],
           Text(l10n.homeComingSoon, style: Theme.of(context).textTheme.bodyMedium),

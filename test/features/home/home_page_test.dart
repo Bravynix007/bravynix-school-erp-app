@@ -96,6 +96,43 @@ void main() {
       verifyNever(() => blocks.societyBlocks());
     });
 
+    testWidgets('an Owner with two Societies sees the blocks of the one they chose, not the first', (tester) async {
+      when(() => blocks.societyBlocks()).thenAnswer((_) async => [block(BlockSection.staff, reason: 'South reason')]);
+      final session = _MockSessionBloc();
+      when(() => session.state).thenReturn(
+        const SessionAuthenticated(
+          AuthSession(person: testPerson, contexts: [ownerNorth, ownerSouth], activeContext: ownerSouth),
+        ),
+      );
+      await tester.pumpApp(BlocProvider<SessionBloc>.value(value: session, child: const HomePage()));
+      await tester.pumpAndSettle();
+      expect(find.text('Blocked in South Trust'), findsOneWidget);
+      expect(find.text('Blocked in North Trust'), findsNothing);
+    });
+
+    testWidgets("switching Society reads the new Society's blocks and drops the old reason", (tester) async {
+      var calls = 0;
+      when(() => blocks.societyBlocks()).thenAnswer(
+        (_) async => [block(BlockSection.staff, reason: calls++ == 0 ? 'North reason' : 'South reason')],
+      );
+      AuthSession as(AuthContext active) =>
+          AuthSession(person: testPerson, contexts: const [ownerNorth, ownerSouth], activeContext: active);
+      final session = _MockSessionBloc();
+      whenListen(
+        session,
+        Stream<SessionState>.fromFuture(
+          Future<SessionState>.delayed(const Duration(milliseconds: 10), () => SessionAuthenticated(as(ownerSouth))),
+        ),
+        initialState: SessionAuthenticated(as(ownerNorth)),
+      );
+      await tester.pumpApp(BlocProvider<SessionBloc>.value(value: session, child: const HomePage()));
+      await tester.pumpAndSettle();
+      expect(find.text('Reason: North reason'), findsNothing);
+      expect(find.text('Blocked in South Trust'), findsOneWidget);
+      expect(find.text('Reason: South reason'), findsOneWidget);
+      verify(() => blocks.societyBlocks()).called(2);
+    });
+
     testWidgets('an Owner of a Society with nothing blocked sees no new section', (tester) async {
       when(() => blocks.societyBlocks()).thenAnswer((_) async => []);
       await pumpAs(tester, ownerNorth);
