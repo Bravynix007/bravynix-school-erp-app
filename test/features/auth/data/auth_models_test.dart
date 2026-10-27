@@ -87,4 +87,20 @@ void main() {
     expect(sent.resendAfter, const Duration(minutes: 1));
     expect(sent.expiresIn, const Duration(minutes: 10));
   });
+
+  test('the active context from the session is the listed one, with its Society name', () {
+    final session = AuthModels.session({
+      'person': {'id': 'p1', 'email': 'a@example.com', 'preferredLanguage': 'en'},
+      'session': {
+        'id': 's',
+        'activeContext': {'roleCode': 2, 'societyId': 's2'},
+      },
+      'contexts': [
+        {'roleCode': 2, 'societyId': 's1', 'societyName': 'North Trust'},
+        {'roleCode': 2, 'societyId': 's2', 'societyName': 'South Trust'},
+      ],
+    });
+    expect(session.activeContext, session.contexts.last);
+    expect(session.activeContext?.societyName, 'South Trust');
+  });
 }

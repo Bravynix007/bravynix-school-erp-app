@@ -64,10 +64,15 @@ abstract final class AuthModels {
     ];
     final session = map['session'];
     final active = session is Map<String, dynamic> ? context(session['activeContext']) : null;
+    // The session's active context names only the role and Society: use the
+    // listed context it points to, which has the Society's name and block state.
+    final listed = active == null
+        ? null
+        : contexts.where((c) => c.role == active.role && c.societyId == active.societyId).firstOrNull;
     return AuthSession(
       person: person(map['person']),
       contexts: contexts,
-      activeContext: active ?? (contexts.length == 1 ? contexts.single : null),
+      activeContext: listed ?? active ?? (contexts.length == 1 ? contexts.single : null),
     );
   }
 }
