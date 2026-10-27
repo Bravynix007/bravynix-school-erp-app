@@ -6,5 +6,8 @@ import 'package:bravynix_school_erp/l10n/gen/app_localizations.dart';
 String roleErrorText(AppLocalizations l10n, ApiFailure failure) => switch (failure.code) {
   'CONTEXT_NOT_AVAILABLE' => l10n.errorContextNotAvailable,
   'ACCESS_BLOCKED' => l10n.errorAccessBlocked,
+  // 423 (API design 6.5): `details.section` says which group is blocked; Owners are told to ask BravyNix.
+  'SECTION_BLOCKED' =>
+    failure.details['section'] == 'owners' ? l10n.errorSectionBlockedOwners : l10n.errorSectionBlocked,
   _ => loginErrorText(l10n, failure),
 };

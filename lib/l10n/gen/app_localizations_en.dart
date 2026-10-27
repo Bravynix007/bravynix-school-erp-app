@@ -226,6 +226,56 @@ class AppLocalizationsEn extends AppLocalizations {
   String get errorAccessBlocked => 'Access is blocked for that role. Choose another one or contact your Society.';
 
   @override
+  String get errorSectionBlocked => 'Access is blocked for your group. Contact your Society.';
+
+  @override
+  String get errorSectionBlockedOwners => 'Access to your Society is blocked. Contact BravyNix support.';
+
+  @override
+  String blockedOwnersNotice(String society) {
+    return 'Access to $society is blocked. Contact BravyNix support.';
+  }
+
+  @override
+  String blockedStaffNotice(String society) {
+    return 'Your access to $society is blocked. Contact your Society.';
+  }
+
+  @override
+  String get blockedParentNotice => 'Access to your children\'s information is blocked. Contact the school.';
+
+  @override
+  String blocksTitle(String society) {
+    return 'Blocked in $society';
+  }
+
+  @override
+  String get blockTitleOwners => 'Owners';
+
+  @override
+  String blockTitleStaff(String institution) {
+    return 'Staff of $institution';
+  }
+
+  @override
+  String blockTitleStudents(String institution) {
+    return 'Parents of $institution';
+  }
+
+  @override
+  String blockReason(String reason) {
+    return 'Reason: $reason';
+  }
+
+  @override
+  String blockedOn(String date) {
+    return 'Blocked on $date';
+  }
+
+  @override
+  String get retry => 'Try again';
+
+  @override
   String get profileTitle => 'Profile';
 
   @override
