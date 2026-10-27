@@ -1,5 +1,8 @@
 import 'package:bravynix_school_erp/app/router/app_routes.dart';
+import 'package:bravynix_school_erp/features/auth/domain/auth_entities.dart';
 import 'package:bravynix_school_erp/features/auth/presentation/session/session_bloc.dart';
+import 'package:bravynix_school_erp/features/blocks/presentation/view/blocked_access_notice.dart';
+import 'package:bravynix_school_erp/features/blocks/presentation/view/society_blocks_section.dart';
 import 'package:bravynix_school_erp/l10n/gen/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -14,6 +17,7 @@ class HomePage extends StatelessWidget {
     final l10n = AppLocalizations.of(context);
     final state = context.watch<SessionBloc>().state;
     final name = state is SessionAuthenticated ? state.session.person.greetingName : '';
+    final active = state is SessionAuthenticated ? state.session.activeContext : null;
 
     return Scaffold(
       appBar: AppBar(
@@ -38,6 +42,16 @@ class HomePage extends StatelessWidget {
         children: [
           Text(l10n.homeWelcome(name), style: Theme.of(context).textTheme.titleLarge),
           const SizedBox(height: 8),
+          if (active != null) ...[
+            BlockedAccessNotice(active: active),
+            if (active.role == RoleCode.societyOwner)
+              SocietyBlocksSection(
+                // One cubit per Society, so switching Society reads that Society's blocks again.
+                key: ValueKey('home.blocks.${active.societyId}'),
+                societyName: active.societyName ?? '',
+              ),
+            const SizedBox(height: 8),
+          ],
           Text(l10n.homeComingSoon, style: Theme.of(context).textTheme.bodyMedium),
         ],
       ),

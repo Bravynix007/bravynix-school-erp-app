@@ -49,12 +49,15 @@ void main() {
     final adapter = await start(
       tester,
       tokens: const AuthTokens(accessToken: 'a', refreshToken: 'r'),
-      reply: (_) async => okReply({
-        'person': {'id': 'p1', 'email': 'asha.rao@example.com', 'firstName': 'Asha', 'preferredLanguage': 'en'},
-        'contexts': [_owner('s1')],
-      }),
+      reply: (path) async => path == 'society/access-blocks'
+          ? okReply([])
+          : okReply({
+              'person': {'id': 'p1', 'email': 'asha.rao@example.com', 'firstName': 'Asha', 'preferredLanguage': 'en'},
+              'contexts': [_owner('s1')],
+            }),
     );
-    expect(adapter.paths, ['/v1/me']);
+    // An Owner's home also asks what is blocked in the Society (SOC-02).
+    expect(adapter.paths, ['/v1/me', '/v1/society/access-blocks']);
     expect(find.text('Welcome, Asha'), findsOneWidget);
   });
 
@@ -71,8 +74,8 @@ void main() {
     await start(
       tester,
       tokens: const AuthTokens(accessToken: 'a', refreshToken: 'r'),
-      reply: (path) async => path == 'auth/logout'
-          ? okReply(null)
+      reply: (path) async => path == 'auth/logout' || path == 'society/access-blocks'
+          ? okReply(path == 'auth/logout' ? null : [])
           : okReply({
               'person': {'id': 'p1', 'email': 'asha.rao@example.com', 'firstName': 'Asha', 'preferredLanguage': 'en'},
               'contexts': [_owner('s1')],
@@ -95,9 +98,11 @@ void main() {
       final adapter = await start(
         tester,
         tokens: tokens,
-        reply: (path) async => path == 'auth/context'
-            ? okReply({'accessToken': 'a2', 'activeContext': _owner('s2')})
-            : okReply(me([_owner('s1', name: 'North Trust'), _owner('s2', name: 'South Trust')])),
+        reply: (path) async => switch (path) {
+          'auth/context' => okReply({'accessToken': 'a2', 'activeContext': _owner('s2')}),
+          'society/access-blocks' => okReply([]),
+          _ => okReply(me([_owner('s1', name: 'North Trust'), _owner('s2', name: 'South Trust')])),
+        },
       );
       expect(find.text('Choose how to continue'), findsOneWidget);
       expect(find.text('North Trust'), findsOneWidget);
@@ -106,8 +111,7 @@ void main() {
       await tester.tap(find.text('South Trust'));
       await tester.pumpAndSettle();
 
-      final call = adapter.requests.last;
-      expect(call.uri.path, '/v1/auth/context');
+      final call = adapter.requests.singleWhere((request) => request.uri.path == '/v1/auth/context');
       expect(call.data, {'roleCode': 2, 'societyId': 's2'});
       expect(find.text('Welcome, Asha'), findsOneWidget);
 

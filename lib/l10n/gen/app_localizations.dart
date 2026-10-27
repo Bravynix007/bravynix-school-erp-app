@@ -445,6 +445,78 @@ abstract class AppLocalizations {
   /// **'Access is blocked for that role. Choose another one or contact your Society.'**
   String get errorAccessBlocked;
 
+  /// No description provided for @errorSectionBlocked.
+  ///
+  /// In en, this message translates to:
+  /// **'Access is blocked for your group. Contact your Society.'**
+  String get errorSectionBlocked;
+
+  /// No description provided for @errorSectionBlockedOwners.
+  ///
+  /// In en, this message translates to:
+  /// **'Access to your Society is blocked. Contact BravyNix support.'**
+  String get errorSectionBlockedOwners;
+
+  /// No description provided for @blockedOwnersNotice.
+  ///
+  /// In en, this message translates to:
+  /// **'Access to {society} is blocked. Contact BravyNix support.'**
+  String blockedOwnersNotice(String society);
+
+  /// No description provided for @blockedStaffNotice.
+  ///
+  /// In en, this message translates to:
+  /// **'Your access to {society} is blocked. Contact your Society.'**
+  String blockedStaffNotice(String society);
+
+  /// No description provided for @blockedParentNotice.
+  ///
+  /// In en, this message translates to:
+  /// **'Access to your children\'s information is blocked. Contact the school.'**
+  String get blockedParentNotice;
+
+  /// No description provided for @blocksTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Blocked in {society}'**
+  String blocksTitle(String society);
+
+  /// No description provided for @blockTitleOwners.
+  ///
+  /// In en, this message translates to:
+  /// **'Owners'**
+  String get blockTitleOwners;
+
+  /// No description provided for @blockTitleStaff.
+  ///
+  /// In en, this message translates to:
+  /// **'Staff of {institution}'**
+  String blockTitleStaff(String institution);
+
+  /// No description provided for @blockTitleStudents.
+  ///
+  /// In en, this message translates to:
+  /// **'Parents of {institution}'**
+  String blockTitleStudents(String institution);
+
+  /// No description provided for @blockReason.
+  ///
+  /// In en, this message translates to:
+  /// **'Reason: {reason}'**
+  String blockReason(String reason);
+
+  /// No description provided for @blockedOn.
+  ///
+  /// In en, this message translates to:
+  /// **'Blocked on {date}'**
+  String blockedOn(String date);
+
+  /// No description provided for @retry.
+  ///
+  /// In en, this message translates to:
+  /// **'Try again'**
+  String get retry;
+
   /// No description provided for @profileTitle.
   ///
   /// In en, this message translates to:

@@ -1,8 +1,11 @@
 import 'package:bravynix_school_erp/features/auth/domain/auth_entities.dart';
 import 'package:bravynix_school_erp/features/auth/domain/auth_repository.dart';
+import 'package:bravynix_school_erp/features/blocks/domain/blocks_repository.dart';
 import 'package:mocktail/mocktail.dart';
 
 class MockAuthRepository extends Mock implements AuthRepository;
+
+class MockBlocksRepository extends Mock implements BlocksRepository;
 
 const testPerson = Person(
   id: 'p1',

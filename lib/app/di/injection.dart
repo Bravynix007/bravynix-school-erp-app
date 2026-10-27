@@ -8,6 +8,8 @@ import 'package:bravynix_school_erp/core/storage/install_marker.dart';
 import 'package:bravynix_school_erp/core/storage/token_storage.dart';
 import 'package:bravynix_school_erp/features/auth/data/auth_repository_impl.dart';
 import 'package:bravynix_school_erp/features/auth/domain/auth_repository.dart';
+import 'package:bravynix_school_erp/features/blocks/data/blocks_repository_impl.dart';
+import 'package:bravynix_school_erp/features/blocks/domain/blocks_repository.dart';
 import 'package:dio/dio.dart';
 import 'package:get_it/get_it.dart';
 
@@ -57,5 +59,6 @@ Future<void> configureDependencies(
         device: appDevice,
         events: events,
       ),
-    );
+    )
+    ..registerLazySingleton<BlocksRepository>(() => BlocksRepositoryImpl(api: getIt()));
 }
