@@ -57,12 +57,18 @@ client, repository and models (AUTH-01 to AUTH-04, AUTH-06, ME-01 and the lock a
 ```bash
 # In bravynix-school-erp-backend: a freshly migrated and seeded database, and
 #   OTP_DEV_ECHO=true EMAIL_DRIVER=memory node dist/main.js
-flutter test live_test --dart-define=LIVE_API=http://localhost:3000/v1
+flutter test live_test --concurrency=1 --dart-define=LIVE_API=http://localhost:3000/v1
 ```
+
+The files share one database, so they run one at a time (`--concurrency=1`).
 
 It uses the seeded `so-a1`, `so-a2` and `so-a3` accounts (`LIVE_EMAIL`, `LIVE_OTHER_EMAIL` and
 `LIVE_LOCK_EMAIL` change them). The last test leaves `LIVE_LOCK_EMAIL` locked for 30 minutes, so reseed before
-a second run. Without `LIVE_API` the file is skipped.
+a second run. Without `LIVE_API` the files are skipped.
+
+`live_test/qa_live_roles_test.dart` also gives `so-a2` a second Owner seat and takes it away again by SQL, so
+it needs `psql` as the `postgres` user and the name of the backend's database
+(`--dart-define=LIVE_DB=school_erp_live`); without `LIVE_DB` it is skipped. Reseed before running it twice.
 
 ## Layout
 

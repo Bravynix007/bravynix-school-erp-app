@@ -21,6 +21,9 @@ import 'package:dio/io.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 const _api = String.fromEnvironment('LIVE_API');
+// The database the backend runs on, for the checks that change seats by SQL.
+// Empty skips this file; PGHOST and the other psql variables are honoured.
+const _db = String.fromEnvironment('LIVE_DB');
 const _device = AppDevice(platform: DevicePlatform.android, appVersion: '0.1.0', label: 'qa roles');
 const _owner = 'so-a2@two-worlds.test';
 const _ownerId = '00000000-0000-7000-8000-000000003005';
@@ -50,7 +53,7 @@ class _EchoAdapter implements HttpClientAdapter {
 }
 
 Future<void> _sql(String statement) async {
-  final result = await Process.run('su', ['postgres', '-c', 'psql -q -d school_erp_live -c "$statement"']);
+  final result = await Process.run('su', ['postgres', '-c', 'psql -q -d $_db -c "$statement"']);
   if (result.exitCode != 0) throw StateError('psql: ${result.stderr}');
 }
 
@@ -60,8 +63,12 @@ Future<void> _openGates() => _sql(
 );
 
 void main() {
-  if (_api.isEmpty) {
-    test('QA live role checks', () {}, skip: 'Set --dart-define=LIVE_API=http://localhost:3000/v1');
+  if (_api.isEmpty || _db.isEmpty) {
+    test(
+      'QA live role checks',
+      () {},
+      skip: 'Set --dart-define=LIVE_API=http://localhost:3000/v1 and --dart-define=LIVE_DB=<database>',
+    );
     return;
   }
 
