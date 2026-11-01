@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:bloc_test/bloc_test.dart';
 import 'package:bravynix_school_erp/core/network/api_failure.dart';
 import 'package:bravynix_school_erp/features/auth/domain/auth_entities.dart';
@@ -163,4 +165,69 @@ void main() {
     act: (bloc) => bloc.add(const LoginEmailReset()),
     expect: () => [const LoginState(email: 'asha.rao@example.com')],
   );
+
+  // A second tap while a call is in flight must not send a second call: a double tap on Verify would
+  // burn one of the person's code attempts.
+  group('a second event while the first is running', () {
+    blocTest<LoginBloc, LoginState>(
+      'is ignored for the email: one code is requested',
+      build: build,
+      setUp: () {
+        final gate = Completer<OtpRequested>();
+        when(() => auth.requestOtp(any())).thenAnswer((_) => gate.future);
+        addTearDown(() => gate.complete(sent));
+      },
+      act: (bloc) async {
+        bloc
+          ..add(const LoginEmailSubmitted('asha.rao@example.com'))
+          ..add(const LoginEmailSubmitted('asha.rao@example.com'));
+        await Future<void>.delayed(Duration.zero);
+      },
+      expect: () => [const LoginState(email: 'asha.rao@example.com', status: LoginStatus.submitting)],
+      verify: (_) => verify(() => auth.requestOtp('asha.rao@example.com')).called(1),
+    );
+
+    blocTest<LoginBloc, LoginState>(
+      'is ignored for the code: one verification is sent',
+      build: build,
+      seed: () => codeStep,
+      setUp: () {
+        final gate = Completer<AuthSession>();
+        when(
+          () => auth.verifyOtp(
+            email: any(named: 'email'),
+            code: any(named: 'code'),
+          ),
+        ).thenAnswer((_) => gate.future);
+        addTearDown(() => gate.complete(testSession));
+      },
+      act: (bloc) async {
+        bloc
+          ..add(const LoginCodeSubmitted('482017'))
+          ..add(const LoginCodeSubmitted('482017'));
+        await Future<void>.delayed(Duration.zero);
+      },
+      expect: () => [isA<LoginState>().having((s) => s.status, 'status', LoginStatus.submitting)],
+      verify: (_) => verify(() => auth.verifyOtp(email: 'asha.rao@example.com', code: '482017')).called(1),
+    );
+
+    blocTest<LoginBloc, LoginState>(
+      'is ignored for Resend: one code is requested',
+      build: build,
+      seed: () => codeStep,
+      setUp: () {
+        final gate = Completer<OtpRequested>();
+        when(() => auth.requestOtp(any())).thenAnswer((_) => gate.future);
+        addTearDown(() => gate.complete(sent));
+      },
+      act: (bloc) async {
+        bloc
+          ..add(const LoginResendRequested())
+          ..add(const LoginResendRequested());
+        await Future<void>.delayed(Duration.zero);
+      },
+      expect: () => [isA<LoginState>().having((s) => s.status, 'status', LoginStatus.submitting)],
+      verify: (_) => verify(() => auth.requestOtp('asha.rao@example.com')).called(1),
+    );
+  });
 }
