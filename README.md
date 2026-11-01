@@ -88,7 +88,7 @@ lib/
   features/<feature>/
     domain/                   Entities and repository interfaces (plain Dart)
     data/                     Repository implementations and JSON models
-    presentation/             Blocs/cubits and widgets
+    presentation/             Blocs (bloc/) and widgets (view/)
   l10n/arb/                   Strings; app_en.arb is the template
 test/                         Mirrors lib/; helpers/ has the fake HTTP adapter and mocks
 ```
@@ -110,7 +110,7 @@ move to `core/`.
   any other 401. A refresh that fails without a 401 (offline, 5xx, 426) keeps the tokens.
 - **Every request carries `X-App-Version`, `X-App-Platform`, `X-Request-Id` and
   `Accept-Language`.** A 426 opens the "Update required" screen.
-- **State lives in blocs and cubits** with `Equatable` states; dependencies come through
+- **State lives in blocs, never cubits** (owner decision, 1 Nov 2026): sealed `Equatable` events and states and a `Bloc` per screen, in `presentation/bloc/<name>_bloc.dart`, as `SessionBloc` does; dependencies come through
   constructors (get_it is read only in `app/di`, the router and page `BlocProvider`s). Time comes
   from an injectable clock where it matters.
 - **Every string is in `lib/l10n/arb/app_en.arb`.** Seven languages are supported (en, hi, kn,
