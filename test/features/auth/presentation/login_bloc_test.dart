@@ -1,7 +1,7 @@
 import 'package:bloc_test/bloc_test.dart';
 import 'package:bravynix_school_erp/core/network/api_failure.dart';
 import 'package:bravynix_school_erp/features/auth/domain/auth_entities.dart';
-import 'package:bravynix_school_erp/features/auth/presentation/login/cubit/login_cubit.dart';
+import 'package:bravynix_school_erp/features/auth/presentation/login/bloc/login_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 
@@ -13,7 +13,7 @@ void main() {
 
   setUp(() => auth = MockAuthRepository());
 
-  LoginCubit build() => LoginCubit(auth, clock: () => now);
+  LoginBloc build() => LoginBloc(auth, clock: () => now);
 
   const sent = OtpRequested(resendAfter: Duration(seconds: 60), expiresIn: Duration(minutes: 10));
   final codeStep = LoginState(
@@ -22,11 +22,11 @@ void main() {
     resendAvailableAt: now.add(const Duration(seconds: 60)),
   );
 
-  blocTest<LoginCubit, LoginState>(
+  blocTest<LoginBloc, LoginState>(
     'a sent code moves to the code step with the resend timer',
     build: build,
     setUp: () => when(() => auth.requestOtp(any())).thenAnswer((_) async => sent),
-    act: (cubit) => cubit.submitEmail('  Asha.Rao@Example.com '),
+    act: (bloc) => bloc.add(const LoginEmailSubmitted('  Asha.Rao@Example.com ')),
     expect: () => [
       const LoginState(email: 'asha.rao@example.com', status: LoginStatus.submitting),
       codeStep,
@@ -34,7 +34,7 @@ void main() {
     verify: (_) => verify(() => auth.requestOtp('asha.rao@example.com')).called(1),
   );
 
-  blocTest<LoginCubit, LoginState>(
+  blocTest<LoginBloc, LoginState>(
     'a code sent under a minute ago still moves on, waiting out Retry-After',
     build: build,
     setUp: () => when(() => auth.requestOtp(any())).thenThrow(
@@ -45,7 +45,7 @@ void main() {
         retryAfter: Duration(seconds: 42),
       ),
     ),
-    act: (cubit) => cubit.submitEmail('asha.rao@example.com'),
+    act: (bloc) => bloc.add(const LoginEmailSubmitted('asha.rao@example.com')),
     skip: 1,
     expect: () => [
       LoginState(
@@ -56,7 +56,7 @@ void main() {
     ],
   );
 
-  blocTest<LoginCubit, LoginState>(
+  blocTest<LoginBloc, LoginState>(
     'a wrong code stays on the code step with the failure',
     build: build,
     seed: () => codeStep,
@@ -69,7 +69,7 @@ void main() {
         ).thenThrow(
           const ApiFailure(statusCode: 401, code: 'OTP_INVALID', message: '', details: {'attemptsLeft': 4}),
         ),
-    act: (cubit) => cubit.submitCode('111111'),
+    act: (bloc) => bloc.add(const LoginCodeSubmitted('111111')),
     skip: 1,
     expect: () => [
       isA<LoginState>()
@@ -78,7 +78,7 @@ void main() {
     ],
   );
 
-  blocTest<LoginCubit, LoginState>(
+  blocTest<LoginBloc, LoginState>(
     'a locked email stays on the code step with the failure, for the screen to offer a fresh start',
     build: build,
     seed: () => codeStep,
@@ -91,7 +91,7 @@ void main() {
         ).thenThrow(
           const ApiFailure(statusCode: 423, code: 'AUTH_LOCKED', message: ''),
         ),
-    act: (cubit) => cubit.submitCode('111111'),
+    act: (bloc) => bloc.add(const LoginCodeSubmitted('111111')),
     skip: 1,
     expect: () => [
       isA<LoginState>()
@@ -100,14 +100,14 @@ void main() {
     ],
   );
 
-  blocTest<LoginCubit, LoginState>(
+  blocTest<LoginBloc, LoginState>(
     'Resend answered with a lock stays on the code step, for the screen to offer a fresh start',
     build: build,
     seed: () => codeStep,
     setUp: () => when(() => auth.requestOtp(any())).thenThrow(
       const ApiFailure(statusCode: 423, code: 'AUTH_LOCKED', message: '', retryAfter: Duration(minutes: 30)),
     ),
-    act: (cubit) => cubit.resend(),
+    act: (bloc) => bloc.add(const LoginResendRequested()),
     skip: 1,
     expect: () => [
       isA<LoginState>()
@@ -116,19 +116,19 @@ void main() {
     ],
   );
 
-  blocTest<LoginCubit, LoginState>(
+  blocTest<LoginBloc, LoginState>(
     'Start again after a lock clears the failure and returns to the email step',
     build: build,
     seed: () => codeStep.copyWith(
       failure: () => const ApiFailure(statusCode: 423, code: 'AUTH_LOCKED', message: ''),
     ),
-    act: (cubit) => cubit.changeEmail(),
+    act: (bloc) => bloc.add(const LoginEmailReset()),
     expect: () => [
       isA<LoginState>().having((s) => s.step, 'step', LoginStep.email).having((s) => s.failure, 'failure', isNull),
     ],
   );
 
-  blocTest<LoginCubit, LoginState>(
+  blocTest<LoginBloc, LoginState>(
     'a right code succeeds with the session',
     build: build,
     seed: () => codeStep,
@@ -138,7 +138,7 @@ void main() {
         code: any(named: 'code'),
       ),
     ).thenAnswer((_) async => testSession),
-    act: (cubit) => cubit.submitCode('482017'),
+    act: (bloc) => bloc.add(const LoginCodeSubmitted('482017')),
     skip: 1,
     expect: () => [
       isA<LoginState>()
@@ -148,19 +148,19 @@ void main() {
     verify: (_) => verify(() => auth.verifyOtp(email: 'asha.rao@example.com', code: '482017')).called(1),
   );
 
-  blocTest<LoginCubit, LoginState>(
+  blocTest<LoginBloc, LoginState>(
     'an incomplete code is not sent',
     build: build,
     seed: () => codeStep,
-    act: (cubit) => cubit.submitCode('4820'),
+    act: (bloc) => bloc.add(const LoginCodeSubmitted('4820')),
     expect: () => <LoginState>[],
   );
 
-  blocTest<LoginCubit, LoginState>(
+  blocTest<LoginBloc, LoginState>(
     '"Use a different email" keeps the email for editing',
     build: build,
     seed: () => codeStep,
-    act: (cubit) => cubit.changeEmail(),
+    act: (bloc) => bloc.add(const LoginEmailReset()),
     expect: () => [const LoginState(email: 'asha.rao@example.com')],
   );
 }

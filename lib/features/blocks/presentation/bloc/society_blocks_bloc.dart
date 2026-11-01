@@ -4,6 +4,18 @@ import 'package:bravynix_school_erp/features/blocks/domain/blocks_repository.dar
 import 'package:bravynix_school_erp/features/blocks/domain/section_block.dart';
 import 'package:equatable/equatable.dart';
 
+sealed class SocietyBlocksEvent extends Equatable {
+  const new();
+
+  @override
+  List<Object?> get props => [];
+}
+
+/// Opening the section, and Retry after a failure.
+final class SocietyBlocksRequested extends SocietyBlocksEvent {
+  const new();
+}
+
 sealed class SocietyBlocksState extends Equatable {
   const new();
 
@@ -34,12 +46,14 @@ class SocietyBlocksFailed extends SocietyBlocksState {
 }
 
 /// What is blocked in the Owner's Society and why (SOC-02).
-class SocietyBlocksCubit extends Cubit<SocietyBlocksState> {
-  new(this._blocks) : super(const SocietyBlocksLoading());
+class SocietyBlocksBloc extends Bloc<SocietyBlocksEvent, SocietyBlocksState> {
+  new(this._blocks) : super(const SocietyBlocksLoading()) {
+    on<SocietyBlocksRequested>(_onRequested);
+  }
 
   final BlocksRepository _blocks;
 
-  Future<void> load() async {
+  Future<void> _onRequested(SocietyBlocksRequested event, Emitter<SocietyBlocksState> emit) async {
     emit(const SocietyBlocksLoading());
     try {
       emit(SocietyBlocksLoaded(await _blocks.societyBlocks()));

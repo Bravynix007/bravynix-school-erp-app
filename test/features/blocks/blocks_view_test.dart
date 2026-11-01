@@ -2,7 +2,7 @@ import 'package:bloc_test/bloc_test.dart';
 import 'package:bravynix_school_erp/core/network/api_failure.dart';
 import 'package:bravynix_school_erp/features/auth/domain/auth_entities.dart';
 import 'package:bravynix_school_erp/features/blocks/domain/section_block.dart';
-import 'package:bravynix_school_erp/features/blocks/presentation/cubit/society_blocks_cubit.dart';
+import 'package:bravynix_school_erp/features/blocks/presentation/bloc/society_blocks_bloc.dart';
 import 'package:bravynix_school_erp/features/blocks/presentation/view/blocked_access_notice.dart';
 import 'package:bravynix_school_erp/features/blocks/presentation/view/society_blocks_section.dart';
 import 'package:flutter/material.dart';
@@ -13,11 +13,11 @@ import 'package:mocktail/mocktail.dart';
 import '../../helpers/clipped_text.dart';
 import '../../helpers/pump_app.dart';
 
-class _MockBlocksCubit extends MockCubit<SocietyBlocksState> implements SocietyBlocksCubit;
+class _MockBlocksBloc extends MockBloc<SocietyBlocksEvent, SocietyBlocksState> implements SocietyBlocksBloc;
 
 void main() {
-  late _MockBlocksCubit cubit;
-  setUp(() => cubit = _MockBlocksCubit());
+  late _MockBlocksBloc bloc;
+  setUp(() => bloc = _MockBlocksBloc());
 
   final owners = SectionBlock(
     id: 'b1',
@@ -43,10 +43,10 @@ void main() {
   );
 
   Future<void> pump(WidgetTester tester, SocietyBlocksState state, {double textScale = 1}) {
-    when(() => cubit.state).thenReturn(state);
+    when(() => bloc.state).thenReturn(state);
     return tester.pumpAppScaled(
-      BlocProvider<SocietyBlocksCubit>.value(
-        value: cubit,
+      BlocProvider<SocietyBlocksBloc>.value(
+        value: bloc,
         child: const Scaffold(
           body: SingleChildScrollView(child: SocietyBlocksView(societyName: 'Sunrise Trust')),
         ),
@@ -76,11 +76,10 @@ void main() {
     });
 
     testWidgets('says it could not load, and loads again on Try again', (tester) async {
-      when(() => cubit.load()).thenAnswer((_) async {});
       await pump(tester, const SocietyBlocksFailed(ApiFailure.network()));
       expect(find.text("Can't reach the server. Check your connection and try again."), findsOneWidget);
       await tester.tap(find.byKey(const Key('blocks.retry')));
-      verify(() => cubit.load()).called(1);
+      verify(() => bloc.add(const SocietyBlocksRequested())).called(1);
     });
 
     testWidgets('reads whole at a large text scale on a small phone', (tester) async {

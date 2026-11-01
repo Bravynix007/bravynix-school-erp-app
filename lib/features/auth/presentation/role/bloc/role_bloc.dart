@@ -20,17 +20,36 @@ class RoleState extends Equatable {
   List<Object?> get props => [choosing, chosen, failure];
 }
 
+sealed class RoleEvent extends Equatable {
+  const new();
+
+  @override
+  List<Object?> get props => [];
+}
+
+final class RoleChosen extends RoleEvent {
+  const new(this.context);
+
+  final AuthContext context;
+
+  @override
+  List<Object?> get props => [context];
+}
+
 /// Picks the role the session acts as (AUTH-06).
-class RoleCubit extends Cubit<RoleState> {
-  new(this._auth, {this.current}) : super(const RoleState());
+class RoleBloc extends Bloc<RoleEvent, RoleState> {
+  new(this._auth, {this.current}) : super(const RoleState()) {
+    on<RoleChosen>(_onChosen);
+  }
 
   final AuthRepository _auth;
 
   /// The role already active, when the person is switching rather than choosing for the first time.
   final AuthContext? current;
 
-  Future<void> choose(AuthContext context) async {
+  Future<void> _onChosen(RoleChosen event, Emitter<RoleState> emit) async {
     if (state.isSubmitting) return;
+    final context = event.context;
     // Choosing the role already in use needs no call.
     if (context == current) {
       emit(RoleState(chosen: context));

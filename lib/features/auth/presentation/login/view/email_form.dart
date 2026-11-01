@@ -1,7 +1,5 @@
-import 'dart:async';
-
 import 'package:bravynix_school_erp/core/widgets/inline_message.dart';
-import 'package:bravynix_school_erp/features/auth/presentation/login/cubit/login_cubit.dart';
+import 'package:bravynix_school_erp/features/auth/presentation/login/bloc/login_bloc.dart';
 import 'package:bravynix_school_erp/features/auth/presentation/login/view/login_error_text.dart';
 import 'package:bravynix_school_erp/l10n/gen/app_localizations.dart';
 import 'package:flutter/material.dart';
@@ -19,7 +17,7 @@ class EmailForm extends StatefulWidget {
 
 class _EmailFormState extends State<EmailForm> {
   final _formKey = GlobalKey<FormState>();
-  late final TextEditingController _email = TextEditingController(text: context.read<LoginCubit>().state.email);
+  late final TextEditingController _email = TextEditingController(text: context.read<LoginBloc>().state.email);
 
   @override
   void dispose() {
@@ -30,7 +28,7 @@ class _EmailFormState extends State<EmailForm> {
   void _submit() {
     if (_formKey.currentState?.validate() ?? false) {
       FocusScope.of(context).unfocus();
-      unawaited(context.read<LoginCubit>().submitEmail(_email.text));
+      context.read<LoginBloc>().add(LoginEmailSubmitted(_email.text));
     }
   }
 
@@ -38,7 +36,7 @@ class _EmailFormState extends State<EmailForm> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final textTheme = Theme.of(context).textTheme;
-    final state = context.watch<LoginCubit>().state;
+    final state = context.watch<LoginBloc>().state;
     final fieldError = state.failure?.fieldError('email')?.message;
 
     return Form(

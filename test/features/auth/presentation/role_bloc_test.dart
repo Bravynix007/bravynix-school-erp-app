@@ -1,6 +1,6 @@
 import 'package:bloc_test/bloc_test.dart';
 import 'package:bravynix_school_erp/core/network/api_failure.dart';
-import 'package:bravynix_school_erp/features/auth/presentation/role/cubit/role_cubit.dart';
+import 'package:bravynix_school_erp/features/auth/presentation/role/bloc/role_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 
@@ -12,22 +12,22 @@ void main() {
   setUpAll(() => registerFallbackValue(ownerNorth));
   setUp(() => auth = MockAuthRepository());
 
-  blocTest<RoleCubit, RoleState>(
+  blocTest<RoleBloc, RoleState>(
     'switches through the API, then reports the role as chosen',
-    build: () => RoleCubit(auth),
+    build: () => RoleBloc(auth),
     setUp: () => when(() => auth.switchContext(any())).thenAnswer((_) async {}),
-    act: (cubit) => cubit.choose(ownerSouth),
+    act: (bloc) => bloc.add(const RoleChosen(ownerSouth)),
     expect: () => [const RoleState(choosing: ownerSouth), const RoleState(chosen: ownerSouth)],
     verify: (_) => verify(() => auth.switchContext(ownerSouth)).called(1),
   );
 
-  blocTest<RoleCubit, RoleState>(
+  blocTest<RoleBloc, RoleState>(
     'a refusal is kept for the screen, and nothing is chosen',
-    build: () => RoleCubit(auth),
+    build: () => RoleBloc(auth),
     setUp: () => when(() => auth.switchContext(any())).thenThrow(
       const ApiFailure(statusCode: 403, code: 'CONTEXT_NOT_AVAILABLE', message: ''),
     ),
-    act: (cubit) => cubit.choose(ownerSouth),
+    act: (bloc) => bloc.add(const RoleChosen(ownerSouth)),
     expect: () => [
       const RoleState(choosing: ownerSouth),
       isA<RoleState>()
@@ -37,19 +37,19 @@ void main() {
     ],
   );
 
-  blocTest<RoleCubit, RoleState>(
+  blocTest<RoleBloc, RoleState>(
     'choosing the role already in use needs no call',
-    build: () => RoleCubit(auth, current: ownerNorth),
-    act: (cubit) => cubit.choose(ownerNorth),
+    build: () => RoleBloc(auth, current: ownerNorth),
+    act: (bloc) => bloc.add(const RoleChosen(ownerNorth)),
     expect: () => [const RoleState(chosen: ownerNorth)],
     verify: (_) => verifyNever(() => auth.switchContext(any())),
   );
 
-  blocTest<RoleCubit, RoleState>(
+  blocTest<RoleBloc, RoleState>(
     'a second tap while one switch is running is ignored',
-    build: () => RoleCubit(auth),
+    build: () => RoleBloc(auth),
     seed: () => const RoleState(choosing: ownerNorth),
-    act: (cubit) => cubit.choose(ownerSouth),
+    act: (bloc) => bloc.add(const RoleChosen(ownerSouth)),
     expect: () => <RoleState>[],
     verify: (_) => verifyNever(() => auth.switchContext(any())),
   );

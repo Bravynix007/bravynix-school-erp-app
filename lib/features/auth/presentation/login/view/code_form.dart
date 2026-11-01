@@ -1,7 +1,7 @@
 import 'dart:async';
 
 import 'package:bravynix_school_erp/core/widgets/inline_message.dart';
-import 'package:bravynix_school_erp/features/auth/presentation/login/cubit/login_cubit.dart';
+import 'package:bravynix_school_erp/features/auth/presentation/login/bloc/login_bloc.dart';
 import 'package:bravynix_school_erp/features/auth/presentation/login/view/login_error_text.dart';
 import 'package:bravynix_school_erp/l10n/gen/app_localizations.dart';
 import 'package:flutter/material.dart';
@@ -39,7 +39,11 @@ class _CodeFormState extends State<CodeForm> {
     super.dispose();
   }
 
-  void _submit() => context.read<LoginCubit>().submitCode(_code.text);
+  void _submit() => context.read<LoginBloc>().add(LoginCodeSubmitted(_code.text));
+
+  void _resend() => context.read<LoginBloc>().add(const LoginResendRequested());
+
+  void _startAgain() => context.read<LoginBloc>().add(const LoginEmailReset());
 
   static String _mmss(Duration value) => '${value.inMinutes}:${(value.inSeconds % 60).toString().padLeft(2, '0')}';
 
@@ -47,9 +51,7 @@ class _CodeFormState extends State<CodeForm> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final textTheme = Theme.of(context).textTheme;
-    final cubit = context.read<LoginCubit>();
-
-    return BlocConsumer<LoginCubit, LoginState>(
+    return BlocConsumer<LoginBloc, LoginState>(
       listenWhen: (previous, current) => current.failure != null && previous.failure != current.failure,
       listener: (context, state) => _code.clear(),
       builder: (context, state) {
@@ -59,7 +61,7 @@ class _CodeFormState extends State<CodeForm> {
 
         // Locked out: no code field and no Resend, only a way back to the start.
         if (state.failure case final locked? when locked.isLockedOut) {
-          return _LockedPanel(message: loginErrorText(l10n, locked), onStartAgain: cubit.changeEmail);
+          return _LockedPanel(message: loginErrorText(l10n, locked), onStartAgain: _startAgain);
         }
 
         return Column(
@@ -96,7 +98,7 @@ class _CodeFormState extends State<CodeForm> {
             const SizedBox(height: 24),
             FilledButton(
               key: const Key('login.verify'),
-              onPressed: state.isSubmitting || cubit.isCodeDead() ? null : _submit,
+              onPressed: state.isSubmitting || state.isCodeDead ? null : _submit,
               child: Text(l10n.verify),
             ),
             const SizedBox(height: 8),
@@ -113,12 +115,12 @@ class _CodeFormState extends State<CodeForm> {
                 else
                   TextButton(
                     key: const Key('login.resend'),
-                    onPressed: state.isSubmitting ? null : cubit.resend,
+                    onPressed: state.isSubmitting ? null : _resend,
                     child: Text(l10n.resendCode),
                   ),
                 TextButton(
                   key: const Key('login.changeEmail'),
-                  onPressed: state.isSubmitting ? null : cubit.changeEmail,
+                  onPressed: state.isSubmitting ? null : _startAgain,
                   child: Text(l10n.useDifferentEmail),
                 ),
               ],
