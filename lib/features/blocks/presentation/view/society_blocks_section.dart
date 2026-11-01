@@ -1,5 +1,3 @@
-import 'dart:async';
-
 import 'package:bravynix_school_erp/app/di/injection.dart';
 import 'package:bravynix_school_erp/core/format/formatters.dart';
 import 'package:bravynix_school_erp/core/theme/app_colors.dart';
@@ -11,7 +9,7 @@ import 'package:bravynix_school_erp/core/widgets/section_header.dart';
 import 'package:bravynix_school_erp/features/auth/presentation/role/view/role_error_text.dart';
 import 'package:bravynix_school_erp/features/blocks/domain/blocks_repository.dart';
 import 'package:bravynix_school_erp/features/blocks/domain/section_block.dart';
-import 'package:bravynix_school_erp/features/blocks/presentation/cubit/society_blocks_cubit.dart';
+import 'package:bravynix_school_erp/features/blocks/presentation/bloc/society_blocks_bloc.dart';
 import 'package:bravynix_school_erp/l10n/gen/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -25,11 +23,7 @@ class SocietyBlocksSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => BlocProvider(
-    create: (_) {
-      final cubit = SocietyBlocksCubit(getIt<BlocksRepository>());
-      unawaited(cubit.load());
-      return cubit;
-    },
+    create: (_) => SocietyBlocksBloc(getIt<BlocksRepository>())..add(const SocietyBlocksRequested()),
     child: SocietyBlocksView(societyName: societyName),
   );
 }
@@ -42,7 +36,7 @@ class SocietyBlocksView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
-    return BlocBuilder<SocietyBlocksCubit, SocietyBlocksState>(
+    return BlocBuilder<SocietyBlocksBloc, SocietyBlocksState>(
       builder: (context, state) => switch (state) {
         // A short wait for a section that is usually empty: nothing to show yet.
         SocietyBlocksLoading() => const SizedBox.shrink(),
@@ -56,7 +50,7 @@ class SocietyBlocksView extends StatelessWidget {
               label: l10n.retry,
               variant: AppButtonVariant.text,
               size: AppButtonSize.small,
-              onPressed: context.read<SocietyBlocksCubit>().load,
+              onPressed: () => context.read<SocietyBlocksBloc>().add(const SocietyBlocksRequested()),
             ),
           ],
         ),

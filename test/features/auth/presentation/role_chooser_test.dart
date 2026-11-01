@@ -1,7 +1,7 @@
 import 'package:bloc_test/bloc_test.dart';
 import 'package:bravynix_school_erp/core/network/api_failure.dart';
 import 'package:bravynix_school_erp/features/auth/domain/auth_entities.dart';
-import 'package:bravynix_school_erp/features/auth/presentation/role/cubit/role_cubit.dart';
+import 'package:bravynix_school_erp/features/auth/presentation/role/bloc/role_bloc.dart';
 import 'package:bravynix_school_erp/features/auth/presentation/role/view/role_chooser_page.dart';
 import 'package:bravynix_school_erp/features/auth/presentation/session/session_bloc.dart';
 import 'package:bravynix_school_erp/l10n/gen/app_localizations.dart';
@@ -33,7 +33,7 @@ void main() {
     return tester.pumpAppScaled(
       BlocProvider<SessionBloc>.value(
         value: session,
-        child: BlocProvider(create: (_) => RoleCubit(auth), child: const RoleChooserView()),
+        child: BlocProvider(create: (_) => RoleBloc(auth), child: const RoleChooserView()),
       ),
       textScale: textScale,
     );

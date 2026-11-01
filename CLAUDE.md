@@ -6,6 +6,8 @@ Read `README.md` first; its "Rules every change follows" section is binding.
   raise it; don't guess.
 - Dart 3.13 with very_good_analysis 11: constructors use the `new` syntax (`const new(...)`,
   `factory fromJson(...)`). Run `dart fix --apply` after writing code; it converts older forms.
+- State is Bloc only, never Cubit: sealed events and states and a `Bloc` per screen. Reuse the shared widgets in
+  `core/widgets` and existing repositories before writing new ones; leave no placeholder or dead code.
 - New feature checklist: `features/<name>/{domain,data,presentation}`; a repository interface in
   `domain/` and its implementation in `data/` using `ApiClient`; register it in
   `app/di/injection.dart`; routes in `app/router/`; strings in `app_en.arb`; copy for every error

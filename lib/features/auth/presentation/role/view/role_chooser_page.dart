@@ -8,7 +8,7 @@ import 'package:bravynix_school_erp/core/widgets/state_panel.dart';
 import 'package:bravynix_school_erp/core/widgets/status_chip.dart';
 import 'package:bravynix_school_erp/features/auth/domain/auth_entities.dart';
 import 'package:bravynix_school_erp/features/auth/domain/auth_repository.dart';
-import 'package:bravynix_school_erp/features/auth/presentation/role/cubit/role_cubit.dart';
+import 'package:bravynix_school_erp/features/auth/presentation/role/bloc/role_bloc.dart';
 import 'package:bravynix_school_erp/features/auth/presentation/role/role_titles.dart';
 import 'package:bravynix_school_erp/features/auth/presentation/role/view/role_error_text.dart';
 import 'package:bravynix_school_erp/features/auth/presentation/session/session_bloc.dart';
@@ -26,7 +26,7 @@ class RoleChooserPage extends StatelessWidget {
   Widget build(BuildContext context) {
     final session = context.read<SessionBloc>().state;
     return BlocProvider(
-      create: (_) => RoleCubit(
+      create: (_) => RoleBloc(
         getIt<AuthRepository>(),
         current: session is SessionAuthenticated ? session.session.activeContext : null,
       ),
@@ -47,7 +47,7 @@ class RoleChooserView extends StatelessWidget {
     // Switching from Profile can go back; a first choice has nowhere to go back to.
     final canLeave = session.activeContext != null;
 
-    return BlocListener<RoleCubit, RoleState>(
+    return BlocListener<RoleBloc, RoleState>(
       listenWhen: (previous, current) => current.chosen != null,
       listener: (context, state) {
         context.read<SessionBloc>().add(SessionContextChosen(state.chosen!));
@@ -88,8 +88,8 @@ class _Choices extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
-    final cubit = context.read<RoleCubit>();
-    return BlocBuilder<RoleCubit, RoleState>(
+    final bloc = context.read<RoleBloc>();
+    return BlocBuilder<RoleBloc, RoleState>(
       builder: (context, state) => ListView(
         padding: const EdgeInsets.all(AppSpacing.screenMargin),
         children: [
@@ -105,7 +105,7 @@ class _Choices extends StatelessWidget {
               name: roleTitle(l10n, option.role),
               subtitle: option.societyName,
               trailing: option.isBlocked ? StatusChip(label: l10n.roleBlocked, tone: StatusTone.error) : null,
-              onTap: state.isSubmitting ? null : () => cubit.choose(option),
+              onTap: state.isSubmitting ? null : () => bloc.add(RoleChosen(option)),
             ),
           if (canLogOut) ...[
             const SizedBox(height: AppSpacing.lg),

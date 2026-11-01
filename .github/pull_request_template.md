@@ -13,7 +13,7 @@
 ## How it was tested
 
 - [ ] `flutter analyze --fatal-infos` and `dart format` clean
-- [ ] Bloc/cubit tests (`bloc_test`) for every new state change
+- [ ] Bloc tests (`bloc_test`) for every new state change
 - [ ] Widget tests for new screens, including a large text scale
 - [ ] Ran on a device or emulator against the local API (`--flavor dev`)
 

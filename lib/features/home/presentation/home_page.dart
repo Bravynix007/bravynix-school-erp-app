@@ -46,7 +46,7 @@ class HomePage extends StatelessWidget {
             BlockedAccessNotice(active: active),
             if (active.role == RoleCode.societyOwner)
               SocietyBlocksSection(
-                // One cubit per Society, so switching Society reads that Society's blocks again.
+                // One bloc per Society, so switching Society reads that Society's blocks again.
                 key: ValueKey('home.blocks.${active.societyId}'),
                 societyName: active.societyName ?? '',
               ),

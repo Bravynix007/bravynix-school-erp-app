@@ -1,7 +1,7 @@
 import 'package:bloc_test/bloc_test.dart';
 import 'package:bravynix_school_erp/core/network/api_failure.dart';
 import 'package:bravynix_school_erp/features/auth/domain/auth_entities.dart';
-import 'package:bravynix_school_erp/features/auth/presentation/login/cubit/login_cubit.dart';
+import 'package:bravynix_school_erp/features/auth/presentation/login/bloc/login_bloc.dart';
 import 'package:bravynix_school_erp/features/auth/presentation/login/view/login_page.dart';
 import 'package:bravynix_school_erp/features/auth/presentation/session/session_bloc.dart';
 import 'package:flutter/material.dart';
@@ -29,7 +29,7 @@ void main() {
   Future<void> pumpLogin(WidgetTester tester) => tester.pumpApp(
     BlocProvider<SessionBloc>.value(
       value: session,
-      child: BlocProvider(create: (_) => LoginCubit(auth), child: const LoginView()),
+      child: BlocProvider(create: (_) => LoginBloc(auth), child: const LoginView()),
     ),
   );
 

@@ -1,7 +1,7 @@
 import 'package:bloc_test/bloc_test.dart';
 import 'package:bravynix_school_erp/core/network/api_failure.dart';
 import 'package:bravynix_school_erp/features/blocks/domain/section_block.dart';
-import 'package:bravynix_school_erp/features/blocks/presentation/cubit/society_blocks_cubit.dart';
+import 'package:bravynix_school_erp/features/blocks/presentation/bloc/society_blocks_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 
@@ -18,20 +18,20 @@ void main() {
 
   setUp(() => blocks = MockBlocksRepository());
 
-  blocTest<SocietyBlocksCubit, SocietyBlocksState>(
+  blocTest<SocietyBlocksBloc, SocietyBlocksState>(
     'loads the blocks of the Society',
-    build: () => SocietyBlocksCubit(blocks),
+    build: () => SocietyBlocksBloc(blocks),
     setUp: () => when(() => blocks.societyBlocks()).thenAnswer((_) async => [owners]),
-    act: (cubit) => cubit.load(),
+    act: (bloc) => bloc.add(const SocietyBlocksRequested()),
     expect: () => [
       const SocietyBlocksLoading(),
       SocietyBlocksLoaded([owners]),
     ],
   );
 
-  blocTest<SocietyBlocksCubit, SocietyBlocksState>(
+  blocTest<SocietyBlocksBloc, SocietyBlocksState>(
     'keeps the failure for the screen, and loads again on retry',
-    build: () => SocietyBlocksCubit(blocks),
+    build: () => SocietyBlocksBloc(blocks),
     setUp: () {
       var calls = 0;
       when(() => blocks.societyBlocks()).thenAnswer((_) async {
@@ -39,9 +39,10 @@ void main() {
         return [owners];
       });
     },
-    act: (cubit) async {
-      await cubit.load();
-      await cubit.load();
+    act: (bloc) async {
+      bloc.add(const SocietyBlocksRequested());
+      await bloc.stream.firstWhere((state) => state is SocietyBlocksFailed);
+      bloc.add(const SocietyBlocksRequested());
     },
     expect: () => [
       const SocietyBlocksLoading(),

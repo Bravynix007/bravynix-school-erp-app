@@ -8,7 +8,7 @@ import 'package:bravynix_school_erp/core/network/api_failure.dart';
 import 'package:bravynix_school_erp/core/theme/app_text_styles.dart';
 import 'package:bravynix_school_erp/core/theme/app_theme.dart';
 import 'package:bravynix_school_erp/features/auth/domain/auth_entities.dart';
-import 'package:bravynix_school_erp/features/auth/presentation/login/cubit/login_cubit.dart';
+import 'package:bravynix_school_erp/features/auth/presentation/login/bloc/login_bloc.dart';
 import 'package:bravynix_school_erp/features/auth/presentation/login/view/login_page.dart';
 import 'package:bravynix_school_erp/features/auth/presentation/session/session_bloc.dart';
 import 'package:bravynix_school_erp/features/auth/presentation/splash/splash_page.dart';
@@ -121,7 +121,7 @@ void main() {
         when(() => auth.requestOtp(any())).thenAnswer(
           (_) async => const OtpRequested(resendAfter: Duration(seconds: 60), expiresIn: Duration(minutes: 10)),
         );
-        await pump(tester, BlocProvider(create: (_) => LoginCubit(auth), child: const LoginView()), scale);
+        await pump(tester, BlocProvider(create: (_) => LoginBloc(auth), child: const LoginView()), scale);
         expect(tester.takeException(), isNull);
         await tester.enterText(find.byKey(const Key('login.email')), 'asha.rao@example.com');
         await tester.ensureVisible(find.byKey(const Key('login.sendCode')));

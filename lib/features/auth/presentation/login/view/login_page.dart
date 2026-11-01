@@ -1,7 +1,7 @@
 import 'package:bravynix_school_erp/app/di/injection.dart';
 import 'package:bravynix_school_erp/core/widgets/inline_message.dart';
 import 'package:bravynix_school_erp/features/auth/domain/auth_repository.dart';
-import 'package:bravynix_school_erp/features/auth/presentation/login/cubit/login_cubit.dart';
+import 'package:bravynix_school_erp/features/auth/presentation/login/bloc/login_bloc.dart';
 import 'package:bravynix_school_erp/features/auth/presentation/login/view/code_form.dart';
 import 'package:bravynix_school_erp/features/auth/presentation/login/view/email_form.dart';
 import 'package:bravynix_school_erp/features/auth/presentation/session/session_bloc.dart';
@@ -15,7 +15,7 @@ class LoginPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (_) => LoginCubit(getIt<AuthRepository>()),
+      create: (_) => LoginBloc(getIt<AuthRepository>()),
       child: const LoginView(),
     );
   }
@@ -30,7 +30,7 @@ class LoginView extends StatelessWidget {
     final session = context.watch<SessionBloc>().state;
     final endReason = session is SessionUnauthenticated ? session.endReason : null;
 
-    return BlocListener<LoginCubit, LoginState>(
+    return BlocListener<LoginBloc, LoginState>(
       listenWhen: (previous, current) => current.status == LoginStatus.success && current.session != null,
       listener: (context, state) => context.read<SessionBloc>().add(SessionSignedIn(state.session!)),
       child: Scaffold(
@@ -53,7 +53,7 @@ class LoginView extends StatelessWidget {
                       InlineMessage.info(_endReasonText(l10n, endReason)),
                       const SizedBox(height: 16),
                     ],
-                    BlocBuilder<LoginCubit, LoginState>(
+                    BlocBuilder<LoginBloc, LoginState>(
                       buildWhen: (previous, current) => previous.step != current.step,
                       builder: (context, state) => AnimatedSwitcher(
                         duration: const Duration(milliseconds: 200),
