@@ -7,6 +7,13 @@ abstract final class AppRoutes {
   static const chooseRole = '/choose-role';
   static const profile = '/profile';
 
+  /// BIL-01: what BravyNix has charged the Owner's Society. View only.
+  static const platformDues = '/platform-dues';
+
+  /// The `:id` pattern, for the router; [platformDue] builds the location of one due.
+  static const platformDuePattern = '/platform-dues/:id';
+  static String platformDue(String id) => '$platformDues/${Uri.encodeComponent(id)}';
+
   /// The component gallery, registered in debug and profile builds only.
   static const gallery = '/gallery';
 

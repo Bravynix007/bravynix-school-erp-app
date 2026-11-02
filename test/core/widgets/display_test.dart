@@ -14,6 +14,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import '../../helpers/clipped_text.dart';
 import '../../helpers/contrast.dart';
 import '../../helpers/pump_app.dart';
 
@@ -33,6 +34,22 @@ void main() {
       );
       expect(find.text('Overdue'), findsOneWidget);
       expect(find.byIcon(Icons.error_outline), findsOneWidget);
+    });
+
+    testWidgets('shrinks a label that does not fit instead of breaking a word', (tester) async {
+      await tester.pumpAppScaled(
+        const Scaffold(
+          body: Center(
+            child: SizedBox(
+              width: 110,
+              child: StatusChip(label: 'Cancelled', tone: StatusTone.error),
+            ),
+          ),
+        ),
+        textScale: 2,
+      );
+      expect(tester.takeException(), isNull);
+      expect(clippedParagraphs(tester), isEmpty);
     });
 
     testWidgets('showIcon: false leaves only the label', (tester) async {

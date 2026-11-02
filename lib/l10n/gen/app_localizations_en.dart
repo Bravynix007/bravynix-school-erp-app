@@ -297,5 +297,123 @@ class AppLocalizationsEn extends AppLocalizations {
   String get openProfile => 'Profile';
 
   @override
+  String get platformDuesTitle => 'Platform dues';
+
+  @override
+  String get platformDuesDetail => 'What BravyNix has charged your Society';
+
+  @override
+  String platformDuesBannerDue(String amount) {
+    return 'You are due $amount';
+  }
+
+  @override
+  String get platformDuesBannerPaid => 'All dues are paid';
+
+  @override
+  String get platformDuesBannerPaidDetail => 'Nothing is waiting for payment.';
+
+  @override
+  String get platformDuesEmptyTitle => 'No dues yet';
+
+  @override
+  String get platformDuesEmptyMessage => 'BravyNix has not charged your Society anything so far.';
+
+  @override
+  String get dueStatusDue => 'Due';
+
+  @override
+  String get dueStatusPaid => 'Paid';
+
+  @override
+  String get dueStatusCancelled => 'Cancelled';
+
+  @override
+  String get dueStatusOverdue => 'Overdue';
+
+  @override
+  String duePeriod(String start, String end) {
+    return '$start to $end';
+  }
+
+  @override
+  String duePayBy(String date) {
+    return 'Pay by $date';
+  }
+
+  @override
+  String duePaidOn(String date) {
+    return 'Paid on $date';
+  }
+
+  @override
+  String get dueDetailTitle => 'Due';
+
+  @override
+  String get duePayByLabel => 'Pay by';
+
+  @override
+  String get duePaidOnLabel => 'Paid on';
+
+  @override
+  String get dueInvoiceNumber => 'Invoice number';
+
+  @override
+  String get duePeriodLabel => 'Period';
+
+  @override
+  String get dueTotal => 'Total';
+
+  @override
+  String dueStudentsTimesRate(int count, String rate) {
+    final intl.NumberFormat countNumberFormat = intl.NumberFormat.decimalPattern(localeName);
+    final String countString = countNumberFormat.format(count);
+
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$countString students',
+      one: '1 student',
+    );
+    return '$_temp0 × $rate';
+  }
+
+  @override
+  String get dueAdjustment => 'Adjustment';
+
+  @override
+  String get dueHowReached => 'How the total was reached';
+
+  @override
+  String get duePaymentTitle => 'Payment';
+
+  @override
+  String get duePaidBy => 'Paid by';
+
+  @override
+  String get duePaymentReference => 'Reference';
+
+  @override
+  String get dueCancelledNote => 'Cancelled by BravyNix. You do not owe this.';
+
+  @override
+  String get paymentModeCash => 'Cash';
+
+  @override
+  String get paymentModeBankTransfer => 'Bank transfer';
+
+  @override
+  String get paymentModeUpi => 'UPI';
+
+  @override
+  String get paymentModeCheque => 'Cheque';
+
+  @override
+  String get errorForbidden => 'You don\'t have access to this.';
+
+  @override
+  String get errorDueNotFound => 'This due could not be found. It may belong to another Society.';
+
+  @override
   String get loading => 'Loading';
 }

@@ -56,6 +56,33 @@ void main() {
     expect(find.byKey(const Key('profile.switchRole')), findsOneWidget);
   });
 
+  testWidgets('offers Platform dues to an Owner', (tester) async {
+    await pump(tester, twoRoleSession.withActiveContext(ownerNorth));
+    expect(find.byKey(const Key('profile.platformDues')), findsOneWidget);
+    expect(find.text('Platform dues'), findsOneWidget);
+  });
+
+  testWidgets('still offers Platform dues to an Owner whose access is blocked, because the dues stay open', (
+    tester,
+  ) async {
+    const blocked = AuthContext(
+      role: RoleCode.societyOwner,
+      societyId: 's1',
+      societyName: 'North Trust',
+      isBlocked: true,
+    );
+    await pump(tester, const AuthSession(person: testPerson, contexts: [blocked], activeContext: blocked));
+    expect(find.byKey(const Key('profile.platformDues')), findsOneWidget);
+  });
+
+  for (final role in [RoleCode.institutionAdmin, RoleCode.teacherStaff, RoleCode.studentParent]) {
+    testWidgets('offers no Platform dues to a ${role.name}', (tester) async {
+      final context = AuthContext(role: role, societyId: 's1', societyName: 'Sunrise Education Trust');
+      await pump(tester, AuthSession(person: testPerson, contexts: [context], activeContext: context));
+      expect(find.byKey(const Key('profile.platformDues')), findsNothing);
+    });
+  }
+
   testWidgets('Log out ends the session', (tester) async {
     await pump(tester, testSession);
     await tester.tap(find.byKey(const Key('profile.logOut')));

@@ -34,4 +34,13 @@ void main() {
       }
     });
   });
+
+  test('isZeroAmount knows zero however it is written, and only zero', () {
+    for (final zero in ['0', '0.00', '-0.0', '000.00']) {
+      expect(isZeroAmount(zero), isTrue, reason: zero);
+    }
+    for (final other in ['0.01', '-2500.00', '10']) {
+      expect(isZeroAmount(other), isFalse, reason: other);
+    }
+  });
 }

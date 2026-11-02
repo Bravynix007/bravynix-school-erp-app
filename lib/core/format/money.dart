@@ -4,6 +4,9 @@
 /// rounding or binary fraction can change a paisa.
 final RegExp _decimal = RegExp(r'^(-?)(\d+)(?:\.(\d{1,2}))?$');
 
+/// Whether [decimal] is zero, however it is written ("0", "0.00", "-0.0").
+bool isZeroAmount(String decimal) => RegExp(r'^-?0+(\.0+)?$').hasMatch(decimal.trim());
+
 /// Formats [decimal] ("124500", "124500.5", "-250.00") as `₹1,24,500.00`.
 /// A negative amount is `-₹250.00`. Throws [FormatException] for anything that
 /// is not a plain decimal with up to two decimals, rather than showing a wrong

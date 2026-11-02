@@ -559,6 +559,204 @@ abstract class AppLocalizations {
   /// **'Profile'**
   String get openProfile;
 
+  /// No description provided for @platformDuesTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Platform dues'**
+  String get platformDuesTitle;
+
+  /// No description provided for @platformDuesDetail.
+  ///
+  /// In en, this message translates to:
+  /// **'What BravyNix has charged your Society'**
+  String get platformDuesDetail;
+
+  /// No description provided for @platformDuesBannerDue.
+  ///
+  /// In en, this message translates to:
+  /// **'You are due {amount}'**
+  String platformDuesBannerDue(String amount);
+
+  /// No description provided for @platformDuesBannerPaid.
+  ///
+  /// In en, this message translates to:
+  /// **'All dues are paid'**
+  String get platformDuesBannerPaid;
+
+  /// No description provided for @platformDuesBannerPaidDetail.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing is waiting for payment.'**
+  String get platformDuesBannerPaidDetail;
+
+  /// No description provided for @platformDuesEmptyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'No dues yet'**
+  String get platformDuesEmptyTitle;
+
+  /// No description provided for @platformDuesEmptyMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'BravyNix has not charged your Society anything so far.'**
+  String get platformDuesEmptyMessage;
+
+  /// No description provided for @dueStatusDue.
+  ///
+  /// In en, this message translates to:
+  /// **'Due'**
+  String get dueStatusDue;
+
+  /// No description provided for @dueStatusPaid.
+  ///
+  /// In en, this message translates to:
+  /// **'Paid'**
+  String get dueStatusPaid;
+
+  /// No description provided for @dueStatusCancelled.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancelled'**
+  String get dueStatusCancelled;
+
+  /// No description provided for @dueStatusOverdue.
+  ///
+  /// In en, this message translates to:
+  /// **'Overdue'**
+  String get dueStatusOverdue;
+
+  /// No description provided for @duePeriod.
+  ///
+  /// In en, this message translates to:
+  /// **'{start} to {end}'**
+  String duePeriod(String start, String end);
+
+  /// No description provided for @duePayBy.
+  ///
+  /// In en, this message translates to:
+  /// **'Pay by {date}'**
+  String duePayBy(String date);
+
+  /// No description provided for @duePaidOn.
+  ///
+  /// In en, this message translates to:
+  /// **'Paid on {date}'**
+  String duePaidOn(String date);
+
+  /// No description provided for @dueDetailTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Due'**
+  String get dueDetailTitle;
+
+  /// No description provided for @duePayByLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Pay by'**
+  String get duePayByLabel;
+
+  /// No description provided for @duePaidOnLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Paid on'**
+  String get duePaidOnLabel;
+
+  /// No description provided for @dueInvoiceNumber.
+  ///
+  /// In en, this message translates to:
+  /// **'Invoice number'**
+  String get dueInvoiceNumber;
+
+  /// No description provided for @duePeriodLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Period'**
+  String get duePeriodLabel;
+
+  /// No description provided for @dueTotal.
+  ///
+  /// In en, this message translates to:
+  /// **'Total'**
+  String get dueTotal;
+
+  /// No description provided for @dueStudentsTimesRate.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 student} other{{count} students}} × {rate}'**
+  String dueStudentsTimesRate(int count, String rate);
+
+  /// No description provided for @dueAdjustment.
+  ///
+  /// In en, this message translates to:
+  /// **'Adjustment'**
+  String get dueAdjustment;
+
+  /// No description provided for @dueHowReached.
+  ///
+  /// In en, this message translates to:
+  /// **'How the total was reached'**
+  String get dueHowReached;
+
+  /// No description provided for @duePaymentTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Payment'**
+  String get duePaymentTitle;
+
+  /// No description provided for @duePaidBy.
+  ///
+  /// In en, this message translates to:
+  /// **'Paid by'**
+  String get duePaidBy;
+
+  /// No description provided for @duePaymentReference.
+  ///
+  /// In en, this message translates to:
+  /// **'Reference'**
+  String get duePaymentReference;
+
+  /// No description provided for @dueCancelledNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancelled by BravyNix. You do not owe this.'**
+  String get dueCancelledNote;
+
+  /// No description provided for @paymentModeCash.
+  ///
+  /// In en, this message translates to:
+  /// **'Cash'**
+  String get paymentModeCash;
+
+  /// No description provided for @paymentModeBankTransfer.
+  ///
+  /// In en, this message translates to:
+  /// **'Bank transfer'**
+  String get paymentModeBankTransfer;
+
+  /// No description provided for @paymentModeUpi.
+  ///
+  /// In en, this message translates to:
+  /// **'UPI'**
+  String get paymentModeUpi;
+
+  /// No description provided for @paymentModeCheque.
+  ///
+  /// In en, this message translates to:
+  /// **'Cheque'**
+  String get paymentModeCheque;
+
+  /// No description provided for @errorForbidden.
+  ///
+  /// In en, this message translates to:
+  /// **'You don\'t have access to this.'**
+  String get errorForbidden;
+
+  /// No description provided for @errorDueNotFound.
+  ///
+  /// In en, this message translates to:
+  /// **'This due could not be found. It may belong to another Society.'**
+  String get errorDueNotFound;
+
   /// No description provided for @loading.
   ///
   /// In en, this message translates to:

@@ -36,8 +36,14 @@ class StatusChip extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             if (showIcon) ...[Icon(tone.icon, size: 14, color: tone.foreground), const SizedBox(width: AppSpacing.xxs)],
+            // A label is one or two words: on a narrow phone at a large text size it shrinks to fit rather than
+            // breaking a word across lines.
             Flexible(
-              child: Text(label, style: Theme.of(context).textTheme.labelMedium?.copyWith(color: tone.foreground)),
+              child: FittedBox(
+                fit: BoxFit.scaleDown,
+                alignment: AlignmentDirectional.centerStart,
+                child: Text(label, style: Theme.of(context).textTheme.labelMedium?.copyWith(color: tone.foreground)),
+              ),
             ),
           ],
         ),
