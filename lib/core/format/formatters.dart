@@ -12,6 +12,12 @@ abstract final class Formatters {
     return match == null ? day : '${match[3]}-${match[2]}-${match[1]}';
   }
 
+  /// The school day an instant falls on in IST, `2026-10-23`: what a due date is compared with.
+  static String schoolDay(DateTime value) {
+    final ist = value.toUtc().add(_ist);
+    return '${ist.year.toString().padLeft(4, '0')}-${_two(ist.month)}-${_two(ist.day)}';
+  }
+
   /// An instant → `23-10-2026 10:15` in IST.
   static String instant(DateTime value) {
     final ist = value.toUtc().add(_ist);

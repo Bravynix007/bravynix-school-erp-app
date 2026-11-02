@@ -2,6 +2,15 @@ import 'package:bravynix_school_erp/core/format/formatters.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
+  group('Formatters.schoolDay', () {
+    test('is the day in India, which is already tomorrow late in the evening UTC', () {
+      expect(Formatters.schoolDay(DateTime.utc(2026, 10, 23, 12)), '2026-10-23');
+      expect(Formatters.schoolDay(DateTime.utc(2026, 10, 23, 18, 29)), '2026-10-23');
+      expect(Formatters.schoolDay(DateTime.utc(2026, 10, 23, 18, 30)), '2026-10-24');
+      expect(Formatters.schoolDay(DateTime.utc(2026, 12, 31, 20)), '2027-01-01');
+    });
+  });
+
   group('Formatters.money', () {
     const cases = {
       '124500.00': '₹1,24,500.00',

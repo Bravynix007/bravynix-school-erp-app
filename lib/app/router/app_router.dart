@@ -7,6 +7,8 @@ import 'package:bravynix_school_erp/features/auth/presentation/session/session_b
 import 'package:bravynix_school_erp/features/auth/presentation/splash/splash_page.dart';
 import 'package:bravynix_school_erp/features/gallery/presentation/component_gallery_page.dart';
 import 'package:bravynix_school_erp/features/home/presentation/home_page.dart';
+import 'package:bravynix_school_erp/features/platform_dues/presentation/view/platform_due_page.dart';
+import 'package:bravynix_school_erp/features/platform_dues/presentation/view/platform_dues_page.dart';
 import 'package:bravynix_school_erp/features/profile/presentation/profile_page.dart';
 import 'package:bravynix_school_erp/features/update_required/presentation/update_required_page.dart';
 import 'package:flutter/foundation.dart';
@@ -56,6 +58,11 @@ GoRouter createRouter(SessionBloc session, {required SessionChanges changes}) {
       GoRoute(path: AppRoutes.home, builder: (_, _) => const HomePage()),
       GoRoute(path: AppRoutes.chooseRole, builder: (_, _) => const RoleChooserPage()),
       GoRoute(path: AppRoutes.profile, builder: (_, _) => const ProfilePage()),
+      GoRoute(path: AppRoutes.platformDues, builder: (_, _) => const PlatformDuesPage()),
+      GoRoute(
+        path: AppRoutes.platformDuePattern,
+        builder: (_, state) => PlatformDuePage(id: state.pathParameters['id']!),
+      ),
       GoRoute(path: AppRoutes.updateRequired, builder: (_, _) => const UpdateRequiredPage()),
       if (!kReleaseMode) GoRoute(path: AppRoutes.gallery, builder: (_, _) => const ComponentGalleryPage()),
     ],

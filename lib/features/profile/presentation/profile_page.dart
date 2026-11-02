@@ -5,6 +5,7 @@ import 'package:bravynix_school_erp/core/widgets/app_card.dart';
 import 'package:bravynix_school_erp/core/widgets/app_top_bar.dart';
 import 'package:bravynix_school_erp/core/widgets/key_value_row.dart';
 import 'package:bravynix_school_erp/core/widgets/menu_list_tile.dart';
+import 'package:bravynix_school_erp/features/auth/domain/auth_entities.dart';
 import 'package:bravynix_school_erp/features/auth/presentation/role/role_titles.dart';
 import 'package:bravynix_school_erp/features/auth/presentation/session/session_bloc.dart';
 import 'package:bravynix_school_erp/l10n/gen/app_localizations.dart';
@@ -60,6 +61,15 @@ class ProfilePage extends StatelessWidget {
                     title: l10n.switchRole,
                     subtitle: l10n.switchRoleDetail,
                     onTap: () => context.push(AppRoutes.chooseRole),
+                  ),
+                // Only the Owners of a Society are charged for it; the API refuses every other role (API design 10.22).
+                if (active?.role == RoleCode.societyOwner)
+                  MenuListTile(
+                    key: const Key('profile.platformDues'),
+                    icon: Icons.receipt_long_outlined,
+                    title: l10n.platformDuesTitle,
+                    subtitle: l10n.platformDuesDetail,
+                    onTap: () => context.push(AppRoutes.platformDues),
                   ),
                 MenuListTile(
                   key: const Key('profile.logOut'),
