@@ -107,6 +107,7 @@ void main() {
   testWidgets('says a role that may not see dues has no access', (tester) async {
     await pump(tester, const PlatformDuesFailed(ApiFailure(statusCode: 403, code: 'FORBIDDEN', message: 'x')));
     expect(find.text("You don't have access to this."), findsOneWidget);
+    expect(find.text('Try again'), findsNothing);
   });
 
   testWidgets('opens a due from its card', (tester) async {

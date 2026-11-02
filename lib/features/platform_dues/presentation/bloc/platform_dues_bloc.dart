@@ -11,7 +11,7 @@ sealed class PlatformDuesEvent extends Equatable {
   List<Object?> get props => [];
 }
 
-/// Opening the screen, pulling to refresh, and Try again after a failure.
+/// Opening the screen, and Try again after a failure.
 final class PlatformDuesRequested extends PlatformDuesEvent {
   const new();
 }

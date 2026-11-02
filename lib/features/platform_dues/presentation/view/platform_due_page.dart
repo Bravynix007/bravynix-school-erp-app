@@ -102,7 +102,7 @@ class _Due extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final text = Theme.of(context).textTheme;
-    final adjusted = !_isZero(due.adjustmentAmount);
+    final adjusted = !isZeroAmount(due.adjustmentAmount);
     return ListView(
       padding: const EdgeInsets.all(AppSpacing.screenMargin),
       children: [
@@ -168,8 +168,6 @@ class _Due extends StatelessWidget {
       ],
     );
   }
-
-  static bool _isZero(String amount) => RegExp(r'^-?0+(\.0+)?$').hasMatch(amount.trim());
 
   static String _modeName(AppLocalizations l10n, PaymentMode mode) => switch (mode) {
     PaymentMode.cash => l10n.paymentModeCash,

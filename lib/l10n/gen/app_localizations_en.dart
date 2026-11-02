@@ -356,9 +356,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get duePaidOnLabel => 'Paid on';
 
   @override
-  String get dueInstitution => 'Institution';
-
-  @override
   String get dueInvoiceNumber => 'Invoice number';
 
   @override
@@ -415,7 +412,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get errorForbidden => 'You don\'t have access to this.';
 
   @override
-  String get errorDueNotFound => 'This due could not be found. Go back to the list and open it again.';
+  String get errorDueNotFound => 'This due could not be found. It may belong to another Society.';
 
   @override
   String get loading => 'Loading';

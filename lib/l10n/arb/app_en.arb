@@ -115,7 +115,6 @@
   "dueDetailTitle": "Due",
   "duePayByLabel": "Pay by",
   "duePaidOnLabel": "Paid on",
-  "dueInstitution": "Institution",
   "dueInvoiceNumber": "Invoice number",
   "duePeriodLabel": "Period",
   "dueTotal": "Total",
@@ -134,6 +133,6 @@
   "paymentModeUpi": "UPI",
   "paymentModeCheque": "Cheque",
   "errorForbidden": "You don't have access to this.",
-  "errorDueNotFound": "This due could not be found. Go back to the list and open it again.",
+  "errorDueNotFound": "This due could not be found. It may belong to another Society.",
   "loading": "Loading"
 }

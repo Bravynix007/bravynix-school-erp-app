@@ -97,7 +97,7 @@ void main() {
 
   testWidgets('says a due that is not this Society’s is not available, with nothing to retry', (tester) async {
     await pump(tester, const PlatformDueFailed(ApiFailure(statusCode: 404, code: 'NOT_FOUND', message: 'x')));
-    expect(find.text('This due could not be found. Go back to the list and open it again.'), findsOneWidget);
+    expect(find.text('This due could not be found. It may belong to another Society.'), findsOneWidget);
     expect(find.text('Try again'), findsNothing);
   });
 

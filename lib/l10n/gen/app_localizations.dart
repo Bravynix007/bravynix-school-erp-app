@@ -661,12 +661,6 @@ abstract class AppLocalizations {
   /// **'Paid on'**
   String get duePaidOnLabel;
 
-  /// No description provided for @dueInstitution.
-  ///
-  /// In en, this message translates to:
-  /// **'Institution'**
-  String get dueInstitution;
-
   /// No description provided for @dueInvoiceNumber.
   ///
   /// In en, this message translates to:
@@ -760,7 +754,7 @@ abstract class AppLocalizations {
   /// No description provided for @errorDueNotFound.
   ///
   /// In en, this message translates to:
-  /// **'This due could not be found. Go back to the list and open it again.'**
+  /// **'This due could not be found. It may belong to another Society.'**
   String get errorDueNotFound;
 
   /// No description provided for @loading.

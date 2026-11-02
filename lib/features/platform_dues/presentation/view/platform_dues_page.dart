@@ -3,6 +3,7 @@ import 'package:bravynix_school_erp/app/router/app_routes.dart';
 import 'package:bravynix_school_erp/core/format/formatters.dart';
 import 'package:bravynix_school_erp/core/format/money.dart';
 import 'package:bravynix_school_erp/core/theme/app_spacing.dart';
+import 'package:bravynix_school_erp/core/theme/app_text_styles.dart';
 import 'package:bravynix_school_erp/core/widgets/amount_text.dart';
 import 'package:bravynix_school_erp/core/widgets/app_card.dart';
 import 'package:bravynix_school_erp/core/widgets/app_top_bar.dart';
@@ -47,6 +48,10 @@ class PlatformDuesView extends StatelessWidget {
             child: BlocBuilder<PlatformDuesBloc, PlatformDuesState>(
               builder: (context, state) => switch (state) {
                 PlatformDuesLoading() => const _Skeleton(),
+                PlatformDuesFailed(:final failure) when failure.code == 'FORBIDDEN' => StatePanel.forbidden(
+                  key: const Key('platformDues.forbidden'),
+                  title: dueErrorText(l10n, failure),
+                ),
                 PlatformDuesFailed(:final failure) => StatePanel.error(
                   key: const Key('platformDues.failed'),
                   title: dueErrorText(l10n, failure),
@@ -157,7 +162,7 @@ class _DueCard extends StatelessWidget {
         children: [
           Text(due.institutionName, style: text.titleMedium),
           const SizedBox(height: AppSpacing.xxs),
-          Text(due.invoiceNo, style: secondary),
+          Text(due.invoiceNo, style: AppTextStyles.code.copyWith(color: secondary?.color)),
           Text(
             l10n.duePeriod(Formatters.schoolDate(due.periodStartDate), Formatters.schoolDate(due.periodEndDate)),
             style: secondary,
