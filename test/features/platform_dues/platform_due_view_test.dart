@@ -38,7 +38,7 @@ void main() {
     expect(find.text('BNX/FY2026-27/0007'), findsOneWidget);
     expect(find.text('01-10-2026 to 31-12-2026'), findsOneWidget);
     expect(find.text('15-11-2026'), findsOneWidget);
-    expect(find.text('1650 students × ₹50.00'), findsOneWidget);
+    expect(find.text('1,650 students × ₹50.00'), findsOneWidget);
     expect(find.text('₹82,500.00'), findsOneWidget);
     expect(find.text('Adjustment'), findsOneWidget);
     expect(find.text('-₹2,500.00'), findsOneWidget);
@@ -97,7 +97,7 @@ void main() {
 
   testWidgets('says a due that is not this Society’s is not available, with nothing to retry', (tester) async {
     await pump(tester, const PlatformDueFailed(ApiFailure(statusCode: 404, code: 'NOT_FOUND', message: 'x')));
-    expect(find.text('This due is not available. It may have been removed.'), findsOneWidget);
+    expect(find.text('This due could not be found. Go back to the list and open it again.'), findsOneWidget);
     expect(find.text('Try again'), findsNothing);
   });
 

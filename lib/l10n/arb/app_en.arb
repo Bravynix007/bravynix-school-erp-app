@@ -121,7 +121,7 @@
   "dueTotal": "Total",
   "dueStudentsTimesRate": "{count, plural, =1{1 student} other{{count} students}} × {rate}",
   "@dueStudentsTimesRate": {
-    "placeholders": { "count": { "type": "int" }, "rate": { "type": "String" } }
+    "placeholders": { "count": { "type": "int", "format": "decimalPattern" }, "rate": { "type": "String" } }
   },
   "dueAdjustment": "Adjustment",
   "dueHowReached": "How the total was reached",
@@ -134,6 +134,6 @@
   "paymentModeUpi": "UPI",
   "paymentModeCheque": "Cheque",
   "errorForbidden": "You don't have access to this.",
-  "errorDueNotFound": "This due is not available. It may have been removed.",
+  "errorDueNotFound": "This due could not be found. Go back to the list and open it again.",
   "loading": "Loading"
 }

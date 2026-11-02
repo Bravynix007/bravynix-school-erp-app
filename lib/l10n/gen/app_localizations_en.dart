@@ -369,10 +369,13 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String dueStudentsTimesRate(int count, String rate) {
+    final intl.NumberFormat countNumberFormat = intl.NumberFormat.decimalPattern(localeName);
+    final String countString = countNumberFormat.format(count);
+
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count students',
+      other: '$countString students',
       one: '1 student',
     );
     return '$_temp0 × $rate';
@@ -412,7 +415,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get errorForbidden => 'You don\'t have access to this.';
 
   @override
-  String get errorDueNotFound => 'This due is not available. It may have been removed.';
+  String get errorDueNotFound => 'This due could not be found. Go back to the list and open it again.';
 
   @override
   String get loading => 'Loading';

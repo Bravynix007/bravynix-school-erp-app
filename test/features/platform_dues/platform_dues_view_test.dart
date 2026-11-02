@@ -143,6 +143,7 @@ void main() {
       loaded([
         dueLine(totalAmount: '12345678.90', institutionName: 'Sri Vidya Educational Society Senior Secondary School'),
         dueLine(id: 'd2', status: DueStatus.paid, paidDate: '2026-11-01'),
+        dueLine(id: 'd3', status: DueStatus.cancelled),
       ], total: '12345678.90'),
       textScale: 2,
     );

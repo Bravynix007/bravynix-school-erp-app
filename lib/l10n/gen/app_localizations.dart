@@ -760,7 +760,7 @@ abstract class AppLocalizations {
   /// No description provided for @errorDueNotFound.
   ///
   /// In en, this message translates to:
-  /// **'This due is not available. It may have been removed.'**
+  /// **'This due could not be found. Go back to the list and open it again.'**
   String get errorDueNotFound;
 
   /// No description provided for @loading.
