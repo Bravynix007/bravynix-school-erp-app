@@ -16,6 +16,9 @@ import 'package:bravynix_school_erp/features/platform_dues/presentation/view/pla
 import 'package:bravynix_school_erp/features/platform_dues/presentation/view/platform_dues_page.dart';
 import 'package:bravynix_school_erp/features/profile/presentation/profile_page.dart';
 import 'package:bravynix_school_erp/features/school_setup/presentation/school_setup_page.dart';
+import 'package:bravynix_school_erp/features/subjects/domain/subject.dart';
+import 'package:bravynix_school_erp/features/subjects/presentation/view/subject_form_page.dart';
+import 'package:bravynix_school_erp/features/subjects/presentation/view/subjects_page.dart';
 import 'package:bravynix_school_erp/features/update_required/presentation/update_required_page.dart';
 import 'package:flutter/foundation.dart';
 import 'package:go_router/go_router.dart';
@@ -89,6 +92,11 @@ GoRouter createRouter(SessionBloc session, {required SessionChanges changes}) {
         path: AppRoutes.academicYearForm,
         redirect: (_, state) => academicYearFormRedirect(state.extra),
         builder: (_, state) => AcademicYearFormPage(args: state.extra! as AcademicYearFormArgs),
+      ),
+      GoRoute(path: AppRoutes.subjects, builder: (_, _) => const SubjectsPage()),
+      GoRoute(
+        path: AppRoutes.subjectForm,
+        builder: (_, state) => SubjectFormPage(subject: state.extra is Subject ? state.extra! as Subject : null),
       ),
       GoRoute(path: AppRoutes.updateRequired, builder: (_, _) => const UpdateRequiredPage()),
       if (!kReleaseMode) GoRoute(path: AppRoutes.gallery, builder: (_, _) => const ComponentGalleryPage()),

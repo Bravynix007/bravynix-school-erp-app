@@ -1201,6 +1201,132 @@ abstract class AppLocalizations {
   /// **'The current year can\'t be deactivated. Make another year current first.'**
   String get errorCurrentYearLocked;
 
+  /// No description provided for @subjectsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Subjects'**
+  String get subjectsTitle;
+
+  /// No description provided for @subjectsDetail.
+  ///
+  /// In en, this message translates to:
+  /// **'The subjects every Institution of the Society teaches'**
+  String get subjectsDetail;
+
+  /// No description provided for @subjectsEmptyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'No subjects yet'**
+  String get subjectsEmptyTitle;
+
+  /// No description provided for @subjectsEmptyMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Add the subjects your Institutions teach. They are shared by all of them.'**
+  String get subjectsEmptyMessage;
+
+  /// No description provided for @subjectAdd.
+  ///
+  /// In en, this message translates to:
+  /// **'Add subject'**
+  String get subjectAdd;
+
+  /// No description provided for @subjectAddTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Add subject'**
+  String get subjectAddTitle;
+
+  /// No description provided for @subjectEditTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit subject'**
+  String get subjectEditTitle;
+
+  /// No description provided for @subjectEdit.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit'**
+  String get subjectEdit;
+
+  /// No description provided for @subjectDeactivate.
+  ///
+  /// In en, this message translates to:
+  /// **'Deactivate'**
+  String get subjectDeactivate;
+
+  /// No description provided for @subjectDeactivateTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Deactivate {name}?'**
+  String subjectDeactivateTitle(String name);
+
+  /// No description provided for @subjectDeactivateMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'It leaves the list and its name and code are free again. Nothing is deleted.'**
+  String get subjectDeactivateMessage;
+
+  /// No description provided for @subjectDeactivated.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} deactivated'**
+  String subjectDeactivated(String name);
+
+  /// No description provided for @subjectSaved.
+  ///
+  /// In en, this message translates to:
+  /// **'Subject saved'**
+  String get subjectSaved;
+
+  /// No description provided for @subjectName.
+  ///
+  /// In en, this message translates to:
+  /// **'Name'**
+  String get subjectName;
+
+  /// No description provided for @subjectCode.
+  ///
+  /// In en, this message translates to:
+  /// **'Code'**
+  String get subjectCode;
+
+  /// No description provided for @subjectCodeHelper.
+  ///
+  /// In en, this message translates to:
+  /// **'Optional, like MATH'**
+  String get subjectCodeHelper;
+
+  /// No description provided for @subjectSave.
+  ///
+  /// In en, this message translates to:
+  /// **'Save'**
+  String get subjectSave;
+
+  /// No description provided for @errorSubjectDuplicate.
+  ///
+  /// In en, this message translates to:
+  /// **'Another subject has this name or code.'**
+  String get errorSubjectDuplicate;
+
+  /// No description provided for @errorSubjectNameTaken.
+  ///
+  /// In en, this message translates to:
+  /// **'Another subject has this name.'**
+  String get errorSubjectNameTaken;
+
+  /// No description provided for @errorSubjectCodeTaken.
+  ///
+  /// In en, this message translates to:
+  /// **'Another subject has this code.'**
+  String get errorSubjectCodeTaken;
+
+  /// No description provided for @errorSubjectNotFound.
+  ///
+  /// In en, this message translates to:
+  /// **'This subject could not be found. It may have been deactivated.'**
+  String get errorSubjectNotFound;
+
   /// No description provided for @errorYearNotFound.
   ///
   /// In en, this message translates to:

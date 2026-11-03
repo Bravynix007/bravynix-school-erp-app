@@ -14,6 +14,7 @@ void main() {
     expect(find.text('School setup'), findsOneWidget);
     expect(find.text('Institutions'), findsOneWidget);
     expect(find.text('Academic years'), findsOneWidget);
+    expect(find.text('Subjects'), findsOneWidget);
   });
 
   testWidgets('opens the Institutions', (tester) async {
@@ -57,6 +58,27 @@ void main() {
     await tester.tap(find.byKey(const Key('schoolSetup.academicYears')));
     await tester.pumpAndSettle();
     expect(find.text('academic years screen'), findsOneWidget);
+  });
+
+  testWidgets('opens the Subjects', (tester) async {
+    final router = GoRouter(
+      routes: [
+        GoRoute(path: '/', builder: (_, _) => const SchoolSetupPage()),
+        GoRoute(path: AppRoutes.subjects, builder: (_, _) => const Text('subjects screen')),
+      ],
+    );
+    addTearDown(router.dispose);
+    await tester.pumpWidget(
+      MaterialApp.router(
+        theme: AppTheme.light(),
+        routerConfig: router,
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+      ),
+    );
+    await tester.tap(find.byKey(const Key('schoolSetup.subjects')));
+    await tester.pumpAndSettle();
+    expect(find.text('subjects screen'), findsOneWidget);
   });
 
   testWidgets('is usable at a large text scale on a small phone', (tester) async {

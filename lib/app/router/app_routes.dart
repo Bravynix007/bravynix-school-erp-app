@@ -36,6 +36,11 @@ abstract final class AppRoutes {
   static const academicYears = '/school-setup/academic-years';
   static const academicYearForm = '/school-setup/academic-years/form';
 
+  /// Subjects of the Society (SUB-01), and the form that adds or edits one (SUB-02, SUB-03), which takes the subject to
+  /// edit as the route's `extra` (null to add): no endpoint reads one subject, so the list hands it over.
+  static const subjects = '/school-setup/subjects';
+  static const subjectForm = '/school-setup/subjects/form';
+
   /// The component gallery, registered in debug and profile builds only.
   static const gallery = '/gallery';
 
