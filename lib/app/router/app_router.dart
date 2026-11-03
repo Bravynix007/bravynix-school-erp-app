@@ -19,7 +19,6 @@ import 'package:bravynix_school_erp/features/platform_dues/presentation/view/pla
 import 'package:bravynix_school_erp/features/platform_dues/presentation/view/platform_dues_page.dart';
 import 'package:bravynix_school_erp/features/profile/presentation/profile_page.dart';
 import 'package:bravynix_school_erp/features/school_setup/presentation/school_setup_page.dart';
-import 'package:bravynix_school_erp/features/subjects/domain/subject.dart';
 import 'package:bravynix_school_erp/features/subjects/presentation/view/subject_form_page.dart';
 import 'package:bravynix_school_erp/features/subjects/presentation/view/subjects_page.dart';
 import 'package:bravynix_school_erp/features/update_required/presentation/update_required_page.dart';
@@ -51,6 +50,10 @@ String? academicYearFormRedirect(Object? extra) => extra is AcademicYearFormArgs
 String? classFormRedirect(Object? extra) => extra is ClassFormArgs ? null : AppRoutes.classes;
 
 String? classBulkRedirect(Object? extra) => extra is ClassBulkArgs ? null : AppRoutes.classes;
+
+/// The subject form needs the subject (or none, to add) the list passes as `extra`; opened any other way it goes back
+/// to the list, so an Edit that lost its subject cannot open as an Add.
+String? subjectFormRedirect(Object? extra) => extra is SubjectFormArgs ? null : AppRoutes.subjects;
 
 /// Re-runs the redirect whenever the session changes. GoRouter does not own
 /// its `refreshListenable`, so whoever creates this disposes it.
@@ -104,7 +107,8 @@ GoRouter createRouter(SessionBloc session, {required SessionChanges changes}) {
       GoRoute(path: AppRoutes.subjects, builder: (_, _) => const SubjectsPage()),
       GoRoute(
         path: AppRoutes.subjectForm,
-        builder: (_, state) => SubjectFormPage(subject: state.extra is Subject ? state.extra! as Subject : null),
+        redirect: (_, state) => subjectFormRedirect(state.extra),
+        builder: (_, state) => SubjectFormPage(args: state.extra! as SubjectFormArgs),
       ),
       GoRoute(path: AppRoutes.classes, builder: (_, _) => const ClassesPage()),
       GoRoute(

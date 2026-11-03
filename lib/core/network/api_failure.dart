@@ -92,6 +92,10 @@ class ApiFailure extends Equatable implements Exception {
   bool namesOnly(Set<String> fields) =>
       fieldErrors.isNotEmpty && fieldErrors.every((error) => fields.contains(error.field));
 
+  /// Refused because the app holds an old copy of the record: changed meanwhile (409 VERSION_CONFLICT, API design 8.2)
+  /// or gone (404). A screen that opened a form from a list reads the list again.
+  bool get outdatesCopy => code == 'VERSION_CONFLICT' || code == 'NOT_FOUND';
+
   FieldError? fieldError(String field) {
     for (final error in fieldErrors) {
       if (error.field == field) return error;

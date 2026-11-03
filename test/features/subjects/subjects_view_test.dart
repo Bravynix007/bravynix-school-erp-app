@@ -1,9 +1,11 @@
 import 'package:bloc_test/bloc_test.dart';
 import 'package:bravynix_school_erp/app/router/app_routes.dart';
+import 'package:bravynix_school_erp/core/bloc/list_bloc.dart';
 import 'package:bravynix_school_erp/core/network/api_failure.dart';
 import 'package:bravynix_school_erp/core/theme/app_theme.dart';
 import 'package:bravynix_school_erp/features/subjects/domain/subject.dart';
 import 'package:bravynix_school_erp/features/subjects/presentation/bloc/subjects_bloc.dart';
+import 'package:bravynix_school_erp/features/subjects/presentation/view/subject_form_page.dart';
 import 'package:bravynix_school_erp/features/subjects/presentation/view/subjects_page.dart';
 import 'package:bravynix_school_erp/l10n/gen/app_localizations.dart';
 import 'package:flutter/material.dart';
@@ -16,19 +18,19 @@ import '../../helpers/clipped_text.dart';
 import '../../helpers/pump_app.dart';
 import '../../helpers/subjects.dart';
 
-class _MockSubjectsBloc extends MockBloc<SubjectsEvent, SubjectsState> implements SubjectsBloc;
+class _MockSubjectsBloc extends MockBloc<ListEvent, ListState<Subject>> implements SubjectsBloc;
 
 void main() {
   late _MockSubjectsBloc bloc;
   setUpAll(() {
-    registerFallbackValue(const SubjectsRequested());
+    registerFallbackValue(const ListRequested());
     registerFallbackValue(const SubjectDeactivated(maths));
   });
   setUp(() => bloc = _MockSubjectsBloc());
 
   Future<void> pump(
     WidgetTester tester,
-    SubjectsState state, {
+    ListState<Subject> state, {
     double textScale = 1,
     Size size = const Size(400, 1200),
   }) {
@@ -41,7 +43,7 @@ void main() {
   }
 
   /// The list on a router, with the form route answering [saved] when it closes, and recording what it was given.
-  Future<List<Object?>> pumpWithForm(WidgetTester tester, SubjectsState state, {required bool saved}) async {
+  Future<List<Object?>> pumpWithForm(WidgetTester tester, ListState<Subject> state, {required bool saved}) async {
     when(() => bloc.state).thenReturn(state);
     final opened = <Object?>[];
     final router = GoRouter(
@@ -72,7 +74,7 @@ void main() {
   }
 
   testWidgets('lists each subject, with its code when it has one', (tester) async {
-    await pump(tester, const SubjectsLoaded([maths, art]));
+    await pump(tester, const ListLoaded<Subject>([maths, art]));
     expect(find.text('Mathematics'), findsOneWidget);
     expect(find.text('MATH'), findsOneWidget);
     expect(find.text('Art'), findsOneWidget);
@@ -81,7 +83,7 @@ void main() {
   });
 
   testWidgets('Deactivate asks first, and does nothing when cancelled', (tester) async {
-    await pump(tester, const SubjectsLoaded([maths, art]));
+    await pump(tester, const ListLoaded<Subject>([maths, art]));
     await tester.tap(find.byKey(const ValueKey('subject.deactivate.u1')));
     await tester.pumpAndSettle();
     expect(find.text('Deactivate Mathematics?'), findsOneWidget);
@@ -92,7 +94,7 @@ void main() {
   });
 
   testWidgets('Deactivate goes ahead once confirmed', (tester) async {
-    await pump(tester, const SubjectsLoaded([maths, art]));
+    await pump(tester, const ListLoaded<Subject>([maths, art]));
     await tester.tap(find.byKey(const ValueKey('subject.deactivate.u1')));
     await tester.pumpAndSettle();
     await tester.tap(find.descendant(of: find.byType(Dialog), matching: find.text('Deactivate')));
@@ -101,7 +103,7 @@ void main() {
   });
 
   testWidgets('while a deactivation is on its way, that subject cannot be changed again', (tester) async {
-    await pump(tester, const SubjectsLoaded([maths, art], busyId: 'u1'));
+    await pump(tester, const ListLoaded<Subject>([maths, art], busyId: 'u1'));
     Finder button(String key) =>
         find.descendant(of: find.byKey(ValueKey(key)), matching: find.byWidgetPredicate((w) => w is ButtonStyleButton));
     expect(tester.widget<ButtonStyleButton>(button('subject.edit.u1')).onPressed, isNull);
@@ -113,7 +115,7 @@ void main() {
   testWidgets('says why a deactivation was refused, above the list', (tester) async {
     await pump(
       tester,
-      const SubjectsLoaded([maths], actionFailure: ApiFailure(statusCode: 404, code: 'NOT_FOUND', message: 'x')),
+      const ListLoaded<Subject>([maths], actionFailure: ApiFailure(statusCode: 404, code: 'NOT_FOUND', message: 'x')),
     );
     expect(find.byKey(const Key('subjects.actionFailed')), findsOneWidget);
     expect(find.text('This subject could not be found. It may have been deactivated.'), findsOneWidget);
@@ -122,8 +124,8 @@ void main() {
   testWidgets('says which subject was deactivated', (tester) async {
     whenListen(
       bloc,
-      Stream.value(const SubjectsLoaded([art], deactivated: maths)),
-      initialState: const SubjectsLoaded([maths, art]),
+      Stream.value(const ListLoaded<Subject>([art], changed: maths)),
+      initialState: const ListLoaded<Subject>([maths, art]),
     );
     await tester.pumpAppScaled(
       BlocProvider<SubjectsBloc>.value(value: bloc, child: const SubjectsView()),
@@ -134,63 +136,63 @@ void main() {
   });
 
   testWidgets('invites the first subject when there is none', (tester) async {
-    await pump(tester, const SubjectsLoaded([]));
+    await pump(tester, const ListLoaded<Subject>([]));
     expect(find.text('No subjects yet'), findsOneWidget);
     expect(find.widgetWithText(FilledButton, 'Add subject'), findsOneWidget);
   });
 
   testWidgets('shows a placeholder while it loads', (tester) async {
-    await pump(tester, const SubjectsLoading());
+    await pump(tester, const ListLoading<Subject>());
     expect(find.bySemanticsLabel('Loading'), findsOneWidget);
   });
 
   testWidgets('says why it failed, and loads again on Try again', (tester) async {
-    await pump(tester, const SubjectsFailed(ApiFailure.network()));
+    await pump(tester, const ListFailed<Subject>(ApiFailure.network()));
     expect(find.byKey(const Key('subjects.failed')), findsOneWidget);
     await tester.tap(find.text('Try again'));
-    verify(() => bloc.add(const SubjectsRequested())).called(1);
+    verify(() => bloc.add(const ListRequested())).called(1);
   });
 
   testWidgets('says a role that may not see subjects has no access', (tester) async {
-    await pump(tester, const SubjectsFailed(ApiFailure(statusCode: 403, code: 'FORBIDDEN', message: 'x')));
+    await pump(tester, const ListFailed<Subject>(ApiFailure(statusCode: 403, code: 'FORBIDDEN', message: 'x')));
     expect(find.byKey(const Key('subjects.forbidden')), findsOneWidget);
     expect(find.text('Try again'), findsNothing);
   });
 
   group('the form', () {
     testWidgets('Add opens it with no subject, and reads the list again once saved', (tester) async {
-      final opened = await pumpWithForm(tester, const SubjectsLoaded([maths]), saved: true);
+      final opened = await pumpWithForm(tester, const ListLoaded<Subject>([maths]), saved: true);
       await tester.tap(find.byKey(const Key('subjects.add')));
       await tester.pumpAndSettle();
-      expect(opened.single, isNull);
-      verifyNever(() => bloc.add(const SubjectsRequested()));
+      expect((opened.single! as SubjectFormArgs).subject, isNull);
+      verifyNever(() => bloc.add(const ListRequested()));
       await tester.tap(find.text('form'));
       await tester.pumpAndSettle();
-      verify(() => bloc.add(const SubjectsRequested())).called(1);
+      verify(() => bloc.add(const ListRequested())).called(1);
     });
 
     testWidgets('the empty list opens it too', (tester) async {
-      final opened = await pumpWithForm(tester, const SubjectsLoaded([]), saved: false);
+      final opened = await pumpWithForm(tester, const ListLoaded<Subject>([]), saved: false);
       await tester.tap(find.widgetWithText(FilledButton, 'Add subject'));
       await tester.pumpAndSettle();
-      expect(opened.single, isNull);
+      expect((opened.single! as SubjectFormArgs).subject, isNull);
     });
 
     testWidgets('Edit hands the subject over, and leaves the list alone when the form was cancelled', (tester) async {
-      final opened = await pumpWithForm(tester, const SubjectsLoaded([maths, art]), saved: false);
+      final opened = await pumpWithForm(tester, const ListLoaded<Subject>([maths, art]), saved: false);
       await tester.tap(find.byKey(const ValueKey('subject.edit.u2')));
       await tester.pumpAndSettle();
-      expect(opened.single, isA<Subject>().having((subject) => subject.id, 'id', 'u2'));
+      expect((opened.single! as SubjectFormArgs).subject?.id, 'u2');
       await tester.tap(find.text('form'));
       await tester.pumpAndSettle();
-      verifyNever(() => bloc.add(const SubjectsRequested()));
+      verifyNever(() => bloc.add(const ListRequested()));
     });
   });
 
   testWidgets('reads whole at a large text scale on a small phone', (tester) async {
     await pump(
       tester,
-      const SubjectsLoaded([
+      const ListLoaded<Subject>([
         Subject(id: 'u3', name: 'Environmental Studies and Sciences', code: 'ENVSTUDIES', version: 1),
         art,
       ]),

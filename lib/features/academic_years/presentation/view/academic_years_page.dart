@@ -1,5 +1,6 @@
 import 'package:bravynix_school_erp/app/di/injection.dart';
 import 'package:bravynix_school_erp/app/router/app_routes.dart';
+import 'package:bravynix_school_erp/core/bloc/list_bloc.dart';
 import 'package:bravynix_school_erp/core/format/formatters.dart';
 import 'package:bravynix_school_erp/core/theme/app_spacing.dart';
 import 'package:bravynix_school_erp/core/widgets/app_button.dart';
@@ -38,8 +39,7 @@ class AcademicYearsPage extends StatelessWidget {
             child: InstitutionScope(
               builder: (context, institution) => BlocProvider(
                 create: (_) =>
-                    AcademicYearsBloc(getIt<AcademicYearsRepository>(), institution.id)
-                      ..add(const AcademicYearsRequested()),
+                    AcademicYearsBloc(getIt<AcademicYearsRepository>(), institution.id)..add(const ListRequested()),
                 child: const AcademicYearsView(),
               ),
             ),
@@ -60,44 +60,44 @@ class AcademicYearsView extends StatelessWidget {
       AppRoutes.academicYearForm,
       extra: AcademicYearFormArgs(institutionId: bloc.institutionId, year: year),
     );
-    if (saved ?? false) bloc.add(const AcademicYearsRequested());
+    if (saved ?? false) bloc.add(const ListRequested());
   }
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
-    return BlocConsumer<AcademicYearsBloc, AcademicYearsState>(
-      listenWhen: (previous, current) => current is AcademicYearsLoaded && current.notice != null,
+    return BlocConsumer<AcademicYearsBloc, ListState<AcademicYear>>(
+      listenWhen: (previous, current) => current is ListLoaded<AcademicYear> && current.notice != null,
       listener: (context, state) {
-        if (state is! AcademicYearsLoaded) return;
+        if (state is! ListLoaded<AcademicYear>) return;
         AppSnackbar.show(
           context,
-          message: switch (state.notice!) {
-            AcademicYearsNotice.madeCurrent => l10n.academicYearMadeCurrent(state.noticeYear!.name),
+          message: switch (state.notice! as AcademicYearsNotice) {
+            AcademicYearsNotice.madeCurrent => l10n.academicYearMadeCurrent(state.changed!.name),
             AcademicYearsNotice.deactivated => l10n.academicYearDeactivated,
           },
           kind: AppSnackbarKind.success,
         );
       },
       builder: (context, state) => switch (state) {
-        AcademicYearsLoading() => SkeletonCards(semanticLabel: l10n.loading, heights: const [120, 120]),
-        AcademicYearsFailed(:final failure) when failure.code == 'FORBIDDEN' => StatePanel.forbidden(
+        ListLoading<AcademicYear>() => SkeletonCards(semanticLabel: l10n.loading, heights: const [120, 120]),
+        ListFailed<AcademicYear>(:final failure) when failure.code == 'FORBIDDEN' => StatePanel.forbidden(
           key: const Key('academicYears.forbidden'),
           title: academicYearErrorText(l10n, failure),
         ),
-        AcademicYearsFailed(:final failure) => StatePanel.error(
+        ListFailed<AcademicYear>(:final failure) => StatePanel.error(
           key: const Key('academicYears.failed'),
           title: academicYearErrorText(l10n, failure),
           actionLabel: l10n.retry,
-          onAction: () => context.read<AcademicYearsBloc>().add(const AcademicYearsRequested()),
+          onAction: () => context.read<AcademicYearsBloc>().add(const ListRequested()),
         ),
-        AcademicYearsLoaded(:final years) when years.isEmpty => StatePanel.empty(
+        ListLoaded<AcademicYear>(:final items) when items.isEmpty => StatePanel.empty(
           title: l10n.academicYearsEmptyTitle,
           message: l10n.academicYearsEmptyMessage,
           actionLabel: l10n.academicYearAdd,
           onAction: () => _openForm(context),
         ),
-        AcademicYearsLoaded() => ListView(
+        ListLoaded<AcademicYear>() => ListView(
           padding: const EdgeInsets.all(AppSpacing.screenMargin),
           children: [
             if (state.actionFailure case final failure?) ...[
@@ -112,7 +112,7 @@ class AcademicYearsView extends StatelessWidget {
               onPressed: () => _openForm(context),
             ),
             const SizedBox(height: AppSpacing.sm),
-            for (final year in state.years) ...[
+            for (final year in state.items) ...[
               _YearCard(
                 year: year,
                 busy: state.busyId == year.id,

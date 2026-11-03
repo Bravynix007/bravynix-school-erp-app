@@ -5,7 +5,10 @@ import 'package:bravynix_school_erp/features/auth/domain/auth_entities.dart';
 import 'package:bravynix_school_erp/features/auth/presentation/session/session_bloc.dart';
 import 'package:bravynix_school_erp/features/classes/presentation/view/class_bulk_page.dart';
 import 'package:bravynix_school_erp/features/classes/presentation/view/class_form_page.dart';
+import 'package:bravynix_school_erp/features/subjects/presentation/view/subject_form_page.dart';
 import 'package:flutter_test/flutter_test.dart';
+
+import '../helpers/subjects.dart';
 
 void main() {
   const person = Person(id: 'p1', email: 'asha.rao@example.com', firstName: 'Asha', preferredLanguage: 'kn');
@@ -76,5 +79,12 @@ void main() {
     expect(classBulkRedirect(const ClassBulkArgs(institutionId: 'i1', added: {})), isNull);
     expect(classBulkRedirect(const ClassFormArgs(institutionId: 'i1')), AppRoutes.classes);
     expect(classBulkRedirect(null), AppRoutes.classes);
+  });
+
+  test('the subject form opens only with what the list passes, so an Edit that lost its subject is not an Add', () {
+    expect(subjectFormRedirect(const SubjectFormArgs()), isNull);
+    expect(subjectFormRedirect(const SubjectFormArgs(subject: maths)), isNull);
+    expect(subjectFormRedirect(null), AppRoutes.subjects);
+    expect(subjectFormRedirect(maths), AppRoutes.subjects);
   });
 }

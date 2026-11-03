@@ -14,6 +14,7 @@ import 'package:mocktail/mocktail.dart';
 
 import '../../helpers/academic_years.dart';
 import '../../helpers/clipped_text.dart';
+import '../../helpers/leaving_a_form.dart';
 import '../../helpers/pump_app.dart';
 
 class _MockFormBloc extends MockBloc<AcademicYearFormEvent, AcademicYearFormState> implements AcademicYearFormBloc;
@@ -152,44 +153,14 @@ void main() {
     expect(find.byKey(const Key('academicYearForm.backToList')), findsNothing);
   });
 
-  testWidgets('Back to the list after a version conflict closes with true, so the list is read again', (tester) async {
-    when(() => bloc.state).thenReturn(AcademicYearFormEditing(failure: _failure(409, 'VERSION_CONFLICT')));
-    bool? closedWith;
-    final router = GoRouter(
-      routes: [
-        GoRoute(
-          path: '/',
-          builder: (context, _) => Scaffold(
-            body: TextButton(
-              onPressed: () async => closedWith = await context.push<bool>('/form'),
-              child: const Text('open'),
-            ),
-          ),
-        ),
-        GoRoute(
-          path: '/form',
-          builder: (_, _) => BlocProvider<AcademicYearFormBloc>.value(
-            value: bloc,
-            child: const AcademicYearFormView(year: earlierYear),
-          ),
-        ),
-      ],
-    );
-    addTearDown(router.dispose);
-    await tester.pumpWidget(
-      MaterialApp.router(
-        theme: AppTheme.light(),
-        routerConfig: router,
-        localizationsDelegates: AppLocalizations.localizationsDelegates,
-        supportedLocales: AppLocalizations.supportedLocales,
-      ),
-    );
-    await tester.tap(find.text('open'));
-    await tester.pumpAndSettle();
-    await tester.tap(find.byKey(const Key('academicYearForm.backToList')));
-    await tester.pumpAndSettle();
-    expect(closedWith, isTrue);
-  });
+  leavingAFormTests(
+    backToList: const Key('academicYearForm.backToList'),
+    setFailure: (failure) => when(() => bloc.state).thenReturn(AcademicYearFormEditing(failure: failure)),
+    form: () => BlocProvider<AcademicYearFormBloc>.value(
+      value: bloc,
+      child: const AcademicYearFormView(year: earlierYear),
+    ),
+  );
 
   for (final (status, code, text) in [
     (409, 'YEAR_OVERLAP', 'These dates overlap another academic year of this Institution.'),

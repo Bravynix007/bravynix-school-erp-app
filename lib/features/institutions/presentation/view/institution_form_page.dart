@@ -1,6 +1,5 @@
 import 'package:bravynix_school_erp/app/di/injection.dart';
 import 'package:bravynix_school_erp/core/theme/app_spacing.dart';
-import 'package:bravynix_school_erp/core/widgets/app_button.dart';
 import 'package:bravynix_school_erp/core/widgets/app_card.dart';
 import 'package:bravynix_school_erp/core/widgets/app_dropdown_field.dart';
 import 'package:bravynix_school_erp/core/widgets/app_snackbar.dart';
@@ -199,19 +198,14 @@ class _FormState extends State<_Form> {
               padding: const EdgeInsets.all(AppSpacing.screenMargin),
               children: [
                 if (banner != null) ...[
-                  InlineMessage.error(banner, key: const Key('institutionForm.error')),
                   // Someone else saved first, so the form is read again before another Save can succeed (API design 8.2).
-                  if (failure?.code == 'VERSION_CONFLICT')
-                    Align(
-                      alignment: AlignmentDirectional.centerStart,
-                      child: AppButton(
-                        key: const Key('institutionForm.reload'),
-                        label: l10n.institutionReload,
-                        variant: AppButtonVariant.text,
-                        size: AppButtonSize.medium,
-                        onPressed: () => bloc.add(const InstitutionFormStarted()),
-                      ),
-                    ),
+                  InlineMessage.error(
+                    banner,
+                    key: const Key('institutionForm.error'),
+                    actionLabel: failure?.code == 'VERSION_CONFLICT' ? l10n.institutionReload : null,
+                    onAction: () => bloc.add(const InstitutionFormStarted()),
+                    actionKey: const Key('institutionForm.reload'),
+                  ),
                   const SizedBox(height: AppSpacing.sm),
                 ],
                 SectionHeader(title: l10n.institutionFormBasics),

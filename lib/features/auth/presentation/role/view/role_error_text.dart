@@ -12,11 +12,13 @@ String roleErrorText(AppLocalizations l10n, ApiFailure failure) => switch (failu
   _ => loginErrorText(l10n, failure),
 };
 
-/// Copy for a screen that reads or changes one kind of record (API design 10.4c, 10.22): 403 for a role that may not
-/// do this, 404 with the screen's own words for [notFound] (an Institution or a due outside the caller's scope), and
-/// the rest as everywhere else.
+/// Copy for a screen that reads or changes one kind of record (API design 8, 10.4c, 10.22): 403 for a role that may not
+/// do this, 400 VALIDATION_FAILED, 409 VERSION_CONFLICT, 404 with the screen's own words for [notFound] (a record
+/// outside the caller's scope, or deactivated), and the rest as everywhere else.
 String apiErrorText(AppLocalizations l10n, ApiFailure failure, {required String notFound}) => switch (failure.code) {
   'FORBIDDEN' => l10n.errorForbidden,
+  'VALIDATION_FAILED' => l10n.errorValidation,
+  'VERSION_CONFLICT' => l10n.errorVersionConflict,
   'NOT_FOUND' => notFound,
   _ => roleErrorText(l10n, failure),
 };
