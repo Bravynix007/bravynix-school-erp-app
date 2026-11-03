@@ -793,6 +793,18 @@ abstract class AppLocalizations {
   /// **'Institution'**
   String get institutionTitle;
 
+  /// No description provided for @institutionSwitchHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Change Institution'**
+  String get institutionSwitchHint;
+
+  /// No description provided for @institutionSwitchTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose an Institution'**
+  String get institutionSwitchTitle;
+
   /// No description provided for @institutionCode.
   ///
   /// In en, this message translates to:
@@ -1012,7 +1024,7 @@ abstract class AppLocalizations {
   /// No description provided for @errorVersionConflict.
   ///
   /// In en, this message translates to:
-  /// **'Someone else changed this Institution. Your changes were not saved.'**
+  /// **'Someone else changed this. Your changes were not saved.'**
   String get errorVersionConflict;
 
   /// No description provided for @institutionReload.
@@ -1038,6 +1050,162 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Check the fields marked in red.'**
   String get errorValidation;
+
+  /// No description provided for @academicYearsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Academic years'**
+  String get academicYearsTitle;
+
+  /// No description provided for @academicYearsDetail.
+  ///
+  /// In en, this message translates to:
+  /// **'The school years of each Institution'**
+  String get academicYearsDetail;
+
+  /// No description provided for @academicYearsEmptyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'No academic years yet'**
+  String get academicYearsEmptyTitle;
+
+  /// No description provided for @academicYearsEmptyMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Add the first year. It becomes the current year.'**
+  String get academicYearsEmptyMessage;
+
+  /// No description provided for @academicYearAdd.
+  ///
+  /// In en, this message translates to:
+  /// **'Add academic year'**
+  String get academicYearAdd;
+
+  /// No description provided for @academicYearAddTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Add academic year'**
+  String get academicYearAddTitle;
+
+  /// No description provided for @academicYearEditTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit academic year'**
+  String get academicYearEditTitle;
+
+  /// No description provided for @academicYearEdit.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit'**
+  String get academicYearEdit;
+
+  /// No description provided for @academicYearCurrent.
+  ///
+  /// In en, this message translates to:
+  /// **'Current'**
+  String get academicYearCurrent;
+
+  /// No description provided for @academicYearMakeCurrent.
+  ///
+  /// In en, this message translates to:
+  /// **'Make current'**
+  String get academicYearMakeCurrent;
+
+  /// No description provided for @academicYearDeactivate.
+  ///
+  /// In en, this message translates to:
+  /// **'Deactivate'**
+  String get academicYearDeactivate;
+
+  /// No description provided for @academicYearDeactivateTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Deactivate {name}?'**
+  String academicYearDeactivateTitle(String name);
+
+  /// No description provided for @academicYearDeactivateMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'It leaves the list and its dates are free again. Nothing is deleted.'**
+  String get academicYearDeactivateMessage;
+
+  /// No description provided for @academicYearDeactivated.
+  ///
+  /// In en, this message translates to:
+  /// **'Academic year deactivated'**
+  String get academicYearDeactivated;
+
+  /// No description provided for @academicYearMadeCurrent.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} is now the current year'**
+  String academicYearMadeCurrent(String name);
+
+  /// No description provided for @academicYearSaved.
+  ///
+  /// In en, this message translates to:
+  /// **'Academic year saved'**
+  String get academicYearSaved;
+
+  /// No description provided for @academicYearName.
+  ///
+  /// In en, this message translates to:
+  /// **'Name'**
+  String get academicYearName;
+
+  /// No description provided for @academicYearNameHelper.
+  ///
+  /// In en, this message translates to:
+  /// **'For example 2026-2027'**
+  String get academicYearNameHelper;
+
+  /// No description provided for @academicYearStart.
+  ///
+  /// In en, this message translates to:
+  /// **'Starts on'**
+  String get academicYearStart;
+
+  /// No description provided for @academicYearEnd.
+  ///
+  /// In en, this message translates to:
+  /// **'Ends on'**
+  String get academicYearEnd;
+
+  /// No description provided for @academicYearDates.
+  ///
+  /// In en, this message translates to:
+  /// **'{start} to {end}'**
+  String academicYearDates(String start, String end);
+
+  /// No description provided for @academicYearSave.
+  ///
+  /// In en, this message translates to:
+  /// **'Save'**
+  String get academicYearSave;
+
+  /// No description provided for @errorYearOverlap.
+  ///
+  /// In en, this message translates to:
+  /// **'These dates overlap another academic year of this Institution.'**
+  String get errorYearOverlap;
+
+  /// No description provided for @errorYearDuplicate.
+  ///
+  /// In en, this message translates to:
+  /// **'Another academic year of this Institution has this name.'**
+  String get errorYearDuplicate;
+
+  /// No description provided for @errorCurrentYearLocked.
+  ///
+  /// In en, this message translates to:
+  /// **'The current year can\'t be deactivated. Make another year current first.'**
+  String get errorCurrentYearLocked;
+
+  /// No description provided for @errorYearNotFound.
+  ///
+  /// In en, this message translates to:
+  /// **'This academic year could not be found. It may have been deactivated.'**
+  String get errorYearNotFound;
 
   /// No description provided for @errorInstitutionNotFound.
   ///

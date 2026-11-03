@@ -5,7 +5,10 @@ import 'package:bravynix_school_erp/core/network/api_client.dart';
 import 'package:bravynix_school_erp/core/network/api_events.dart';
 import 'package:bravynix_school_erp/core/network/dio_factory.dart';
 import 'package:bravynix_school_erp/core/storage/install_marker.dart';
+import 'package:bravynix_school_erp/core/storage/institution_choice_store.dart';
 import 'package:bravynix_school_erp/core/storage/token_storage.dart';
+import 'package:bravynix_school_erp/features/academic_years/data/academic_years_repository_impl.dart';
+import 'package:bravynix_school_erp/features/academic_years/domain/academic_years_repository.dart';
 import 'package:bravynix_school_erp/features/auth/data/auth_repository_impl.dart';
 import 'package:bravynix_school_erp/features/auth/domain/auth_repository.dart';
 import 'package:bravynix_school_erp/features/blocks/data/blocks_repository_impl.dart';
@@ -57,6 +60,7 @@ Future<void> configureDependencies(
         adapter: httpAdapter,
       ),
     )
+    ..registerLazySingleton<AcademicYearsRepository>(() => AcademicYearsRepositoryImpl(api: getIt()))
     ..registerLazySingleton<AuthRepository>(
       () => AuthRepositoryImpl(
         api: getIt(),
@@ -68,6 +72,7 @@ Future<void> configureDependencies(
     )
     ..registerLazySingleton<BlocksRepository>(() => BlocksRepositoryImpl(api: getIt()))
     ..registerLazySingleton<InstitutionsRepository>(() => InstitutionsRepositoryImpl(api: getIt()))
+    ..registerLazySingleton<InstitutionChoiceStore>(PreferencesInstitutionChoiceStore.new)
     ..registerLazySingleton<MastersRepository>(() => MastersRepositoryImpl(api: getIt()))
     ..registerLazySingleton<PlatformDuesRepository>(() => PlatformDuesRepositoryImpl(api: getIt()));
 }

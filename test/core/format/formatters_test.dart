@@ -35,6 +35,11 @@ void main() {
   group('dates', () {
     test('a school day has no time zone shift', () => expect(Formatters.schoolDate('2026-10-23'), '23-10-2026'));
 
+    test('a picked day is written as it was picked, padded', () {
+      expect(Formatters.isoDay(DateTime(2026, 6)), '2026-06-01');
+      expect(Formatters.isoDay(DateTime(2027, 12, 31, 23, 59)), '2027-12-31');
+    });
+
     test('instants show in IST, 24 h', () {
       expect(Formatters.instant(DateTime.utc(2026, 10, 23, 4, 45)), '23-10-2026 10:15');
       // 18:30 UTC is already the next day in India.

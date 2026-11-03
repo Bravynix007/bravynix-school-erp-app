@@ -1,5 +1,6 @@
 import 'package:bravynix_school_erp/app/router/app_router.dart';
 import 'package:bravynix_school_erp/app/router/app_routes.dart';
+import 'package:bravynix_school_erp/features/academic_years/presentation/view/academic_year_form_page.dart';
 import 'package:bravynix_school_erp/features/auth/domain/auth_entities.dart';
 import 'package:bravynix_school_erp/features/auth/presentation/session/session_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -59,5 +60,11 @@ void main() {
     for (final state in [const SessionUnknown(), const SessionUnauthenticated(), const SessionAuthenticated(session)]) {
       expect(sessionRedirect(state, AppRoutes.gallery), isNull);
     }
+  });
+
+  test('the academic year form opens only with the Institution the list passes, else back to the list', () {
+    expect(academicYearFormRedirect(const AcademicYearFormArgs(institutionId: 'i1')), isNull);
+    expect(academicYearFormRedirect(null), AppRoutes.academicYears);
+    expect(academicYearFormRedirect('i1'), AppRoutes.academicYears);
   });
 }

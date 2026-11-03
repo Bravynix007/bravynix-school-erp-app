@@ -230,7 +230,7 @@ void main() {
     });
 
     for (final (code, status, text) in [
-      ('VERSION_CONFLICT', 409, 'Someone else changed this Institution. Your changes were not saved.'),
+      ('VERSION_CONFLICT', 409, 'Someone else changed this. Your changes were not saved.'),
       ('REFERENCE_INACTIVE', 422, 'Something you chose is no longer available. Choose again.'),
       ('FORBIDDEN', 403, "You don't have access to this."),
       ('NOT_FOUND', 404, 'This Institution could not be found. It may have been deactivated.'),

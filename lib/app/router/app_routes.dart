@@ -31,6 +31,11 @@ abstract final class AppRoutes {
   static const institutionEditPattern = '/school-setup/institutions/:id/edit';
   static String institutionEdit(String id) => '${institution(id)}/edit';
 
+  /// Academic years of the chosen Institution (AY-01), and the form that adds or edits one (AY-02, AY-03), which takes
+  /// the Institution and the year as the route's `extra`: no endpoint reads one year, so the list hands it over.
+  static const academicYears = '/school-setup/academic-years';
+  static const academicYearForm = '/school-setup/academic-years/form';
+
   /// The component gallery, registered in debug and profile builds only.
   static const gallery = '/gallery';
 
