@@ -117,9 +117,82 @@ void main() {
     expect(find.byKey(const Key('academicYearForm.error')), findsNothing);
   });
 
+  testWidgets('says a taken name under the Name field, in the app words', (tester) async {
+    await pump(
+      tester,
+      AcademicYearFormEditing(
+        failure: _failure(
+          409,
+          'DUPLICATE',
+          fields: const [FieldError(field: 'name', code: 'DUPLICATE', message: 'x')],
+        ),
+      ),
+    );
+    expect(find.text('Another academic year of this Institution has this name.'), findsOneWidget);
+    expect(find.byKey(const Key('academicYearForm.error')), findsNothing);
+  });
+
+  testWidgets('says a refusal of a field the form does not show above it', (tester) async {
+    await pump(
+      tester,
+      AcademicYearFormEditing(
+        failure: _failure(
+          400,
+          'VALIDATION_FAILED',
+          fields: const [FieldError(field: 'institutionId', code: 'INVALID', message: 'm')],
+        ),
+      ),
+    );
+    expect(find.byKey(const Key('academicYearForm.error')), findsOneWidget);
+    expect(find.text('Check the fields marked in red.'), findsOneWidget);
+  });
+
+  testWidgets('offers Back to the list only after a version conflict', (tester) async {
+    await pump(tester, AcademicYearFormEditing(failure: _failure(409, 'YEAR_OVERLAP')), year: earlierYear);
+    expect(find.byKey(const Key('academicYearForm.backToList')), findsNothing);
+  });
+
+  testWidgets('Back to the list after a version conflict closes with true, so the list is read again', (tester) async {
+    when(() => bloc.state).thenReturn(AcademicYearFormEditing(failure: _failure(409, 'VERSION_CONFLICT')));
+    bool? closedWith;
+    final router = GoRouter(
+      routes: [
+        GoRoute(
+          path: '/',
+          builder: (context, _) => Scaffold(
+            body: TextButton(
+              onPressed: () async => closedWith = await context.push<bool>('/form'),
+              child: const Text('open'),
+            ),
+          ),
+        ),
+        GoRoute(
+          path: '/form',
+          builder: (_, _) => BlocProvider<AcademicYearFormBloc>.value(
+            value: bloc,
+            child: const AcademicYearFormView(year: earlierYear),
+          ),
+        ),
+      ],
+    );
+    addTearDown(router.dispose);
+    await tester.pumpWidget(
+      MaterialApp.router(
+        theme: AppTheme.light(),
+        routerConfig: router,
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+      ),
+    );
+    await tester.tap(find.text('open'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('academicYearForm.backToList')));
+    await tester.pumpAndSettle();
+    expect(closedWith, isTrue);
+  });
+
   for (final (status, code, text) in [
     (409, 'YEAR_OVERLAP', 'These dates overlap another academic year of this Institution.'),
-    (409, 'DUPLICATE', 'Another academic year of this Institution has this name.'),
     (409, 'VERSION_CONFLICT', 'Someone else changed this. Your changes were not saved.'),
   ]) {
     testWidgets('says $code in words above the form', (tester) async {

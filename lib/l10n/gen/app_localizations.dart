@@ -1105,6 +1105,18 @@ abstract class AppLocalizations {
   /// **'Current'**
   String get academicYearCurrent;
 
+  /// No description provided for @academicYearCurrentHint.
+  ///
+  /// In en, this message translates to:
+  /// **'To deactivate this year, make another year current first.'**
+  String get academicYearCurrentHint;
+
+  /// No description provided for @backToList.
+  ///
+  /// In en, this message translates to:
+  /// **'Back to the list'**
+  String get backToList;
+
   /// No description provided for @academicYearMakeCurrent.
   ///
   /// In en, this message translates to:

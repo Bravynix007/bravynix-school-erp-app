@@ -1,5 +1,4 @@
 import 'package:bravynix_school_erp/app/di/injection.dart';
-import 'package:bravynix_school_erp/core/network/api_failure.dart';
 import 'package:bravynix_school_erp/core/theme/app_spacing.dart';
 import 'package:bravynix_school_erp/core/widgets/app_button.dart';
 import 'package:bravynix_school_erp/core/widgets/app_card.dart';
@@ -80,7 +79,10 @@ class InstitutionFormView extends StatelessWidget {
                         actionLabel: l10n.retry,
                         onAction: () => context.read<InstitutionFormBloc>().add(const InstitutionFormStarted()),
                       ),
-                      _ => const _Skeleton(),
+                      _ => SkeletonCards(
+                        semanticLabel: AppLocalizations.of(context).loading,
+                        heights: const [280, 160],
+                      ),
                     },
                   ),
                 ],
@@ -91,24 +93,6 @@ class InstitutionFormView extends StatelessWidget {
       ),
     );
   }
-}
-
-class _Skeleton extends StatelessWidget {
-  const new();
-
-  @override
-  Widget build(BuildContext context) => Semantics(
-    label: AppLocalizations.of(context).loading,
-    child: ListView(
-      padding: const EdgeInsets.all(AppSpacing.screenMargin),
-      physics: const NeverScrollableScrollPhysics(),
-      children: const [
-        SkeletonBox(height: 280, radius: AppRadius.card),
-        SizedBox(height: AppSpacing.sm),
-        SkeletonBox(height: 160, radius: AppRadius.card),
-      ],
-    ),
-  );
 }
 
 /// The dial code a new Institution's phone starts with: India is the only country for now.
@@ -205,7 +189,7 @@ class _FormState extends State<_Form> {
     String? error(String field) => failure?.fieldError(field)?.message;
     // A save that failed on fields of this form is shown under them; any other failure, and a list that did not load,
     // is said above.
-    final banner = failure != null && !_isFieldFailure(failure) ? institutionFormErrorText(l10n, failure) : null;
+    final banner = failure != null && !failure.namesOnly(_fields) ? institutionFormErrorText(l10n, failure) : null;
     return Scaffold(
       body: Column(
         children: [
@@ -480,11 +464,6 @@ class _FormState extends State<_Form> {
     'address.stateId',
     'address.cityId',
   };
-
-  /// True when every field error of the failure belongs to a field of this form, so each shows under its own field.
-  /// A field it does not know (`classesOffered[1]`) would show nowhere, so the failure is said above instead.
-  static bool _isFieldFailure(ApiFailure failure) =>
-      failure.fieldErrors.isNotEmpty && failure.fieldErrors.every((error) => _fields.contains(error.field));
 }
 
 /// A country, state or city picker. A value that is not in [entries] (the list is still loading, or the entry was

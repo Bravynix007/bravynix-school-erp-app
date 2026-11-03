@@ -86,6 +86,12 @@ class ApiFailure extends Equatable implements Exception {
   /// 426: the app is below the minimum supported version (API design 5.2).
   bool get isUpdateRequired => statusCode == 426 || code == 'APP_UPDATE_REQUIRED';
 
+  /// True when the refusal names at least one field and every one is among [fields], the fields a form shows. Each
+  /// then shows under its own field; a refusal that names a field the form does not show (`classesOffered[1]`, an ID
+  /// the app sent) would show nowhere, so the screen says it above the form instead.
+  bool namesOnly(Set<String> fields) =>
+      fieldErrors.isNotEmpty && fieldErrors.every((error) => fields.contains(error.field));
+
   FieldError? fieldError(String field) {
     for (final error in fieldErrors) {
       if (error.field == field) return error;

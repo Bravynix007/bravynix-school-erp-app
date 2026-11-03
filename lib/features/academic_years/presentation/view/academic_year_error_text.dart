@@ -13,3 +13,11 @@ String academicYearErrorText(AppLocalizations l10n, ApiFailure failure) => switc
   'CURRENT_YEAR_LOCKED' => l10n.errorCurrentYearLocked,
   _ => apiErrorText(l10n, failure, notFound: l10n.errorYearNotFound),
 };
+
+/// What to say under [field] (`name`, `startDate` or `endDate`) for a refusal that names it, or null when it does not.
+/// A taken name is said in the app's words; the rest keep the words the server gave.
+String? academicYearFieldError(AppLocalizations l10n, ApiFailure failure, String field) {
+  final error = failure.fieldError(field);
+  if (error == null) return null;
+  return error.code == 'DUPLICATE' ? l10n.errorYearDuplicate : error.message;
+}

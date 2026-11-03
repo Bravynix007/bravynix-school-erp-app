@@ -25,4 +25,28 @@ void main() {
   test('the rest read as everywhere else', () {
     expect(text(403, 'FORBIDDEN'), "You don't have access to this.");
   });
+
+  group('under a field', () {
+    ApiFailure failure(String code) => ApiFailure(
+      statusCode: 409,
+      code: 'DUPLICATE',
+      message: 'm',
+      fieldErrors: [FieldError(field: 'name', code: code, message: 'Server words')],
+    );
+
+    test('a taken name is said in the app words', () {
+      expect(
+        academicYearFieldError(l10n, failure('DUPLICATE'), 'name'),
+        'Another academic year of this Institution has this name.',
+      );
+    });
+
+    test('any other refusal of the field keeps the words the server gave', () {
+      expect(academicYearFieldError(l10n, failure('TOO_LONG'), 'name'), 'Server words');
+    });
+
+    test('a field the refusal does not name has nothing to say', () {
+      expect(academicYearFieldError(l10n, failure('DUPLICATE'), 'startDate'), isNull);
+    });
+  });
 }

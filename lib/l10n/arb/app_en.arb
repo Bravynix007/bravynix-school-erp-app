@@ -193,6 +193,8 @@
   "academicYearEditTitle": "Edit academic year",
   "academicYearEdit": "Edit",
   "academicYearCurrent": "Current",
+  "academicYearCurrentHint": "To deactivate this year, make another year current first.",
+  "backToList": "Back to the list",
   "academicYearMakeCurrent": "Make current",
   "academicYearDeactivate": "Deactivate",
   "academicYearDeactivateTitle": "Deactivate {name}?",

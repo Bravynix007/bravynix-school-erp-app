@@ -80,18 +80,7 @@ class AcademicYearsView extends StatelessWidget {
         );
       },
       builder: (context, state) => switch (state) {
-        AcademicYearsLoading() => Semantics(
-          label: l10n.loading,
-          child: ListView(
-            padding: const EdgeInsets.all(AppSpacing.screenMargin),
-            physics: const NeverScrollableScrollPhysics(),
-            children: const [
-              SkeletonBox(height: 120, radius: AppRadius.card),
-              SizedBox(height: AppSpacing.sm),
-              SkeletonBox(height: 120, radius: AppRadius.card),
-            ],
-          ),
-        ),
+        AcademicYearsLoading() => SkeletonCards(semanticLabel: l10n.loading, heights: const [120, 120]),
         AcademicYearsFailed(:final failure) when failure.code == 'FORBIDDEN' => StatePanel.forbidden(
           key: const Key('academicYears.forbidden'),
           title: academicYearErrorText(l10n, failure),
@@ -127,6 +116,7 @@ class AcademicYearsView extends StatelessWidget {
               _YearCard(
                 year: year,
                 busy: state.busyId == year.id,
+                locked: state.busyId != null,
                 onEdit: () => _openForm(context, year: year),
               ),
               const SizedBox(height: AppSpacing.xs),
@@ -139,10 +129,15 @@ class AcademicYearsView extends StatelessWidget {
 }
 
 class _YearCard extends StatelessWidget {
-  const new({required this.year, required this.busy, required this.onEdit});
+  const new({required this.year, required this.busy, required this.locked, required this.onEdit});
 
   final AcademicYear year;
+
+  /// A change to this year is on its way.
   final bool busy;
+
+  /// A change to any year is on its way, so no card starts another.
+  final bool locked;
   final VoidCallback onEdit;
 
   @override
@@ -169,6 +164,10 @@ class _YearCard extends StatelessWidget {
             l10n.academicYearDates(Formatters.schoolDate(year.startDate), Formatters.schoolDate(year.endDate)),
             style: text.bodyMedium,
           ),
+          if (year.isCurrent) ...[
+            const SizedBox(height: AppSpacing.xxs),
+            Text(l10n.academicYearCurrentHint, style: text.bodySmall),
+          ],
           const SizedBox(height: AppSpacing.xs),
           Wrap(
             spacing: AppSpacing.xs,
@@ -179,7 +178,7 @@ class _YearCard extends StatelessWidget {
                 label: l10n.academicYearEdit,
                 variant: AppButtonVariant.secondary,
                 size: AppButtonSize.medium,
-                onPressed: busy ? null : onEdit,
+                onPressed: locked ? null : onEdit,
               ),
               if (!year.isCurrent) ...[
                 AppButton(
@@ -188,7 +187,7 @@ class _YearCard extends StatelessWidget {
                   variant: AppButtonVariant.secondary,
                   size: AppButtonSize.medium,
                   loading: busy,
-                  onPressed: busy ? null : () => bloc.add(AcademicYearMadeCurrent(year)),
+                  onPressed: locked ? null : () => bloc.add(AcademicYearMadeCurrent(year)),
                 ),
                 // The current year cannot be deactivated (409 CURRENT_YEAR_LOCKED): another is made current first.
                 AppButton(
@@ -196,7 +195,7 @@ class _YearCard extends StatelessWidget {
                   label: l10n.academicYearDeactivate,
                   variant: AppButtonVariant.text,
                   size: AppButtonSize.medium,
-                  onPressed: busy ? null : () => _confirmDeactivate(context),
+                  onPressed: locked ? null : () => _confirmDeactivate(context),
                 ),
               ],
             ],
