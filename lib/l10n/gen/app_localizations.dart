@@ -1339,6 +1339,240 @@ abstract class AppLocalizations {
   /// **'This subject could not be found. It may have been deactivated.'**
   String get errorSubjectNotFound;
 
+  /// No description provided for @classesTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Classes'**
+  String get classesTitle;
+
+  /// No description provided for @classesDetail.
+  ///
+  /// In en, this message translates to:
+  /// **'The classes of each Institution and their sections'**
+  String get classesDetail;
+
+  /// No description provided for @classesEmptyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'No classes yet'**
+  String get classesEmptyTitle;
+
+  /// No description provided for @classesEmptyMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Add the classes this Institution teaches, from the categories it offers.'**
+  String get classesEmptyMessage;
+
+  /// No description provided for @classAdd.
+  ///
+  /// In en, this message translates to:
+  /// **'Add class'**
+  String get classAdd;
+
+  /// No description provided for @classAddSeveral.
+  ///
+  /// In en, this message translates to:
+  /// **'Add several'**
+  String get classAddSeveral;
+
+  /// No description provided for @classAddTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Add class'**
+  String get classAddTitle;
+
+  /// No description provided for @classEditTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit class'**
+  String get classEditTitle;
+
+  /// No description provided for @classEdit.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit'**
+  String get classEdit;
+
+  /// No description provided for @classDeactivate.
+  ///
+  /// In en, this message translates to:
+  /// **'Deactivate'**
+  String get classDeactivate;
+
+  /// No description provided for @classDeactivateTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Deactivate {name}?'**
+  String classDeactivateTitle(String name);
+
+  /// No description provided for @classDeactivateMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Its sections are deactivated with it. Nothing is deleted.'**
+  String get classDeactivateMessage;
+
+  /// No description provided for @classDeactivated.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} deactivated'**
+  String classDeactivated(String name);
+
+  /// No description provided for @classSaved.
+  ///
+  /// In en, this message translates to:
+  /// **'Class saved'**
+  String get classSaved;
+
+  /// No description provided for @classesAdded.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 class added} other{{count} classes added}}'**
+  String classesAdded(int count);
+
+  /// No description provided for @classSections.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =0{No sections} =1{1 section} other{{count} sections}}'**
+  String classSections(int count);
+
+  /// No description provided for @classPredefined.
+  ///
+  /// In en, this message translates to:
+  /// **'Class'**
+  String get classPredefined;
+
+  /// No description provided for @classStream.
+  ///
+  /// In en, this message translates to:
+  /// **'Stream'**
+  String get classStream;
+
+  /// No description provided for @classStreamHelper.
+  ///
+  /// In en, this message translates to:
+  /// **'For example PCMC'**
+  String get classStreamHelper;
+
+  /// No description provided for @classDisplayName.
+  ///
+  /// In en, this message translates to:
+  /// **'Name'**
+  String get classDisplayName;
+
+  /// No description provided for @classDisplayNameHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Class name'**
+  String get classDisplayNameHint;
+
+  /// No description provided for @classCode.
+  ///
+  /// In en, this message translates to:
+  /// **'Code'**
+  String get classCode;
+
+  /// No description provided for @classCodeHelper.
+  ///
+  /// In en, this message translates to:
+  /// **'Optional'**
+  String get classCodeHelper;
+
+  /// No description provided for @classChooseOne.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a class'**
+  String get classChooseOne;
+
+  /// No description provided for @classSave.
+  ///
+  /// In en, this message translates to:
+  /// **'Save'**
+  String get classSave;
+
+  /// No description provided for @classBulkTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Add several classes'**
+  String get classBulkTitle;
+
+  /// No description provided for @classBulkMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Tick the classes to add. Pre-University classes have streams, so add them one at a time.'**
+  String get classBulkMessage;
+
+  /// No description provided for @classBulkAlready.
+  ///
+  /// In en, this message translates to:
+  /// **'Already added'**
+  String get classBulkAlready;
+
+  /// No description provided for @classBulkNone.
+  ///
+  /// In en, this message translates to:
+  /// **'Every class of the categories this Institution offers is already added, or needs a stream.'**
+  String get classBulkNone;
+
+  /// No description provided for @classBulkAdd.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =0{Add classes} =1{Add 1 class} other{Add {count} classes}}'**
+  String classBulkAdd(int count);
+
+  /// No description provided for @errorClassDuplicate.
+  ///
+  /// In en, this message translates to:
+  /// **'Another class of this Institution already has this name or stream.'**
+  String get errorClassDuplicate;
+
+  /// No description provided for @errorClassNameTaken.
+  ///
+  /// In en, this message translates to:
+  /// **'Another class of this Institution has this name.'**
+  String get errorClassNameTaken;
+
+  /// No description provided for @errorClassTaken.
+  ///
+  /// In en, this message translates to:
+  /// **'This class is already added to this Institution.'**
+  String get errorClassTaken;
+
+  /// No description provided for @errorClassNotOffered.
+  ///
+  /// In en, this message translates to:
+  /// **'This Institution does not offer this class\'s category. Tick the category on the Institution first.'**
+  String get errorClassNotOffered;
+
+  /// No description provided for @errorStreamNotAllowed.
+  ///
+  /// In en, this message translates to:
+  /// **'Only Pre-University classes have a stream.'**
+  String get errorStreamNotAllowed;
+
+  /// No description provided for @errorClassHasStudents.
+  ///
+  /// In en, this message translates to:
+  /// **'Students are placed in this class. Move them first.'**
+  String get errorClassHasStudents;
+
+  /// No description provided for @errorClassTooMany.
+  ///
+  /// In en, this message translates to:
+  /// **'Add at most 50 classes at once.'**
+  String get errorClassTooMany;
+
+  /// No description provided for @errorClassTooFew.
+  ///
+  /// In en, this message translates to:
+  /// **'Tick at least one class.'**
+  String get errorClassTooFew;
+
+  /// No description provided for @errorClassNotFound.
+  ///
+  /// In en, this message translates to:
+  /// **'This class could not be found. It may have been deactivated.'**
+  String get errorClassNotFound;
+
   /// No description provided for @errorYearNotFound.
   ///
   /// In en, this message translates to:

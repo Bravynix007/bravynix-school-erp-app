@@ -7,6 +7,9 @@ import 'package:bravynix_school_erp/features/auth/presentation/login/view/login_
 import 'package:bravynix_school_erp/features/auth/presentation/role/view/role_chooser_page.dart';
 import 'package:bravynix_school_erp/features/auth/presentation/session/session_bloc.dart';
 import 'package:bravynix_school_erp/features/auth/presentation/splash/splash_page.dart';
+import 'package:bravynix_school_erp/features/classes/presentation/view/class_bulk_page.dart';
+import 'package:bravynix_school_erp/features/classes/presentation/view/class_form_page.dart';
+import 'package:bravynix_school_erp/features/classes/presentation/view/classes_page.dart';
 import 'package:bravynix_school_erp/features/gallery/presentation/component_gallery_page.dart';
 import 'package:bravynix_school_erp/features/home/presentation/home_page.dart';
 import 'package:bravynix_school_erp/features/institutions/presentation/view/institution_form_page.dart';
@@ -43,6 +46,11 @@ String? sessionRedirect(SessionState session, String location) {
 /// The academic year form needs the Institution and year the list passes as `extra`; opened any other way there is
 /// nothing to show, so it goes back to the list. Pure, like [sessionRedirect].
 String? academicYearFormRedirect(Object? extra) => extra is AcademicYearFormArgs ? null : AppRoutes.academicYears;
+
+/// The class forms need the Institution the list passes as `extra`; opened any other way they go back to the list.
+String? classFormRedirect(Object? extra) => extra is ClassFormArgs ? null : AppRoutes.classes;
+
+String? classBulkRedirect(Object? extra) => extra is ClassBulkArgs ? null : AppRoutes.classes;
 
 /// Re-runs the redirect whenever the session changes. GoRouter does not own
 /// its `refreshListenable`, so whoever creates this disposes it.
@@ -97,6 +105,17 @@ GoRouter createRouter(SessionBloc session, {required SessionChanges changes}) {
       GoRoute(
         path: AppRoutes.subjectForm,
         builder: (_, state) => SubjectFormPage(subject: state.extra is Subject ? state.extra! as Subject : null),
+      ),
+      GoRoute(path: AppRoutes.classes, builder: (_, _) => const ClassesPage()),
+      GoRoute(
+        path: AppRoutes.classForm,
+        redirect: (_, state) => classFormRedirect(state.extra),
+        builder: (_, state) => ClassFormPage(args: state.extra! as ClassFormArgs),
+      ),
+      GoRoute(
+        path: AppRoutes.classBulk,
+        redirect: (_, state) => classBulkRedirect(state.extra),
+        builder: (_, state) => ClassBulkPage(args: state.extra! as ClassBulkArgs),
       ),
       GoRoute(path: AppRoutes.updateRequired, builder: (_, _) => const UpdateRequiredPage()),
       if (!kReleaseMode) GoRoute(path: AppRoutes.gallery, builder: (_, _) => const ComponentGalleryPage()),

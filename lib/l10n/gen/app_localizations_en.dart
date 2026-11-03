@@ -720,6 +720,156 @@ class AppLocalizationsEn extends AppLocalizations {
   String get errorSubjectNotFound => 'This subject could not be found. It may have been deactivated.';
 
   @override
+  String get classesTitle => 'Classes';
+
+  @override
+  String get classesDetail => 'The classes of each Institution and their sections';
+
+  @override
+  String get classesEmptyTitle => 'No classes yet';
+
+  @override
+  String get classesEmptyMessage => 'Add the classes this Institution teaches, from the categories it offers.';
+
+  @override
+  String get classAdd => 'Add class';
+
+  @override
+  String get classAddSeveral => 'Add several';
+
+  @override
+  String get classAddTitle => 'Add class';
+
+  @override
+  String get classEditTitle => 'Edit class';
+
+  @override
+  String get classEdit => 'Edit';
+
+  @override
+  String get classDeactivate => 'Deactivate';
+
+  @override
+  String classDeactivateTitle(String name) {
+    return 'Deactivate $name?';
+  }
+
+  @override
+  String get classDeactivateMessage => 'Its sections are deactivated with it. Nothing is deleted.';
+
+  @override
+  String classDeactivated(String name) {
+    return '$name deactivated';
+  }
+
+  @override
+  String get classSaved => 'Class saved';
+
+  @override
+  String classesAdded(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count classes added',
+      one: '1 class added',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String classSections(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count sections',
+      one: '1 section',
+      zero: 'No sections',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get classPredefined => 'Class';
+
+  @override
+  String get classStream => 'Stream';
+
+  @override
+  String get classStreamHelper => 'For example PCMC';
+
+  @override
+  String get classDisplayName => 'Name';
+
+  @override
+  String get classDisplayNameHint => 'Class name';
+
+  @override
+  String get classCode => 'Code';
+
+  @override
+  String get classCodeHelper => 'Optional';
+
+  @override
+  String get classChooseOne => 'Choose a class';
+
+  @override
+  String get classSave => 'Save';
+
+  @override
+  String get classBulkTitle => 'Add several classes';
+
+  @override
+  String get classBulkMessage =>
+      'Tick the classes to add. Pre-University classes have streams, so add them one at a time.';
+
+  @override
+  String get classBulkAlready => 'Already added';
+
+  @override
+  String get classBulkNone =>
+      'Every class of the categories this Institution offers is already added, or needs a stream.';
+
+  @override
+  String classBulkAdd(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Add $count classes',
+      one: 'Add 1 class',
+      zero: 'Add classes',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get errorClassDuplicate => 'Another class of this Institution already has this name or stream.';
+
+  @override
+  String get errorClassNameTaken => 'Another class of this Institution has this name.';
+
+  @override
+  String get errorClassTaken => 'This class is already added to this Institution.';
+
+  @override
+  String get errorClassNotOffered =>
+      'This Institution does not offer this class\'s category. Tick the category on the Institution first.';
+
+  @override
+  String get errorStreamNotAllowed => 'Only Pre-University classes have a stream.';
+
+  @override
+  String get errorClassHasStudents => 'Students are placed in this class. Move them first.';
+
+  @override
+  String get errorClassTooMany => 'Add at most 50 classes at once.';
+
+  @override
+  String get errorClassTooFew => 'Tick at least one class.';
+
+  @override
+  String get errorClassNotFound => 'This class could not be found. It may have been deactivated.';
+
+  @override
   String get errorYearNotFound => 'This academic year could not be found. It may have been deactivated.';
 
   @override

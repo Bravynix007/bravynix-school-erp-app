@@ -41,6 +41,13 @@ abstract final class AppRoutes {
   static const subjects = '/school-setup/subjects';
   static const subjectForm = '/school-setup/subjects/form';
 
+  /// Classes of the chosen Institution (CLS-01), the form that adds or edits one (CLS-02, CLS-04) and the bulk add
+  /// (CLS-03). The forms take the Institution, and the class to edit, as the route's `extra`: no endpoint reads one
+  /// class, so the list hands it over.
+  static const classes = '/school-setup/classes';
+  static const classForm = '/school-setup/classes/form';
+  static const classBulk = '/school-setup/classes/bulk';
+
   /// The component gallery, registered in debug and profile builds only.
   static const gallery = '/gallery';
 
