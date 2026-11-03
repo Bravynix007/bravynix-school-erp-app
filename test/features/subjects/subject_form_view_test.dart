@@ -130,6 +130,56 @@ void main() {
     expect(find.byKey(const Key('subjectForm.error')), findsOneWidget);
   });
 
+  testWidgets('offers Back to the list only after a version conflict', (tester) async {
+    await pump(tester, SubjectFormEditing(failure: _failure(403, 'FORBIDDEN')), subject: maths);
+    expect(find.byKey(const Key('subjectForm.backToList')), findsNothing);
+  });
+
+  testWidgets('Back to the list after a version conflict closes with true, so the list is read again', (tester) async {
+    when(() => bloc.state).thenReturn(SubjectFormEditing(failure: _failure(409, 'VERSION_CONFLICT')));
+    bool? closedWith;
+    final router = GoRouter(
+      routes: [
+        GoRoute(
+          path: '/',
+          builder: (context, _) => Scaffold(
+            body: TextButton(
+              onPressed: () async => closedWith = await context.push<bool>('/form'),
+              child: const Text('open'),
+            ),
+          ),
+        ),
+        GoRoute(
+          path: '/form',
+          builder: (_, _) => BlocProvider<SubjectFormBloc>.value(
+            value: bloc,
+            child: const SubjectFormView(subject: maths),
+          ),
+        ),
+      ],
+    );
+    addTearDown(router.dispose);
+    await tester.pumpWidget(
+      MaterialApp.router(
+        theme: AppTheme.light(),
+        routerConfig: router,
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+      ),
+    );
+    await tester.tap(find.text('open'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('subjectForm.backToList')));
+    await tester.pumpAndSettle();
+    expect(closedWith, isTrue);
+  });
+
+  testWidgets('says a taken name with no field named above the form', (tester) async {
+    await pump(tester, SubjectFormEditing(failure: _failure(409, 'DUPLICATE')));
+    expect(find.byKey(const Key('subjectForm.error')), findsOneWidget);
+    expect(find.text('Another subject has this name or code.'), findsOneWidget);
+  });
+
   for (final (status, code, text) in [
     (409, 'VERSION_CONFLICT', 'Someone else changed this. Your changes were not saved.'),
     (404, 'NOT_FOUND', 'This subject could not be found. It may have been deactivated.'),

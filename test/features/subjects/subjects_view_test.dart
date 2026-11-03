@@ -106,7 +106,8 @@ void main() {
         find.descendant(of: find.byKey(ValueKey(key)), matching: find.byWidgetPredicate((w) => w is ButtonStyleButton));
     expect(tester.widget<ButtonStyleButton>(button('subject.edit.u1')).onPressed, isNull);
     expect(tester.widget<ButtonStyleButton>(button('subject.deactivate.u1')).onPressed, isNull);
-    expect(tester.widget<ButtonStyleButton>(button('subject.edit.u2')).onPressed, isNotNull);
+    // No other card starts a change meanwhile.
+    expect(tester.widget<ButtonStyleButton>(button('subject.edit.u2')).onPressed, isNull);
   });
 
   testWidgets('says why a deactivation was refused, above the list', (tester) async {

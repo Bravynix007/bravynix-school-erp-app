@@ -1,5 +1,6 @@
 import 'package:bravynix_school_erp/app/di/injection.dart';
 import 'package:bravynix_school_erp/core/theme/app_spacing.dart';
+import 'package:bravynix_school_erp/core/widgets/app_button.dart';
 import 'package:bravynix_school_erp/core/widgets/app_snackbar.dart';
 import 'package:bravynix_school_erp/core/widgets/app_text_field.dart';
 import 'package:bravynix_school_erp/core/widgets/app_top_bar.dart';
@@ -64,10 +65,7 @@ class _SubjectFormViewState extends State<SubjectFormView> {
       builder: (context, state) {
         final editing = state is SubjectFormEditing ? state : const SubjectFormEditing(saving: true);
         final failure = editing.failure;
-        final onFields =
-            failure != null &&
-            failure.fieldErrors.isNotEmpty &&
-            failure.fieldErrors.every((error) => _fields.contains(error.field));
+        final onFields = failure != null && failure.namesOnly(_fields);
         return Scaffold(
           body: Column(
             children: [
@@ -82,6 +80,18 @@ class _SubjectFormViewState extends State<SubjectFormView> {
                   children: [
                     if (failure != null && !onFields) ...[
                       InlineMessage.error(subjectErrorText(l10n, failure), key: const Key('subjectForm.error')),
+                      // The subject was changed meanwhile and no endpoint reads one subject, so the list is read again.
+                      if (failure.code == 'VERSION_CONFLICT')
+                        Align(
+                          alignment: AlignmentDirectional.centerStart,
+                          child: AppButton(
+                            key: const Key('subjectForm.backToList'),
+                            label: l10n.backToList,
+                            variant: AppButtonVariant.text,
+                            size: AppButtonSize.medium,
+                            onPressed: () => context.pop(true),
+                          ),
+                        ),
                       const SizedBox(height: AppSpacing.sm),
                     ],
                     AppTextField(

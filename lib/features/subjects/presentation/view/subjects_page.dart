@@ -61,18 +61,7 @@ class SubjectsView extends StatelessWidget {
                 }
               },
               builder: (context, state) => switch (state) {
-                SubjectsLoading() => Semantics(
-                  label: l10n.loading,
-                  child: ListView(
-                    padding: const EdgeInsets.all(AppSpacing.screenMargin),
-                    physics: const NeverScrollableScrollPhysics(),
-                    children: const [
-                      SkeletonBox(height: 96, radius: AppRadius.card),
-                      SizedBox(height: AppSpacing.sm),
-                      SkeletonBox(height: 96, radius: AppRadius.card),
-                    ],
-                  ),
-                ),
+                SubjectsLoading() => SkeletonCards(semanticLabel: l10n.loading, heights: const [96, 96]),
                 SubjectsFailed(:final failure) when failure.code == 'FORBIDDEN' => StatePanel.forbidden(
                   key: const Key('subjects.forbidden'),
                   title: subjectErrorText(l10n, failure),
@@ -108,6 +97,7 @@ class SubjectsView extends StatelessWidget {
                       _SubjectCard(
                         subject: subject,
                         busy: state.busyId == subject.id,
+                        locked: state.busyId != null,
                         onEdit: () => _openForm(context, subject: subject),
                       ),
                       const SizedBox(height: AppSpacing.xs),
@@ -124,10 +114,15 @@ class SubjectsView extends StatelessWidget {
 }
 
 class _SubjectCard extends StatelessWidget {
-  const new({required this.subject, required this.busy, required this.onEdit});
+  const new({required this.subject, required this.busy, required this.locked, required this.onEdit});
 
   final Subject subject;
+
+  /// A change to this subject is on its way.
   final bool busy;
+
+  /// A change to any subject is on its way, so no card starts another.
+  final bool locked;
   final VoidCallback onEdit;
 
   @override
@@ -155,7 +150,7 @@ class _SubjectCard extends StatelessWidget {
                 label: l10n.subjectEdit,
                 variant: AppButtonVariant.secondary,
                 size: AppButtonSize.medium,
-                onPressed: busy ? null : onEdit,
+                onPressed: locked ? null : onEdit,
               ),
               AppButton(
                 key: ValueKey('subject.deactivate.${subject.id}'),
@@ -163,7 +158,7 @@ class _SubjectCard extends StatelessWidget {
                 variant: AppButtonVariant.text,
                 size: AppButtonSize.medium,
                 loading: busy,
-                onPressed: busy ? null : () => _confirmDeactivate(context),
+                onPressed: locked ? null : () => _confirmDeactivate(context),
               ),
             ],
           ),
