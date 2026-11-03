@@ -1,6 +1,7 @@
 import 'package:bravynix_school_erp/app/di/injection.dart';
 import 'package:bravynix_school_erp/core/format/formatters.dart';
 import 'package:bravynix_school_erp/core/theme/app_spacing.dart';
+import 'package:bravynix_school_erp/core/widgets/app_button.dart';
 import 'package:bravynix_school_erp/core/widgets/app_date_field.dart';
 import 'package:bravynix_school_erp/core/widgets/app_snackbar.dart';
 import 'package:bravynix_school_erp/core/widgets/app_text_field.dart';
@@ -52,6 +53,9 @@ class _AcademicYearFormViewState extends State<AcademicYearFormView> {
   late String _start = widget.year?.startDate ?? '';
   late String _end = widget.year?.endDate ?? '';
 
+  /// The fields a refusal can name; a refusal that names anything else is said above the form.
+  static const _fields = {'name', 'startDate', 'endDate'};
+
   @override
   void dispose() {
     _name.dispose();
@@ -83,9 +87,9 @@ class _AcademicYearFormViewState extends State<AcademicYearFormView> {
       builder: (context, state) {
         final editing = state is AcademicYearFormEditing ? state : const AcademicYearFormEditing(saving: true);
         final failure = editing.failure;
-        String? error(String field) => failure?.fieldError(field)?.message;
-        // A refused field is shown under it; any other refusal (an overlap, a duplicate name, a stale year) is said above.
-        final onFields = failure != null && failure.code == 'VALIDATION_FAILED' && failure.fieldErrors.isNotEmpty;
+        String? error(String field) => failure == null ? null : academicYearFieldError(l10n, failure, field);
+        // A refused field is shown under it; any other refusal (an overlap, a stale year) is said above.
+        final onFields = failure != null && failure.namesOnly(_fields);
         return Scaffold(
           body: Column(
             children: [
@@ -103,6 +107,18 @@ class _AcademicYearFormViewState extends State<AcademicYearFormView> {
                         academicYearErrorText(l10n, failure),
                         key: const Key('academicYearForm.error'),
                       ),
+                      // The year was changed meanwhile and no endpoint reads one year, so the list is read again.
+                      if (failure.code == 'VERSION_CONFLICT')
+                        Align(
+                          alignment: AlignmentDirectional.centerStart,
+                          child: AppButton(
+                            key: const Key('academicYearForm.backToList'),
+                            label: l10n.backToList,
+                            variant: AppButtonVariant.text,
+                            size: AppButtonSize.medium,
+                            onPressed: () => context.pop(true),
+                          ),
+                        ),
                       const SizedBox(height: AppSpacing.sm),
                     ],
                     AppTextField(

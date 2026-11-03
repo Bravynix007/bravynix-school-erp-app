@@ -91,6 +91,11 @@ void main() {
     expect(find.byKey(const ValueKey('academicYear.deactivate.y0')), findsOneWidget);
   });
 
+  testWidgets('says on the current year why it cannot be deactivated', (tester) async {
+    await pump(tester, const AcademicYearsLoaded([currentYear, earlierYear]));
+    expect(find.text('To deactivate this year, make another year current first.'), findsOneWidget);
+  });
+
   testWidgets('Make current asks for it without a confirmation', (tester) async {
     await pump(tester, const AcademicYearsLoaded([currentYear, earlierYear]));
     await tester.tap(find.byKey(const ValueKey('academicYear.makeCurrent.y0')));
@@ -124,7 +129,8 @@ void main() {
     );
     expect(buttonOf('academicYear.makeCurrent.y0').onPressed, isNull);
     expect(buttonOf('academicYear.edit.y0').onPressed, isNull);
-    expect(buttonOf('academicYear.edit.y1').onPressed, isNotNull);
+    // No other card starts a change meanwhile.
+    expect(buttonOf('academicYear.edit.y1').onPressed, isNull);
   });
 
   testWidgets('says why a change was refused, above the list', (tester) async {

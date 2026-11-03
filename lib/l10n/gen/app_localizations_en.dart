@@ -593,6 +593,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get academicYearCurrent => 'Current';
 
   @override
+  String get academicYearCurrentHint => 'To deactivate this year, make another year current first.';
+
+  @override
+  String get backToList => 'Back to the list';
+
+  @override
   String get academicYearMakeCurrent => 'Make current';
 
   @override

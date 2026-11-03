@@ -51,7 +51,10 @@ class PlatformDueView extends StatelessWidget {
           Expanded(
             child: BlocBuilder<PlatformDueBloc, PlatformDueState>(
               builder: (context, state) => switch (state) {
-                PlatformDueLoading() => const _Skeleton(),
+                PlatformDueLoading() => SkeletonCards(
+                  semanticLabel: AppLocalizations.of(context).loading,
+                  heights: const [160, 140],
+                ),
                 // A due that is not this Society's cannot be opened again: only the other failures can be retried.
                 PlatformDueFailed(:final failure) when failure.code == 'NOT_FOUND' || failure.code == 'FORBIDDEN' =>
                   StatePanel.forbidden(
@@ -72,24 +75,6 @@ class PlatformDueView extends StatelessWidget {
       ),
     );
   }
-}
-
-class _Skeleton extends StatelessWidget {
-  const new();
-
-  @override
-  Widget build(BuildContext context) => Semantics(
-    label: AppLocalizations.of(context).loading,
-    child: ListView(
-      padding: const EdgeInsets.all(AppSpacing.screenMargin),
-      physics: const NeverScrollableScrollPhysics(),
-      children: const [
-        SkeletonBox(height: 160, radius: AppRadius.card),
-        SizedBox(height: AppSpacing.sm),
-        SkeletonBox(height: 140, radius: AppRadius.card),
-      ],
-    ),
-  );
 }
 
 class _Due extends StatelessWidget {

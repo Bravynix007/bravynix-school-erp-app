@@ -41,14 +41,7 @@ class InstitutionScopeView extends StatelessWidget {
     final l10n = AppLocalizations.of(context);
     return BlocBuilder<InstitutionScopeBloc, InstitutionScopeState>(
       builder: (context, state) => switch (state) {
-        InstitutionScopeLoading() => Semantics(
-          label: l10n.loading,
-          child: ListView(
-            padding: const EdgeInsets.all(AppSpacing.screenMargin),
-            physics: const NeverScrollableScrollPhysics(),
-            children: const [SkeletonBox(height: 64, radius: AppRadius.card)],
-          ),
-        ),
+        InstitutionScopeLoading() => SkeletonCards(semanticLabel: l10n.loading, heights: const [64]),
         InstitutionScopeFailed(:final failure) when failure.code == 'FORBIDDEN' => StatePanel.forbidden(
           key: const Key('institutionScope.forbidden'),
           title: apiErrorText(l10n, failure, notFound: l10n.errorInstitutionNotFound),

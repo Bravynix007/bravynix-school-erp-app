@@ -47,7 +47,10 @@ class PlatformDuesView extends StatelessWidget {
           Expanded(
             child: BlocBuilder<PlatformDuesBloc, PlatformDuesState>(
               builder: (context, state) => switch (state) {
-                PlatformDuesLoading() => const _Skeleton(),
+                PlatformDuesLoading() => SkeletonCards(
+                  semanticLabel: AppLocalizations.of(context).loading,
+                  heights: const [88, 112, 112],
+                ),
                 PlatformDuesFailed(:final failure) when failure.code == 'FORBIDDEN' => StatePanel.forbidden(
                   key: const Key('platformDues.forbidden'),
                   title: apiErrorText(l10n, failure, notFound: l10n.errorDueNotFound),
@@ -70,26 +73,6 @@ class PlatformDuesView extends StatelessWidget {
       ),
     );
   }
-}
-
-class _Skeleton extends StatelessWidget {
-  const new();
-
-  @override
-  Widget build(BuildContext context) => Semantics(
-    label: AppLocalizations.of(context).loading,
-    child: ListView(
-      padding: const EdgeInsets.all(AppSpacing.screenMargin),
-      physics: const NeverScrollableScrollPhysics(),
-      children: const [
-        SkeletonBox(height: 88, radius: AppRadius.card),
-        SizedBox(height: AppSpacing.sm),
-        SkeletonBox(height: 112, radius: AppRadius.card),
-        SizedBox(height: AppSpacing.sm),
-        SkeletonBox(height: 112, radius: AppRadius.card),
-      ],
-    ),
-  );
 }
 
 class _Dues extends StatelessWidget {
