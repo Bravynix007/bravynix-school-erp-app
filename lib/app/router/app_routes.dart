@@ -14,6 +14,16 @@ abstract final class AppRoutes {
   static const platformDuePattern = '/platform-dues/:id';
   static String platformDue(String id) => '$platformDues/${Uri.encodeComponent(id)}';
 
+  /// School setup (decision 3): the hub Owners and Institution Admins reach from Profile.
+  static const schoolSetup = '/school-setup';
+
+  /// INS-01: the Institutions the person works in.
+  static const institutions = '/school-setup/institutions';
+
+  /// The `:id` pattern, for the router; [institution] builds the location of one Institution.
+  static const institutionPattern = '/school-setup/institutions/:id';
+  static String institution(String id) => '$institutions/${Uri.encodeComponent(id)}';
+
   /// The component gallery, registered in debug and profile builds only.
   static const gallery = '/gallery';
 

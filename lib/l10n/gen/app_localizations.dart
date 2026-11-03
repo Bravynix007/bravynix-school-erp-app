@@ -745,6 +745,186 @@ abstract class AppLocalizations {
   /// **'Cheque'**
   String get paymentModeCheque;
 
+  /// No description provided for @cancel.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel'**
+  String get cancel;
+
+  /// No description provided for @schoolSetupTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'School setup'**
+  String get schoolSetupTitle;
+
+  /// No description provided for @schoolSetupDetail.
+  ///
+  /// In en, this message translates to:
+  /// **'Your Institutions and how they are set up'**
+  String get schoolSetupDetail;
+
+  /// No description provided for @institutionsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Institutions'**
+  String get institutionsTitle;
+
+  /// No description provided for @institutionsDetail.
+  ///
+  /// In en, this message translates to:
+  /// **'The Institutions you work in'**
+  String get institutionsDetail;
+
+  /// No description provided for @institutionsEmptyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'No Institutions yet'**
+  String get institutionsEmptyTitle;
+
+  /// No description provided for @institutionsEmptyMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'There is no active Institution for you to work in.'**
+  String get institutionsEmptyMessage;
+
+  /// No description provided for @institutionTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Institution'**
+  String get institutionTitle;
+
+  /// No description provided for @institutionCode.
+  ///
+  /// In en, this message translates to:
+  /// **'Code'**
+  String get institutionCode;
+
+  /// No description provided for @institutionPlace.
+  ///
+  /// In en, this message translates to:
+  /// **'Place'**
+  String get institutionPlace;
+
+  /// No description provided for @institutionBoard.
+  ///
+  /// In en, this message translates to:
+  /// **'Board'**
+  String get institutionBoard;
+
+  /// No description provided for @institutionAffiliation.
+  ///
+  /// In en, this message translates to:
+  /// **'Affiliation number'**
+  String get institutionAffiliation;
+
+  /// No description provided for @institutionGstin.
+  ///
+  /// In en, this message translates to:
+  /// **'GSTIN'**
+  String get institutionGstin;
+
+  /// No description provided for @institutionContact.
+  ///
+  /// In en, this message translates to:
+  /// **'Contact'**
+  String get institutionContact;
+
+  /// No description provided for @institutionAddress.
+  ///
+  /// In en, this message translates to:
+  /// **'Address'**
+  String get institutionAddress;
+
+  /// No description provided for @institutionPhone.
+  ///
+  /// In en, this message translates to:
+  /// **'Phone'**
+  String get institutionPhone;
+
+  /// No description provided for @institutionTelephone.
+  ///
+  /// In en, this message translates to:
+  /// **'Telephone'**
+  String get institutionTelephone;
+
+  /// No description provided for @institutionClassesOffered.
+  ///
+  /// In en, this message translates to:
+  /// **'Classes offered'**
+  String get institutionClassesOffered;
+
+  /// No description provided for @institutionNoClassesOffered.
+  ///
+  /// In en, this message translates to:
+  /// **'No class categories are offered yet.'**
+  String get institutionNoClassesOffered;
+
+  /// No description provided for @institutionDeactivate.
+  ///
+  /// In en, this message translates to:
+  /// **'Deactivate Institution'**
+  String get institutionDeactivate;
+
+  /// No description provided for @institutionDeactivateTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Deactivate {name}?'**
+  String institutionDeactivateTitle(String name);
+
+  /// No description provided for @institutionDeactivateMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'It leaves your list, and the Institution Admins of it lose access to it. Nothing is deleted.'**
+  String get institutionDeactivateMessage;
+
+  /// No description provided for @institutionDeactivated.
+  ///
+  /// In en, this message translates to:
+  /// **'Institution deactivated'**
+  String get institutionDeactivated;
+
+  /// No description provided for @errorInstitutionNotFound.
+  ///
+  /// In en, this message translates to:
+  /// **'This Institution could not be found. It may have been deactivated.'**
+  String get errorInstitutionNotFound;
+
+  /// No description provided for @boardCbse.
+  ///
+  /// In en, this message translates to:
+  /// **'CBSE'**
+  String get boardCbse;
+
+  /// No description provided for @boardIcse.
+  ///
+  /// In en, this message translates to:
+  /// **'ICSE'**
+  String get boardIcse;
+
+  /// No description provided for @boardState.
+  ///
+  /// In en, this message translates to:
+  /// **'State Board'**
+  String get boardState;
+
+  /// No description provided for @boardIb.
+  ///
+  /// In en, this message translates to:
+  /// **'IB'**
+  String get boardIb;
+
+  /// No description provided for @boardIgcse.
+  ///
+  /// In en, this message translates to:
+  /// **'IGCSE'**
+  String get boardIgcse;
+
+  /// No description provided for @boardOther.
+  ///
+  /// In en, this message translates to:
+  /// **'Other'**
+  String get boardOther;
+
   /// No description provided for @errorForbidden.
   ///
   /// In en, this message translates to:

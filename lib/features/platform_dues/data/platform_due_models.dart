@@ -1,19 +1,17 @@
+import 'package:bravynix_school_erp/core/network/json_shape.dart';
 import 'package:bravynix_school_erp/features/platform_dues/domain/platform_due.dart';
 
 /// JSON → domain for BIL-01 and BIL-02. Unknown fields are ignored, as /v1 only ever adds fields (API design 5.2).
 abstract final class PlatformDueModels {
-  static Map<String, dynamic> _object(Object? json) =>
-      json is Map<String, dynamic> ? json : throw const FormatException('Expected a JSON object');
-
   static DueStatus _status(Map<String, dynamic> json) =>
       DueStatus.fromCode(json['dueStatus']) ?? (throw FormatException('Unknown due status ${json['dueStatus']}'));
 
   static PlatformDueLine line(Object? raw) {
-    final json = _object(raw);
+    final json = jsonObject(raw);
     return PlatformDueLine(
       id: json['id'] as String,
       invoiceNo: json['invoiceNo'] as String,
-      institutionName: _object(json['institution'])['name'] as String,
+      institutionName: jsonObject(json['institution'])['name'] as String,
       periodStartDate: json['periodStartDate'] as String,
       periodEndDate: json['periodEndDate'] as String,
       totalAmount: json['totalAmount'] as String,
@@ -26,7 +24,7 @@ abstract final class PlatformDueModels {
   }
 
   static PlatformDue due(Object? raw) {
-    final json = _object(raw);
+    final json = jsonObject(raw);
     final base = line(json);
     return PlatformDue(
       id: base.id,
@@ -49,8 +47,8 @@ abstract final class PlatformDueModels {
   }
 
   static PlatformDues dues(Object? raw) {
-    final json = _object(raw);
-    final banner = _object(json['banner']);
+    final json = jsonObject(raw);
+    final banner = jsonObject(json['banner']);
     final dues = json['dues'];
     if (dues is! List<dynamic>) throw const FormatException('Expected a JSON array');
     return PlatformDues(

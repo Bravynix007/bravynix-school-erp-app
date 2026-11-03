@@ -10,10 +10,10 @@ import 'package:bravynix_school_erp/core/widgets/key_value_row.dart';
 import 'package:bravynix_school_erp/core/widgets/section_header.dart';
 import 'package:bravynix_school_erp/core/widgets/skeleton.dart';
 import 'package:bravynix_school_erp/core/widgets/state_panel.dart';
+import 'package:bravynix_school_erp/features/auth/presentation/role/view/role_error_text.dart';
 import 'package:bravynix_school_erp/features/platform_dues/domain/platform_due.dart';
 import 'package:bravynix_school_erp/features/platform_dues/domain/platform_dues_repository.dart';
 import 'package:bravynix_school_erp/features/platform_dues/presentation/bloc/platform_due_bloc.dart';
-import 'package:bravynix_school_erp/features/platform_dues/presentation/view/due_error_text.dart';
 import 'package:bravynix_school_erp/features/platform_dues/presentation/view/due_status_chips.dart';
 import 'package:bravynix_school_erp/l10n/gen/app_localizations.dart';
 import 'package:flutter/material.dart';
@@ -56,11 +56,11 @@ class PlatformDueView extends StatelessWidget {
                 PlatformDueFailed(:final failure) when failure.code == 'NOT_FOUND' || failure.code == 'FORBIDDEN' =>
                   StatePanel.forbidden(
                     key: const Key('platformDue.unavailable'),
-                    title: dueErrorText(l10n, failure),
+                    title: apiErrorText(l10n, failure, notFound: l10n.errorDueNotFound),
                   ),
                 PlatformDueFailed(:final failure) => StatePanel.error(
                   key: const Key('platformDue.failed'),
-                  title: dueErrorText(l10n, failure),
+                  title: apiErrorText(l10n, failure, notFound: l10n.errorDueNotFound),
                   actionLabel: l10n.retry,
                   onAction: () => context.read<PlatformDueBloc>().add(const PlatformDueRequested()),
                 ),

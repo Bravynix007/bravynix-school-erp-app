@@ -409,6 +409,99 @@ class AppLocalizationsEn extends AppLocalizations {
   String get paymentModeCheque => 'Cheque';
 
   @override
+  String get cancel => 'Cancel';
+
+  @override
+  String get schoolSetupTitle => 'School setup';
+
+  @override
+  String get schoolSetupDetail => 'Your Institutions and how they are set up';
+
+  @override
+  String get institutionsTitle => 'Institutions';
+
+  @override
+  String get institutionsDetail => 'The Institutions you work in';
+
+  @override
+  String get institutionsEmptyTitle => 'No Institutions yet';
+
+  @override
+  String get institutionsEmptyMessage => 'There is no active Institution for you to work in.';
+
+  @override
+  String get institutionTitle => 'Institution';
+
+  @override
+  String get institutionCode => 'Code';
+
+  @override
+  String get institutionPlace => 'Place';
+
+  @override
+  String get institutionBoard => 'Board';
+
+  @override
+  String get institutionAffiliation => 'Affiliation number';
+
+  @override
+  String get institutionGstin => 'GSTIN';
+
+  @override
+  String get institutionContact => 'Contact';
+
+  @override
+  String get institutionAddress => 'Address';
+
+  @override
+  String get institutionPhone => 'Phone';
+
+  @override
+  String get institutionTelephone => 'Telephone';
+
+  @override
+  String get institutionClassesOffered => 'Classes offered';
+
+  @override
+  String get institutionNoClassesOffered => 'No class categories are offered yet.';
+
+  @override
+  String get institutionDeactivate => 'Deactivate Institution';
+
+  @override
+  String institutionDeactivateTitle(String name) {
+    return 'Deactivate $name?';
+  }
+
+  @override
+  String get institutionDeactivateMessage =>
+      'It leaves your list, and the Institution Admins of it lose access to it. Nothing is deleted.';
+
+  @override
+  String get institutionDeactivated => 'Institution deactivated';
+
+  @override
+  String get errorInstitutionNotFound => 'This Institution could not be found. It may have been deactivated.';
+
+  @override
+  String get boardCbse => 'CBSE';
+
+  @override
+  String get boardIcse => 'ICSE';
+
+  @override
+  String get boardState => 'State Board';
+
+  @override
+  String get boardIb => 'IB';
+
+  @override
+  String get boardIgcse => 'IGCSE';
+
+  @override
+  String get boardOther => 'Other';
+
+  @override
   String get errorForbidden => 'You don\'t have access to this.';
 
   @override

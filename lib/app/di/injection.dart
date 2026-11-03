@@ -10,6 +10,8 @@ import 'package:bravynix_school_erp/features/auth/data/auth_repository_impl.dart
 import 'package:bravynix_school_erp/features/auth/domain/auth_repository.dart';
 import 'package:bravynix_school_erp/features/blocks/data/blocks_repository_impl.dart';
 import 'package:bravynix_school_erp/features/blocks/domain/blocks_repository.dart';
+import 'package:bravynix_school_erp/features/institutions/data/institutions_repository_impl.dart';
+import 'package:bravynix_school_erp/features/institutions/domain/institutions_repository.dart';
 import 'package:bravynix_school_erp/features/platform_dues/data/platform_dues_repository_impl.dart';
 import 'package:bravynix_school_erp/features/platform_dues/domain/platform_dues_repository.dart';
 import 'package:dio/dio.dart';
@@ -63,5 +65,6 @@ Future<void> configureDependencies(
       ),
     )
     ..registerLazySingleton<BlocksRepository>(() => BlocksRepositoryImpl(api: getIt()))
+    ..registerLazySingleton<InstitutionsRepository>(() => InstitutionsRepositoryImpl(api: getIt()))
     ..registerLazySingleton<PlatformDuesRepository>(() => PlatformDuesRepositoryImpl(api: getIt()));
 }

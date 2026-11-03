@@ -1,14 +1,12 @@
+import 'package:bravynix_school_erp/core/network/json_shape.dart';
 import 'package:bravynix_school_erp/core/storage/token_storage.dart';
 import 'package:bravynix_school_erp/features/auth/domain/auth_entities.dart';
 
 /// JSON → domain for the auth answers (API design 10.1, 10.2). Unknown fields
 /// are ignored, as /v1 only ever adds fields (API design 5.2).
 abstract final class AuthModels {
-  static Map<String, dynamic> _map(Object? json) =>
-      json is Map<String, dynamic> ? json : throw const FormatException('Expected a JSON object');
-
   static OtpRequested otpRequested(Object? json) {
-    final map = _map(json);
+    final map = jsonObject(json);
     return OtpRequested(
       resendAfter: Duration(seconds: (map['resendAfterSeconds'] as num?)?.toInt() ?? 60),
       expiresIn: Duration(seconds: (map['expiresInSeconds'] as num?)?.toInt() ?? 600),
@@ -16,12 +14,12 @@ abstract final class AuthModels {
   }
 
   static AuthTokens tokens(Object? json) {
-    final map = _map(json);
+    final map = jsonObject(json);
     return AuthTokens(accessToken: map['accessToken'] as String, refreshToken: map['refreshToken'] as String);
   }
 
   static Person person(Object? json) {
-    final map = _map(json);
+    final map = jsonObject(json);
     return Person(
       id: map['id'] as String,
       email: map['email'] as String,
@@ -58,7 +56,7 @@ abstract final class AuthModels {
 
   /// The verify answer and `GET /v1/me` share person and contexts.
   static AuthSession session(Object? json) {
-    final map = _map(json);
+    final map = jsonObject(json);
     final contexts = [
       for (final item in (map['contexts'] as List<dynamic>? ?? const [])) ?context(item),
     ];

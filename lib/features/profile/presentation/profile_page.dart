@@ -62,6 +62,15 @@ class ProfilePage extends StatelessWidget {
                     subtitle: l10n.switchRoleDetail,
                     onTap: () => context.push(AppRoutes.chooseRole),
                   ),
+                // Setting up the school is for the Owners and the Institution Admins; the API checks every call.
+                if (active?.role case RoleCode.societyOwner || RoleCode.institutionAdmin)
+                  MenuListTile(
+                    key: const Key('profile.schoolSetup'),
+                    icon: Icons.school_outlined,
+                    title: l10n.schoolSetupTitle,
+                    subtitle: l10n.schoolSetupDetail,
+                    onTap: () => context.push(AppRoutes.schoolSetup),
+                  ),
                 // Only the Owners of a Society are charged for it; the API refuses every other role (API design 10.22).
                 if (active?.role == RoleCode.societyOwner)
                   MenuListTile(
