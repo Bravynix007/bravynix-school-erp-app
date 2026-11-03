@@ -6,11 +6,11 @@ import 'package:bravynix_school_erp/core/widgets/app_card.dart';
 import 'package:bravynix_school_erp/core/widgets/app_top_bar.dart';
 import 'package:bravynix_school_erp/core/widgets/skeleton.dart';
 import 'package:bravynix_school_erp/core/widgets/state_panel.dart';
+import 'package:bravynix_school_erp/features/auth/presentation/role/view/role_error_text.dart';
 import 'package:bravynix_school_erp/features/institutions/domain/institution.dart';
 import 'package:bravynix_school_erp/features/institutions/domain/institutions_repository.dart';
 import 'package:bravynix_school_erp/features/institutions/presentation/bloc/institutions_bloc.dart';
 import 'package:bravynix_school_erp/features/institutions/presentation/view/board_name.dart';
-import 'package:bravynix_school_erp/features/institutions/presentation/view/institution_error_text.dart';
 import 'package:bravynix_school_erp/l10n/gen/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -43,11 +43,11 @@ class InstitutionsView extends StatelessWidget {
                 InstitutionsLoading() => const _Skeleton(),
                 InstitutionsFailed(:final failure) when failure.code == 'FORBIDDEN' => StatePanel.forbidden(
                   key: const Key('institutions.forbidden'),
-                  title: institutionErrorText(l10n, failure),
+                  title: apiErrorText(l10n, failure, notFound: l10n.errorInstitutionNotFound),
                 ),
                 InstitutionsFailed(:final failure) => StatePanel.error(
                   key: const Key('institutions.failed'),
-                  title: institutionErrorText(l10n, failure),
+                  title: apiErrorText(l10n, failure, notFound: l10n.errorInstitutionNotFound),
                   actionLabel: l10n.retry,
                   onAction: () => context.read<InstitutionsBloc>().add(const InstitutionsRequested()),
                 ),

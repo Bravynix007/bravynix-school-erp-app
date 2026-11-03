@@ -33,6 +33,13 @@ void main() {
     expect(read, bareInstitution);
   });
 
+  test('reads each of the six board codes as its own board (PRD 11.4)', () {
+    expect(
+      [for (var code = 1; code <= 6; code++) InstitutionModels.summary(summaryJson(boardCode: code)).board],
+      [Board.cbse, Board.icse, Board.stateBoard, Board.ib, Board.igcse, Board.other],
+    );
+  });
+
   test('a board it does not know is left out, not guessed', () {
     expect(InstitutionModels.summary(summaryJson(boardCode: 9)).board, isNull);
     expect(InstitutionModels.summary(summaryJson(boardCode: null)).board, isNull);

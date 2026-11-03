@@ -1,15 +1,10 @@
+import 'package:bravynix_school_erp/core/network/json_shape.dart';
 import 'package:bravynix_school_erp/features/institutions/domain/institution.dart';
 
 /// JSON → domain for INS-01 and INS-03. Unknown fields are ignored, as /v1 only ever adds fields (API design 5.2).
 abstract final class InstitutionModels {
-  static Map<String, dynamic> _object(Object? json) =>
-      json is Map<String, dynamic> ? json : throw const FormatException('Expected a JSON object');
-
-  static List<dynamic> _list(Object? json) =>
-      json is List<dynamic> ? json : throw const FormatException('Expected a JSON array');
-
   static InstitutionSummary summary(Object? raw) {
-    final json = _object(raw);
+    final json = jsonObject(raw);
     return InstitutionSummary(
       id: json['id'] as String,
       code: json['code'] as String,
@@ -19,17 +14,17 @@ abstract final class InstitutionModels {
     );
   }
 
-  static List<InstitutionSummary> summaries(Object? raw) => [for (final item in _list(raw)) summary(item)];
+  static List<InstitutionSummary> summaries(Object? raw) => [for (final item in jsonList(raw)) summary(item)];
 
   static String? _phone(Object? raw) {
     if (raw == null) return null;
-    final json = _object(raw);
+    final json = jsonObject(raw);
     return '+${json['countryCode']} ${json['number']}';
   }
 
   static Institution institution(Object? raw) {
-    final json = _object(raw);
-    final address = _object(json['address']);
+    final json = jsonObject(raw);
+    final address = jsonObject(json['address']);
     return Institution(
       id: json['id'] as String,
       code: json['code'] as String,
@@ -45,8 +40,8 @@ abstract final class InstitutionModels {
       addressLine2: address['line2'] as String?,
       pincode: address['pincode'] as String?,
       classesOffered: [
-        for (final item in _list(json['classesOffered']))
-          OfferedCategory(id: _object(item)['id'] as String, name: _object(item)['name'] as String),
+        for (final item in jsonList(json['classesOffered']))
+          OfferedCategory(id: jsonObject(item)['id'] as String, name: jsonObject(item)['name'] as String),
       ],
     );
   }

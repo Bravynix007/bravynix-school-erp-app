@@ -10,12 +10,12 @@ import 'package:bravynix_school_erp/core/widgets/section_header.dart';
 import 'package:bravynix_school_erp/core/widgets/skeleton.dart';
 import 'package:bravynix_school_erp/core/widgets/state_panel.dart';
 import 'package:bravynix_school_erp/features/auth/domain/auth_entities.dart';
+import 'package:bravynix_school_erp/features/auth/presentation/role/view/role_error_text.dart';
 import 'package:bravynix_school_erp/features/auth/presentation/session/session_bloc.dart';
 import 'package:bravynix_school_erp/features/institutions/domain/institution.dart';
 import 'package:bravynix_school_erp/features/institutions/domain/institutions_repository.dart';
 import 'package:bravynix_school_erp/features/institutions/presentation/bloc/institution_bloc.dart';
 import 'package:bravynix_school_erp/features/institutions/presentation/view/board_name.dart';
-import 'package:bravynix_school_erp/features/institutions/presentation/view/institution_error_text.dart';
 import 'package:bravynix_school_erp/l10n/gen/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -63,15 +63,15 @@ class InstitutionView extends StatelessWidget {
                   InstitutionLoading() || InstitutionDeactivated() => const _Skeleton(),
                   InstitutionFailed(:final failure) when failure.code == 'FORBIDDEN' => StatePanel.forbidden(
                     key: const Key('institution.forbidden'),
-                    title: institutionErrorText(l10n, failure),
+                    title: apiErrorText(l10n, failure, notFound: l10n.errorInstitutionNotFound),
                   ),
                   InstitutionFailed(:final failure) when failure.code == 'NOT_FOUND' => StatePanel.empty(
                     key: const Key('institution.notFound'),
-                    title: institutionErrorText(l10n, failure),
+                    title: apiErrorText(l10n, failure, notFound: l10n.errorInstitutionNotFound),
                   ),
                   InstitutionFailed(:final failure) => StatePanel.error(
                     key: const Key('institution.failed'),
-                    title: institutionErrorText(l10n, failure),
+                    title: apiErrorText(l10n, failure, notFound: l10n.errorInstitutionNotFound),
                     actionLabel: l10n.retry,
                     onAction: () => context.read<InstitutionBloc>().add(const InstitutionRequested()),
                   ),
@@ -175,7 +175,7 @@ class _Details extends StatelessWidget {
             Semantics(
               liveRegion: true,
               child: Text(
-                institutionErrorText(l10n, failure),
+                apiErrorText(l10n, failure, notFound: l10n.errorInstitutionNotFound),
                 key: const Key('institution.deactivateFailed'),
                 style: text.bodyMedium?.copyWith(color: Theme.of(context).colorScheme.error),
               ),

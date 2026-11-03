@@ -96,6 +96,12 @@ void main() {
     verify(() => bloc.add(const InstitutionDeactivateRequested())).called(1);
   });
 
+  testWidgets('shows progress on the button while it deactivates', (tester) async {
+    await pump(tester, const InstitutionLoaded(institution, deactivating: true));
+    await tester.scrollUntilVisible(find.byKey(const Key('institution.deactivate')), 100);
+    expect(find.byType(CircularProgressIndicator), findsOneWidget);
+  });
+
   testWidgets('says why a deactivation failed, in words beside the button', (tester) async {
     await pump(tester, const InstitutionLoaded(institution, deactivateFailure: ApiFailure.network()));
     await tester.scrollUntilVisible(find.byKey(const Key('institution.deactivate')), 100);
