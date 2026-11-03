@@ -1555,17 +1555,11 @@ abstract class AppLocalizations {
   /// **'Students are placed in this class. Move them first.'**
   String get errorClassHasStudents;
 
-  /// No description provided for @errorClassTooMany.
+  /// No description provided for @classBulkItemRefused.
   ///
   /// In en, this message translates to:
-  /// **'Add at most 50 classes at once.'**
-  String get errorClassTooMany;
-
-  /// No description provided for @errorClassTooFew.
-  ///
-  /// In en, this message translates to:
-  /// **'Tick at least one class.'**
-  String get errorClassTooFew;
+  /// **'{name}: {reason}'**
+  String classBulkItemRefused(String name, String reason);
 
   /// No description provided for @errorClassNotFound.
   ///

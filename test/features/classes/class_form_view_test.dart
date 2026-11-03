@@ -14,6 +14,7 @@ import 'package:mocktail/mocktail.dart';
 
 import '../../helpers/classes.dart';
 import '../../helpers/clipped_text.dart';
+import '../../helpers/leaving_a_form.dart';
 import '../../helpers/pump_app.dart';
 
 class _MockFormBloc extends MockBloc<ClassFormEvent, ClassFormState> implements ClassFormBloc;
@@ -195,43 +196,36 @@ void main() {
     });
   }
 
-  testWidgets('Back to the list after a version conflict closes with true, so the list is read again', (tester) async {
-    when(() => bloc.state).thenReturn(ClassFormEditing(failure: _failure(409, 'VERSION_CONFLICT')));
-    bool? closedWith;
-    final router = GoRouter(
-      routes: [
-        GoRoute(
-          path: '/',
-          builder: (context, _) => Scaffold(
-            body: TextButton(
-              onPressed: () async => closedWith = await context.push<bool>('/form'),
-              child: const Text('open'),
-            ),
-          ),
+  testWidgets('offers Back to the list after a version conflict', (tester) async {
+    await pump(tester, ClassFormEditing(failure: _failure(409, 'VERSION_CONFLICT')), schoolClass: class1);
+    expect(find.byKey(const Key('classForm.backToList')), findsOneWidget);
+  });
+
+  leavingAFormTests(
+    backToList: const Key('classForm.backToList'),
+    setFailure: (failure) => when(() => bloc.state).thenReturn(ClassFormEditing(failure: failure)),
+    form: () => BlocProvider<ClassFormBloc>.value(
+      value: bloc,
+      child: const ClassFormView(schoolClass: class1),
+    ),
+  );
+
+  testWidgets('a taken stream is said under Stream, in the app words, with no banner above', (tester) async {
+    await pump(
+      tester,
+      ClassFormEditing(
+        choices: const [pucChoice],
+        failure: _failure(
+          409,
+          'DUPLICATE',
+          fields: const [FieldError(field: 'streamName', code: 'DUPLICATE', message: 'x')],
         ),
-        GoRoute(
-          path: '/form',
-          builder: (_, _) => BlocProvider<ClassFormBloc>.value(
-            value: bloc,
-            child: const ClassFormView(schoolClass: class1),
-          ),
-        ),
-      ],
-    );
-    addTearDown(router.dispose);
-    await tester.pumpWidget(
-      MaterialApp.router(
-        theme: AppTheme.light(),
-        routerConfig: router,
-        localizationsDelegates: AppLocalizations.localizationsDelegates,
-        supportedLocales: AppLocalizations.supportedLocales,
       ),
     );
-    await tester.tap(find.text('open'));
-    await tester.pumpAndSettle();
-    await tester.tap(find.byKey(const Key('classForm.backToList')));
-    await tester.pumpAndSettle();
-    expect(closedWith, isTrue);
+    await tester.tap(find.byKey(const ValueKey('classForm.choice.p9')));
+    await tester.pump();
+    expect(find.text('This class is already added to this Institution.'), findsOneWidget);
+    expect(find.byKey(const Key('classForm.error')), findsNothing);
   });
 
   testWidgets('closes with true and says so once saved', (tester) async {

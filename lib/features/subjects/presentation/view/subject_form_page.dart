@@ -74,7 +74,7 @@ class _SubjectFormViewState extends State<SubjectFormView> {
         final failure = editing.failure;
         final onFields = failure != null && failure.namesOnly(_fields);
         return StaleCopyGuard(
-          failure: failure,
+          stale: failure?.outdatesCopy ?? false,
           child: Scaffold(
             body: Column(
               children: [
