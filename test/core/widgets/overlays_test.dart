@@ -349,6 +349,11 @@ void main() {
         ),
       );
       expect(find.bySemanticsLabel('Loading years'), findsOneWidget);
+      // It is announced when it appears, as the Loading state of every list is.
+      expect(
+        tester.getSemantics(find.bySemanticsLabel('Loading years')).getSemanticsData().flagsCollection.isLiveRegion,
+        isTrue,
+      );
       expect(tester.getSize(find.byType(SkeletonBox).at(0)).height, 120);
       expect(tester.getSize(find.byType(SkeletonBox).at(1)).height, 64);
       expect(find.byType(SkeletonBox), findsNWidgets(2));

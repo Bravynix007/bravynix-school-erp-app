@@ -1,5 +1,7 @@
 import 'package:bloc_test/bloc_test.dart';
+import 'package:bravynix_school_erp/core/bloc/list_bloc.dart';
 import 'package:bravynix_school_erp/core/network/api_failure.dart';
+import 'package:bravynix_school_erp/features/academic_years/domain/academic_year.dart';
 import 'package:bravynix_school_erp/features/academic_years/presentation/bloc/academic_year_form_bloc.dart';
 import 'package:bravynix_school_erp/features/academic_years/presentation/bloc/academic_years_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -17,18 +19,18 @@ void main() {
   group('AcademicYearsBloc', () {
     AcademicYearsBloc build() => AcademicYearsBloc(repository, 'i1');
 
-    blocTest<AcademicYearsBloc, AcademicYearsState>(
+    blocTest<AcademicYearsBloc, ListState<AcademicYear>>(
       'loads the years of its Institution',
       build: build,
       setUp: () => when(() => repository.years('i1')).thenAnswer((_) async => [currentYear, earlierYear]),
-      act: (bloc) => bloc.add(const AcademicYearsRequested()),
+      act: (bloc) => bloc.add(const ListRequested()),
       expect: () => [
-        const AcademicYearsLoading(),
-        const AcademicYearsLoaded([currentYear, earlierYear]),
+        const ListLoading<AcademicYear>(),
+        const ListLoaded<AcademicYear>([currentYear, earlierYear]),
       ],
     );
 
-    blocTest<AcademicYearsBloc, AcademicYearsState>(
+    blocTest<AcademicYearsBloc, ListState<AcademicYear>>(
       'keeps the failure for the screen, and loads again on retry',
       build: build,
       setUp: () {
@@ -39,19 +41,19 @@ void main() {
         });
       },
       act: (bloc) async {
-        bloc.add(const AcademicYearsRequested());
-        await bloc.stream.firstWhere((state) => state is AcademicYearsFailed);
-        bloc.add(const AcademicYearsRequested());
+        bloc.add(const ListRequested());
+        await bloc.stream.firstWhere((state) => state is ListFailed<AcademicYear>);
+        bloc.add(const ListRequested());
       },
       expect: () => [
-        const AcademicYearsLoading(),
-        const AcademicYearsFailed(ApiFailure.network()),
-        const AcademicYearsLoading(),
-        const AcademicYearsLoaded([currentYear]),
+        const ListLoading<AcademicYear>(),
+        const ListFailed<AcademicYear>(ApiFailure.network()),
+        const ListLoading<AcademicYear>(),
+        const ListLoaded<AcademicYear>([currentYear]),
       ],
     );
 
-    blocTest<AcademicYearsBloc, AcademicYearsState>(
+    blocTest<AcademicYearsBloc, ListState<AcademicYear>>(
       'makes a year current, then reads the years again, saying what was done',
       build: build,
       setUp: () {
@@ -65,21 +67,21 @@ void main() {
         });
       },
       act: (bloc) async {
-        bloc.add(const AcademicYearsRequested());
-        await bloc.stream.firstWhere((state) => state is AcademicYearsLoaded);
+        bloc.add(const ListRequested());
+        await bloc.stream.firstWhere((state) => state is ListLoaded<AcademicYear>);
         bloc.add(const AcademicYearMadeCurrent(earlierYear));
       },
       skip: 2,
       expect: () => [
-        const AcademicYearsLoaded([currentYear, earlierYear], busyId: 'y0'),
-        isA<AcademicYearsLoaded>()
+        const ListLoaded<AcademicYear>([currentYear, earlierYear], busyId: 'y0'),
+        isA<ListLoaded<AcademicYear>>()
             .having((state) => state.notice, 'notice', AcademicYearsNotice.madeCurrent)
-            .having((state) => state.noticeYear, 'noticeYear', earlierYear)
-            .having((state) => state.years.map((year) => year.isCurrent), 'current marks', [true, false]),
+            .having((state) => state.changed, 'changed', earlierYear)
+            .having((state) => state.items.map((year) => year.isCurrent), 'current marks', [true, false]),
       ],
     );
 
-    blocTest<AcademicYearsBloc, AcademicYearsState>(
+    blocTest<AcademicYearsBloc, ListState<AcademicYear>>(
       'deactivates a year, then reads the years again',
       build: build,
       setUp: () {
@@ -88,18 +90,18 @@ void main() {
         when(() => repository.deactivate('y0')).thenAnswer((_) async => gone = true);
       },
       act: (bloc) async {
-        bloc.add(const AcademicYearsRequested());
-        await bloc.stream.firstWhere((state) => state is AcademicYearsLoaded);
+        bloc.add(const ListRequested());
+        await bloc.stream.firstWhere((state) => state is ListLoaded<AcademicYear>);
         bloc.add(const AcademicYearDeactivated(earlierYear));
       },
       skip: 2,
       expect: () => [
-        const AcademicYearsLoaded([currentYear, earlierYear], busyId: 'y0'),
-        const AcademicYearsLoaded([currentYear], notice: AcademicYearsNotice.deactivated, noticeYear: earlierYear),
+        const ListLoaded<AcademicYear>([currentYear, earlierYear], busyId: 'y0'),
+        const ListLoaded<AcademicYear>([currentYear], notice: AcademicYearsNotice.deactivated, changed: earlierYear),
       ],
     );
 
-    blocTest<AcademicYearsBloc, AcademicYearsState>(
+    blocTest<AcademicYearsBloc, ListState<AcademicYear>>(
       'keeps the years and says why when a change is refused, with the list read again',
       build: build,
       setUp: () {
@@ -107,19 +109,19 @@ void main() {
         when(() => repository.deactivate('y1')).thenThrow(_locked);
       },
       act: (bloc) async {
-        bloc.add(const AcademicYearsRequested());
-        await bloc.stream.firstWhere((state) => state is AcademicYearsLoaded);
+        bloc.add(const ListRequested());
+        await bloc.stream.firstWhere((state) => state is ListLoaded<AcademicYear>);
         bloc.add(const AcademicYearDeactivated(currentYear));
       },
       skip: 2,
       expect: () => [
-        const AcademicYearsLoaded([currentYear, earlierYear], busyId: 'y1'),
-        const AcademicYearsLoaded([currentYear, earlierYear], actionFailure: _locked),
+        const ListLoaded<AcademicYear>([currentYear, earlierYear], busyId: 'y1'),
+        const ListLoaded<AcademicYear>([currentYear, earlierYear], actionFailure: _locked),
       ],
       verify: (_) => verify(() => repository.years('i1')).called(2),
     );
 
-    blocTest<AcademicYearsBloc, AcademicYearsState>(
+    blocTest<AcademicYearsBloc, ListState<AcademicYear>>(
       'fails the screen when the list cannot be read again after a change',
       build: build,
       setUp: () {
@@ -131,18 +133,18 @@ void main() {
         when(() => repository.deactivate('y0')).thenAnswer((_) async {});
       },
       act: (bloc) async {
-        bloc.add(const AcademicYearsRequested());
-        await bloc.stream.firstWhere((state) => state is AcademicYearsLoaded);
+        bloc.add(const ListRequested());
+        await bloc.stream.firstWhere((state) => state is ListLoaded<AcademicYear>);
         bloc.add(const AcademicYearDeactivated(earlierYear));
       },
       skip: 2,
       expect: () => [
-        const AcademicYearsLoaded([currentYear, earlierYear], busyId: 'y0'),
-        const AcademicYearsFailed(ApiFailure.network()),
+        const ListLoaded<AcademicYear>([currentYear, earlierYear], busyId: 'y0'),
+        const ListFailed<AcademicYear>(ApiFailure.network()),
       ],
     );
 
-    blocTest<AcademicYearsBloc, AcademicYearsState>(
+    blocTest<AcademicYearsBloc, ListState<AcademicYear>>(
       'does not start a second change while one is on its way',
       build: build,
       setUp: () {
@@ -151,8 +153,8 @@ void main() {
             .thenAnswer((_) => Future<void>.delayed(const Duration(milliseconds: 10)));
       },
       act: (bloc) async {
-        bloc.add(const AcademicYearsRequested());
-        await bloc.stream.firstWhere((state) => state is AcademicYearsLoaded);
+        bloc.add(const ListRequested());
+        await bloc.stream.firstWhere((state) => state is ListLoaded<AcademicYear>);
         bloc
           ..add(const AcademicYearDeactivated(earlierYear))
           ..add(const AcademicYearDeactivated(earlierYear));
