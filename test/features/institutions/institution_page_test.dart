@@ -44,22 +44,25 @@ void main() {
     await tester.pumpAndSettle();
   }
 
-  testWidgets('offers Deactivate to an Owner', (tester) async {
+  testWidgets('offers Edit and Deactivate to an Owner', (tester) async {
     await pumpAs(tester, RoleCode.societyOwner);
     expect(find.byKey(const Key('institution.deactivate')), findsOneWidget);
+    expect(find.byKey(const Key('institution.edit')), findsOneWidget);
   });
 
   for (final role in [RoleCode.institutionAdmin, RoleCode.teacherStaff, RoleCode.superAdmin]) {
-    testWidgets('does not offer Deactivate to a ${role.name}', (tester) async {
+    testWidgets('does not offer Edit or Deactivate to a ${role.name}', (tester) async {
       await pumpAs(tester, role);
       expect(find.text('Sri Vidya High School'), findsOneWidget);
       expect(find.byKey(const Key('institution.deactivate')), findsNothing);
+      expect(find.byKey(const Key('institution.edit')), findsNothing);
     });
   }
 
-  testWidgets('does not offer Deactivate before a role is chosen', (tester) async {
+  testWidgets('does not offer Edit or Deactivate before a role is chosen', (tester) async {
     await pumpAs(tester, null);
     expect(find.text('Sri Vidya High School'), findsOneWidget);
     expect(find.byKey(const Key('institution.deactivate')), findsNothing);
+    expect(find.byKey(const Key('institution.edit')), findsNothing);
   });
 }

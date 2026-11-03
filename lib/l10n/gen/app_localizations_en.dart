@@ -481,6 +481,85 @@ class AppLocalizationsEn extends AppLocalizations {
   String get institutionDeactivated => 'Institution deactivated';
 
   @override
+  String get institutionAdd => 'Add Institution';
+
+  @override
+  String get institutionAddTitle => 'Add Institution';
+
+  @override
+  String get institutionEdit => 'Edit';
+
+  @override
+  String get institutionEditTitle => 'Edit Institution';
+
+  @override
+  String get institutionSaved => 'Institution saved';
+
+  @override
+  String get institutionSave => 'Save';
+
+  @override
+  String get institutionFormBasics => 'Details';
+
+  @override
+  String get institutionName => 'Name';
+
+  @override
+  String get institutionCodeHelper => 'Letters and digits. It can\'t be changed after saving.';
+
+  @override
+  String get institutionBoardNone => 'Not set';
+
+  @override
+  String get institutionAddressLine1 => 'Address line 1';
+
+  @override
+  String get institutionAddressLine2 => 'Address line 2';
+
+  @override
+  String get institutionPincode => 'Pincode';
+
+  @override
+  String get institutionCountry => 'Country';
+
+  @override
+  String get institutionState => 'State';
+
+  @override
+  String get institutionCity => 'City';
+
+  @override
+  String get institutionCountryCode => 'Country code';
+
+  @override
+  String get institutionPhoneNumber => 'Phone number';
+
+  @override
+  String get institutionNoCategories => 'There are no class categories to choose from.';
+
+  @override
+  String get fieldRequired => 'Required';
+
+  @override
+  String get errorInstitutionDuplicate => 'Another Institution already uses this code.';
+
+  @override
+  String get errorVersionConflict => 'Someone else changed this Institution. Your changes were not saved.';
+
+  @override
+  String get institutionReload => 'Reload';
+
+  @override
+  String get errorCategoryInUse =>
+      'Classes already use a category you unticked, so it has to stay offered. Tick it again to save.';
+
+  @override
+  String get errorReferenceInactive => 'Something you chose is no longer available. Choose again.';
+
+  @override
+  String get errorValidation => 'Check the fields marked in red.';
+
+  @override
   String get errorInstitutionNotFound => 'This Institution could not be found. It may have been deactivated.';
 
   @override

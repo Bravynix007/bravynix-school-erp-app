@@ -32,6 +32,47 @@ void main() {
 
   Map<String, dynamic> asMap(Object? data) => data! as Map<String, dynamic>;
 
+  group('ApiClient.conditional', () {
+    test('sends the tag it holds, and reports a 304 as nothing new', () async {
+      final adapter = FakeHttpAdapter((_) async => (status: 304, body: null, headers: const <String, String>{}));
+      final answer = await clientWith(adapter).conditional('masters/designations', parse: asMap, etag: 'W/"abc"');
+      expect(answer.isModified, isFalse);
+      expect(answer.data, isNull);
+      expect(adapter.requests.single.headers['If-None-Match'], 'W/"abc"');
+    });
+
+    test('returns the data with the tag of a 200, and sends no tag the first time', () async {
+      final adapter = FakeHttpAdapter(
+        (_) async => (
+          status: 200,
+          body: okReply({'a': 1}).body,
+          headers: const {'etag': 'W/"def"'},
+        ),
+      );
+      final answer = await clientWith(adapter).conditional('masters/designations', parse: asMap);
+      expect(answer.isModified, isTrue);
+      expect(answer.data, {'a': 1});
+      expect(answer.etag, 'W/"def"');
+      expect(adapter.requests.single.headers.containsKey('If-None-Match'), isFalse);
+    });
+
+    test('turns an error into an ApiFailure, like every other call', () async {
+      final adapter = FakeHttpAdapter((_) async => errorReply(403, 'FORBIDDEN'));
+      await expectLater(
+        clientWith(adapter).conditional('masters/designations', parse: asMap),
+        throwsA(isA<ApiFailure>().having((failure) => failure.code, 'code', 'FORBIDDEN')),
+      );
+    });
+
+    test('turns an answer that is not an envelope into an ApiFailure', () async {
+      final adapter = FakeHttpAdapter((_) async => (status: 200, body: 'nope', headers: const <String, String>{}));
+      await expectLater(
+        clientWith(adapter).conditional('masters/designations', parse: asMap),
+        throwsA(isA<ApiFailure>()),
+      );
+    });
+  });
+
   group('ApiClient', () {
     test('unwraps data and sends the mobile headers', () async {
       await tokens.write(const AuthTokens(accessToken: 'a1', refreshToken: 'r1'));

@@ -22,10 +22,13 @@ void main() {
   setUpAll(() => registerFallbackValue(const InstitutionsRequested()));
   setUp(() => bloc = _MockInstitutionsBloc());
 
-  Future<void> pump(WidgetTester tester, InstitutionsState state, {double textScale = 1}) {
+  Future<void> pump(WidgetTester tester, InstitutionsState state, {double textScale = 1, bool canAdd = false}) {
     when(() => bloc.state).thenReturn(state);
     return tester.pumpAppScaled(
-      BlocProvider<InstitutionsBloc>.value(value: bloc, child: const InstitutionsView()),
+      BlocProvider<InstitutionsBloc>.value(
+        value: bloc,
+        child: InstitutionsView(canAdd: canAdd),
+      ),
       textScale: textScale,
     );
   }
@@ -76,7 +79,8 @@ void main() {
       routes: [
         GoRoute(
           path: '/',
-          builder: (_, _) => BlocProvider<InstitutionsBloc>.value(value: bloc, child: const InstitutionsView()),
+          builder: (_, _) =>
+              BlocProvider<InstitutionsBloc>.value(value: bloc, child: const InstitutionsView(canAdd: false)),
         ),
         GoRoute(
           path: AppRoutes.institutionPattern,
@@ -103,6 +107,70 @@ void main() {
     await tester.tap(find.text('institution i1'));
     await tester.pumpAndSettle();
     verify(() => bloc.add(const InstitutionsRequested())).called(1);
+  });
+
+  group('adding', () {
+    Future<void> pumpWithForm(WidgetTester tester, InstitutionsState state, {required bool saved}) async {
+      when(() => bloc.state).thenReturn(state);
+      final router = GoRouter(
+        routes: [
+          GoRoute(
+            path: '/',
+            builder: (_, _) =>
+                BlocProvider<InstitutionsBloc>.value(value: bloc, child: const InstitutionsView(canAdd: true)),
+          ),
+          GoRoute(
+            path: AppRoutes.institutionNew,
+            builder: (context, _) => TextButton(onPressed: () => context.pop(saved), child: const Text('form')),
+          ),
+        ],
+      );
+      addTearDown(router.dispose);
+      await tester.pumpWidget(
+        MaterialApp.router(
+          theme: AppTheme.light(),
+          routerConfig: router,
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+        ),
+      );
+    }
+
+    testWidgets('offers Add Institution to an Owner only', (tester) async {
+      await pump(tester, InstitutionsLoaded([summary()]), canAdd: true);
+      expect(find.byKey(const Key('institutions.add')), findsOneWidget);
+      await pump(tester, InstitutionsLoaded([summary()]));
+      expect(find.byKey(const Key('institutions.add')), findsNothing);
+    });
+
+    testWidgets('offers it in the empty list too, to an Owner only', (tester) async {
+      await pump(tester, const InstitutionsLoaded([]), canAdd: true);
+      expect(find.widgetWithText(FilledButton, 'Add Institution'), findsOneWidget);
+    });
+
+    testWidgets('does not offer it in the empty list to anyone else', (tester) async {
+      await pump(tester, const InstitutionsLoaded([]));
+      expect(find.text('Add Institution'), findsNothing);
+    });
+
+    testWidgets('reads the list again when the form saved', (tester) async {
+      await pumpWithForm(tester, InstitutionsLoaded([summary()]), saved: true);
+      await tester.tap(find.byKey(const Key('institutions.add')));
+      await tester.pumpAndSettle();
+      verifyNever(() => bloc.add(const InstitutionsRequested()));
+      await tester.tap(find.text('form'));
+      await tester.pumpAndSettle();
+      verify(() => bloc.add(const InstitutionsRequested())).called(1);
+    });
+
+    testWidgets('leaves the list as it is when the form was cancelled', (tester) async {
+      await pumpWithForm(tester, InstitutionsLoaded([summary()]), saved: false);
+      await tester.tap(find.byKey(const Key('institutions.add')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('form'));
+      await tester.pumpAndSettle();
+      verifyNever(() => bloc.add(const InstitutionsRequested()));
+    });
   });
 
   testWidgets('reads whole at a large text scale on a small phone', (tester) async {

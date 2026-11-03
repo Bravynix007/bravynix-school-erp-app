@@ -1,4 +1,5 @@
 import 'package:bloc_test/bloc_test.dart';
+import 'package:bravynix_school_erp/app/router/app_routes.dart';
 import 'package:bravynix_school_erp/core/network/api_failure.dart';
 import 'package:bravynix_school_erp/core/theme/app_theme.dart';
 import 'package:bravynix_school_erp/features/institutions/presentation/bloc/institution_bloc.dart';
@@ -24,7 +25,7 @@ void main() {
   Future<void> pump(
     WidgetTester tester,
     InstitutionState state, {
-    bool canDeactivate = true,
+    bool isOwner = true,
     double textScale = 1,
     Size size = const Size(320, 640),
   }) {
@@ -32,7 +33,7 @@ void main() {
     return tester.pumpAppScaled(
       BlocProvider<InstitutionBloc>.value(
         value: bloc,
-        child: InstitutionView(canDeactivate: canDeactivate),
+        child: InstitutionView(isOwner: isOwner),
       ),
       textScale: textScale,
       size: size,
@@ -70,7 +71,7 @@ void main() {
     await pump(tester, const InstitutionLoaded(institution));
     await tester.scrollUntilVisible(find.byKey(const Key('institution.deactivate')), 100);
     expect(find.byKey(const Key('institution.deactivate')), findsOneWidget);
-    await pump(tester, const InstitutionLoaded(institution), canDeactivate: false);
+    await pump(tester, const InstitutionLoaded(institution), isOwner: false);
     expect(find.byKey(const Key('institution.deactivate')), findsNothing);
   });
 
@@ -130,7 +131,7 @@ void main() {
         GoRoute(
           path: '/institution',
           builder: (_, _) =>
-              BlocProvider<InstitutionBloc>.value(value: bloc, child: const InstitutionView(canDeactivate: true)),
+              BlocProvider<InstitutionBloc>.value(value: bloc, child: const InstitutionView(isOwner: true)),
         ),
       ],
     );
@@ -147,6 +148,82 @@ void main() {
     await tester.pumpAndSettle();
     expect(result, isTrue);
     expect(find.text('Institution deactivated'), findsOneWidget);
+  });
+
+  group('editing', () {
+    // What the screen behind answered when the Institution closed.
+    bool? closed;
+    setUp(() => closed = null);
+
+    Future<void> pumpWithForm(WidgetTester tester, {required bool saved}) async {
+      when(() => bloc.state).thenReturn(const InstitutionLoaded(institution));
+      final router = GoRouter(
+        routes: [
+          GoRoute(
+            path: '/',
+            builder: (context, _) => Scaffold(
+              body: TextButton(
+                onPressed: () async => closed = await context.push<bool>('/institution'),
+                child: const Text('open'),
+              ),
+            ),
+          ),
+          GoRoute(
+            path: '/institution',
+            builder: (_, _) =>
+                BlocProvider<InstitutionBloc>.value(value: bloc, child: const InstitutionView(isOwner: true)),
+          ),
+          GoRoute(
+            path: AppRoutes.institutionEditPattern,
+            builder: (context, state) =>
+                TextButton(onPressed: () => context.pop(saved), child: Text('form ${state.pathParameters['id']}')),
+          ),
+        ],
+      );
+      addTearDown(router.dispose);
+      await tester.pumpWidget(
+        MaterialApp.router(
+          theme: AppTheme.light(),
+          routerConfig: router,
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+        ),
+      );
+      await tester.tap(find.text('open'));
+      await tester.pumpAndSettle();
+      await tester.scrollUntilVisible(find.byKey(const Key('institution.edit')), 100);
+      await tester.tap(find.byKey(const Key('institution.edit')));
+      await tester.pumpAndSettle();
+    }
+
+    testWidgets('offers Edit to an Owner only', (tester) async {
+      await pump(tester, const InstitutionLoaded(institution));
+      await tester.scrollUntilVisible(find.byKey(const Key('institution.edit')), 100);
+      expect(find.byKey(const Key('institution.edit')), findsOneWidget);
+      await pump(tester, const InstitutionLoaded(institution), isOwner: false);
+      expect(find.byKey(const Key('institution.edit')), findsNothing);
+    });
+
+    testWidgets('reads the Institution again, and tells the list when it closes, after a saved edit', (tester) async {
+      await pumpWithForm(tester, saved: true);
+      expect(find.text('form i1'), findsOneWidget);
+      await tester.tap(find.text('form i1'));
+      await tester.pumpAndSettle();
+      verify(() => bloc.add(const InstitutionRequested())).called(1);
+      await tester.tap(find.byTooltip('Back'));
+      await tester.pumpAndSettle();
+      expect(closed, isTrue);
+    });
+
+    testWidgets('changes nothing when the form was cancelled, and closes with false', (tester) async {
+      await pumpWithForm(tester, saved: false);
+      await tester.tap(find.text('form i1'));
+      await tester.pumpAndSettle();
+      verifyNever(() => bloc.add(const InstitutionRequested()));
+      await tester.tap(find.byTooltip('Back'));
+      await tester.pumpAndSettle();
+      expect(closed, isFalse);
+    });
   });
 
   testWidgets('says the Institution could not be found, with no retry', (tester) async {

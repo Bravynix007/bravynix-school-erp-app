@@ -883,6 +883,162 @@ abstract class AppLocalizations {
   /// **'Institution deactivated'**
   String get institutionDeactivated;
 
+  /// No description provided for @institutionAdd.
+  ///
+  /// In en, this message translates to:
+  /// **'Add Institution'**
+  String get institutionAdd;
+
+  /// No description provided for @institutionAddTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Add Institution'**
+  String get institutionAddTitle;
+
+  /// No description provided for @institutionEdit.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit'**
+  String get institutionEdit;
+
+  /// No description provided for @institutionEditTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit Institution'**
+  String get institutionEditTitle;
+
+  /// No description provided for @institutionSaved.
+  ///
+  /// In en, this message translates to:
+  /// **'Institution saved'**
+  String get institutionSaved;
+
+  /// No description provided for @institutionSave.
+  ///
+  /// In en, this message translates to:
+  /// **'Save'**
+  String get institutionSave;
+
+  /// No description provided for @institutionFormBasics.
+  ///
+  /// In en, this message translates to:
+  /// **'Details'**
+  String get institutionFormBasics;
+
+  /// No description provided for @institutionName.
+  ///
+  /// In en, this message translates to:
+  /// **'Name'**
+  String get institutionName;
+
+  /// No description provided for @institutionCodeHelper.
+  ///
+  /// In en, this message translates to:
+  /// **'Letters and digits. It can\'t be changed after saving.'**
+  String get institutionCodeHelper;
+
+  /// No description provided for @institutionBoardNone.
+  ///
+  /// In en, this message translates to:
+  /// **'Not set'**
+  String get institutionBoardNone;
+
+  /// No description provided for @institutionAddressLine1.
+  ///
+  /// In en, this message translates to:
+  /// **'Address line 1'**
+  String get institutionAddressLine1;
+
+  /// No description provided for @institutionAddressLine2.
+  ///
+  /// In en, this message translates to:
+  /// **'Address line 2'**
+  String get institutionAddressLine2;
+
+  /// No description provided for @institutionPincode.
+  ///
+  /// In en, this message translates to:
+  /// **'Pincode'**
+  String get institutionPincode;
+
+  /// No description provided for @institutionCountry.
+  ///
+  /// In en, this message translates to:
+  /// **'Country'**
+  String get institutionCountry;
+
+  /// No description provided for @institutionState.
+  ///
+  /// In en, this message translates to:
+  /// **'State'**
+  String get institutionState;
+
+  /// No description provided for @institutionCity.
+  ///
+  /// In en, this message translates to:
+  /// **'City'**
+  String get institutionCity;
+
+  /// No description provided for @institutionCountryCode.
+  ///
+  /// In en, this message translates to:
+  /// **'Country code'**
+  String get institutionCountryCode;
+
+  /// No description provided for @institutionPhoneNumber.
+  ///
+  /// In en, this message translates to:
+  /// **'Phone number'**
+  String get institutionPhoneNumber;
+
+  /// No description provided for @institutionNoCategories.
+  ///
+  /// In en, this message translates to:
+  /// **'There are no class categories to choose from.'**
+  String get institutionNoCategories;
+
+  /// No description provided for @fieldRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Required'**
+  String get fieldRequired;
+
+  /// No description provided for @errorInstitutionDuplicate.
+  ///
+  /// In en, this message translates to:
+  /// **'Another Institution already uses this code.'**
+  String get errorInstitutionDuplicate;
+
+  /// No description provided for @errorVersionConflict.
+  ///
+  /// In en, this message translates to:
+  /// **'Someone else changed this Institution. Your changes were not saved.'**
+  String get errorVersionConflict;
+
+  /// No description provided for @institutionReload.
+  ///
+  /// In en, this message translates to:
+  /// **'Reload'**
+  String get institutionReload;
+
+  /// No description provided for @errorCategoryInUse.
+  ///
+  /// In en, this message translates to:
+  /// **'Classes already use a category you unticked, so it has to stay offered. Tick it again to save.'**
+  String get errorCategoryInUse;
+
+  /// No description provided for @errorReferenceInactive.
+  ///
+  /// In en, this message translates to:
+  /// **'Something you chose is no longer available. Choose again.'**
+  String get errorReferenceInactive;
+
+  /// No description provided for @errorValidation.
+  ///
+  /// In en, this message translates to:
+  /// **'Check the fields marked in red.'**
+  String get errorValidation;
+
   /// No description provided for @errorInstitutionNotFound.
   ///
   /// In en, this message translates to:
