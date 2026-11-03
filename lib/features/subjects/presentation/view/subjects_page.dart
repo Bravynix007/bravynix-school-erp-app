@@ -1,5 +1,6 @@
 import 'package:bravynix_school_erp/app/di/injection.dart';
 import 'package:bravynix_school_erp/app/router/app_routes.dart';
+import 'package:bravynix_school_erp/core/bloc/list_bloc.dart';
 import 'package:bravynix_school_erp/core/theme/app_spacing.dart';
 import 'package:bravynix_school_erp/core/theme/app_text_styles.dart';
 import 'package:bravynix_school_erp/core/widgets/app_button.dart';
@@ -14,6 +15,7 @@ import 'package:bravynix_school_erp/features/subjects/domain/subject.dart';
 import 'package:bravynix_school_erp/features/subjects/domain/subjects_repository.dart';
 import 'package:bravynix_school_erp/features/subjects/presentation/bloc/subjects_bloc.dart';
 import 'package:bravynix_school_erp/features/subjects/presentation/view/subject_error_text.dart';
+import 'package:bravynix_school_erp/features/subjects/presentation/view/subject_form_page.dart';
 import 'package:bravynix_school_erp/l10n/gen/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -26,7 +28,7 @@ class SubjectsPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => BlocProvider(
-    create: (_) => SubjectsBloc(getIt<SubjectsRepository>())..add(const SubjectsRequested()),
+    create: (_) => SubjectsBloc(getIt<SubjectsRepository>())..add(const ListRequested()),
     child: const SubjectsView(),
   );
 }
@@ -37,8 +39,8 @@ class SubjectsView extends StatelessWidget {
   /// A saved subject joins the list, so it is read again when the form closes with true.
   static Future<void> _openForm(BuildContext context, {Subject? subject}) async {
     final bloc = context.read<SubjectsBloc>();
-    final saved = await context.push<bool>(AppRoutes.subjectForm, extra: subject);
-    if (saved ?? false) bloc.add(const SubjectsRequested());
+    final saved = await context.push<bool>(AppRoutes.subjectForm, extra: SubjectFormArgs(subject: subject));
+    if (saved ?? false) bloc.add(const ListRequested());
   }
 
   @override
@@ -49,36 +51,36 @@ class SubjectsView extends StatelessWidget {
         children: [
           AppTopBar(title: l10n.subjectsTitle, onBack: () => context.pop(), backTooltip: l10n.back),
           Expanded(
-            child: BlocConsumer<SubjectsBloc, SubjectsState>(
-              listenWhen: (previous, current) => current is SubjectsLoaded && current.deactivated != null,
+            child: BlocConsumer<SubjectsBloc, ListState<Subject>>(
+              listenWhen: (previous, current) => current is ListLoaded<Subject> && current.changed != null,
               listener: (context, state) {
-                if (state is SubjectsLoaded) {
+                if (state is ListLoaded<Subject>) {
                   AppSnackbar.show(
                     context,
-                    message: l10n.subjectDeactivated(state.deactivated!.name),
+                    message: l10n.subjectDeactivated(state.changed!.name),
                     kind: AppSnackbarKind.success,
                   );
                 }
               },
               builder: (context, state) => switch (state) {
-                SubjectsLoading() => SkeletonCards(semanticLabel: l10n.loading, heights: const [96, 96]),
-                SubjectsFailed(:final failure) when failure.code == 'FORBIDDEN' => StatePanel.forbidden(
+                ListLoading<Subject>() => SkeletonCards(semanticLabel: l10n.loading, heights: const [96, 96]),
+                ListFailed<Subject>(:final failure) when failure.code == 'FORBIDDEN' => StatePanel.forbidden(
                   key: const Key('subjects.forbidden'),
                   title: subjectErrorText(l10n, failure),
                 ),
-                SubjectsFailed(:final failure) => StatePanel.error(
+                ListFailed<Subject>(:final failure) => StatePanel.error(
                   key: const Key('subjects.failed'),
                   title: subjectErrorText(l10n, failure),
                   actionLabel: l10n.retry,
-                  onAction: () => context.read<SubjectsBloc>().add(const SubjectsRequested()),
+                  onAction: () => context.read<SubjectsBloc>().add(const ListRequested()),
                 ),
-                SubjectsLoaded(:final subjects) when subjects.isEmpty => StatePanel.empty(
+                ListLoaded<Subject>(:final items) when items.isEmpty => StatePanel.empty(
                   title: l10n.subjectsEmptyTitle,
                   message: l10n.subjectsEmptyMessage,
                   actionLabel: l10n.subjectAdd,
                   onAction: () => _openForm(context),
                 ),
-                SubjectsLoaded() => ListView(
+                ListLoaded<Subject>() => ListView(
                   padding: const EdgeInsets.all(AppSpacing.screenMargin),
                   children: [
                     if (state.actionFailure case final failure?) ...[
@@ -93,7 +95,7 @@ class SubjectsView extends StatelessWidget {
                       onPressed: () => _openForm(context),
                     ),
                     const SizedBox(height: AppSpacing.sm),
-                    for (final subject in state.subjects) ...[
+                    for (final subject in state.items) ...[
                       _SubjectCard(
                         subject: subject,
                         busy: state.busyId == subject.id,

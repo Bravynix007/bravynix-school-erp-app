@@ -6,6 +6,7 @@ import 'package:bravynix_school_erp/core/widgets/inline_message.dart';
 import 'package:bravynix_school_erp/core/widgets/section_header.dart';
 import 'package:bravynix_school_erp/core/widgets/selection_tile.dart';
 import 'package:bravynix_school_erp/core/widgets/skeleton.dart';
+import 'package:bravynix_school_erp/core/widgets/stale_copy_guard.dart';
 import 'package:bravynix_school_erp/core/widgets/state_panel.dart';
 import 'package:bravynix_school_erp/core/widgets/sticky_bottom_actions.dart';
 import 'package:bravynix_school_erp/features/classes/domain/class_catalogue.dart';
@@ -66,43 +67,52 @@ class _ClassBulkViewState extends State<ClassBulkView> {
       },
       builder: (context, state) {
         final editing = state is ClassBulkEditing ? state : null;
-        return Scaffold(
-          body: Column(
-            children: [
-              AppTopBar(title: l10n.classBulkTitle, onBack: () => context.pop(), backTooltip: l10n.back),
-              Expanded(
-                child: switch (state) {
-                  ClassBulkLoading() || ClassBulkSaved() => SkeletonCards(
-                    semanticLabel: l10n.loading,
-                    heights: const [200, 120],
-                  ),
-                  ClassBulkFailed(:final failure) => StatePanel.error(
-                    key: const Key('classBulk.failed'),
-                    title: classErrorText(l10n, failure),
-                    actionLabel: l10n.retry,
-                    onAction: () => context.read<ClassBulkBloc>().add(const ClassBulkStarted()),
-                  ),
-                  ClassBulkEditing() => _list(context, state),
-                },
-              ),
-            ],
-          ),
-          bottomNavigationBar: editing == null
-              ? null
-              : StickyBottomActions(
-                  primaryLabel: l10n.classBulkAdd(_ticked.length),
-                  primaryLoading: editing.saving,
-                  onPrimary: editing.saving || _ticked.isEmpty
-                      ? null
-                      : () => context.read<ClassBulkBloc>().add(
-                          ClassBulkSubmitted([
-                            for (final choice in editing.choices)
-                              if (_ticked.contains(choice.predefinedClass.id)) choice.predefinedClass.id,
-                          ]),
-                        ),
-                  secondaryLabel: l10n.cancel,
-                  onSecondary: () => context.pop(),
+        // A refusal can mean the list behind is out of date (a ticked class was added meanwhile), so leaving after one
+        // closes with true and the list reads again.
+        return StaleCopyGuard(
+          stale: editing?.failure != null,
+          child: Scaffold(
+            body: Column(
+              children: [
+                AppTopBar(
+                  title: l10n.classBulkTitle,
+                  onBack: () => Navigator.maybePop(context),
+                  backTooltip: l10n.back,
                 ),
+                Expanded(
+                  child: switch (state) {
+                    ClassBulkLoading() || ClassBulkSaved() => SkeletonCards(
+                      semanticLabel: l10n.loading,
+                      heights: const [200, 120],
+                    ),
+                    ClassBulkFailed(:final failure) => StatePanel.error(
+                      key: const Key('classBulk.failed'),
+                      title: classErrorText(l10n, failure),
+                      actionLabel: l10n.retry,
+                      onAction: () => context.read<ClassBulkBloc>().add(const ClassBulkStarted()),
+                    ),
+                    ClassBulkEditing() => _list(context, state),
+                  },
+                ),
+              ],
+            ),
+            bottomNavigationBar: editing == null
+                ? null
+                : StickyBottomActions(
+                    primaryLabel: l10n.classBulkAdd(_ticked.length),
+                    primaryLoading: editing.saving,
+                    onPrimary: editing.saving || _ticked.isEmpty
+                        ? null
+                        : () => context.read<ClassBulkBloc>().add(
+                            ClassBulkSubmitted([
+                              for (final choice in editing.choices)
+                                if (_ticked.contains(choice.predefinedClass.id)) choice.predefinedClass.id,
+                            ]),
+                          ),
+                    secondaryLabel: l10n.cancel,
+                    onSecondary: () => Navigator.maybePop(context),
+                  ),
+          ),
         );
       },
     );
@@ -115,7 +125,13 @@ class _ClassBulkViewState extends State<ClassBulkView> {
       padding: const EdgeInsets.all(AppSpacing.screenMargin),
       children: [
         if (failure != null) ...[
-          InlineMessage.error(classErrorText(l10n, failure), key: const Key('classBulk.error')),
+          InlineMessage.error(
+            classBulkErrorText(l10n, failure, [
+              for (final id in state.sent)
+                state.choices.firstWhere((choice) => choice.predefinedClass.id == id).predefinedClass.name,
+            ]),
+            key: const Key('classBulk.error'),
+          ),
           const SizedBox(height: AppSpacing.sm),
         ],
         Text(l10n.classBulkMessage, style: Theme.of(context).textTheme.bodyMedium),

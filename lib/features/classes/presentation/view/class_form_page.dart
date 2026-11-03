@@ -1,6 +1,5 @@
 import 'package:bravynix_school_erp/app/di/injection.dart';
 import 'package:bravynix_school_erp/core/theme/app_spacing.dart';
-import 'package:bravynix_school_erp/core/widgets/app_button.dart';
 import 'package:bravynix_school_erp/core/widgets/app_snackbar.dart';
 import 'package:bravynix_school_erp/core/widgets/app_text_field.dart';
 import 'package:bravynix_school_erp/core/widgets/app_top_bar.dart';
@@ -8,6 +7,7 @@ import 'package:bravynix_school_erp/core/widgets/inline_message.dart';
 import 'package:bravynix_school_erp/core/widgets/section_header.dart';
 import 'package:bravynix_school_erp/core/widgets/selection_tile.dart';
 import 'package:bravynix_school_erp/core/widgets/skeleton.dart';
+import 'package:bravynix_school_erp/core/widgets/stale_copy_guard.dart';
 import 'package:bravynix_school_erp/core/widgets/state_panel.dart';
 import 'package:bravynix_school_erp/core/widgets/sticky_bottom_actions.dart';
 import 'package:bravynix_school_erp/features/classes/domain/class_catalogue.dart';
@@ -101,104 +101,102 @@ class _ClassFormViewState extends State<ClassFormView> {
         final failure = editing?.failure;
         final onFields = failure != null && failure.namesOnly(_fields);
         String? error(String field) => failure == null ? null : classFieldError(l10n, failure, field);
-        return Scaffold(
-          body: Column(
-            children: [
-              AppTopBar(
-                title: isEdit ? l10n.classEditTitle : l10n.classAddTitle,
-                onBack: () => context.pop(),
-                backTooltip: l10n.back,
-              ),
-              Expanded(
-                child: switch (state) {
-                  ClassFormLoading() || ClassFormSaved() => SkeletonCards(
-                    semanticLabel: l10n.loading,
-                    heights: const [200, 120],
-                  ),
-                  ClassFormFailed(:final failure) => StatePanel.error(
-                    key: const Key('classForm.failed'),
-                    title: classErrorText(l10n, failure),
-                    actionLabel: l10n.retry,
-                    onAction: () => context.read<ClassFormBloc>().add(const ClassFormStarted()),
-                  ),
-                  ClassFormEditing(:final choices) => ListView(
-                    padding: const EdgeInsets.all(AppSpacing.screenMargin),
-                    children: [
-                      if (failure != null && !onFields) ...[
-                        InlineMessage.error(classErrorText(l10n, failure), key: const Key('classForm.error')),
-                        // The class was changed meanwhile and no endpoint reads one class, so the list is read again.
-                        if (failure.code == 'VERSION_CONFLICT')
-                          Align(
-                            alignment: AlignmentDirectional.centerStart,
-                            child: AppButton(
-                              key: const Key('classForm.backToList'),
-                              label: l10n.backToList,
-                              variant: AppButtonVariant.text,
-                              size: AppButtonSize.medium,
-                              onPressed: () => context.pop(true),
-                            ),
+        return StaleCopyGuard(
+          stale: failure?.outdatesCopy ?? false,
+          child: Scaffold(
+            body: Column(
+              children: [
+                AppTopBar(
+                  title: isEdit ? l10n.classEditTitle : l10n.classAddTitle,
+                  onBack: () => Navigator.maybePop(context),
+                  backTooltip: l10n.back,
+                ),
+                Expanded(
+                  child: switch (state) {
+                    ClassFormLoading() || ClassFormSaved() => SkeletonCards(
+                      semanticLabel: l10n.loading,
+                      heights: const [200, 120],
+                    ),
+                    ClassFormFailed(:final failure) => StatePanel.error(
+                      key: const Key('classForm.failed'),
+                      title: classErrorText(l10n, failure),
+                      actionLabel: l10n.retry,
+                      onAction: () => context.read<ClassFormBloc>().add(const ClassFormStarted()),
+                    ),
+                    ClassFormEditing(:final choices) => ListView(
+                      padding: const EdgeInsets.all(AppSpacing.screenMargin),
+                      children: [
+                        if (failure != null && !onFields) ...[
+                          // The class was changed meanwhile and no endpoint reads one class, so the list is read again.
+                          InlineMessage.error(
+                            classErrorText(l10n, failure),
+                            key: const Key('classForm.error'),
+                            actionLabel: failure.code == 'VERSION_CONFLICT' ? l10n.backToList : null,
+                            onAction: () => context.pop(true),
+                            actionKey: const Key('classForm.backToList'),
                           ),
-                        const SizedBox(height: AppSpacing.sm),
-                      ],
-                      if (isEdit)
-                        _Summary(schoolClass: widget.schoolClass!)
-                      else
-                        _Picker(
-                          choices: choices,
-                          selected: _choice,
-                          error: _missingChoice ? l10n.classChooseOne : error('predefinedClassId'),
-                          onChanged: (choice) => setState(() {
-                            _choice = choice;
-                            _missingChoice = false;
-                          }),
-                        ),
-                      if (_choice?.allowsStream ?? false) ...[
+                          const SizedBox(height: AppSpacing.sm),
+                        ],
+                        if (isEdit)
+                          _Summary(schoolClass: widget.schoolClass!)
+                        else
+                          _Picker(
+                            choices: choices,
+                            selected: _choice,
+                            error: _missingChoice ? l10n.classChooseOne : error('predefinedClassId'),
+                            onChanged: (choice) => setState(() {
+                              _choice = choice;
+                              _missingChoice = false;
+                            }),
+                          ),
+                        if (_choice?.allowsStream ?? false) ...[
+                          const SizedBox(height: AppSpacing.sm),
+                          AppTextField(
+                            key: const Key('classForm.stream'),
+                            label: l10n.classStream,
+                            controller: _stream,
+                            helper: l10n.classStreamHelper,
+                            error: error('streamName'),
+                            textInputAction: TextInputAction.next,
+                          ),
+                        ],
                         const SizedBox(height: AppSpacing.sm),
                         AppTextField(
-                          key: const Key('classForm.stream'),
-                          label: l10n.classStream,
-                          controller: _stream,
-                          helper: l10n.classStreamHelper,
-                          error: error('streamName'),
+                          key: const Key('classForm.displayName'),
+                          label: l10n.classDisplayName,
+                          controller: _displayName,
+                          // Empty, a new class takes the predefined class's name (and its stream); the hint says so.
+                          hint: isEdit ? null : l10n.classDisplayNameHint,
+                          required: isEdit,
+                          requiredLabel: l10n.fieldRequired,
+                          error: error('displayName'),
                           textInputAction: TextInputAction.next,
                         ),
+                        const SizedBox(height: AppSpacing.sm),
+                        AppTextField(
+                          key: const Key('classForm.code'),
+                          label: l10n.classCode,
+                          controller: _code,
+                          helper: l10n.classCodeHelper,
+                          error: error('code'),
+                          textInputAction: TextInputAction.done,
+                        ),
                       ],
-                      const SizedBox(height: AppSpacing.sm),
-                      AppTextField(
-                        key: const Key('classForm.displayName'),
-                        label: l10n.classDisplayName,
-                        controller: _displayName,
-                        // Empty, a new class takes the predefined class's name (and its stream); the hint says so.
-                        hint: isEdit ? null : l10n.classDisplayNameHint,
-                        required: isEdit,
-                        requiredLabel: l10n.fieldRequired,
-                        error: error('displayName'),
-                        textInputAction: TextInputAction.next,
-                      ),
-                      const SizedBox(height: AppSpacing.sm),
-                      AppTextField(
-                        key: const Key('classForm.code'),
-                        label: l10n.classCode,
-                        controller: _code,
-                        helper: l10n.classCodeHelper,
-                        error: error('code'),
-                        textInputAction: TextInputAction.done,
-                      ),
-                    ],
-                  ),
-                },
-              ),
-            ],
-          ),
-          bottomNavigationBar: editing == null
-              ? null
-              : StickyBottomActions(
-                  primaryLabel: l10n.classSave,
-                  primaryLoading: editing.saving,
-                  onPrimary: editing.saving ? null : () => _save(context),
-                  secondaryLabel: l10n.cancel,
-                  onSecondary: () => context.pop(),
+                    ),
+                  },
                 ),
+              ],
+            ),
+            bottomNavigationBar: editing == null
+                ? null
+                : StickyBottomActions(
+                    primaryLabel: l10n.classSave,
+                    primaryLoading: editing.saving,
+                    onPrimary: editing.saving ? null : () => _save(context),
+                    secondaryLabel: l10n.cancel,
+                    onSecondary: () => Navigator.maybePop(context),
+                  ),
+          ),
         );
       },
     );

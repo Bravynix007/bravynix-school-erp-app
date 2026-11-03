@@ -861,10 +861,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get errorClassHasStudents => 'Students are placed in this class. Move them first.';
 
   @override
-  String get errorClassTooMany => 'Add at most 50 classes at once.';
-
-  @override
-  String get errorClassTooFew => 'Tick at least one class.';
+  String classBulkItemRefused(String name, String reason) {
+    return '$name: $reason';
+  }
 
   @override
   String get errorClassNotFound => 'This class could not be found. It may have been deactivated.';

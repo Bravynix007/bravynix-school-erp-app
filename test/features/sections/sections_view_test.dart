@@ -1,5 +1,6 @@
 import 'package:bloc_test/bloc_test.dart';
 import 'package:bravynix_school_erp/app/router/app_routes.dart';
+import 'package:bravynix_school_erp/core/bloc/list_bloc.dart';
 import 'package:bravynix_school_erp/core/network/api_failure.dart';
 import 'package:bravynix_school_erp/core/theme/app_theme.dart';
 import 'package:bravynix_school_erp/features/sections/domain/section.dart';
@@ -18,19 +19,19 @@ import '../../helpers/clipped_text.dart';
 import '../../helpers/pump_app.dart';
 import '../../helpers/sections.dart';
 
-class _MockSectionsBloc extends MockBloc<SectionsEvent, SectionsState> implements SectionsBloc;
+class _MockSectionsBloc extends MockBloc<ListEvent, ListState<Section>> implements SectionsBloc;
 
 void main() {
   late _MockSectionsBloc bloc;
   setUpAll(() {
-    registerFallbackValue(const SectionsRequested());
+    registerFallbackValue(const ListRequested());
     registerFallbackValue(const SectionDeactivated(sectionA));
   });
   setUp(() => bloc = _MockSectionsBloc());
 
   Future<void> pump(
     WidgetTester tester,
-    SectionsState state, {
+    ListState<Section> state, {
     double textScale = 1,
     Size size = const Size(400, 1200),
   }) {
@@ -46,7 +47,7 @@ void main() {
   }
 
   /// The list on a router whose form answers [saved] when it closes, recording what it was given.
-  Future<List<Object?>> pumpWithForm(WidgetTester tester, SectionsState state, {required bool saved}) async {
+  Future<List<Object?>> pumpWithForm(WidgetTester tester, ListState<Section> state, {required bool saved}) async {
     when(() => bloc.state).thenReturn(state);
     final opened = <Object?>[];
     final router = GoRouter(
@@ -82,7 +83,7 @@ void main() {
   }
 
   testWidgets('names the class and lists each section with its capacity and a dash for students', (tester) async {
-    await pump(tester, const SectionsLoaded([sectionA, sectionB]));
+    await pump(tester, const ListLoaded<Section>([sectionA, sectionB]));
     expect(find.text('Class 1'), findsOneWidget);
     expect(find.text('Section A'), findsOneWidget);
     expect(find.text('Capacity 40 · Students —'), findsOneWidget);
@@ -100,12 +101,12 @@ void main() {
       version: 1,
       currentStudentCount: 31,
     );
-    await pump(tester, const SectionsLoaded([placed]));
+    await pump(tester, const ListLoaded<Section>([placed]));
     expect(find.text('No capacity set · Students 31'), findsOneWidget);
   });
 
   testWidgets('Deactivate asks first, and does nothing when cancelled', (tester) async {
-    await pump(tester, const SectionsLoaded([sectionA]));
+    await pump(tester, const ListLoaded<Section>([sectionA]));
     await tester.tap(find.byKey(const ValueKey('section.deactivate.e1')));
     await tester.pumpAndSettle();
     expect(find.text('Deactivate Section A?'), findsOneWidget);
@@ -116,7 +117,7 @@ void main() {
   });
 
   testWidgets('Deactivate goes ahead once confirmed', (tester) async {
-    await pump(tester, const SectionsLoaded([sectionA]));
+    await pump(tester, const ListLoaded<Section>([sectionA]));
     await tester.tap(find.byKey(const ValueKey('section.deactivate.e1')));
     await tester.pumpAndSettle();
     await tester.tap(find.descendant(of: find.byType(Dialog), matching: find.text('Deactivate')));
@@ -125,7 +126,7 @@ void main() {
   });
 
   testWidgets('while a deactivation is on its way, no card starts another change', (tester) async {
-    await pump(tester, const SectionsLoaded([sectionA, sectionB], busyId: 'e1'));
+    await pump(tester, const ListLoaded<Section>([sectionA, sectionB], busyId: 'e1'));
     Finder button(String key) =>
         find.descendant(of: find.byKey(ValueKey(key)), matching: find.byWidgetPredicate((w) => w is ButtonStyleButton));
     expect(tester.widget<ButtonStyleButton>(button('section.edit.e1')).onPressed, isNull);
@@ -136,7 +137,7 @@ void main() {
   testWidgets('says why a deactivation was refused, above the list', (tester) async {
     await pump(
       tester,
-      const SectionsLoaded(
+      const ListLoaded<Section>(
         [sectionA],
         actionFailure: ApiFailure(statusCode: 409, code: 'HAS_STUDENTS', message: 'x'),
       ),
@@ -148,8 +149,8 @@ void main() {
   testWidgets('says which section was deactivated', (tester) async {
     whenListen(
       bloc,
-      Stream.value(const SectionsLoaded([sectionB], deactivated: sectionA)),
-      initialState: const SectionsLoaded([sectionA, sectionB]),
+      Stream.value(const ListLoaded<Section>([sectionB], changed: sectionA)),
+      initialState: const ListLoaded<Section>([sectionA, sectionB]),
     );
     await tester.pumpAppScaled(
       Scaffold(
@@ -165,65 +166,65 @@ void main() {
   });
 
   testWidgets('invites the first section when there is none', (tester) async {
-    await pump(tester, const SectionsLoaded([]));
+    await pump(tester, const ListLoaded<Section>([]));
     expect(find.text('No sections yet'), findsOneWidget);
     expect(find.text('Add the sections of Class 1, such as A and B.'), findsOneWidget);
     expect(find.widgetWithText(FilledButton, 'Add section'), findsOneWidget);
   });
 
   testWidgets('shows a placeholder while it loads', (tester) async {
-    await pump(tester, const SectionsLoading());
+    await pump(tester, const ListLoading<Section>());
     expect(find.bySemanticsLabel('Loading'), findsOneWidget);
   });
 
   testWidgets('says why it failed, and loads again on Try again', (tester) async {
-    await pump(tester, const SectionsFailed(ApiFailure.network()));
+    await pump(tester, const ListFailed<Section>(ApiFailure.network()));
     expect(find.byKey(const Key('sections.failed')), findsOneWidget);
     await tester.tap(find.text('Try again'));
-    verify(() => bloc.add(const SectionsRequested())).called(1);
+    verify(() => bloc.add(const ListRequested())).called(1);
   });
 
   testWidgets('says a role that may not see sections has no access', (tester) async {
-    await pump(tester, const SectionsFailed(ApiFailure(statusCode: 403, code: 'FORBIDDEN', message: 'x')));
+    await pump(tester, const ListFailed<Section>(ApiFailure(statusCode: 403, code: 'FORBIDDEN', message: 'x')));
     expect(find.byKey(const Key('sections.forbidden')), findsOneWidget);
     expect(find.text('Try again'), findsNothing);
   });
 
   group('the form', () {
     testWidgets('Add section hands over the class and the sections it has, and reads again once saved', (tester) async {
-      final opened = await pumpWithForm(tester, const SectionsLoaded([sectionA, sectionB]), saved: true);
+      final opened = await pumpWithForm(tester, const ListLoaded<Section>([sectionA, sectionB]), saved: true);
       await tester.tap(find.byKey(const Key('sections.add')));
       await tester.pumpAndSettle();
       final args = opened.single! as SectionFormArgs;
       expect(args.classId, 'k1');
       expect(args.taken, {'s1', 's2'});
       expect(args.section, isNull);
-      verifyNever(() => bloc.add(const SectionsRequested()));
+      verifyNever(() => bloc.add(const ListRequested()));
       await tester.tap(find.text('form'));
       await tester.pumpAndSettle();
-      verify(() => bloc.add(const SectionsRequested())).called(1);
+      verify(() => bloc.add(const ListRequested())).called(1);
     });
 
     testWidgets('the empty list opens it too', (tester) async {
-      final opened = await pumpWithForm(tester, const SectionsLoaded([]), saved: false);
+      final opened = await pumpWithForm(tester, const ListLoaded<Section>([]), saved: false);
       await tester.tap(find.widgetWithText(FilledButton, 'Add section'));
       await tester.pumpAndSettle();
       expect((opened.single! as SectionFormArgs).taken, isEmpty);
     });
 
     testWidgets('Edit hands the section over, and leaves the list alone when the form was cancelled', (tester) async {
-      final opened = await pumpWithForm(tester, const SectionsLoaded([sectionA, sectionB]), saved: false);
+      final opened = await pumpWithForm(tester, const ListLoaded<Section>([sectionA, sectionB]), saved: false);
       await tester.tap(find.byKey(const ValueKey('section.edit.e2')));
       await tester.pumpAndSettle();
       expect((opened.single! as SectionFormArgs).section, sectionB);
       await tester.tap(find.text('form'));
       await tester.pumpAndSettle();
-      verifyNever(() => bloc.add(const SectionsRequested()));
+      verifyNever(() => bloc.add(const ListRequested()));
     });
   });
 
   testWidgets('reads whole at a large text scale on a small phone', (tester) async {
-    await pump(tester, const SectionsLoaded([sectionA, sectionB]), textScale: 2, size: const Size(320, 1800));
+    await pump(tester, const ListLoaded<Section>([sectionA, sectionB]), textScale: 2, size: const Size(320, 1800));
     expect(tester.takeException(), isNull);
     expect(clippedParagraphs(tester, unbreakable: 320 - 4 * 16), isEmpty);
   });

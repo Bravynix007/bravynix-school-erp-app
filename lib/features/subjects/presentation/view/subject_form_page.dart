@@ -1,10 +1,10 @@
 import 'package:bravynix_school_erp/app/di/injection.dart';
 import 'package:bravynix_school_erp/core/theme/app_spacing.dart';
-import 'package:bravynix_school_erp/core/widgets/app_button.dart';
 import 'package:bravynix_school_erp/core/widgets/app_snackbar.dart';
 import 'package:bravynix_school_erp/core/widgets/app_text_field.dart';
 import 'package:bravynix_school_erp/core/widgets/app_top_bar.dart';
 import 'package:bravynix_school_erp/core/widgets/inline_message.dart';
+import 'package:bravynix_school_erp/core/widgets/stale_copy_guard.dart';
 import 'package:bravynix_school_erp/core/widgets/sticky_bottom_actions.dart';
 import 'package:bravynix_school_erp/features/subjects/domain/subject.dart';
 import 'package:bravynix_school_erp/features/subjects/domain/subjects_repository.dart';
@@ -15,17 +15,24 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
-/// School setup → Subjects → Add, or Edit on one subject (SUB-02, SUB-03). Closes with `true` once saved, so the list
-/// behind it reads again. No endpoint reads one subject, so the list hands over the one to edit (null to add).
-class SubjectFormPage extends StatelessWidget {
-  const new({this.subject, super.key});
+/// The subject the form edits (null to add). No endpoint reads one subject, so the list hands it over.
+class SubjectFormArgs {
+  const new({this.subject});
 
   final Subject? subject;
+}
+
+/// School setup → Subjects → Add, or Edit on one subject (SUB-02, SUB-03). Closes with `true` once saved, so the list
+/// behind it reads again.
+class SubjectFormPage extends StatelessWidget {
+  const new({required this.args, super.key});
+
+  final SubjectFormArgs args;
 
   @override
   Widget build(BuildContext context) => BlocProvider(
-    create: (_) => SubjectFormBloc(getIt<SubjectsRepository>(), existing: subject),
-    child: SubjectFormView(subject: subject),
+    create: (_) => SubjectFormBloc(getIt<SubjectsRepository>(), existing: args.subject),
+    child: SubjectFormView(subject: args.subject),
   );
 }
 
@@ -66,67 +73,65 @@ class _SubjectFormViewState extends State<SubjectFormView> {
         final editing = state is SubjectFormEditing ? state : const SubjectFormEditing(saving: true);
         final failure = editing.failure;
         final onFields = failure != null && failure.namesOnly(_fields);
-        return Scaffold(
-          body: Column(
-            children: [
-              AppTopBar(
-                title: isEdit ? l10n.subjectEditTitle : l10n.subjectAddTitle,
-                onBack: () => context.pop(),
-                backTooltip: l10n.back,
-              ),
-              Expanded(
-                child: ListView(
-                  padding: const EdgeInsets.all(AppSpacing.screenMargin),
-                  children: [
-                    if (failure != null && !onFields) ...[
-                      InlineMessage.error(subjectErrorText(l10n, failure), key: const Key('subjectForm.error')),
-                      // The subject was changed meanwhile and no endpoint reads one subject, so the list is read again.
-                      if (failure.code == 'VERSION_CONFLICT')
-                        Align(
-                          alignment: AlignmentDirectional.centerStart,
-                          child: AppButton(
-                            key: const Key('subjectForm.backToList'),
-                            label: l10n.backToList,
-                            variant: AppButtonVariant.text,
-                            size: AppButtonSize.medium,
-                            onPressed: () => context.pop(true),
-                          ),
-                        ),
-                      const SizedBox(height: AppSpacing.sm),
-                    ],
-                    AppTextField(
-                      key: const Key('subjectForm.name'),
-                      label: l10n.subjectName,
-                      controller: _name,
-                      required: true,
-                      requiredLabel: l10n.fieldRequired,
-                      error: failure == null ? null : subjectFieldError(l10n, failure, 'name'),
-                      textInputAction: TextInputAction.next,
-                    ),
-                    const SizedBox(height: AppSpacing.sm),
-                    AppTextField(
-                      key: const Key('subjectForm.code'),
-                      label: l10n.subjectCode,
-                      controller: _code,
-                      helper: l10n.subjectCodeHelper,
-                      error: failure == null ? null : subjectFieldError(l10n, failure, 'code'),
-                      textInputAction: TextInputAction.done,
-                    ),
-                  ],
+        return StaleCopyGuard(
+          stale: failure?.outdatesCopy ?? false,
+          child: Scaffold(
+            body: Column(
+              children: [
+                AppTopBar(
+                  title: isEdit ? l10n.subjectEditTitle : l10n.subjectAddTitle,
+                  onBack: () => Navigator.maybePop(context),
+                  backTooltip: l10n.back,
                 ),
-              ),
-            ],
-          ),
-          bottomNavigationBar: StickyBottomActions(
-            primaryLabel: l10n.subjectSave,
-            primaryLoading: editing.saving,
-            onPrimary: editing.saving
-                ? null
-                : () => context.read<SubjectFormBloc>().add(
-                    SubjectFormSubmitted(SubjectFields(name: _name.text, code: _code.text)),
+                Expanded(
+                  child: ListView(
+                    padding: const EdgeInsets.all(AppSpacing.screenMargin),
+                    children: [
+                      if (failure != null && !onFields) ...[
+                        // The subject was changed meanwhile and no endpoint reads one subject, so the list is read again.
+                        InlineMessage.error(
+                          subjectErrorText(l10n, failure),
+                          key: const Key('subjectForm.error'),
+                          actionLabel: failure.code == 'VERSION_CONFLICT' ? l10n.backToList : null,
+                          onAction: () => context.pop(true),
+                          actionKey: const Key('subjectForm.backToList'),
+                        ),
+                        const SizedBox(height: AppSpacing.sm),
+                      ],
+                      AppTextField(
+                        key: const Key('subjectForm.name'),
+                        label: l10n.subjectName,
+                        controller: _name,
+                        required: true,
+                        requiredLabel: l10n.fieldRequired,
+                        error: failure == null ? null : subjectFieldError(l10n, failure, 'name'),
+                        textInputAction: TextInputAction.next,
+                      ),
+                      const SizedBox(height: AppSpacing.sm),
+                      AppTextField(
+                        key: const Key('subjectForm.code'),
+                        label: l10n.subjectCode,
+                        controller: _code,
+                        helper: l10n.subjectCodeHelper,
+                        error: failure == null ? null : subjectFieldError(l10n, failure, 'code'),
+                        textInputAction: TextInputAction.done,
+                      ),
+                    ],
                   ),
-            secondaryLabel: l10n.cancel,
-            onSecondary: () => context.pop(),
+                ),
+              ],
+            ),
+            bottomNavigationBar: StickyBottomActions(
+              primaryLabel: l10n.subjectSave,
+              primaryLoading: editing.saving,
+              onPrimary: editing.saving
+                  ? null
+                  : () => context.read<SubjectFormBloc>().add(
+                      SubjectFormSubmitted(SubjectFields(name: _name.text, code: _code.text)),
+                    ),
+              secondaryLabel: l10n.cancel,
+              onSecondary: () => Navigator.maybePop(context),
+            ),
           ),
         );
       },

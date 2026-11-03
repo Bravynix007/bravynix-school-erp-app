@@ -1,5 +1,6 @@
 import 'package:bravynix_school_erp/app/di/injection.dart';
 import 'package:bravynix_school_erp/app/router/app_routes.dart';
+import 'package:bravynix_school_erp/core/bloc/list_bloc.dart';
 import 'package:bravynix_school_erp/core/theme/app_spacing.dart';
 import 'package:bravynix_school_erp/core/widgets/app_button.dart';
 import 'package:bravynix_school_erp/core/widgets/app_card.dart';
@@ -45,7 +46,7 @@ class SectionsPage extends StatelessWidget {
           AppTopBar(title: l10n.sectionsTitle, onBack: () => context.pop(), backTooltip: l10n.back),
           Expanded(
             child: BlocProvider(
-              create: (_) => SectionsBloc(getIt<SectionsRepository>(), schoolClass.id)..add(const SectionsRequested()),
+              create: (_) => SectionsBloc(getIt<SectionsRepository>(), schoolClass.id)..add(const ListRequested()),
               child: SectionsView(schoolClass: schoolClass),
             ),
           ),
@@ -64,7 +65,7 @@ class SectionsView extends StatelessWidget {
   Future<void> _open(BuildContext context, SectionFormArgs args) async {
     final bloc = context.read<SectionsBloc>();
     final saved = await context.push<bool>(AppRoutes.sectionForm, extra: args);
-    if (saved ?? false) bloc.add(const SectionsRequested());
+    if (saved ?? false) bloc.add(const ListRequested());
   }
 
   @override
@@ -72,44 +73,44 @@ class SectionsView extends StatelessWidget {
     final l10n = AppLocalizations.of(context);
     final bloc = context.read<SectionsBloc>();
     final text = Theme.of(context).textTheme;
-    return BlocConsumer<SectionsBloc, SectionsState>(
-      listenWhen: (previous, current) => current is SectionsLoaded && current.deactivated != null,
+    return BlocConsumer<SectionsBloc, ListState<Section>>(
+      listenWhen: (previous, current) => current is ListLoaded<Section> && current.changed != null,
       listener: (context, state) {
-        if (state is SectionsLoaded) {
+        if (state is ListLoaded<Section>) {
           AppSnackbar.show(
             context,
-            message: l10n.sectionDeactivated(state.deactivated!.displayName),
+            message: l10n.sectionDeactivated(state.changed!.displayName),
             kind: AppSnackbarKind.success,
           );
         }
       },
       builder: (context, state) {
-        void add(List<Section> sections) => _open(
+        void add(List<Section> items) => _open(
           context,
           SectionFormArgs(
             classId: schoolClass.id,
-            taken: {for (final section in sections) section.predefinedSection.id},
+            taken: {for (final section in items) section.predefinedSection.id},
           ),
         );
         return switch (state) {
-          SectionsLoading() => SkeletonCards(semanticLabel: l10n.loading, heights: const [96, 96]),
-          SectionsFailed(:final failure) when failure.code == 'FORBIDDEN' => StatePanel.forbidden(
+          ListLoading<Section>() => SkeletonCards(semanticLabel: l10n.loading, heights: const [96, 96]),
+          ListFailed<Section>(:final failure) when failure.code == 'FORBIDDEN' => StatePanel.forbidden(
             key: const Key('sections.forbidden'),
             title: sectionErrorText(l10n, failure),
           ),
-          SectionsFailed(:final failure) => StatePanel.error(
+          ListFailed<Section>(:final failure) => StatePanel.error(
             key: const Key('sections.failed'),
             title: sectionErrorText(l10n, failure),
             actionLabel: l10n.retry,
-            onAction: () => bloc.add(const SectionsRequested()),
+            onAction: () => bloc.add(const ListRequested()),
           ),
-          SectionsLoaded(:final sections) when sections.isEmpty => StatePanel.empty(
+          ListLoaded<Section>(:final items) when items.isEmpty => StatePanel.empty(
             title: l10n.sectionsEmptyTitle,
             message: l10n.sectionsEmptyMessage(schoolClass.displayName),
             actionLabel: l10n.sectionAdd,
-            onAction: () => add(sections),
+            onAction: () => add(items),
           ),
-          SectionsLoaded(:final sections) => ListView(
+          ListLoaded<Section>(:final items) => ListView(
             padding: const EdgeInsets.all(AppSpacing.screenMargin),
             children: [
               Text(schoolClass.displayName, style: text.titleMedium),
@@ -125,11 +126,11 @@ class SectionsView extends StatelessWidget {
                   label: l10n.sectionAdd,
                   icon: Icons.add,
                   variant: AppButtonVariant.secondary,
-                  onPressed: () => add(sections),
+                  onPressed: () => add(items),
                 ),
               ),
               const SizedBox(height: AppSpacing.sm),
-              for (final section in sections) ...[
+              for (final section in items) ...[
                 _SectionCard(
                   section: section,
                   busy: state.busyId == section.id,

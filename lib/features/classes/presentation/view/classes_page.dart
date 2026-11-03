@@ -1,5 +1,6 @@
 import 'package:bravynix_school_erp/app/di/injection.dart';
 import 'package:bravynix_school_erp/app/router/app_routes.dart';
+import 'package:bravynix_school_erp/core/bloc/list_bloc.dart';
 import 'package:bravynix_school_erp/core/theme/app_spacing.dart';
 import 'package:bravynix_school_erp/core/widgets/app_button.dart';
 import 'package:bravynix_school_erp/core/widgets/app_card.dart';
@@ -37,7 +38,7 @@ class ClassesPage extends StatelessWidget {
           Expanded(
             child: InstitutionScope(
               builder: (context, institution) => BlocProvider(
-                create: (_) => ClassesBloc(getIt<ClassesRepository>(), institution.id)..add(const ClassesRequested()),
+                create: (_) => ClassesBloc(getIt<ClassesRepository>(), institution.id)..add(const ListRequested()),
                 child: const ClassesView(),
               ),
             ),
@@ -56,7 +57,7 @@ class ClassesView extends StatelessWidget {
   static Future<void> _open(BuildContext context, String route, Object extra, {bool always = false}) async {
     final bloc = context.read<ClassesBloc>();
     final saved = await context.push<bool>(route, extra: extra);
-    if (always || (saved ?? false)) bloc.add(const ClassesRequested());
+    if (always || (saved ?? false)) bloc.add(const ListRequested());
   }
 
   @override
@@ -64,36 +65,36 @@ class ClassesView extends StatelessWidget {
     final l10n = AppLocalizations.of(context);
     final bloc = context.read<ClassesBloc>();
     void add() => _open(context, AppRoutes.classForm, ClassFormArgs(institutionId: bloc.institutionId));
-    return BlocConsumer<ClassesBloc, ClassesState>(
-      listenWhen: (previous, current) => current is ClassesLoaded && current.deactivated != null,
+    return BlocConsumer<ClassesBloc, ListState<SchoolClass>>(
+      listenWhen: (previous, current) => current is ListLoaded<SchoolClass> && current.changed != null,
       listener: (context, state) {
-        if (state is ClassesLoaded) {
+        if (state is ListLoaded<SchoolClass>) {
           AppSnackbar.show(
             context,
-            message: l10n.classDeactivated(state.deactivated!.displayName),
+            message: l10n.classDeactivated(state.changed!.displayName),
             kind: AppSnackbarKind.success,
           );
         }
       },
       builder: (context, state) => switch (state) {
-        ClassesLoading() => SkeletonCards(semanticLabel: l10n.loading, heights: const [96, 96]),
-        ClassesFailed(:final failure) when failure.code == 'FORBIDDEN' => StatePanel.forbidden(
+        ListLoading<SchoolClass>() => SkeletonCards(semanticLabel: l10n.loading, heights: const [96, 96]),
+        ListFailed<SchoolClass>(:final failure) when failure.code == 'FORBIDDEN' => StatePanel.forbidden(
           key: const Key('classes.forbidden'),
           title: classErrorText(l10n, failure),
         ),
-        ClassesFailed(:final failure) => StatePanel.error(
+        ListFailed<SchoolClass>(:final failure) => StatePanel.error(
           key: const Key('classes.failed'),
           title: classErrorText(l10n, failure),
           actionLabel: l10n.retry,
-          onAction: () => bloc.add(const ClassesRequested()),
+          onAction: () => bloc.add(const ListRequested()),
         ),
-        ClassesLoaded(:final classes) when classes.isEmpty => StatePanel.empty(
+        ListLoaded<SchoolClass>(:final items) when items.isEmpty => StatePanel.empty(
           title: l10n.classesEmptyTitle,
           message: l10n.classesEmptyMessage,
           actionLabel: l10n.classAdd,
           onAction: add,
         ),
-        ClassesLoaded() => ListView(
+        ListLoaded<SchoolClass>() => ListView(
           padding: const EdgeInsets.all(AppSpacing.screenMargin),
           children: [
             if (state.actionFailure case final failure?) ...[
@@ -120,14 +121,14 @@ class ClassesView extends StatelessWidget {
                     AppRoutes.classBulk,
                     ClassBulkArgs(
                       institutionId: bloc.institutionId,
-                      added: {for (final item in state.classes) item.predefinedClass.id},
+                      added: {for (final item in state.items) item.predefinedClass.id},
                     ),
                   ),
                 ),
               ],
             ),
             const SizedBox(height: AppSpacing.sm),
-            for (final schoolClass in state.classes) ...[
+            for (final schoolClass in state.items) ...[
               _ClassCard(
                 schoolClass: schoolClass,
                 busy: state.busyId == schoolClass.id,

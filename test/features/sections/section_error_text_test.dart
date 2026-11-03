@@ -12,7 +12,6 @@ void main() {
 
   test("says in the app's own words what each refusal of the section endpoints means", () {
     expect(text(400, 'VALIDATION_FAILED'), 'Check the fields marked in red.');
-    expect(text(400, 'TOO_LONG'), 'Check the fields marked in red.');
     expect(text(409, 'DUPLICATE'), 'Another section of this class already has this name.');
     expect(text(409, 'VERSION_CONFLICT'), 'Someone else changed this. Your changes were not saved.');
     expect(text(409, 'HAS_STUDENTS'), 'Students are placed in this section. Move them first.');

@@ -1,4 +1,5 @@
 import 'package:bloc_test/bloc_test.dart';
+import 'package:bravynix_school_erp/core/bloc/list_bloc.dart';
 import 'package:bravynix_school_erp/core/network/api_failure.dart';
 import 'package:bravynix_school_erp/features/classes/domain/school_class.dart';
 import 'package:bravynix_school_erp/features/classes/presentation/bloc/class_bulk_bloc.dart';
@@ -11,7 +12,6 @@ import '../../helpers/classes.dart';
 import '../../helpers/mocks.dart';
 
 const _duplicate = ApiFailure(statusCode: 409, code: 'DUPLICATE', message: 'x');
-const _notFound = ApiFailure(statusCode: 404, code: 'NOT_FOUND', message: 'x');
 
 void main() {
   late MockClassesRepository repository;
@@ -25,42 +25,19 @@ void main() {
   group('ClassesBloc', () {
     ClassesBloc build() => ClassesBloc(repository, 'i1');
 
-    blocTest<ClassesBloc, ClassesState>(
+    blocTest<ClassesBloc, ListState<SchoolClass>>(
       'loads the classes of its Institution',
       build: build,
       setUp: () => when(() => repository.classes('i1')).thenAnswer((_) async => [class1, pucClass]),
-      act: (bloc) => bloc.add(const ClassesRequested()),
+      act: (bloc) => bloc.add(const ListRequested()),
       expect: () => [
-        const ClassesLoading(),
-        const ClassesLoaded([class1, pucClass]),
+        const ListLoading<SchoolClass>(),
+        const ListLoaded<SchoolClass>([class1, pucClass]),
       ],
     );
 
-    blocTest<ClassesBloc, ClassesState>(
-      'keeps the failure for the screen, and loads again on retry',
-      build: build,
-      setUp: () {
-        var calls = 0;
-        when(() => repository.classes('i1')).thenAnswer((_) async {
-          if (++calls == 1) throw const ApiFailure.network();
-          return [class1];
-        });
-      },
-      act: (bloc) async {
-        bloc.add(const ClassesRequested());
-        await bloc.stream.firstWhere((state) => state is ClassesFailed);
-        bloc.add(const ClassesRequested());
-      },
-      expect: () => [
-        const ClassesLoading(),
-        const ClassesFailed(ApiFailure.network()),
-        const ClassesLoading(),
-        const ClassesLoaded([class1]),
-      ],
-    );
-
-    blocTest<ClassesBloc, ClassesState>(
-      'deactivates a class, then reads the classes again, saying which one went',
+    blocTest<ClassesBloc, ListState<SchoolClass>>(
+      'deactivates a class by its ID, then reads the classes again, saying which one went',
       build: build,
       setUp: () {
         var gone = false;
@@ -68,85 +45,15 @@ void main() {
         when(() => repository.deactivate('k1')).thenAnswer((_) async => gone = true);
       },
       act: (bloc) async {
-        bloc.add(const ClassesRequested());
-        await bloc.stream.firstWhere((state) => state is ClassesLoaded);
+        bloc.add(const ListRequested());
+        await bloc.stream.firstWhere((state) => state is ListLoaded<SchoolClass>);
         bloc.add(const ClassDeactivated(class1));
       },
       skip: 2,
       expect: () => [
-        const ClassesLoaded([class1, pucClass], busyId: 'k1'),
-        const ClassesLoaded([pucClass], deactivated: class1),
+        const ListLoaded<SchoolClass>([class1, pucClass], busyId: 'k1'),
+        const ListLoaded<SchoolClass>([pucClass], changed: class1),
       ],
-    );
-
-    blocTest<ClassesBloc, ClassesState>(
-      'says why a deactivation was refused, with the list read again',
-      build: build,
-      setUp: () {
-        when(() => repository.classes('i1')).thenAnswer((_) async => [class1]);
-        when(() => repository.deactivate('k1')).thenThrow(_notFound);
-      },
-      act: (bloc) async {
-        bloc.add(const ClassesRequested());
-        await bloc.stream.firstWhere((state) => state is ClassesLoaded);
-        bloc.add(const ClassDeactivated(class1));
-      },
-      skip: 2,
-      expect: () => [
-        const ClassesLoaded([class1], busyId: 'k1'),
-        const ClassesLoaded([class1], actionFailure: _notFound),
-      ],
-      verify: (_) => verify(() => repository.classes('i1')).called(2),
-    );
-
-    blocTest<ClassesBloc, ClassesState>(
-      'fails the screen when the list cannot be read again after a deactivation',
-      build: build,
-      setUp: () {
-        var calls = 0;
-        when(() => repository.classes('i1')).thenAnswer((_) async {
-          if (++calls == 2) throw const ApiFailure.network();
-          return [class1];
-        });
-        when(() => repository.deactivate('k1')).thenAnswer((_) async {});
-      },
-      act: (bloc) async {
-        bloc.add(const ClassesRequested());
-        await bloc.stream.firstWhere((state) => state is ClassesLoaded);
-        bloc.add(const ClassDeactivated(class1));
-      },
-      skip: 2,
-      expect: () => [
-        const ClassesLoaded([class1], busyId: 'k1'),
-        const ClassesFailed(ApiFailure.network()),
-      ],
-    );
-
-    blocTest<ClassesBloc, ClassesState>(
-      'does not start a second deactivation while one is on its way',
-      build: build,
-      setUp: () {
-        when(() => repository.classes('i1')).thenAnswer((_) async => [class1]);
-        when(() => repository.deactivate(any()))
-            .thenAnswer((_) => Future<void>.delayed(const Duration(milliseconds: 10)));
-      },
-      act: (bloc) async {
-        bloc.add(const ClassesRequested());
-        await bloc.stream.firstWhere((state) => state is ClassesLoaded);
-        bloc
-          ..add(const ClassDeactivated(class1))
-          ..add(const ClassDeactivated(class1));
-      },
-      expect: () => anything,
-      verify: (_) => verify(() => repository.deactivate('k1')).called(1),
-    );
-
-    blocTest<ClassesBloc, ClassesState>(
-      'ignores a deactivation before the classes are shown',
-      build: build,
-      act: (bloc) => bloc.add(const ClassDeactivated(class1)),
-      expect: () => <ClassesState>[],
-      verify: (_) => verifyNever(() => repository.deactivate(any())),
     );
   });
 
@@ -375,7 +282,7 @@ void main() {
       skip: 2,
       expect: () => [
         const ClassBulkEditing(choices: [class1Choice], saving: true),
-        const ClassBulkEditing(choices: [class1Choice], failure: _duplicate),
+        const ClassBulkEditing(choices: [class1Choice], failure: _duplicate, sent: ['p1']),
       ],
     );
 

@@ -1,6 +1,8 @@
 import 'package:bloc_test/bloc_test.dart';
+import 'package:bravynix_school_erp/core/bloc/list_bloc.dart';
 import 'package:bravynix_school_erp/core/network/api_failure.dart';
 import 'package:bravynix_school_erp/features/masters/domain/master_entry.dart';
+import 'package:bravynix_school_erp/features/sections/domain/section.dart';
 import 'package:bravynix_school_erp/features/sections/presentation/bloc/section_form_bloc.dart';
 import 'package:bravynix_school_erp/features/sections/presentation/bloc/sections_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -10,7 +12,6 @@ import '../../helpers/mocks.dart';
 import '../../helpers/sections.dart';
 
 const _duplicate = ApiFailure(statusCode: 409, code: 'DUPLICATE', message: 'x');
-const _notFound = ApiFailure(statusCode: 404, code: 'NOT_FOUND', message: 'x');
 
 void main() {
   late MockSectionsRepository repository;
@@ -24,42 +25,19 @@ void main() {
   group('SectionsBloc', () {
     SectionsBloc build() => SectionsBloc(repository, 'k1');
 
-    blocTest<SectionsBloc, SectionsState>(
+    blocTest<SectionsBloc, ListState<Section>>(
       'loads the sections of its class',
       build: build,
       setUp: () => when(() => repository.sections('k1')).thenAnswer((_) async => [sectionA, sectionB]),
-      act: (bloc) => bloc.add(const SectionsRequested()),
+      act: (bloc) => bloc.add(const ListRequested()),
       expect: () => [
-        const SectionsLoading(),
-        const SectionsLoaded([sectionA, sectionB]),
+        const ListLoading<Section>(),
+        const ListLoaded<Section>([sectionA, sectionB]),
       ],
     );
 
-    blocTest<SectionsBloc, SectionsState>(
-      'keeps the failure for the screen, and loads again on retry',
-      build: build,
-      setUp: () {
-        var calls = 0;
-        when(() => repository.sections('k1')).thenAnswer((_) async {
-          if (++calls == 1) throw const ApiFailure.network();
-          return [sectionA];
-        });
-      },
-      act: (bloc) async {
-        bloc.add(const SectionsRequested());
-        await bloc.stream.firstWhere((state) => state is SectionsFailed);
-        bloc.add(const SectionsRequested());
-      },
-      expect: () => [
-        const SectionsLoading(),
-        const SectionsFailed(ApiFailure.network()),
-        const SectionsLoading(),
-        const SectionsLoaded([sectionA]),
-      ],
-    );
-
-    blocTest<SectionsBloc, SectionsState>(
-      'deactivates a section, then reads the sections again, saying which one went',
+    blocTest<SectionsBloc, ListState<Section>>(
+      'deactivates a section by its ID, then reads the sections again, saying which one went',
       build: build,
       setUp: () {
         var gone = false;
@@ -67,86 +45,15 @@ void main() {
         when(() => repository.deactivate('e1')).thenAnswer((_) async => gone = true);
       },
       act: (bloc) async {
-        bloc.add(const SectionsRequested());
-        await bloc.stream.firstWhere((state) => state is SectionsLoaded);
+        bloc.add(const ListRequested());
+        await bloc.stream.firstWhere((state) => state is ListLoaded<Section>);
         bloc.add(const SectionDeactivated(sectionA));
       },
       skip: 2,
       expect: () => [
-        const SectionsLoaded([sectionA, sectionB], busyId: 'e1'),
-        const SectionsLoaded([sectionB], deactivated: sectionA),
+        const ListLoaded<Section>([sectionA, sectionB], busyId: 'e1'),
+        const ListLoaded<Section>([sectionB], changed: sectionA),
       ],
-    );
-
-    blocTest<SectionsBloc, SectionsState>(
-      'says why a deactivation was refused, with the list read again',
-      build: build,
-      setUp: () {
-        when(() => repository.sections('k1')).thenAnswer((_) async => [sectionA]);
-        when(() => repository.deactivate('e1')).thenThrow(_notFound);
-      },
-      act: (bloc) async {
-        bloc.add(const SectionsRequested());
-        await bloc.stream.firstWhere((state) => state is SectionsLoaded);
-        bloc.add(const SectionDeactivated(sectionA));
-      },
-      skip: 2,
-      expect: () => [
-        const SectionsLoaded([sectionA], busyId: 'e1'),
-        const SectionsLoaded([sectionA], actionFailure: _notFound),
-      ],
-      verify: (_) => verify(() => repository.sections('k1')).called(2),
-    );
-
-    blocTest<SectionsBloc, SectionsState>(
-      'fails the screen when the list cannot be read again after a deactivation',
-      build: build,
-      setUp: () {
-        var calls = 0;
-        when(() => repository.sections('k1')).thenAnswer((_) async {
-          if (++calls == 2) throw const ApiFailure.network();
-          return [sectionA];
-        });
-        when(() => repository.deactivate('e1')).thenAnswer((_) async {});
-      },
-      act: (bloc) async {
-        bloc.add(const SectionsRequested());
-        await bloc.stream.firstWhere((state) => state is SectionsLoaded);
-        bloc.add(const SectionDeactivated(sectionA));
-      },
-      skip: 2,
-      expect: () => [
-        const SectionsLoaded([sectionA], busyId: 'e1'),
-        const SectionsFailed(ApiFailure.network()),
-      ],
-    );
-
-    blocTest<SectionsBloc, SectionsState>(
-      'does not start a second deactivation while one is on its way',
-      build: build,
-      setUp: () {
-        when(() => repository.sections('k1')).thenAnswer((_) async => [sectionA]);
-        when(
-          () => repository.deactivate(any()),
-        ).thenAnswer((_) => Future<void>.delayed(const Duration(milliseconds: 10)));
-      },
-      act: (bloc) async {
-        bloc.add(const SectionsRequested());
-        await bloc.stream.firstWhere((state) => state is SectionsLoaded);
-        bloc
-          ..add(const SectionDeactivated(sectionA))
-          ..add(const SectionDeactivated(sectionA));
-      },
-      expect: () => anything,
-      verify: (_) => verify(() => repository.deactivate('e1')).called(1),
-    );
-
-    blocTest<SectionsBloc, SectionsState>(
-      'ignores a deactivation before the sections are shown',
-      build: build,
-      act: (bloc) => bloc.add(const SectionDeactivated(sectionA)),
-      expect: () => <SectionsState>[],
-      verify: (_) => verifyNever(() => repository.deactivate(any())),
     );
   });
 

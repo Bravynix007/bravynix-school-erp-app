@@ -13,6 +13,7 @@ import 'package:go_router/go_router.dart';
 import 'package:mocktail/mocktail.dart';
 
 import '../../helpers/clipped_text.dart';
+import '../../helpers/leaving_a_form.dart';
 import '../../helpers/pump_app.dart';
 import '../../helpers/sections.dart';
 
@@ -210,17 +211,28 @@ void main() {
     });
   }
 
-  Future<bool?> openForm(WidgetTester tester, Widget form) async {
-    bool? closedWith;
+  testWidgets('offers Back to the list after a version conflict', (tester) async {
+    await pump(tester, SectionFormEditing(failure: _failure(409, 'VERSION_CONFLICT')), section: sectionA);
+    expect(find.text('Someone else changed this. Your changes were not saved.'), findsOneWidget);
+    expect(find.byKey(const Key('sectionForm.backToList')), findsOneWidget);
+  });
+
+  leavingAFormTests(
+    backToList: const Key('sectionForm.backToList'),
+    setFailure: (failure) => when(() => bloc.state).thenReturn(SectionFormEditing(failure: failure)),
+    form: () => BlocProvider<SectionFormBloc>.value(
+      value: bloc,
+      child: const SectionFormView(section: sectionA),
+    ),
+  );
+
+  Future<void> openForm(WidgetTester tester, Widget form) async {
     final router = GoRouter(
       routes: [
         GoRoute(
           path: '/',
           builder: (context, _) => Scaffold(
-            body: TextButton(
-              onPressed: () async => closedWith = await context.push<bool>('/form'),
-              child: const Text('open'),
-            ),
+            body: TextButton(onPressed: () => context.push<bool>('/form'), child: const Text('open')),
           ),
         ),
         GoRoute(
@@ -240,17 +252,7 @@ void main() {
     );
     await tester.tap(find.text('open'));
     await tester.pumpAndSettle();
-    return closedWith;
   }
-
-  testWidgets('Back to the list after a version conflict closes with true, so the list is read again', (tester) async {
-    when(() => bloc.state).thenReturn(SectionFormEditing(failure: _failure(409, 'VERSION_CONFLICT')));
-    await openForm(tester, const SectionFormView(section: sectionA));
-    expect(find.text('Someone else changed this. Your changes were not saved.'), findsOneWidget);
-    await tester.tap(find.byKey(const Key('sectionForm.backToList')));
-    await tester.pumpAndSettle();
-    expect(find.text('open'), findsOneWidget);
-  });
 
   testWidgets('closes with true and says so once saved', (tester) async {
     whenListen(

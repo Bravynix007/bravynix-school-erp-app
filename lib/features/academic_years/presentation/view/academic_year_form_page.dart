@@ -1,12 +1,12 @@
 import 'package:bravynix_school_erp/app/di/injection.dart';
 import 'package:bravynix_school_erp/core/format/formatters.dart';
 import 'package:bravynix_school_erp/core/theme/app_spacing.dart';
-import 'package:bravynix_school_erp/core/widgets/app_button.dart';
 import 'package:bravynix_school_erp/core/widgets/app_date_field.dart';
 import 'package:bravynix_school_erp/core/widgets/app_snackbar.dart';
 import 'package:bravynix_school_erp/core/widgets/app_text_field.dart';
 import 'package:bravynix_school_erp/core/widgets/app_top_bar.dart';
 import 'package:bravynix_school_erp/core/widgets/inline_message.dart';
+import 'package:bravynix_school_erp/core/widgets/stale_copy_guard.dart';
 import 'package:bravynix_school_erp/core/widgets/sticky_bottom_actions.dart';
 import 'package:bravynix_school_erp/features/academic_years/domain/academic_year.dart';
 import 'package:bravynix_school_erp/features/academic_years/domain/academic_years_repository.dart';
@@ -90,82 +90,77 @@ class _AcademicYearFormViewState extends State<AcademicYearFormView> {
         String? error(String field) => failure == null ? null : academicYearFieldError(l10n, failure, field);
         // A refused field is shown under it; any other refusal (an overlap, a stale year) is said above.
         final onFields = failure != null && failure.namesOnly(_fields);
-        return Scaffold(
-          body: Column(
-            children: [
-              AppTopBar(
-                title: isEdit ? l10n.academicYearEditTitle : l10n.academicYearAddTitle,
-                onBack: () => context.pop(),
-                backTooltip: l10n.back,
-              ),
-              Expanded(
-                child: ListView(
-                  padding: const EdgeInsets.all(AppSpacing.screenMargin),
-                  children: [
-                    if (failure != null && !onFields) ...[
-                      InlineMessage.error(
-                        academicYearErrorText(l10n, failure),
-                        key: const Key('academicYearForm.error'),
-                      ),
-                      // The year was changed meanwhile and no endpoint reads one year, so the list is read again.
-                      if (failure.code == 'VERSION_CONFLICT')
-                        Align(
-                          alignment: AlignmentDirectional.centerStart,
-                          child: AppButton(
-                            key: const Key('academicYearForm.backToList'),
-                            label: l10n.backToList,
-                            variant: AppButtonVariant.text,
-                            size: AppButtonSize.medium,
-                            onPressed: () => context.pop(true),
-                          ),
-                        ),
-                      const SizedBox(height: AppSpacing.sm),
-                    ],
-                    AppTextField(
-                      key: const Key('academicYearForm.name'),
-                      label: l10n.academicYearName,
-                      controller: _name,
-                      helper: l10n.academicYearNameHelper,
-                      required: true,
-                      requiredLabel: l10n.fieldRequired,
-                      error: error('name'),
-                      textInputAction: TextInputAction.next,
-                    ),
-                    const SizedBox(height: AppSpacing.sm),
-                    AppDateField(
-                      key: const Key('academicYearForm.start'),
-                      label: l10n.academicYearStart,
-                      valueText: Formatters.schoolDate(_start),
-                      required: true,
-                      requiredLabel: l10n.fieldRequired,
-                      error: error('startDate'),
-                      onTap: () => _pick(_start, (day) => _start = day),
-                    ),
-                    const SizedBox(height: AppSpacing.sm),
-                    AppDateField(
-                      key: const Key('academicYearForm.end'),
-                      label: l10n.academicYearEnd,
-                      valueText: Formatters.schoolDate(_end),
-                      required: true,
-                      requiredLabel: l10n.fieldRequired,
-                      error: error('endDate'),
-                      onTap: () => _pick(_end, (day) => _end = day),
-                    ),
-                  ],
+        return StaleCopyGuard(
+          stale: failure?.outdatesCopy ?? false,
+          child: Scaffold(
+            body: Column(
+              children: [
+                AppTopBar(
+                  title: isEdit ? l10n.academicYearEditTitle : l10n.academicYearAddTitle,
+                  onBack: () => Navigator.maybePop(context),
+                  backTooltip: l10n.back,
                 ),
-              ),
-            ],
-          ),
-          bottomNavigationBar: StickyBottomActions(
-            primaryLabel: l10n.academicYearSave,
-            primaryLoading: editing.saving,
-            onPrimary: editing.saving
-                ? null
-                : () => context.read<AcademicYearFormBloc>().add(
-                    AcademicYearFormSubmitted(AcademicYearFields(name: _name.text, startDate: _start, endDate: _end)),
+                Expanded(
+                  child: ListView(
+                    padding: const EdgeInsets.all(AppSpacing.screenMargin),
+                    children: [
+                      if (failure != null && !onFields) ...[
+                        // The year was changed meanwhile and no endpoint reads one year, so the list is read again.
+                        InlineMessage.error(
+                          academicYearErrorText(l10n, failure),
+                          key: const Key('academicYearForm.error'),
+                          actionLabel: failure.code == 'VERSION_CONFLICT' ? l10n.backToList : null,
+                          onAction: () => context.pop(true),
+                          actionKey: const Key('academicYearForm.backToList'),
+                        ),
+                        const SizedBox(height: AppSpacing.sm),
+                      ],
+                      AppTextField(
+                        key: const Key('academicYearForm.name'),
+                        label: l10n.academicYearName,
+                        controller: _name,
+                        helper: l10n.academicYearNameHelper,
+                        required: true,
+                        requiredLabel: l10n.fieldRequired,
+                        error: error('name'),
+                        textInputAction: TextInputAction.next,
+                      ),
+                      const SizedBox(height: AppSpacing.sm),
+                      AppDateField(
+                        key: const Key('academicYearForm.start'),
+                        label: l10n.academicYearStart,
+                        valueText: Formatters.schoolDate(_start),
+                        required: true,
+                        requiredLabel: l10n.fieldRequired,
+                        error: error('startDate'),
+                        onTap: () => _pick(_start, (day) => _start = day),
+                      ),
+                      const SizedBox(height: AppSpacing.sm),
+                      AppDateField(
+                        key: const Key('academicYearForm.end'),
+                        label: l10n.academicYearEnd,
+                        valueText: Formatters.schoolDate(_end),
+                        required: true,
+                        requiredLabel: l10n.fieldRequired,
+                        error: error('endDate'),
+                        onTap: () => _pick(_end, (day) => _end = day),
+                      ),
+                    ],
                   ),
-            secondaryLabel: l10n.cancel,
-            onSecondary: () => context.pop(),
+                ),
+              ],
+            ),
+            bottomNavigationBar: StickyBottomActions(
+              primaryLabel: l10n.academicYearSave,
+              primaryLoading: editing.saving,
+              onPrimary: editing.saving
+                  ? null
+                  : () => context.read<AcademicYearFormBloc>().add(
+                      AcademicYearFormSubmitted(AcademicYearFields(name: _name.text, startDate: _start, endDate: _end)),
+                    ),
+              secondaryLabel: l10n.cancel,
+              onSecondary: () => Navigator.maybePop(context),
+            ),
           ),
         );
       },

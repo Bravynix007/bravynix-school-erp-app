@@ -13,6 +13,7 @@ import 'package:mocktail/mocktail.dart';
 
 import '../../helpers/classes.dart';
 import '../../helpers/clipped_text.dart';
+import '../../helpers/leaving_a_form.dart';
 import '../../helpers/pump_app.dart';
 
 class _MockBulkBloc extends MockBloc<ClassBulkEvent, ClassBulkState> implements ClassBulkBloc;
@@ -113,6 +114,36 @@ void main() {
     expect(find.byKey(const Key('classBulk.error')), findsOneWidget);
     expect(find.text('Another class of this Institution already has this name or stream.'), findsOneWidget);
   });
+
+  testWidgets('names the class a refusal is about, from the item it names, and nothing about a stream', (tester) async {
+    await pump(
+      tester,
+      const ClassBulkEditing(
+        choices: [class1Choice, class2Choice],
+        sent: ['p1', 'p2'],
+        failure: ApiFailure(
+          statusCode: 409,
+          code: 'DUPLICATE',
+          message: 'x',
+          fieldErrors: [FieldError(field: 'classes[1].displayName', code: 'DUPLICATE', message: 'x')],
+        ),
+      ),
+    );
+    expect(find.text('Class 2: Another class of this Institution has this name.'), findsOneWidget);
+    expect(find.textContaining('name or stream'), findsNothing);
+  });
+
+  leavingAFormTests(
+    setFailure: (failure) =>
+        when(() => bloc.state).thenReturn(ClassBulkEditing(choices: const [class1Choice], failure: failure)),
+    form: () => BlocProvider<ClassBulkBloc>.value(
+      value: bloc,
+      child: const ClassBulkView(added: {}),
+    ),
+    // Every refusal can mean a ticked class was added meanwhile, so the list reads again after any.
+    closing: const [(409, 'DUPLICATE'), (409, 'VERSION_CONFLICT'), (422, 'CLASS_NOT_OFFERED')],
+    staying: const [],
+  );
 
   testWidgets('shows a placeholder while it loads', (tester) async {
     await pump(tester, const ClassBulkLoading());

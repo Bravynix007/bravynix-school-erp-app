@@ -49,16 +49,18 @@ class ClassBulkFailed extends ClassBulkState {
 
 /// The list is open. [choices] are the predefined classes that can be added in one go: those without a stream, since
 /// a Pre-University class needs its stream named and is added one at a time. [failure] is why the last save was
-/// refused.
+/// refused, and [sent] the predefined classes that save sent, in order, so a refusal naming `classes[1]` can name the
+/// class.
 class ClassBulkEditing extends ClassBulkState {
-  const new({required this.choices, this.saving = false, this.failure});
+  const new({required this.choices, this.saving = false, this.failure, this.sent = const []});
 
   final List<ClassChoice> choices;
   final bool saving;
   final ApiFailure? failure;
+  final List<String> sent;
 
   @override
-  List<Object?> get props => [choices, saving, failure];
+  List<Object?> get props => [choices, saving, failure, sent];
 }
 
 class ClassBulkSaved extends ClassBulkState {
@@ -110,7 +112,7 @@ class ClassBulkBloc extends Bloc<ClassBulkEvent, ClassBulkState> {
           ),
         );
       } on ApiFailure catch (failure) {
-        emit(ClassBulkEditing(choices: editing.choices, failure: failure));
+        emit(ClassBulkEditing(choices: editing.choices, failure: failure, sent: event.predefinedClassIds));
       }
     }
   }

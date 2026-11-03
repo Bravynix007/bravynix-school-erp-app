@@ -1,12 +1,12 @@
 import 'package:bravynix_school_erp/app/di/injection.dart';
 import 'package:bravynix_school_erp/core/theme/app_spacing.dart';
-import 'package:bravynix_school_erp/core/widgets/app_button.dart';
 import 'package:bravynix_school_erp/core/widgets/app_snackbar.dart';
 import 'package:bravynix_school_erp/core/widgets/app_text_field.dart';
 import 'package:bravynix_school_erp/core/widgets/app_top_bar.dart';
 import 'package:bravynix_school_erp/core/widgets/inline_message.dart';
 import 'package:bravynix_school_erp/core/widgets/selection_tile.dart';
 import 'package:bravynix_school_erp/core/widgets/skeleton.dart';
+import 'package:bravynix_school_erp/core/widgets/stale_copy_guard.dart';
 import 'package:bravynix_school_erp/core/widgets/state_panel.dart';
 import 'package:bravynix_school_erp/core/widgets/sticky_bottom_actions.dart';
 import 'package:bravynix_school_erp/features/masters/domain/master_entry.dart';
@@ -112,97 +112,95 @@ class _SectionFormViewState extends State<SectionFormView> {
         final failure = editing?.failure;
         final onFields = failure != null && failure.namesOnly(_fields);
         String? error(String field) => failure == null ? null : sectionFieldError(l10n, failure, field);
-        return Scaffold(
-          body: Column(
-            children: [
-              AppTopBar(
-                title: isEdit ? l10n.sectionEditTitle : l10n.sectionAddTitle,
-                onBack: () => context.pop(),
-                backTooltip: l10n.back,
-              ),
-              Expanded(
-                child: switch (state) {
-                  SectionFormLoading() || SectionFormSaved() => SkeletonCards(
-                    semanticLabel: l10n.loading,
-                    heights: const [160, 120],
-                  ),
-                  SectionFormFailed(:final failure) => StatePanel.error(
-                    key: const Key('sectionForm.failed'),
-                    title: sectionErrorText(l10n, failure),
-                    actionLabel: l10n.retry,
-                    onAction: () => context.read<SectionFormBloc>().add(const SectionFormStarted()),
-                  ),
-                  SectionFormEditing(:final choices) => ListView(
-                    padding: const EdgeInsets.all(AppSpacing.screenMargin),
-                    children: [
-                      if (failure != null && !onFields) ...[
-                        InlineMessage.error(sectionErrorText(l10n, failure), key: const Key('sectionForm.error')),
-                        // The section was changed meanwhile and no endpoint reads one section, so the list is read again.
-                        if (failure.code == 'VERSION_CONFLICT')
-                          Align(
-                            alignment: AlignmentDirectional.centerStart,
-                            child: AppButton(
-                              key: const Key('sectionForm.backToList'),
-                              label: l10n.backToList,
-                              variant: AppButtonVariant.text,
-                              size: AppButtonSize.medium,
-                              onPressed: () => context.pop(true),
-                            ),
+        return StaleCopyGuard(
+          stale: failure?.outdatesCopy ?? false,
+          child: Scaffold(
+            body: Column(
+              children: [
+                AppTopBar(
+                  title: isEdit ? l10n.sectionEditTitle : l10n.sectionAddTitle,
+                  onBack: () => Navigator.maybePop(context),
+                  backTooltip: l10n.back,
+                ),
+                Expanded(
+                  child: switch (state) {
+                    SectionFormLoading() || SectionFormSaved() => SkeletonCards(
+                      semanticLabel: l10n.loading,
+                      heights: const [160, 120],
+                    ),
+                    SectionFormFailed(:final failure) => StatePanel.error(
+                      key: const Key('sectionForm.failed'),
+                      title: sectionErrorText(l10n, failure),
+                      actionLabel: l10n.retry,
+                      onAction: () => context.read<SectionFormBloc>().add(const SectionFormStarted()),
+                    ),
+                    SectionFormEditing(:final choices) => ListView(
+                      padding: const EdgeInsets.all(AppSpacing.screenMargin),
+                      children: [
+                        if (failure != null && !onFields) ...[
+                          // The section was changed meanwhile and no endpoint reads one section, so the list is read again.
+                          InlineMessage.error(
+                            sectionErrorText(l10n, failure),
+                            key: const Key('sectionForm.error'),
+                            actionLabel: failure.code == 'VERSION_CONFLICT' ? l10n.backToList : null,
+                            onAction: () => context.pop(true),
+                            actionKey: const Key('sectionForm.backToList'),
+                          ),
+                          const SizedBox(height: AppSpacing.sm),
+                        ],
+                        if (isEdit)
+                          _Summary(section: section)
+                        else
+                          _Picker(
+                            choices: choices,
+                            selected: _predefinedSectionId,
+                            error: _missingChoice ? l10n.sectionChooseOne : error('predefinedSectionId'),
+                            onChanged: (id) => setState(() {
+                              _predefinedSectionId = id;
+                              _missingChoice = false;
+                            }),
                           ),
                         const SizedBox(height: AppSpacing.sm),
-                      ],
-                      if (isEdit)
-                        _Summary(section: section)
-                      else
-                        _Picker(
-                          choices: choices,
-                          selected: _predefinedSectionId,
-                          error: _missingChoice ? l10n.sectionChooseOne : error('predefinedSectionId'),
-                          onChanged: (id) => setState(() {
-                            _predefinedSectionId = id;
-                            _missingChoice = false;
-                          }),
+                        AppTextField(
+                          key: const Key('sectionForm.displayName'),
+                          label: l10n.sectionDisplayName,
+                          controller: _displayName,
+                          // Empty, a new section takes the predefined section's name; the hint says so.
+                          hint: isEdit ? null : l10n.sectionDisplayNameHint,
+                          required: isEdit,
+                          requiredLabel: l10n.fieldRequired,
+                          error: error('displayName'),
+                          textInputAction: TextInputAction.next,
                         ),
-                      const SizedBox(height: AppSpacing.sm),
-                      AppTextField(
-                        key: const Key('sectionForm.displayName'),
-                        label: l10n.sectionDisplayName,
-                        controller: _displayName,
-                        // Empty, a new section takes the predefined section's name; the hint says so.
-                        hint: isEdit ? null : l10n.sectionDisplayNameHint,
-                        required: isEdit,
-                        requiredLabel: l10n.fieldRequired,
-                        error: error('displayName'),
-                        textInputAction: TextInputAction.next,
-                      ),
-                      const SizedBox(height: AppSpacing.sm),
-                      AppTextField(
-                        key: const Key('sectionForm.capacity'),
-                        label: l10n.sectionCapacityLabel,
-                        controller: _capacity,
-                        helper: l10n.sectionCapacityHelper,
-                        error: _badCapacity ? l10n.sectionCapacityInvalid : error('capacity'),
-                        mono: true,
-                        keyboardType: TextInputType.number,
-                        inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                        textInputAction: TextInputAction.done,
-                        onChanged: (_) => setState(() => _badCapacity = false),
-                      ),
-                    ],
-                  ),
-                },
-              ),
-            ],
-          ),
-          bottomNavigationBar: editing == null
-              ? null
-              : StickyBottomActions(
-                  primaryLabel: l10n.sectionSave,
-                  primaryLoading: editing.saving,
-                  onPrimary: editing.saving ? null : () => _save(context),
-                  secondaryLabel: l10n.cancel,
-                  onSecondary: () => context.pop(),
+                        const SizedBox(height: AppSpacing.sm),
+                        AppTextField(
+                          key: const Key('sectionForm.capacity'),
+                          label: l10n.sectionCapacityLabel,
+                          controller: _capacity,
+                          helper: l10n.sectionCapacityHelper,
+                          error: _badCapacity ? l10n.sectionCapacityInvalid : error('capacity'),
+                          mono: true,
+                          keyboardType: TextInputType.number,
+                          inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                          textInputAction: TextInputAction.done,
+                          onChanged: (_) => setState(() => _badCapacity = false),
+                        ),
+                      ],
+                    ),
+                  },
                 ),
+              ],
+            ),
+            bottomNavigationBar: editing == null
+                ? null
+                : StickyBottomActions(
+                    primaryLabel: l10n.sectionSave,
+                    primaryLoading: editing.saving,
+                    onPrimary: editing.saving ? null : () => _save(context),
+                    secondaryLabel: l10n.cancel,
+                    onSecondary: () => Navigator.maybePop(context),
+                  ),
+          ),
         );
       },
     );
