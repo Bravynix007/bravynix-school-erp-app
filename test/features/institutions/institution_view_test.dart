@@ -151,11 +151,11 @@ void main() {
   });
 
   group('editing', () {
-    Future<void> pumpWithForm(
-      WidgetTester tester, {
-      required bool saved,
-      required void Function(bool? result) onClosed,
-    }) async {
+    // What the screen behind answered when the Institution closed.
+    bool? closed;
+    setUp(() => closed = null);
+
+    Future<void> pumpWithForm(WidgetTester tester, {required bool saved}) async {
       when(() => bloc.state).thenReturn(const InstitutionLoaded(institution));
       final router = GoRouter(
         routes: [
@@ -163,7 +163,7 @@ void main() {
             path: '/',
             builder: (context, _) => Scaffold(
               body: TextButton(
-                onPressed: () async => onClosed(await context.push<bool>('/institution')),
+                onPressed: () async => closed = await context.push<bool>('/institution'),
                 child: const Text('open'),
               ),
             ),
@@ -205,8 +205,7 @@ void main() {
     });
 
     testWidgets('reads the Institution again, and tells the list when it closes, after a saved edit', (tester) async {
-      bool? closed;
-      await pumpWithForm(tester, saved: true, onClosed: (result) => closed = result);
+      await pumpWithForm(tester, saved: true);
       expect(find.text('form i1'), findsOneWidget);
       await tester.tap(find.text('form i1'));
       await tester.pumpAndSettle();
@@ -217,8 +216,7 @@ void main() {
     });
 
     testWidgets('changes nothing when the form was cancelled, and closes with false', (tester) async {
-      bool? closed;
-      await pumpWithForm(tester, saved: false, onClosed: (result) => closed = result);
+      await pumpWithForm(tester, saved: false);
       await tester.tap(find.text('form i1'));
       await tester.pumpAndSettle();
       verifyNever(() => bloc.add(const InstitutionRequested()));
