@@ -20,9 +20,16 @@ abstract final class AppRoutes {
   /// INS-01: the Institutions the person works in.
   static const institutions = '/school-setup/institutions';
 
+  /// INS-02: the form that adds an Institution. Registered before [institutionPattern] so `new` is not read as an id.
+  static const institutionNew = '/school-setup/institutions/new';
+
   /// The `:id` pattern, for the router; [institution] builds the location of one Institution.
   static const institutionPattern = '/school-setup/institutions/:id';
   static String institution(String id) => '$institutions/${Uri.encodeComponent(id)}';
+
+  /// INS-04: the form that edits one Institution.
+  static const institutionEditPattern = '/school-setup/institutions/:id/edit';
+  static String institutionEdit(String id) => '${institution(id)}/edit';
 
   /// The component gallery, registered in debug and profile builds only.
   static const gallery = '/gallery';

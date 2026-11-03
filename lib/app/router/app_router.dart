@@ -7,6 +7,7 @@ import 'package:bravynix_school_erp/features/auth/presentation/session/session_b
 import 'package:bravynix_school_erp/features/auth/presentation/splash/splash_page.dart';
 import 'package:bravynix_school_erp/features/gallery/presentation/component_gallery_page.dart';
 import 'package:bravynix_school_erp/features/home/presentation/home_page.dart';
+import 'package:bravynix_school_erp/features/institutions/presentation/view/institution_form_page.dart';
 import 'package:bravynix_school_erp/features/institutions/presentation/view/institution_page.dart';
 import 'package:bravynix_school_erp/features/institutions/presentation/view/institutions_page.dart';
 import 'package:bravynix_school_erp/features/platform_dues/presentation/view/platform_due_page.dart';
@@ -68,9 +69,14 @@ GoRouter createRouter(SessionBloc session, {required SessionChanges changes}) {
       ),
       GoRoute(path: AppRoutes.schoolSetup, builder: (_, _) => const SchoolSetupPage()),
       GoRoute(path: AppRoutes.institutions, builder: (_, _) => const InstitutionsPage()),
+      GoRoute(path: AppRoutes.institutionNew, builder: (_, _) => const InstitutionFormPage()),
       GoRoute(
         path: AppRoutes.institutionPattern,
         builder: (_, state) => InstitutionPage(id: state.pathParameters['id']!),
+      ),
+      GoRoute(
+        path: AppRoutes.institutionEditPattern,
+        builder: (_, state) => InstitutionFormPage(id: state.pathParameters['id']),
       ),
       GoRoute(path: AppRoutes.updateRequired, builder: (_, _) => const UpdateRequiredPage()),
       if (!kReleaseMode) GoRoute(path: AppRoutes.gallery, builder: (_, _) => const ComponentGalleryPage()),

@@ -27,8 +27,16 @@ void main() {
       'email': null,
       'phone': null,
       'telephone': null,
-      'address': {'line1': '3 Hill Street', 'line2': null, 'pincode': null},
+      'address': {
+        'line1': '3 Hill Street',
+        'line2': null,
+        'pincode': null,
+        'countryId': null,
+        'stateId': null,
+        'cityId': null,
+      },
       'classesOffered': <Object?>[],
+      'version': 1,
     });
     expect(read, bareInstitution);
   });

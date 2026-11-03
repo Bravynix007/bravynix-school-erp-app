@@ -17,5 +17,21 @@ class InstitutionsRepositoryImpl implements InstitutionsRepository {
   Future<Institution> institution(String id) => _api.data(_path(id), parse: InstitutionModels.institution);
 
   @override
+  Future<Institution> create(InstitutionDraft draft) => _api.data(
+    'institutions',
+    method: HttpMethod.post,
+    body: InstitutionModels.createBody(draft),
+    parse: InstitutionModels.institution,
+  );
+
+  @override
+  Future<Institution> update(String id, int version, InstitutionDraft draft) => _api.data(
+    _path(id),
+    method: HttpMethod.patch,
+    body: InstitutionModels.updateBody(draft, version),
+    parse: InstitutionModels.institution,
+  );
+
+  @override
   Future<void> deactivate(String id) => _api.data(_path(id), method: HttpMethod.delete, parse: (_) {});
 }

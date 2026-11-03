@@ -10,6 +10,17 @@ import 'package:dio/dio.dart';
 
 enum HttpMethod { get, post, put, patch, delete }
 
+/// What [ApiClient.conditional] got: nothing new (304), or the data with the tag that names it.
+class ConditionalData<T> {
+  const new changed(T this.data, {this.etag}) : isModified = true;
+
+  const new notModified() : data = null, etag = null, isModified = false;
+
+  final bool isModified;
+  final T? data;
+  final String? etag;
+}
+
 /// The one way features call the API. It unwraps the envelope and turns every
 /// failure into an [ApiFailure] (API design 7, 8). Repositories call it; blocs
 /// and widgets never see Dio.
@@ -47,24 +58,60 @@ class ApiClient {
           receiveTimeout: timeout,
         ),
       );
-      final data = response.data;
-      if (!ApiEnvelope.isEnvelope(data)) {
-        throw ApiFailure.unexpected(response.statusCode ?? 0, requestId: _requestId(response));
-      }
-      return ApiEnvelope.parse(data! as Map<String, dynamic>, parse);
-    } on DioException catch (error) {
+      return _unwrap(response, parse);
+    } on Object catch (error, stackTrace) {
+      throw _asFailure(path, error, stackTrace, response);
+    }
+  }
+
+  /// A read the server may answer 304 to when [etag] still matches (API design 19.2): the caller keeps what it
+  /// holds. A 200 carries the new data and the tag to send next time.
+  Future<ConditionalData<T>> conditional<T>(
+    String path, {
+    required T Function(Object? data) parse,
+    String? etag,
+    Map<String, Object?>? query,
+  }) async {
+    Response<Object?>? response;
+    try {
+      response = await _dio.get<Object?>(
+        path,
+        queryParameters: _query(query),
+        options: Options(
+          headers: {HttpHeaders.ifNoneMatchHeader: ?etag},
+          validateStatus: (status) => status != null && ((status >= 200 && status < 300) || status == 304),
+        ),
+      );
+      if (response.statusCode == 304) return const ConditionalData.notModified();
+      return ConditionalData.changed(
+        _unwrap(response, parse).data,
+        etag: response.headers.value(HttpHeaders.etagHeader),
+      );
+    } on Object catch (error, stackTrace) {
+      throw _asFailure(path, error, stackTrace, response);
+    }
+  }
+
+  ApiEnvelope<T> _unwrap<T>(Response<Object?> response, T Function(Object? data) parse) {
+    final data = response.data;
+    if (!ApiEnvelope.isEnvelope(data)) {
+      throw ApiFailure.unexpected(response.statusCode ?? 0, requestId: _requestId(response));
+    }
+    return ApiEnvelope.parse(data! as Map<String, dynamic>, parse);
+  }
+
+  ApiFailure _asFailure(String path, Object error, StackTrace stackTrace, Response<Object?>? response) {
+    if (error is ApiFailure) return error;
+    if (error is DioException) {
       final failure = _toFailure(error);
       if (failure.isUpdateRequired) _events.emitUpdateRequired(failure);
-      throw failure;
-    } on ApiFailure {
-      rethrow;
-    } on Object catch (error, stackTrace) {
-      // An answer that does not match its model (a cast or format error) is
-      // still an ApiFailure, so callers and the splash never hang on it. It
-      // is logged, so a parsing bug of ours is not hidden (re-review R-A9).
-      log('Unreadable answer for $path', name: 'api', error: error, stackTrace: stackTrace);
-      throw ApiFailure.unexpected(response?.statusCode ?? 0, requestId: _requestId(response));
+      return failure;
     }
+    // An answer that does not match its model (a cast or format error) is
+    // still an ApiFailure, so callers and the splash never hang on it. It
+    // is logged, so a parsing bug of ours is not hidden (re-review R-A9).
+    log('Unreadable answer for $path', name: 'api', error: error, stackTrace: stackTrace);
+    return ApiFailure.unexpected(response?.statusCode ?? 0, requestId: _requestId(response));
   }
 
   /// `data` only, for the common case.
