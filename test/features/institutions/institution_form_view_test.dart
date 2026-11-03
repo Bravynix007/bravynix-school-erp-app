@@ -230,12 +230,7 @@ void main() {
     });
 
     for (final (code, status, text) in [
-      ('VERSION_CONFLICT', 409, 'Someone changed this Institution while you were editing. Go back and open it again.'),
-      (
-        'CATEGORY_IN_USE',
-        409,
-        'A class uses a category you unticked. Deactivate or move those classes first, or keep the category.',
-      ),
+      ('VERSION_CONFLICT', 409, 'Someone else changed this Institution. Your changes were not saved.'),
       ('REFERENCE_INACTIVE', 422, 'Something you chose is no longer available. Choose again.'),
       ('FORBIDDEN', 403, "You don't have access to this."),
       ('NOT_FOUND', 404, 'This Institution could not be found. It may have been deactivated.'),
@@ -246,6 +241,56 @@ void main() {
         expect(find.text(text), findsOneWidget);
       });
     }
+
+    testWidgets('offers Reload after a version conflict, which reads the Institution again', (tester) async {
+      await pump(tester, _editState.copyWith(failure: () => _failure(409, 'VERSION_CONFLICT')), id: 'i1');
+      await tester.tap(find.byKey(const Key('institutionForm.reload')));
+      verify(() => bloc.add(const InstitutionFormStarted())).called(1);
+    });
+
+    testWidgets('offers Reload for no other failure', (tester) async {
+      await pump(tester, _addState.copyWith(failure: () => const ApiFailure.network()));
+      expect(find.byKey(const Key('institutionForm.reload')), findsNothing);
+    });
+
+    testWidgets('says a category in use under the categories, as the API names the field', (tester) async {
+      await pump(
+        tester,
+        _editState.copyWith(
+          failure: () => _failure(
+            409,
+            'CATEGORY_IN_USE',
+            fields: const [FieldError(field: 'classesOffered', code: 'CATEGORY_IN_USE', message: 'In use')],
+          ),
+        ),
+        id: 'i1',
+      );
+      expect(find.text('In use'), findsOneWidget);
+      expect(find.byKey(const Key('institutionForm.error')), findsNothing);
+    });
+
+    testWidgets('says a hidden category in words above the form, as the API names it by position', (tester) async {
+      await pump(
+        tester,
+        _editState.copyWith(
+          failure: () => _failure(
+            422,
+            'REFERENCE_INACTIVE',
+            fields: const [FieldError(field: 'classesOffered[1]', code: 'REFERENCE_INACTIVE', message: 'Hidden')],
+          ),
+        ),
+        id: 'i1',
+      );
+      expect(find.text('Something you chose is no longer available. Choose again.'), findsOneWidget);
+    });
+
+    testWidgets('says a category in use in words when the API names no field', (tester) async {
+      await pump(tester, _editState.copyWith(failure: () => _failure(409, 'CATEGORY_IN_USE')), id: 'i1');
+      expect(
+        find.text('Classes already use a category you unticked, so it has to stay offered. Tick it again to save.'),
+        findsOneWidget,
+      );
+    });
 
     testWidgets('says a missing connection above the form', (tester) async {
       await pump(tester, _addState.copyWith(failure: () => const ApiFailure.network()));

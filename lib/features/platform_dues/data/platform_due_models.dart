@@ -49,12 +49,10 @@ abstract final class PlatformDueModels {
   static PlatformDues dues(Object? raw) {
     final json = jsonObject(raw);
     final banner = jsonObject(json['banner']);
-    final dues = json['dues'];
-    if (dues is! List<dynamic>) throw const FormatException('Expected a JSON array');
     return PlatformDues(
       totalDueAmount: banner['totalDueAmount'] as String,
       hasOpenDues: banner['hasOpenDues'] as bool,
-      dues: [for (final item in dues) line(item)],
+      dues: [for (final item in jsonList(json['dues'])) line(item)],
     );
   }
 }

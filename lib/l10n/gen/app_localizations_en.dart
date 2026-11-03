@@ -544,12 +544,14 @@ class AppLocalizationsEn extends AppLocalizations {
   String get errorInstitutionDuplicate => 'Another Institution already uses this code.';
 
   @override
-  String get errorVersionConflict =>
-      'Someone changed this Institution while you were editing. Go back and open it again.';
+  String get errorVersionConflict => 'Someone else changed this Institution. Your changes were not saved.';
+
+  @override
+  String get institutionReload => 'Reload';
 
   @override
   String get errorCategoryInUse =>
-      'A class uses a category you unticked. Deactivate or move those classes first, or keep the category.';
+      'Classes already use a category you unticked, so it has to stay offered. Tick it again to save.';
 
   @override
   String get errorReferenceInactive => 'Something you chose is no longer available. Choose again.';

@@ -376,8 +376,9 @@ class InstitutionFormBloc extends Bloc<InstitutionFormEvent, InstitutionFormStat
   }
 
   InstitutionDraft _draft(InstitutionFormReady ready, InstitutionTexts texts) {
-    final countryCode = _text(texts.phoneCountryCode);
-    final number = _text(texts.phoneNumber);
+    // The API takes the dial code without the plus and the number without spaces, which people type either way.
+    final countryCode = _text(texts.phoneCountryCode.replaceAll(RegExp(r'[\s+]'), ''));
+    final number = _text(texts.phoneNumber.replaceAll(RegExp(r'\s'), ''));
     return InstitutionDraft(
       name: texts.name.trim(),
       // An edit never sends the code; the draft carries the one it has.

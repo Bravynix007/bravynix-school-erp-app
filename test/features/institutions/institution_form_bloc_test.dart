@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:bloc_test/bloc_test.dart';
 import 'package:bravynix_school_erp/core/network/api_failure.dart';
 import 'package:bravynix_school_erp/features/institutions/domain/institution.dart';
@@ -142,6 +144,33 @@ void main() {
     );
 
     blocTest<InstitutionFormBloc, InstitutionFormState>(
+      'the cities of the state chosen last win, however late the earlier list arrives',
+      build: build,
+      setUp: () {
+        final late = Completer<List<MasterEntry>>();
+        when(() => masters.entries(MasterType.cities, parentId: 's1')).thenAnswer((_) => late.future);
+        when(() => masters.entries(MasterType.cities, parentId: 's2')).thenAnswer((_) async {
+          // The answer for the first state comes after this one.
+          Future<void>.delayed(const Duration(milliseconds: 10), () => late.complete([bengaluru, mysuru]));
+          return [kochi];
+        });
+      },
+      act: (bloc) async {
+        bloc.add(const InstitutionFormStarted());
+        await bloc.stream.firstWhere((state) => state is InstitutionFormReady);
+        bloc
+          ..add(const InstitutionStateChosen('s1'))
+          ..add(const InstitutionStateChosen('s2'));
+        await Future<void>.delayed(const Duration(milliseconds: 50));
+      },
+      verify: (bloc) {
+        final ready = bloc.state as InstitutionFormReady;
+        expect(ready.stateId, 's2');
+        expect(ready.cities, [kochi]);
+      },
+    );
+
+    blocTest<InstitutionFormBloc, InstitutionFormState>(
       'another country empties the state and the city, and clearing the state loads nothing',
       build: build,
       setUp: () {
@@ -250,6 +279,17 @@ void main() {
         'sends no phone for a country code alone',
         const InstitutionTexts(name: 'a', code: 'b', addressLine1: 'c', phoneCountryCode: '91'),
         null,
+      ),
+      (
+        'sends the dial code without a plus and the number without spaces',
+        const InstitutionTexts(
+          name: 'a',
+          code: 'b',
+          addressLine1: 'c',
+          phoneCountryCode: ' +91 ',
+          phoneNumber: '98765 43210',
+        ),
+        const Phone(countryCode: '91', number: '9876543210'),
       ),
       (
         'sends a number without its country code as it is, so the API names the field',

@@ -1,6 +1,7 @@
 import 'package:bravynix_school_erp/app/di/injection.dart';
 import 'package:bravynix_school_erp/core/network/api_failure.dart';
 import 'package:bravynix_school_erp/core/theme/app_spacing.dart';
+import 'package:bravynix_school_erp/core/widgets/app_button.dart';
 import 'package:bravynix_school_erp/core/widgets/app_card.dart';
 import 'package:bravynix_school_erp/core/widgets/app_dropdown_field.dart';
 import 'package:bravynix_school_erp/core/widgets/app_snackbar.dart';
@@ -202,7 +203,8 @@ class _FormState extends State<_Form> {
     final bloc = context.read<InstitutionFormBloc>();
     final failure = state.failure;
     String? error(String field) => failure?.fieldError(field)?.message;
-    // A save that failed on a field is shown under it; any other failure, and a list that did not load, is said above.
+    // A save that failed on fields of this form is shown under them; any other failure, and a list that did not load,
+    // is said above.
     final banner = failure != null && !_isFieldFailure(failure) ? institutionFormErrorText(l10n, failure) : null;
     return Scaffold(
       body: Column(
@@ -214,6 +216,18 @@ class _FormState extends State<_Form> {
               children: [
                 if (banner != null) ...[
                   InlineMessage.error(banner, key: const Key('institutionForm.error')),
+                  // Someone else saved first, so the form is read again before another Save can succeed (API design 8.2).
+                  if (failure?.code == 'VERSION_CONFLICT')
+                    Align(
+                      alignment: AlignmentDirectional.centerStart,
+                      child: AppButton(
+                        key: const Key('institutionForm.reload'),
+                        label: l10n.institutionReload,
+                        variant: AppButtonVariant.text,
+                        size: AppButtonSize.medium,
+                        onPressed: () => bloc.add(const InstitutionFormStarted()),
+                      ),
+                    ),
                   const SizedBox(height: AppSpacing.sm),
                 ],
                 SectionHeader(title: l10n.institutionFormBasics),
@@ -445,9 +459,32 @@ class _FormState extends State<_Form> {
     );
   }
 
-  /// True when the failure is a validation or a duplicate code that has a field to show it under.
+  /// The fields the form shows an error under, named as the API names them.
+  static const _fields = {
+    'name',
+    'code',
+    'place',
+    'boardCode',
+    'affiliationNumber',
+    'gstin',
+    'email',
+    'phone',
+    'phone.countryCode',
+    'phone.number',
+    'telephone',
+    'classesOffered',
+    'address.line1',
+    'address.line2',
+    'address.pincode',
+    'address.countryId',
+    'address.stateId',
+    'address.cityId',
+  };
+
+  /// True when every field error of the failure belongs to a field of this form, so each shows under its own field.
+  /// A field it does not know (`classesOffered[1]`) would show nowhere, so the failure is said above instead.
   static bool _isFieldFailure(ApiFailure failure) =>
-      failure.fieldErrors.isNotEmpty && failure.code != 'REFERENCE_INACTIVE';
+      failure.fieldErrors.isNotEmpty && failure.fieldErrors.every((error) => _fields.contains(error.field));
 }
 
 /// A country, state or city picker. A value that is not in [entries] (the list is still loading, or the entry was

@@ -1012,13 +1012,19 @@ abstract class AppLocalizations {
   /// No description provided for @errorVersionConflict.
   ///
   /// In en, this message translates to:
-  /// **'Someone changed this Institution while you were editing. Go back and open it again.'**
+  /// **'Someone else changed this Institution. Your changes were not saved.'**
   String get errorVersionConflict;
+
+  /// No description provided for @institutionReload.
+  ///
+  /// In en, this message translates to:
+  /// **'Reload'**
+  String get institutionReload;
 
   /// No description provided for @errorCategoryInUse.
   ///
   /// In en, this message translates to:
-  /// **'A class uses a category you unticked. Deactivate or move those classes first, or keep the category.'**
+  /// **'Classes already use a category you unticked, so it has to stay offered. Tick it again to save.'**
   String get errorCategoryInUse;
 
   /// No description provided for @errorReferenceInactive.
