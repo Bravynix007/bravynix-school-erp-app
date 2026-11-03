@@ -16,6 +16,7 @@ import 'package:bravynix_school_erp/features/classes/presentation/view/class_bul
 import 'package:bravynix_school_erp/features/classes/presentation/view/class_error_text.dart';
 import 'package:bravynix_school_erp/features/classes/presentation/view/class_form_page.dart';
 import 'package:bravynix_school_erp/features/institutions/presentation/view/institution_scope.dart';
+import 'package:bravynix_school_erp/features/sections/presentation/view/sections_page.dart';
 import 'package:bravynix_school_erp/l10n/gen/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -52,10 +53,10 @@ class ClassesView extends StatelessWidget {
   const new({super.key});
 
   /// A saved class joins the list, so it is read again when a form closes with true.
-  static Future<void> _open(BuildContext context, String route, Object extra) async {
+  static Future<void> _open(BuildContext context, String route, Object extra, {bool always = false}) async {
     final bloc = context.read<ClassesBloc>();
     final saved = await context.push<bool>(route, extra: extra);
-    if (saved ?? false) bloc.add(const ClassesRequested());
+    if (always || (saved ?? false)) bloc.add(const ClassesRequested());
   }
 
   @override
@@ -136,6 +137,9 @@ class ClassesView extends StatelessWidget {
                   AppRoutes.classForm,
                   ClassFormArgs(institutionId: bloc.institutionId, schoolClass: schoolClass),
                 ),
+                // Sections are added and deactivated there, so the count on the card is read again on the way back.
+                onSections: () =>
+                    _open(context, AppRoutes.classSections, SectionsArgs(schoolClass: schoolClass), always: true),
               ),
               const SizedBox(height: AppSpacing.xs),
             ],
@@ -147,7 +151,13 @@ class ClassesView extends StatelessWidget {
 }
 
 class _ClassCard extends StatelessWidget {
-  const new({required this.schoolClass, required this.busy, required this.locked, required this.onEdit});
+  const new({
+    required this.schoolClass,
+    required this.busy,
+    required this.locked,
+    required this.onEdit,
+    required this.onSections,
+  });
 
   final SchoolClass schoolClass;
 
@@ -157,6 +167,7 @@ class _ClassCard extends StatelessWidget {
   /// A change to any class is on its way, so no card starts another.
   final bool locked;
   final VoidCallback onEdit;
+  final VoidCallback onSections;
 
   @override
   Widget build(BuildContext context) {
@@ -185,6 +196,13 @@ class _ClassCard extends StatelessWidget {
                 variant: AppButtonVariant.secondary,
                 size: AppButtonSize.medium,
                 onPressed: locked ? null : onEdit,
+              ),
+              AppButton(
+                key: ValueKey('class.sections.${schoolClass.id}'),
+                label: l10n.classOpenSections,
+                variant: AppButtonVariant.secondary,
+                size: AppButtonSize.medium,
+                onPressed: locked ? null : onSections,
               ),
               AppButton(
                 key: ValueKey('class.deactivate.${schoolClass.id}'),
