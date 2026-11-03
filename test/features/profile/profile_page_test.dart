@@ -83,6 +83,23 @@ void main() {
     });
   }
 
+  for (final role in [RoleCode.societyOwner, RoleCode.institutionAdmin]) {
+    testWidgets('offers School setup to a ${role.name}', (tester) async {
+      final context = AuthContext(role: role, societyId: 's1', societyName: 'Sunrise Education Trust');
+      await pump(tester, AuthSession(person: testPerson, contexts: [context], activeContext: context));
+      expect(find.byKey(const Key('profile.schoolSetup')), findsOneWidget);
+      expect(find.text('School setup'), findsOneWidget);
+    });
+  }
+
+  for (final role in [RoleCode.teacherStaff, RoleCode.studentParent]) {
+    testWidgets('offers no School setup to a ${role.name}', (tester) async {
+      final context = AuthContext(role: role, societyId: 's1', societyName: 'Sunrise Education Trust');
+      await pump(tester, AuthSession(person: testPerson, contexts: [context], activeContext: context));
+      expect(find.byKey(const Key('profile.schoolSetup')), findsNothing);
+    });
+  }
+
   testWidgets('Log out ends the session', (tester) async {
     await pump(tester, testSession);
     await tester.tap(find.byKey(const Key('profile.logOut')));
