@@ -48,6 +48,11 @@ abstract final class AppRoutes {
   static const classForm = '/school-setup/classes/form';
   static const classBulk = '/school-setup/classes/bulk';
 
+  /// The sections of one class (SEC-01) and the form that adds or edits one (SEC-02, SEC-03). Both take what they need
+  /// as the route's `extra`: no endpoint reads one class or one section, so the list hands it over.
+  static const classSections = '/school-setup/classes/sections';
+  static const sectionForm = '/school-setup/classes/sections/form';
+
   /// The component gallery, registered in debug and profile builds only.
   static const gallery = '/gallery';
 

@@ -5,9 +5,12 @@ import 'package:bravynix_school_erp/features/auth/domain/auth_entities.dart';
 import 'package:bravynix_school_erp/features/auth/presentation/session/session_bloc.dart';
 import 'package:bravynix_school_erp/features/classes/presentation/view/class_bulk_page.dart';
 import 'package:bravynix_school_erp/features/classes/presentation/view/class_form_page.dart';
+import 'package:bravynix_school_erp/features/sections/presentation/view/section_form_page.dart';
+import 'package:bravynix_school_erp/features/sections/presentation/view/sections_page.dart';
 import 'package:bravynix_school_erp/features/subjects/presentation/view/subject_form_page.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import '../helpers/classes.dart';
 import '../helpers/subjects.dart';
 
 void main() {
@@ -79,6 +82,14 @@ void main() {
     expect(classBulkRedirect(const ClassBulkArgs(institutionId: 'i1', added: {})), isNull);
     expect(classBulkRedirect(const ClassFormArgs(institutionId: 'i1')), AppRoutes.classes);
     expect(classBulkRedirect(null), AppRoutes.classes);
+  });
+
+  test('the sections open only with the class the list passes, else back to the class list', () {
+    expect(classSectionsRedirect(const SectionsArgs(schoolClass: class1)), isNull);
+    expect(classSectionsRedirect(null), AppRoutes.classes);
+    expect(sectionFormRedirect(const SectionFormArgs(classId: 'k1')), isNull);
+    expect(sectionFormRedirect(const SectionsArgs(schoolClass: class1)), AppRoutes.classes);
+    expect(sectionFormRedirect(null), AppRoutes.classes);
   });
 
   test('the subject form opens only with what the list passes, so an Edit that lost its subject is not an Add', () {

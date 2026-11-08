@@ -1567,6 +1567,186 @@ abstract class AppLocalizations {
   /// **'This class could not be found. It may have been deactivated.'**
   String get errorClassNotFound;
 
+  /// No description provided for @errorSectionNotFound.
+  ///
+  /// In en, this message translates to:
+  /// **'This section could not be found. It may have been deactivated.'**
+  String get errorSectionNotFound;
+
+  /// No description provided for @classOpenSections.
+  ///
+  /// In en, this message translates to:
+  /// **'Sections'**
+  String get classOpenSections;
+
+  /// No description provided for @sectionsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Sections'**
+  String get sectionsTitle;
+
+  /// No description provided for @sectionsEmptyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'No sections yet'**
+  String get sectionsEmptyTitle;
+
+  /// No description provided for @sectionsEmptyMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Add the sections of {name}, such as A and B.'**
+  String sectionsEmptyMessage(String name);
+
+  /// No description provided for @sectionAdd.
+  ///
+  /// In en, this message translates to:
+  /// **'Add section'**
+  String get sectionAdd;
+
+  /// No description provided for @sectionAddTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Add section'**
+  String get sectionAddTitle;
+
+  /// No description provided for @sectionEditTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit section'**
+  String get sectionEditTitle;
+
+  /// No description provided for @sectionEdit.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit'**
+  String get sectionEdit;
+
+  /// No description provided for @sectionDeactivate.
+  ///
+  /// In en, this message translates to:
+  /// **'Deactivate'**
+  String get sectionDeactivate;
+
+  /// No description provided for @sectionDeactivateTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Deactivate {name}?'**
+  String sectionDeactivateTitle(String name);
+
+  /// No description provided for @sectionDeactivateMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Its name can be used again. Nothing is deleted.'**
+  String get sectionDeactivateMessage;
+
+  /// No description provided for @sectionDeactivated.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} deactivated'**
+  String sectionDeactivated(String name);
+
+  /// No description provided for @sectionSaved.
+  ///
+  /// In en, this message translates to:
+  /// **'Section saved'**
+  String get sectionSaved;
+
+  /// No description provided for @sectionCapacity.
+  ///
+  /// In en, this message translates to:
+  /// **'Capacity {count}'**
+  String sectionCapacity(int count);
+
+  /// No description provided for @sectionNoCapacity.
+  ///
+  /// In en, this message translates to:
+  /// **'No capacity set'**
+  String get sectionNoCapacity;
+
+  /// No description provided for @sectionStudents.
+  ///
+  /// In en, this message translates to:
+  /// **'Students {count}'**
+  String sectionStudents(String count);
+
+  /// No description provided for @sectionPredefined.
+  ///
+  /// In en, this message translates to:
+  /// **'Section'**
+  String get sectionPredefined;
+
+  /// No description provided for @sectionDisplayName.
+  ///
+  /// In en, this message translates to:
+  /// **'Name'**
+  String get sectionDisplayName;
+
+  /// No description provided for @sectionDisplayNameHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Section name'**
+  String get sectionDisplayNameHint;
+
+  /// No description provided for @sectionCapacityLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Capacity'**
+  String get sectionCapacityLabel;
+
+  /// No description provided for @sectionCapacityHelper.
+  ///
+  /// In en, this message translates to:
+  /// **'Optional. A warning, not a limit'**
+  String get sectionCapacityHelper;
+
+  /// No description provided for @sectionCapacityInvalid.
+  ///
+  /// In en, this message translates to:
+  /// **'Use 1 to 32767.'**
+  String get sectionCapacityInvalid;
+
+  /// No description provided for @sectionChooseOne.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a section'**
+  String get sectionChooseOne;
+
+  /// No description provided for @sectionNoneLeft.
+  ///
+  /// In en, this message translates to:
+  /// **'Every predefined section is already added to this class.'**
+  String get sectionNoneLeft;
+
+  /// No description provided for @sectionSave.
+  ///
+  /// In en, this message translates to:
+  /// **'Save'**
+  String get sectionSave;
+
+  /// No description provided for @errorSectionDuplicate.
+  ///
+  /// In en, this message translates to:
+  /// **'Another section of this class already has this name.'**
+  String get errorSectionDuplicate;
+
+  /// No description provided for @errorSectionNameTaken.
+  ///
+  /// In en, this message translates to:
+  /// **'Another section of this class has this name.'**
+  String get errorSectionNameTaken;
+
+  /// No description provided for @errorSectionTaken.
+  ///
+  /// In en, this message translates to:
+  /// **'This section is already added to this class.'**
+  String get errorSectionTaken;
+
+  /// No description provided for @errorSectionHasStudents.
+  ///
+  /// In en, this message translates to:
+  /// **'Students are placed in this section. Move them first.'**
+  String get errorSectionHasStudents;
+
   /// No description provided for @errorYearNotFound.
   ///
   /// In en, this message translates to:

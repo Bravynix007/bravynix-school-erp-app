@@ -9,13 +9,15 @@ import 'package:go_router/go_router.dart';
 /// refused because the list holds an old copy (VERSION_CONFLICT, NOT_FOUND) each closes with `true`, so the list reads
 /// again; after any other refusal, or none, none does. [setFailure] puts the form in the state of a refusal (null: none);
 /// [backToList] is the button the banner of a version conflict offers, which does the same. [closing] and [staying] are
-/// the refusals after which leaving closes with `true` or not.
+/// the refusals after which leaving closes with `true` or not; [closingFields] are 409 refusals naming a field
+/// (field, code) that do the same, because what the field was checked against is old.
 void leavingAFormTests({
   required void Function(ApiFailure? failure) setFailure,
   required Widget Function() form,
   Key? backToList,
   List<(int, String)> closing = const [(409, 'VERSION_CONFLICT'), (404, 'NOT_FOUND')],
   List<(int, String)> staying = const [(409, 'DUPLICATE')],
+  List<(String, String)> closingFields = const [],
 }) {
   group('leaving the form', () {
     Future<bool?> leave(WidgetTester tester, ApiFailure? failure, Future<void> Function() exit) async {
@@ -78,6 +80,21 @@ void leavingAFormTests({
           final closedWith = await leave(
             tester,
             ApiFailure(statusCode: status, code: code, message: 'x'),
+            () => exit(tester),
+          );
+          expect(closedWith, isTrue);
+        });
+      }
+      for (final (field, code) in closingFields) {
+        testWidgets('$name after $code on $field closes with true, so the list reads again', (tester) async {
+          final closedWith = await leave(
+            tester,
+            ApiFailure(
+              statusCode: 409,
+              code: code,
+              message: 'x',
+              fieldErrors: [FieldError(field: field, code: code, message: 'x')],
+            ),
             () => exit(tester),
           );
           expect(closedWith, isTrue);
