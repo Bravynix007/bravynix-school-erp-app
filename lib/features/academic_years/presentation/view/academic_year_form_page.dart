@@ -91,7 +91,7 @@ class _AcademicYearFormViewState extends State<AcademicYearFormView> {
         // A refused field is shown under it; any other refusal (an overlap, a stale year) is said above.
         final onFields = failure != null && failure.namesOnly(_fields);
         return StaleCopyGuard(
-          failure: failure,
+          stale: failure?.outdatesCopy ?? false,
           child: Scaffold(
             body: Column(
               children: [

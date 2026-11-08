@@ -3,6 +3,8 @@ import 'package:bravynix_school_erp/app/router/app_routes.dart';
 import 'package:bravynix_school_erp/features/academic_years/presentation/view/academic_year_form_page.dart';
 import 'package:bravynix_school_erp/features/auth/domain/auth_entities.dart';
 import 'package:bravynix_school_erp/features/auth/presentation/session/session_bloc.dart';
+import 'package:bravynix_school_erp/features/classes/presentation/view/class_bulk_page.dart';
+import 'package:bravynix_school_erp/features/classes/presentation/view/class_form_page.dart';
 import 'package:bravynix_school_erp/features/subjects/presentation/view/subject_form_page.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -69,6 +71,14 @@ void main() {
     expect(academicYearFormRedirect(const AcademicYearFormArgs(institutionId: 'i1')), isNull);
     expect(academicYearFormRedirect(null), AppRoutes.academicYears);
     expect(academicYearFormRedirect('i1'), AppRoutes.academicYears);
+  });
+
+  test('the class forms open only with what the list passes, else back to the list', () {
+    expect(classFormRedirect(const ClassFormArgs(institutionId: 'i1')), isNull);
+    expect(classFormRedirect(null), AppRoutes.classes);
+    expect(classBulkRedirect(const ClassBulkArgs(institutionId: 'i1', added: {})), isNull);
+    expect(classBulkRedirect(const ClassFormArgs(institutionId: 'i1')), AppRoutes.classes);
+    expect(classBulkRedirect(null), AppRoutes.classes);
   });
 
   test('the subject form opens only with what the list passes, so an Edit that lost its subject is not an Add', () {

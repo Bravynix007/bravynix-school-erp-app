@@ -13,6 +13,9 @@ import 'package:bravynix_school_erp/features/auth/data/auth_repository_impl.dart
 import 'package:bravynix_school_erp/features/auth/domain/auth_repository.dart';
 import 'package:bravynix_school_erp/features/blocks/data/blocks_repository_impl.dart';
 import 'package:bravynix_school_erp/features/blocks/domain/blocks_repository.dart';
+import 'package:bravynix_school_erp/features/classes/data/classes_repository_impl.dart';
+import 'package:bravynix_school_erp/features/classes/domain/class_catalogue.dart';
+import 'package:bravynix_school_erp/features/classes/domain/classes_repository.dart';
 import 'package:bravynix_school_erp/features/institutions/data/institutions_repository_impl.dart';
 import 'package:bravynix_school_erp/features/institutions/domain/institutions_repository.dart';
 import 'package:bravynix_school_erp/features/masters/data/masters_repository_impl.dart';
@@ -63,6 +66,8 @@ Future<void> configureDependencies(
       ),
     )
     ..registerLazySingleton<AcademicYearsRepository>(() => AcademicYearsRepositoryImpl(api: getIt()))
+    ..registerLazySingleton<ClassesRepository>(() => ClassesRepositoryImpl(api: getIt()))
+    ..registerLazySingleton(() => ClassCatalogue(getIt(), getIt()))
     ..registerLazySingleton<SubjectsRepository>(() => SubjectsRepositoryImpl(api: getIt()))
     ..registerLazySingleton<AuthRepository>(
       () => AuthRepositoryImpl(

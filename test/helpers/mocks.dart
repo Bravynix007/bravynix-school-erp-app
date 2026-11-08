@@ -2,6 +2,8 @@ import 'package:bravynix_school_erp/features/academic_years/domain/academic_year
 import 'package:bravynix_school_erp/features/auth/domain/auth_entities.dart';
 import 'package:bravynix_school_erp/features/auth/domain/auth_repository.dart';
 import 'package:bravynix_school_erp/features/blocks/domain/blocks_repository.dart';
+import 'package:bravynix_school_erp/features/classes/domain/class_catalogue.dart';
+import 'package:bravynix_school_erp/features/classes/domain/classes_repository.dart';
 import 'package:bravynix_school_erp/features/institutions/domain/institutions_repository.dart';
 import 'package:bravynix_school_erp/features/masters/domain/masters_repository.dart';
 import 'package:bravynix_school_erp/features/platform_dues/domain/platform_dues_repository.dart';
@@ -9,6 +11,10 @@ import 'package:bravynix_school_erp/features/subjects/domain/subjects_repository
 import 'package:mocktail/mocktail.dart';
 
 class MockAcademicYearsRepository extends Mock implements AcademicYearsRepository;
+
+class MockClassCatalogue extends Mock implements ClassCatalogue;
+
+class MockClassesRepository extends Mock implements ClassesRepository;
 
 class MockAuthRepository extends Mock implements AuthRepository;
 
