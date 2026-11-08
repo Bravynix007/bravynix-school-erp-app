@@ -184,6 +184,12 @@ void main() {
     verify(() => bloc.add(const ListRequested())).called(1);
   });
 
+  testWidgets('a class deactivated meanwhile is said to be gone, not a section', (tester) async {
+    await pump(tester, const ListFailed<Section>(ApiFailure(statusCode: 404, code: 'NOT_FOUND', message: 'x')));
+    expect(find.text('This class could not be found. It may have been deactivated.'), findsOneWidget);
+    expect(find.text('This section could not be found. It may have been deactivated.'), findsNothing);
+  });
+
   testWidgets('says a role that may not see sections has no access', (tester) async {
     await pump(tester, const ListFailed<Section>(ApiFailure(statusCode: 403, code: 'FORBIDDEN', message: 'x')));
     expect(find.byKey(const Key('sections.forbidden')), findsOneWidget);

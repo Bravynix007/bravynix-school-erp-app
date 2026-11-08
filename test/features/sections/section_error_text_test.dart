@@ -20,6 +20,14 @@ void main() {
     expect(text(403, 'FORBIDDEN'), "You don't have access to this.");
   });
 
+  test('a 404 about the class, when reading or adding sections, names the class', () {
+    const failure = ApiFailure(statusCode: 404, code: 'NOT_FOUND', message: 'x');
+    expect(
+      sectionErrorText(l10n, failure, classGone: true),
+      'This class could not be found. It may have been deactivated.',
+    );
+  });
+
   group('under a field', () {
     ApiFailure failure(String field, String code) => ApiFailure(
       statusCode: 409,

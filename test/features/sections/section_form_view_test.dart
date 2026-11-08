@@ -242,6 +242,22 @@ void main() {
     ),
   );
 
+  // Adding: a section added meanwhile is refused, and the list behind still offers it as free.
+  leavingAFormTests(
+    closing: const [],
+    staying: const [],
+    closingFields: const [('predefinedSectionId', 'DUPLICATE')],
+    setFailure: (failure) =>
+        when(() => bloc.state).thenReturn(SectionFormEditing(choices: _adding.choices, failure: failure)),
+    form: () => BlocProvider<SectionFormBloc>.value(value: bloc, child: const SectionFormView()),
+  );
+
+  testWidgets('adding to a class deactivated meanwhile says the class is gone, not a section', (tester) async {
+    await pump(tester, SectionFormEditing(choices: const [sectionAEntry], failure: _failure(404, 'NOT_FOUND')));
+    expect(find.text('This class could not be found. It may have been deactivated.'), findsOneWidget);
+    expect(find.text('This section could not be found. It may have been deactivated.'), findsNothing);
+  });
+
   Future<void> openForm(WidgetTester tester, Widget form) async {
     final router = GoRouter(
       routes: [

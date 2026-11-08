@@ -96,11 +96,11 @@ class SectionsView extends StatelessWidget {
           ListLoading<Section>() => SkeletonCards(semanticLabel: l10n.loading, heights: const [96, 96]),
           ListFailed<Section>(:final failure) when failure.code == 'FORBIDDEN' => StatePanel.forbidden(
             key: const Key('sections.forbidden'),
-            title: sectionErrorText(l10n, failure),
+            title: sectionErrorText(l10n, failure, classGone: true),
           ),
           ListFailed<Section>(:final failure) => StatePanel.error(
             key: const Key('sections.failed'),
-            title: sectionErrorText(l10n, failure),
+            title: sectionErrorText(l10n, failure, classGone: true),
             actionLabel: l10n.retry,
             onAction: () => bloc.add(const ListRequested()),
           ),

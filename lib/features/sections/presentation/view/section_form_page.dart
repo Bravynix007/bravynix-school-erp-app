@@ -113,7 +113,10 @@ class _SectionFormViewState extends State<SectionFormView> {
         final onFields = failure != null && failure.namesOnly(_fields);
         String? error(String field) => failure == null ? null : sectionFieldError(l10n, failure, field);
         return StaleCopyGuard(
-          stale: failure?.outdatesCopy ?? false,
+          // Also when a section the form offered was added meanwhile: the list behind, and what it says is taken, are old.
+          stale:
+              failure != null &&
+              (failure.outdatesCopy || (!isEdit && failure.fieldError('predefinedSectionId')?.code == 'DUPLICATE')),
           child: Scaffold(
             body: Column(
               children: [
@@ -140,7 +143,7 @@ class _SectionFormViewState extends State<SectionFormView> {
                         if (failure != null && !onFields) ...[
                           // The section was changed meanwhile and no endpoint reads one section, so the list is read again.
                           InlineMessage.error(
-                            sectionErrorText(l10n, failure),
+                            sectionErrorText(l10n, failure, classGone: !isEdit),
                             key: const Key('sectionForm.error'),
                             actionLabel: failure.code == 'VERSION_CONFLICT' ? l10n.backToList : null,
                             onAction: () => context.pop(true),
