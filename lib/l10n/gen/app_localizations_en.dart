@@ -653,6 +653,73 @@ class AppLocalizationsEn extends AppLocalizations {
   String get errorCurrentYearLocked => 'The current year can\'t be deactivated. Make another year current first.';
 
   @override
+  String get subjectsTitle => 'Subjects';
+
+  @override
+  String get subjectsDetail => 'The subjects every Institution of the Society teaches';
+
+  @override
+  String get subjectsEmptyTitle => 'No subjects yet';
+
+  @override
+  String get subjectsEmptyMessage => 'Add the subjects your Institutions teach. They are shared by all of them.';
+
+  @override
+  String get subjectAdd => 'Add subject';
+
+  @override
+  String get subjectAddTitle => 'Add subject';
+
+  @override
+  String get subjectEditTitle => 'Edit subject';
+
+  @override
+  String get subjectEdit => 'Edit';
+
+  @override
+  String get subjectDeactivate => 'Deactivate';
+
+  @override
+  String subjectDeactivateTitle(String name) {
+    return 'Deactivate $name?';
+  }
+
+  @override
+  String get subjectDeactivateMessage => 'It leaves the list and its name and code are free again. Nothing is deleted.';
+
+  @override
+  String subjectDeactivated(String name) {
+    return '$name deactivated';
+  }
+
+  @override
+  String get subjectSaved => 'Subject saved';
+
+  @override
+  String get subjectName => 'Name';
+
+  @override
+  String get subjectCode => 'Code';
+
+  @override
+  String get subjectCodeHelper => 'Optional, like MATH';
+
+  @override
+  String get subjectSave => 'Save';
+
+  @override
+  String get errorSubjectDuplicate => 'Another subject has this name or code.';
+
+  @override
+  String get errorSubjectNameTaken => 'Another subject has this name.';
+
+  @override
+  String get errorSubjectCodeTaken => 'Another subject has this code.';
+
+  @override
+  String get errorSubjectNotFound => 'This subject could not be found. It may have been deactivated.';
+
+  @override
   String get errorYearNotFound => 'This academic year could not be found. It may have been deactivated.';
 
   @override

@@ -19,6 +19,8 @@ import 'package:bravynix_school_erp/features/masters/data/masters_repository_imp
 import 'package:bravynix_school_erp/features/masters/domain/masters_repository.dart';
 import 'package:bravynix_school_erp/features/platform_dues/data/platform_dues_repository_impl.dart';
 import 'package:bravynix_school_erp/features/platform_dues/domain/platform_dues_repository.dart';
+import 'package:bravynix_school_erp/features/subjects/data/subjects_repository_impl.dart';
+import 'package:bravynix_school_erp/features/subjects/domain/subjects_repository.dart';
 import 'package:dio/dio.dart';
 import 'package:get_it/get_it.dart';
 
@@ -61,6 +63,7 @@ Future<void> configureDependencies(
       ),
     )
     ..registerLazySingleton<AcademicYearsRepository>(() => AcademicYearsRepositoryImpl(api: getIt()))
+    ..registerLazySingleton<SubjectsRepository>(() => SubjectsRepositoryImpl(api: getIt()))
     ..registerLazySingleton<AuthRepository>(
       () => AuthRepositoryImpl(
         api: getIt(),
