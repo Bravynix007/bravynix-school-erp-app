@@ -433,6 +433,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get institutionTitle => 'Institution';
 
   @override
+  String get institutionSwitchHint => 'Change Institution';
+
+  @override
+  String get institutionSwitchTitle => 'Choose an Institution';
+
+  @override
   String get institutionCode => 'Code';
 
   @override
@@ -544,7 +550,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get errorInstitutionDuplicate => 'Another Institution already uses this code.';
 
   @override
-  String get errorVersionConflict => 'Someone else changed this Institution. Your changes were not saved.';
+  String get errorVersionConflict => 'Someone else changed this. Your changes were not saved.';
 
   @override
   String get institutionReload => 'Reload';
@@ -558,6 +564,96 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get errorValidation => 'Check the fields marked in red.';
+
+  @override
+  String get academicYearsTitle => 'Academic years';
+
+  @override
+  String get academicYearsDetail => 'The school years of each Institution';
+
+  @override
+  String get academicYearsEmptyTitle => 'No academic years yet';
+
+  @override
+  String get academicYearsEmptyMessage => 'Add the first year. It becomes the current year.';
+
+  @override
+  String get academicYearAdd => 'Add academic year';
+
+  @override
+  String get academicYearAddTitle => 'Add academic year';
+
+  @override
+  String get academicYearEditTitle => 'Edit academic year';
+
+  @override
+  String get academicYearEdit => 'Edit';
+
+  @override
+  String get academicYearCurrent => 'Current';
+
+  @override
+  String get academicYearCurrentHint => 'To deactivate this year, make another year current first.';
+
+  @override
+  String get backToList => 'Back to the list';
+
+  @override
+  String get academicYearMakeCurrent => 'Make current';
+
+  @override
+  String get academicYearDeactivate => 'Deactivate';
+
+  @override
+  String academicYearDeactivateTitle(String name) {
+    return 'Deactivate $name?';
+  }
+
+  @override
+  String get academicYearDeactivateMessage => 'It leaves the list and its dates are free again. Nothing is deleted.';
+
+  @override
+  String get academicYearDeactivated => 'Academic year deactivated';
+
+  @override
+  String academicYearMadeCurrent(String name) {
+    return '$name is now the current year';
+  }
+
+  @override
+  String get academicYearSaved => 'Academic year saved';
+
+  @override
+  String get academicYearName => 'Name';
+
+  @override
+  String get academicYearNameHelper => 'For example 2026-2027';
+
+  @override
+  String get academicYearStart => 'Starts on';
+
+  @override
+  String get academicYearEnd => 'Ends on';
+
+  @override
+  String academicYearDates(String start, String end) {
+    return '$start to $end';
+  }
+
+  @override
+  String get academicYearSave => 'Save';
+
+  @override
+  String get errorYearOverlap => 'These dates overlap another academic year of this Institution.';
+
+  @override
+  String get errorYearDuplicate => 'Another academic year of this Institution has this name.';
+
+  @override
+  String get errorCurrentYearLocked => 'The current year can\'t be deactivated. Make another year current first.';
+
+  @override
+  String get errorYearNotFound => 'This academic year could not be found. It may have been deactivated.';
 
   @override
   String get errorInstitutionNotFound => 'This Institution could not be found. It may have been deactivated.';

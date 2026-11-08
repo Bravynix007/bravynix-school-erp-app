@@ -12,6 +12,9 @@ abstract final class Formatters {
     return match == null ? day : '${match[3]}-${match[2]}-${match[1]}';
   }
 
+  /// A day chosen on a calendar → `2026-10-23`, with no time zone shift: the day is the one that was picked.
+  static String isoDay(DateTime day) => '${day.year.toString().padLeft(4, '0')}-${_two(day.month)}-${_two(day.day)}';
+
   /// The school day an instant falls on in IST, `2026-10-23`: what a due date is compared with.
   static String schoolDay(DateTime value) {
     final ist = value.toUtc().add(_ist);

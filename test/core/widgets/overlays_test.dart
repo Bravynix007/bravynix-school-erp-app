@@ -340,5 +340,25 @@ void main() {
       handle.dispose();
       await tester.pumpWidget(const SizedBox());
     });
+
+    testWidgets('SkeletonCards draws one card per height and speaks one label for all of them', (tester) async {
+      final handle = tester.ensureSemantics();
+      await tester.pumpApp(
+        const Scaffold(
+          body: SkeletonCards(semanticLabel: 'Loading years', heights: [120, 64]),
+        ),
+      );
+      expect(find.bySemanticsLabel('Loading years'), findsOneWidget);
+      // It is announced when it appears, as the Loading state of every list is.
+      expect(
+        tester.getSemantics(find.bySemanticsLabel('Loading years')).getSemanticsData().flagsCollection.isLiveRegion,
+        isTrue,
+      );
+      expect(tester.getSize(find.byType(SkeletonBox).at(0)).height, 120);
+      expect(tester.getSize(find.byType(SkeletonBox).at(1)).height, 64);
+      expect(find.byType(SkeletonBox), findsNWidgets(2));
+      handle.dispose();
+      await tester.pumpWidget(const SizedBox());
+    });
   });
 }

@@ -70,7 +70,10 @@ class InstitutionsView extends StatelessWidget {
           Expanded(
             child: BlocBuilder<InstitutionsBloc, InstitutionsState>(
               builder: (context, state) => switch (state) {
-                InstitutionsLoading() => const _Skeleton(),
+                InstitutionsLoading() => SkeletonCards(
+                  semanticLabel: AppLocalizations.of(context).loading,
+                  heights: const [88, 88, 88],
+                ),
                 InstitutionsFailed(:final failure) when failure.code == 'FORBIDDEN' => StatePanel.forbidden(
                   key: const Key('institutions.forbidden'),
                   title: apiErrorText(l10n, failure, notFound: l10n.errorInstitutionNotFound),
@@ -95,26 +98,6 @@ class InstitutionsView extends StatelessWidget {
       ),
     );
   }
-}
-
-class _Skeleton extends StatelessWidget {
-  const new();
-
-  @override
-  Widget build(BuildContext context) => Semantics(
-    label: AppLocalizations.of(context).loading,
-    child: ListView(
-      padding: const EdgeInsets.all(AppSpacing.screenMargin),
-      physics: const NeverScrollableScrollPhysics(),
-      children: const [
-        SkeletonBox(height: 88, radius: AppRadius.card),
-        SizedBox(height: AppSpacing.sm),
-        SkeletonBox(height: 88, radius: AppRadius.card),
-        SizedBox(height: AppSpacing.sm),
-        SkeletonBox(height: 88, radius: AppRadius.card),
-      ],
-    ),
-  );
 }
 
 class _Institutions extends StatelessWidget {

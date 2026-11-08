@@ -1,6 +1,8 @@
 import 'dart:async';
 
 import 'package:bravynix_school_erp/app/router/app_routes.dart';
+import 'package:bravynix_school_erp/features/academic_years/presentation/view/academic_year_form_page.dart';
+import 'package:bravynix_school_erp/features/academic_years/presentation/view/academic_years_page.dart';
 import 'package:bravynix_school_erp/features/auth/presentation/login/view/login_page.dart';
 import 'package:bravynix_school_erp/features/auth/presentation/role/view/role_chooser_page.dart';
 import 'package:bravynix_school_erp/features/auth/presentation/session/session_bloc.dart';
@@ -34,6 +36,10 @@ String? sessionRedirect(SessionState session, String location) {
     SessionAuthenticated() => AppRoutes.public.contains(location) ? AppRoutes.home : null,
   };
 }
+
+/// The academic year form needs the Institution and year the list passes as `extra`; opened any other way there is
+/// nothing to show, so it goes back to the list. Pure, like [sessionRedirect].
+String? academicYearFormRedirect(Object? extra) => extra is AcademicYearFormArgs ? null : AppRoutes.academicYears;
 
 /// Re-runs the redirect whenever the session changes. GoRouter does not own
 /// its `refreshListenable`, so whoever creates this disposes it.
@@ -77,6 +83,12 @@ GoRouter createRouter(SessionBloc session, {required SessionChanges changes}) {
       GoRoute(
         path: AppRoutes.institutionEditPattern,
         builder: (_, state) => InstitutionFormPage(id: state.pathParameters['id']),
+      ),
+      GoRoute(path: AppRoutes.academicYears, builder: (_, _) => const AcademicYearsPage()),
+      GoRoute(
+        path: AppRoutes.academicYearForm,
+        redirect: (_, state) => academicYearFormRedirect(state.extra),
+        builder: (_, state) => AcademicYearFormPage(args: state.extra! as AcademicYearFormArgs),
       ),
       GoRoute(path: AppRoutes.updateRequired, builder: (_, _) => const UpdateRequiredPage()),
       if (!kReleaseMode) GoRoute(path: AppRoutes.gallery, builder: (_, _) => const ComponentGalleryPage()),

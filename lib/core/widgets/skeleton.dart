@@ -112,3 +112,33 @@ class SkeletonList extends StatelessWidget {
     );
   }
 }
+
+/// Placeholder cards for a screen of cards, one per entry of [heights], while it loads. It fills a scrolling area
+/// and does not scroll itself.
+class SkeletonCards extends StatelessWidget {
+  const new({required this.semanticLabel, required this.heights, super.key});
+
+  /// Spoken once for the whole screen, e.g. "Loading".
+  final String semanticLabel;
+  final List<double> heights;
+
+  @override
+  Widget build(BuildContext context) {
+    return Semantics(
+      label: semanticLabel,
+      liveRegion: true,
+      child: ExcludeSemantics(
+        child: ListView(
+          padding: const EdgeInsets.all(AppSpacing.screenMargin),
+          physics: const NeverScrollableScrollPhysics(),
+          children: [
+            for (final (index, height) in heights.indexed) ...[
+              if (index > 0) const SizedBox(height: AppSpacing.sm),
+              SkeletonBox(height: height, radius: AppRadius.card),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+}
