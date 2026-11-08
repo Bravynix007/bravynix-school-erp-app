@@ -8,6 +8,7 @@ import 'package:bravynix_school_erp/features/classes/presentation/bloc/classes_b
 import 'package:bravynix_school_erp/features/classes/presentation/view/class_bulk_page.dart';
 import 'package:bravynix_school_erp/features/classes/presentation/view/class_form_page.dart';
 import 'package:bravynix_school_erp/features/classes/presentation/view/classes_page.dart';
+import 'package:bravynix_school_erp/features/sections/presentation/view/sections_page.dart';
 import 'package:bravynix_school_erp/l10n/gen/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -58,7 +59,7 @@ void main() {
             body: BlocProvider<ClassesBloc>.value(value: bloc, child: const ClassesView()),
           ),
         ),
-        for (final route in [AppRoutes.classForm, AppRoutes.classBulk])
+        for (final route in [AppRoutes.classForm, AppRoutes.classBulk, AppRoutes.classSections])
           GoRoute(
             path: route,
             builder: (context, routeState) {
@@ -213,6 +214,30 @@ void main() {
       await tester.tap(find.text('form ${AppRoutes.classBulk}'));
       await tester.pumpAndSettle();
       verify(() => bloc.add(const ListRequested())).called(1);
+    });
+  });
+
+  group('the sections', () {
+    testWidgets('the Sections button hands the class over, and reads the list again whatever happened there', (
+      tester,
+    ) async {
+      final opened = await pumpWithForms(tester, const ListLoaded<SchoolClass>([class1, pucClass]), saved: false);
+      await tester.tap(find.byKey(const ValueKey('class.sections.k9')));
+      await tester.pumpAndSettle();
+      expect((opened.single! as SectionsArgs).schoolClass, pucClass);
+      verifyNever(() => bloc.add(const ListRequested()));
+      await tester.tap(find.text('form ${AppRoutes.classSections}'));
+      await tester.pumpAndSettle();
+      verify(() => bloc.add(const ListRequested())).called(1);
+    });
+
+    testWidgets('while a deactivation is on its way, the Sections button waits too', (tester) async {
+      await pump(tester, const ListLoaded<SchoolClass>([class1], busyId: 'k1'));
+      final button = find.descendant(
+        of: find.byKey(const ValueKey('class.sections.k1')),
+        matching: find.byWidgetPredicate((w) => w is ButtonStyleButton),
+      );
+      expect(tester.widget<ButtonStyleButton>(button).onPressed, isNull);
     });
   });
 

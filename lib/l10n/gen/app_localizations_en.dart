@@ -869,6 +869,106 @@ class AppLocalizationsEn extends AppLocalizations {
   String get errorClassNotFound => 'This class could not be found. It may have been deactivated.';
 
   @override
+  String get errorSectionNotFound => 'This section could not be found. It may have been deactivated.';
+
+  @override
+  String get classOpenSections => 'Sections';
+
+  @override
+  String get sectionsTitle => 'Sections';
+
+  @override
+  String get sectionsEmptyTitle => 'No sections yet';
+
+  @override
+  String sectionsEmptyMessage(String name) {
+    return 'Add the sections of $name, such as A and B.';
+  }
+
+  @override
+  String get sectionAdd => 'Add section';
+
+  @override
+  String get sectionAddTitle => 'Add section';
+
+  @override
+  String get sectionEditTitle => 'Edit section';
+
+  @override
+  String get sectionEdit => 'Edit';
+
+  @override
+  String get sectionDeactivate => 'Deactivate';
+
+  @override
+  String sectionDeactivateTitle(String name) {
+    return 'Deactivate $name?';
+  }
+
+  @override
+  String get sectionDeactivateMessage => 'Its name can be used again. Nothing is deleted.';
+
+  @override
+  String sectionDeactivated(String name) {
+    return '$name deactivated';
+  }
+
+  @override
+  String get sectionSaved => 'Section saved';
+
+  @override
+  String sectionCapacity(int count) {
+    return 'Capacity $count';
+  }
+
+  @override
+  String get sectionNoCapacity => 'No capacity set';
+
+  @override
+  String sectionStudents(String count) {
+    return 'Students $count';
+  }
+
+  @override
+  String get sectionPredefined => 'Section';
+
+  @override
+  String get sectionDisplayName => 'Name';
+
+  @override
+  String get sectionDisplayNameHint => 'Section name';
+
+  @override
+  String get sectionCapacityLabel => 'Capacity';
+
+  @override
+  String get sectionCapacityHelper => 'Optional. A warning, not a limit';
+
+  @override
+  String get sectionCapacityInvalid => 'Use 1 to 32767.';
+
+  @override
+  String get sectionChooseOne => 'Choose a section';
+
+  @override
+  String get sectionNoneLeft => 'Every predefined section is already added to this class.';
+
+  @override
+  String get sectionSave => 'Save';
+
+  @override
+  String get errorSectionDuplicate => 'Another section of this class already has this name.';
+
+  @override
+  String get errorSectionNameTaken => 'Another section of this class has this name.';
+
+  @override
+  String get errorSectionTaken => 'This section is already added to this class.';
+
+  @override
+  String get errorSectionHasStudents => 'Students are placed in this section. Move them first.';
+
+  @override
   String get errorYearNotFound => 'This academic year could not be found. It may have been deactivated.';
 
   @override

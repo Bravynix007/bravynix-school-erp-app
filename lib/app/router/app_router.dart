@@ -19,6 +19,8 @@ import 'package:bravynix_school_erp/features/platform_dues/presentation/view/pla
 import 'package:bravynix_school_erp/features/platform_dues/presentation/view/platform_dues_page.dart';
 import 'package:bravynix_school_erp/features/profile/presentation/profile_page.dart';
 import 'package:bravynix_school_erp/features/school_setup/presentation/school_setup_page.dart';
+import 'package:bravynix_school_erp/features/sections/presentation/view/section_form_page.dart';
+import 'package:bravynix_school_erp/features/sections/presentation/view/sections_page.dart';
 import 'package:bravynix_school_erp/features/subjects/presentation/view/subject_form_page.dart';
 import 'package:bravynix_school_erp/features/subjects/presentation/view/subjects_page.dart';
 import 'package:bravynix_school_erp/features/update_required/presentation/update_required_page.dart';
@@ -50,6 +52,12 @@ String? academicYearFormRedirect(Object? extra) => extra is AcademicYearFormArgs
 String? classFormRedirect(Object? extra) => extra is ClassFormArgs ? null : AppRoutes.classes;
 
 String? classBulkRedirect(Object? extra) => extra is ClassBulkArgs ? null : AppRoutes.classes;
+
+/// The sections page needs the class, and the section form the class and its sections; opened any other way they go back
+/// to the class list.
+String? classSectionsRedirect(Object? extra) => extra is SectionsArgs ? null : AppRoutes.classes;
+
+String? sectionFormRedirect(Object? extra) => extra is SectionFormArgs ? null : AppRoutes.classes;
 
 /// The subject form needs the subject (or none, to add) the list passes as `extra`; opened any other way it goes back
 /// to the list, so an Edit that lost its subject cannot open as an Add.
@@ -120,6 +128,16 @@ GoRouter createRouter(SessionBloc session, {required SessionChanges changes}) {
         path: AppRoutes.classBulk,
         redirect: (_, state) => classBulkRedirect(state.extra),
         builder: (_, state) => ClassBulkPage(args: state.extra! as ClassBulkArgs),
+      ),
+      GoRoute(
+        path: AppRoutes.classSections,
+        redirect: (_, state) => classSectionsRedirect(state.extra),
+        builder: (_, state) => SectionsPage(args: state.extra! as SectionsArgs),
+      ),
+      GoRoute(
+        path: AppRoutes.sectionForm,
+        redirect: (_, state) => sectionFormRedirect(state.extra),
+        builder: (_, state) => SectionFormPage(args: state.extra! as SectionFormArgs),
       ),
       GoRoute(path: AppRoutes.updateRequired, builder: (_, _) => const UpdateRequiredPage()),
       if (!kReleaseMode) GoRoute(path: AppRoutes.gallery, builder: (_, _) => const ComponentGalleryPage()),
