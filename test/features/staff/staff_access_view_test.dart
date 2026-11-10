@@ -4,7 +4,7 @@ import 'package:bravynix_school_erp/core/widgets/app_button.dart';
 import 'package:bravynix_school_erp/features/institutions/domain/institution.dart';
 import 'package:bravynix_school_erp/features/staff/presentation/bloc/staff_access_bloc.dart';
 import 'package:bravynix_school_erp/features/staff/presentation/bloc/staff_profile_bloc.dart';
-import 'package:bravynix_school_erp/features/staff/presentation/view/staff_access_tab.dart';
+import 'package:bravynix_school_erp/features/staff/presentation/view/staff_access_view.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -161,6 +161,15 @@ void main() {
       verify(() => bloc.add(const StaffInstitutionToggled('i3'))).called(1);
     });
 
+    testWidgets('let a listed entry that is ticked be taken off at 50, as well as a kept one', (tester) async {
+      final fifty = ['u1', for (var i = 1; i < maxStaffAccessChoices; i++) 'x$i'];
+      await pump(tester, ready(subjectIds: fifty), size: const Size(400, 4000));
+      await tester.tap(tile('staffAccess.subject.u1'));
+      verify(() => bloc.add(const StaffSubjectToggled('u1'))).called(1);
+      await tester.tap(tile('staffAccess.subject.u2'));
+      verifyNever(() => bloc.add(const StaffSubjectToggled('u2')));
+    });
+
     testWidgets('offer no more to tick at 50, but still let one be taken off', (tester) async {
       final fifty = [for (var i = 0; i < maxStaffAccessChoices; i++) 'x$i'];
       await pump(tester, ready(subjectIds: fifty), size: const Size(400, 4000));
@@ -201,6 +210,33 @@ void main() {
       expect(button(tester, 'staffAccess.saveSubjects').loading, isTrue);
       expect(button(tester, 'staffAccess.saveInstitutions').loading, isFalse);
       expect(button(tester, 'staffAccess.saveInstitutions').onPressed, isNull);
+    });
+
+    testWidgets('leaves the subjects as they are while they are on their way, and the Institutions free', (
+      tester,
+    ) async {
+      await pump(
+        tester,
+        ready(subjectIds: const ['u1', 'gone'], saving: StaffAccessPart.subjects),
+      );
+      await tester.tap(tile('staffAccess.subject.u2'));
+      await tester.tap(tile('staffAccess.subject.u1'));
+      await tester.tap(tile('staffAccess.subject.gone'));
+      verifyNever(() => bloc.add(any(that: isA<StaffSubjectToggled>())));
+      await tester.tap(tile('staffAccess.institution.i3'));
+      verify(() => bloc.add(const StaffInstitutionToggled('i3'))).called(1);
+    });
+
+    testWidgets('leaves the Institutions as they are while they are on their way, and the subjects free', (
+      tester,
+    ) async {
+      await pump(tester, ready(institutionIds: const ['i2', 'closed'], saving: StaffAccessPart.institutions));
+      await tester.tap(tile('staffAccess.institution.i3'));
+      await tester.tap(tile('staffAccess.institution.i2'));
+      await tester.tap(tile('staffAccess.institution.closed'));
+      verifyNever(() => bloc.add(any(that: isA<StaffInstitutionToggled>())));
+      await tester.tap(tile('staffAccess.subject.u2'));
+      verify(() => bloc.add(const StaffSubjectToggled('u2'))).called(1);
     });
 
     testWidgets('offers no Save for the subjects while the Institutions are on their way', (tester) async {

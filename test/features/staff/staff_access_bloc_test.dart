@@ -140,6 +140,27 @@ void main() {
       expect(ready(bloc).canAddSubject, isTrue);
     });
 
+    for (final (refused, code, other) in [
+      (StaffAccessPart.institutions, 'ADMIN_ACCESS_HELD', const StaffSubjectToggled('u2')),
+      (StaffAccessPart.subjects, 'SUBJECT_ASSIGNED', const StaffInstitutionToggled('i3')),
+    ]) {
+      test('keeps the $code refusal of the ${refused.name} while something is ticked in the other list', () async {
+        final failure = ApiFailure(statusCode: 409, code: code, message: 'x');
+        when(() => staff.setInstitutions(any(), any())).thenThrow(failure);
+        when(() => staff.setSubjects(any(), any())).thenThrow(failure);
+        final bloc = await opened();
+        bloc
+          ..add(const StaffSubjectToggled('u1'))
+          ..add(const StaffInstitutionToggled('i2'))
+          ..add(StaffAccessSaved(refused));
+        await bloc.stream.firstWhere((state) => state is StaffAccessReady && state.failure != null);
+        bloc.add(other);
+        await pumpEventQueue();
+        expect(ready(bloc).failedPart, refused);
+        expect(ready(bloc).failure, failure);
+      });
+    }
+
     test('clears the last refusal once something is ticked', () async {
       when(() => staff.setSubjects(any(), any()))
           .thenThrow(const ApiFailure(statusCode: 409, code: 'SUBJECT_ASSIGNED', message: 'x'));
@@ -196,6 +217,40 @@ void main() {
       expect(ready(bloc).subjectIds, ['u1', 'u2']);
       expect(ready(bloc).institutionIds, ['i2', 'i3']);
       expect(ready(bloc).changed(StaffAccessPart.institutions), isTrue);
+    });
+
+    test('leaves a list as it is while it is on its way, and the other one free', () async {
+      final held = Completer<StaffMember>();
+      when(() => staff.setSubjects(any(), any())).thenAnswer((_) => held.future);
+      final bloc = await opened();
+      bloc
+        ..add(const StaffSubjectToggled('u2'))
+        ..add(const StaffAccessSaved(StaffAccessPart.subjects));
+      await bloc.stream.firstWhere((state) => state is StaffAccessReady && state.saving != null);
+      bloc
+        ..add(const StaffSubjectToggled('u1'))
+        ..add(const StaffInstitutionToggled('i3'));
+      await pumpEventQueue();
+      expect(ready(bloc).subjectIds, ['u1', 'u2']);
+      expect(ready(bloc).institutionIds, ['i2', 'i3']);
+      held.complete(kavyaWith(subjectIds: ['u1', 'u2'], institutionIds: ['i2']));
+      await bloc.stream.firstWhere((state) => state is StaffAccessReady && state.saving == null);
+      expect(ready(bloc).subjectIds, ['u1', 'u2']);
+      expect(ready(bloc).institutionIds, ['i2', 'i3']);
+    });
+
+    test('leaves the Institutions as they are while they are on their way', () async {
+      final held = Completer<StaffMember>();
+      when(() => staff.setInstitutions(any(), any())).thenAnswer((_) => held.future);
+      final bloc = await opened();
+      bloc
+        ..add(const StaffInstitutionToggled('i3'))
+        ..add(const StaffAccessSaved(StaffAccessPart.institutions));
+      await bloc.stream.firstWhere((state) => state is StaffAccessReady && state.saving != null);
+      bloc.add(const StaffInstitutionToggled('i2'));
+      await pumpEventQueue();
+      expect(ready(bloc).institutionIds, ['i2', 'i3']);
+      held.complete(kavyaWith(subjectIds: ['u1'], institutionIds: ['i2', 'i3']));
     });
 
     test('sends nothing for a list that was not changed', () async {

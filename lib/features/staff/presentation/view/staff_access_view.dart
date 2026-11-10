@@ -1,4 +1,3 @@
-import 'package:bravynix_school_erp/app/di/injection.dart';
 import 'package:bravynix_school_erp/core/theme/app_spacing.dart';
 import 'package:bravynix_school_erp/core/widgets/app_button.dart';
 import 'package:bravynix_school_erp/core/widgets/app_card.dart';
@@ -8,42 +7,16 @@ import 'package:bravynix_school_erp/core/widgets/section_header.dart';
 import 'package:bravynix_school_erp/core/widgets/selection_tile.dart';
 import 'package:bravynix_school_erp/core/widgets/skeleton.dart';
 import 'package:bravynix_school_erp/core/widgets/state_panel.dart';
-import 'package:bravynix_school_erp/features/institutions/domain/institutions_repository.dart';
-import 'package:bravynix_school_erp/features/staff/domain/staff_member.dart';
-import 'package:bravynix_school_erp/features/staff/domain/staff_repository.dart';
 import 'package:bravynix_school_erp/features/staff/presentation/bloc/staff_access_bloc.dart';
 import 'package:bravynix_school_erp/features/staff/presentation/bloc/staff_profile_bloc.dart';
-import 'package:bravynix_school_erp/features/staff/presentation/view/staff_admin_access_section.dart';
 import 'package:bravynix_school_erp/features/staff/presentation/view/staff_error_text.dart';
-import 'package:bravynix_school_erp/features/subjects/domain/subjects_repository.dart';
 import 'package:bravynix_school_erp/l10n/gen/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 /// The access tab of the staff profile (PRD 7.5): the subjects the person can teach (STF-08) and, for the Society Owner,
-/// the other Institutions they may see (STF-10). Each list is saved on its own, and the profile behind learns of the
-/// answer.
-class StaffAccessTab extends StatelessWidget {
-  const new({required this.member, required this.isOwner, super.key});
-
-  final StaffMember member;
-
-  /// Only the Society Owner changes the extra Institutions.
-  final bool isOwner;
-
-  @override
-  Widget build(BuildContext context) => BlocProvider(
-    create: (_) => StaffAccessBloc(
-      getIt<StaffRepository>(),
-      getIt<SubjectsRepository>(),
-      getIt<InstitutionsRepository>(),
-      member: member,
-      canChangeInstitutions: isOwner,
-    )..add(const StaffAccessStarted()),
-    child: StaffAccessView(adminAccess: isOwner ? StaffAdminAccessSection(member: member) : null),
-  );
-}
-
+/// the other Institutions they may see (STF-10) and where they are an Admin. Each list is saved on its own, and the
+/// profile behind learns of the answer.
 class StaffAccessView extends StatelessWidget {
   const new({this.adminAccess, super.key});
 
@@ -169,6 +142,8 @@ class _ChoiceSection extends StatelessWidget {
   final String? error;
   final Key saveKey;
   final String saveLabel;
+
+  /// This list is on its way to the API, so what is ticked is left as it is until the answer comes.
   final bool saving;
   final VoidCallback? onSave;
 
@@ -198,14 +173,16 @@ class _ChoiceSection extends StatelessWidget {
                         key: ValueKey('$keyPrefix.${choice.id}'),
                         title: choice.name,
                         value: ticked.contains(choice.id),
-                        onChanged: ticked.contains(choice.id) || canAdd ? (_) => onToggled(choice.id) : null,
+                        onChanged: !saving && (ticked.contains(choice.id) || canAdd)
+                            ? (_) => onToggled(choice.id)
+                            : null,
                       ),
                     for (final id in kept)
                       AppCheckboxTile(
                         key: ValueKey('$keyPrefix.$id'),
                         title: l10n.masterEntryKept,
                         value: true,
-                        onChanged: (_) => onToggled(id),
+                        onChanged: saving ? null : (_) => onToggled(id),
                       ),
                   ],
                 ),

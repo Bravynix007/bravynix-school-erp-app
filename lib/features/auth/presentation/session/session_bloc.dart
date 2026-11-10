@@ -86,6 +86,12 @@ final class _SessionEnded extends SessionEvent {
 sealed class SessionState extends Equatable {
   const new();
 
+  /// Signed in, and working as the Society Owner: the role that sees and changes everything in the Society.
+  bool get isSocietyOwner => switch (this) {
+    SessionAuthenticated(:final session) => session.activeContext?.role == RoleCode.societyOwner,
+    _ => false,
+  };
+
   @override
   List<Object?> get props => [];
 }

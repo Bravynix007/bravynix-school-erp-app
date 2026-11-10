@@ -331,7 +331,7 @@ void main() {
         await started(bloc);
         bloc.add(const StaffContactAdded());
       },
-      verify: (bloc) => expect(ready(bloc).contacts.single.texts.countryCode, indiaDialCode),
+      verify: (bloc) => expect(ready(bloc).contacts.single.texts.countryCode, Phone.indiaDialCode),
     );
 
     blocTest<StaffFormBloc, StaffFormState>(

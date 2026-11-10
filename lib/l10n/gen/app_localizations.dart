@@ -2452,7 +2452,7 @@ abstract class AppLocalizations {
   /// No description provided for @staffSettingsActive.
   ///
   /// In en, this message translates to:
-  /// **'They can sign in as staff.'**
+  /// **'They can use the app as staff.'**
   String get staffSettingsActive;
 
   /// No description provided for @staffSettingsBlockedMessage.
@@ -2482,7 +2482,7 @@ abstract class AppLocalizations {
   /// No description provided for @staffBlockMessage.
   ///
   /// In en, this message translates to:
-  /// **'They are signed out at once and cannot sign in as staff or Admin of this Society until you unblock them. Their record is kept.'**
+  /// **'They are signed out at once and cannot use the app as staff or Admin of this Society until you unblock them. Their record is kept.'**
   String get staffBlockMessage;
 
   /// No description provided for @staffUnblockTitle.
@@ -2494,7 +2494,7 @@ abstract class AppLocalizations {
   /// No description provided for @staffUnblockMessage.
   ///
   /// In en, this message translates to:
-  /// **'They can sign in as staff again.'**
+  /// **'They can use the app as staff again.'**
   String get staffUnblockMessage;
 
   /// No description provided for @staffBlockDone.

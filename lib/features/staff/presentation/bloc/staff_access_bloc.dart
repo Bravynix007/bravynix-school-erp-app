@@ -142,26 +142,30 @@ class StaffAccessBloc extends Bloc<StaffAccessEvent, StaffAccessState> {
     : super(const StaffAccessLoading()) {
     on<StaffAccessStarted>(_onStarted);
     on<StaffSubjectToggled>(
-      (event, emit) => _ready(
-        (ready) => emit(
+      (event, emit) => _ready((ready) {
+        // A list on its way to the API is left as it is: the answer would undo a tick made meanwhile.
+        if (ready.saving == StaffAccessPart.subjects) return;
+        emit(
           ready.copyWith(
             subjectIds: _toggled(ready.subjectIds, event.id, allowAdd: ready.canAddSubject),
-            failure: () => null,
-            failedPart: () => null,
+            // The refusal stays under a list that is still the refused one.
+            failure: ready.failedPart == StaffAccessPart.subjects ? () => null : null,
+            failedPart: ready.failedPart == StaffAccessPart.subjects ? () => null : null,
           ),
-        ),
-      ),
+        );
+      }),
     );
     on<StaffInstitutionToggled>(
-      (event, emit) => _ready(
-        (ready) => emit(
+      (event, emit) => _ready((ready) {
+        if (ready.saving == StaffAccessPart.institutions) return;
+        emit(
           ready.copyWith(
             institutionIds: _toggled(ready.institutionIds, event.id, allowAdd: ready.canAddInstitution),
-            failure: () => null,
-            failedPart: () => null,
+            failure: ready.failedPart == StaffAccessPart.institutions ? () => null : null,
+            failedPart: ready.failedPart == StaffAccessPart.institutions ? () => null : null,
           ),
-        ),
-      ),
+        );
+      }),
     );
     on<StaffAccessSaved>(_onSaved);
   }

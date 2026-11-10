@@ -12,18 +12,22 @@ import 'package:bravynix_school_erp/core/widgets/section_header.dart';
 import 'package:bravynix_school_erp/core/widgets/skeleton.dart';
 import 'package:bravynix_school_erp/core/widgets/state_panel.dart';
 import 'package:bravynix_school_erp/core/widgets/status_chip.dart';
-import 'package:bravynix_school_erp/features/auth/domain/auth_entities.dart';
 import 'package:bravynix_school_erp/features/auth/presentation/session/session_bloc.dart';
+import 'package:bravynix_school_erp/features/institutions/domain/institutions_repository.dart';
 import 'package:bravynix_school_erp/features/masters/domain/masters_repository.dart';
 import 'package:bravynix_school_erp/features/staff/domain/staff_member.dart';
 import 'package:bravynix_school_erp/features/staff/domain/staff_profile.dart';
 import 'package:bravynix_school_erp/features/staff/domain/staff_repository.dart';
+import 'package:bravynix_school_erp/features/staff/presentation/bloc/staff_access_bloc.dart';
+import 'package:bravynix_school_erp/features/staff/presentation/bloc/staff_block_bloc.dart';
 import 'package:bravynix_school_erp/features/staff/presentation/bloc/staff_profile_bloc.dart';
-import 'package:bravynix_school_erp/features/staff/presentation/view/staff_access_tab.dart';
+import 'package:bravynix_school_erp/features/staff/presentation/view/staff_access_view.dart';
+import 'package:bravynix_school_erp/features/staff/presentation/view/staff_admin_access_section.dart';
 import 'package:bravynix_school_erp/features/staff/presentation/view/staff_error_text.dart';
 import 'package:bravynix_school_erp/features/staff/presentation/view/staff_form_page.dart';
 import 'package:bravynix_school_erp/features/staff/presentation/view/staff_names.dart';
-import 'package:bravynix_school_erp/features/staff/presentation/view/staff_settings_tab.dart';
+import 'package:bravynix_school_erp/features/staff/presentation/view/staff_settings_view.dart';
+import 'package:bravynix_school_erp/features/subjects/domain/subjects_repository.dart';
 import 'package:bravynix_school_erp/l10n/gen/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -38,13 +42,12 @@ class StaffProfilePage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final session = context.watch<SessionBloc>().state;
     return BlocProvider(
       create: (_) =>
           StaffProfileBloc(getIt<StaffRepository>(), getIt<MastersRepository>(), id)
             ..add(const StaffProfileRequested()),
       child: StaffProfileView(
-        isOwner: session is SessionAuthenticated && session.session.activeContext?.role == RoleCode.societyOwner,
+        isOwner: context.watch<SessionBloc>().state.isSocietyOwner,
       ),
     );
   }
@@ -101,34 +104,52 @@ class StaffProfileView extends StatelessWidget {
                   actionLabel: l10n.retry,
                   onAction: () => context.read<StaffProfileBloc>().add(const StaffProfileRequested()),
                 ),
-                StaffProfileLoaded(:final profile, :final tab) => Column(
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.fromLTRB(
-                        AppSpacing.screenMargin,
-                        AppSpacing.screenMargin,
-                        AppSpacing.screenMargin,
-                        0,
-                      ),
-                      child: AppSegmentedControl<StaffProfileTab>(
-                        options: StaffProfileTab.values,
-                        labelOf: (tab) => switch (tab) {
-                          StaffProfileTab.personal => l10n.staffTabPersonal,
-                          StaffProfileTab.access => l10n.staffTabAccess,
-                          StaffProfileTab.settings => l10n.staffTabSettings,
-                        },
-                        selected: tab,
-                        onChanged: (tab) => context.read<StaffProfileBloc>().add(StaffProfileTabChosen(tab)),
-                      ),
+                // The two tabs that change the staff member are provided here, so what is ticked and not yet saved is still
+                // there when the person comes back from another tab. They are made when their tab is first opened.
+                StaffProfileLoaded(:final profile, :final tab) => MultiBlocProvider(
+                  providers: [
+                    BlocProvider(
+                      create: (_) => StaffAccessBloc(
+                        getIt<StaffRepository>(),
+                        getIt<SubjectsRepository>(),
+                        getIt<InstitutionsRepository>(),
+                        member: profile.member,
+                        canChangeInstitutions: isOwner,
+                      )..add(const StaffAccessStarted()),
                     ),
-                    Expanded(
-                      child: switch (tab) {
-                        StaffProfileTab.personal => _Details(profile: profile),
-                        StaffProfileTab.access => StaffAccessTab(member: profile.member, isOwner: isOwner),
-                        StaffProfileTab.settings => StaffSettingsTab(member: profile.member),
-                      },
-                    ),
+                    BlocProvider(create: (_) => StaffBlockBloc(getIt<StaffRepository>(), profile.member)),
                   ],
+                  child: Column(
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(
+                          AppSpacing.screenMargin,
+                          AppSpacing.screenMargin,
+                          AppSpacing.screenMargin,
+                          0,
+                        ),
+                        child: AppSegmentedControl<StaffProfileTab>(
+                          options: StaffProfileTab.values,
+                          labelOf: (tab) => switch (tab) {
+                            StaffProfileTab.personal => l10n.staffTabPersonal,
+                            StaffProfileTab.access => l10n.staffTabAccess,
+                            StaffProfileTab.settings => l10n.staffTabSettings,
+                          },
+                          selected: tab,
+                          onChanged: (tab) => context.read<StaffProfileBloc>().add(StaffProfileTabChosen(tab)),
+                        ),
+                      ),
+                      Expanded(
+                        child: switch (tab) {
+                          StaffProfileTab.personal => _Details(profile: profile),
+                          StaffProfileTab.access => StaffAccessView(
+                            adminAccess: isOwner ? StaffAdminAccessSection(member: profile.member) : null,
+                          ),
+                          StaffProfileTab.settings => const StaffSettingsView(),
+                        },
+                      ),
+                    ],
+                  ),
                 ),
               },
             ),
