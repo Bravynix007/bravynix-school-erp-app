@@ -697,35 +697,47 @@ void main() {
       expect(find.byKey(const Key('staffForm.error')), findsNothing);
     });
 
-    // Every field the form claims to show an error under, as the API names it: each shows it under one field and says
-    // nothing above the form.
-    for (final field in [
-      'firstName',
-      'lastName',
-      'email',
-      'mobile',
-      'mobile.countryCode',
-      'mobile.number',
-      'alternateNumber',
-      'gender',
-      'dateOfBirth',
-      'bloodGroup',
-      'nationality',
-      'classCategoryId',
-      'designationId',
-      'employeeCode',
-      'joiningDate',
-      'resignationDate',
-      'employmentType',
-      'address.line1',
-      'address.line2',
-      'address.pincode',
-      'address.countryId',
-      'address.stateId',
-      'address.cityId',
-      for (final name in educationFields) 'educations[0].$name',
-      for (final name in contactFields) 'emergencyContacts[0].$name',
-    ]) {
+    // Every field the form claims to show an error under, as the API names it, and the widget it shows it under: the
+    // error is under that field alone and nothing is said above the form.
+    const fieldKeys = {
+      'firstName': 'staffForm.firstName',
+      'lastName': 'staffForm.lastName',
+      'email': 'staffForm.email',
+      'mobile': 'staffForm.mobileNumber',
+      'mobile.countryCode': 'staffForm.mobileCode',
+      'mobile.number': 'staffForm.mobileNumber',
+      'alternateNumber': 'staffForm.alternate',
+      'gender': 'staffForm.gender',
+      'dateOfBirth': 'staffForm.dateOfBirth',
+      'bloodGroup': 'staffForm.bloodGroup',
+      'nationality': 'staffForm.nationality',
+      'classCategoryId': 'staffForm.category',
+      'designationId': 'staffForm.designation',
+      'employeeCode': 'staffForm.employeeCode',
+      'joiningDate': 'staffForm.joiningDate',
+      'resignationDate': 'staffForm.resignationDate',
+      'employmentType': 'staffForm.employmentType',
+      'address.line1': 'staffForm.line1',
+      'address.line2': 'staffForm.line2',
+      'address.pincode': 'staffForm.pincode',
+      'address.countryId': 'staffForm.country',
+      'address.stateId': 'staffForm.state',
+      'address.cityId': 'staffForm.city',
+      // The first line is row 0 and the first contact is row 1 of the edit state.
+      'educations[0].degree': 'staffForm.education.0.degree',
+      'educations[0].qualification': 'staffForm.education.0.qualification',
+      'educations[0].specialization': 'staffForm.education.0.specialization',
+      'educations[0].institutionName': 'staffForm.education.0.institutionName',
+      'educations[0].yearOfPassing': 'staffForm.education.0.yearOfPassing',
+      'emergencyContacts[0].contactName': 'staffForm.contact.1.name',
+      'emergencyContacts[0].relation': 'staffForm.contact.1.relation',
+      'emergencyContacts[0].phone': 'staffForm.contact.1.number',
+      'emergencyContacts[0].phone.countryCode': 'staffForm.contact.1.code',
+      'emergencyContacts[0].phone.number': 'staffForm.contact.1.number',
+      'emergencyContacts[0].alternateNumber': 'staffForm.contact.1.alternate',
+      'emergencyContacts[0].isPrimary': 'staffForm.contact.1.primaryError',
+    };
+    for (final MapEntry(key: field, value: widgetKey) in fieldKeys.entries) {
       testWidgets('shows an error on $field under its own field only', (tester) async {
         await pump(
           tester,
@@ -739,9 +751,89 @@ void main() {
           staffId: 'f1',
         );
         expect(find.text('About $field'), findsOneWidget);
+        expect(
+          find.descendant(of: find.byKey(Key(widgetKey)), matching: find.text('About $field'), matchRoot: true),
+          findsOneWidget,
+        );
         expect(find.byKey(const Key('staffForm.error')), findsNothing);
       });
     }
+
+    test('the table above names every field the form claims to show an error under', () {
+      expect(
+        fieldKeys.keys.where((name) => !name.startsWith('educations[') && !name.startsWith('emergencyContacts[')),
+        [
+          'firstName',
+          'lastName',
+          'email',
+          'mobile',
+          'mobile.countryCode',
+          'mobile.number',
+          'alternateNumber',
+          'gender',
+          'dateOfBirth',
+          'bloodGroup',
+          'nationality',
+          'classCategoryId',
+          'designationId',
+          'employeeCode',
+          'joiningDate',
+          'resignationDate',
+          'employmentType',
+          'address.line1',
+          'address.line2',
+          'address.pincode',
+          'address.countryId',
+          'address.stateId',
+          'address.cityId',
+        ],
+      );
+      expect(
+        fieldKeys.keys.where((name) => name.startsWith('educations[0].')).map((name) => name.substring(14)),
+        educationFields,
+      );
+      expect(
+        fieldKeys.keys.where((name) => name.startsWith('emergencyContacts[0].')).map((name) => name.substring(21)),
+        contactFields,
+      );
+    });
+
+    testWidgets('keeps an error with the contact it was about when an earlier contact is removed afterwards', (
+      tester,
+    ) async {
+      final failure = _failure(
+        400,
+        'VALIDATION_FAILED',
+        fields: const [
+          FieldError(field: 'emergencyContacts[1].contactName', code: 'REQUIRED', message: 'Enter the name'),
+        ],
+      );
+      // The save sent contacts 1 and 2 and named the second; the first was removed afterwards.
+      await pump(
+        tester,
+        _editState
+            .copyWith(contacts: [_editState.contacts.last])
+            .copyWith(failure: () => failure, failedEducationIds: [0], failedContactIds: [1, 2]),
+        staffId: 'f1',
+      );
+      expect(
+        find.descendant(of: find.byKey(const Key('staffForm.contact.2.name')), matching: find.text('Enter the name')),
+        findsOneWidget,
+      );
+      expect(find.byKey(const Key('staffForm.error')), findsNothing);
+      // A contact added after the save has no error.
+      await pump(
+        tester,
+        _editState
+            .copyWith(contacts: [..._editState.contacts, const ContactEntry(3, ContactTexts())], nextRowId: 4)
+            .copyWith(failure: () => failure, failedEducationIds: [0], failedContactIds: [1, 2]),
+        staffId: 'f1',
+      );
+      expect(
+        find.descendant(of: find.byKey(const Key('staffForm.contact.3.name')), matching: find.text('Enter the name')),
+        findsNothing,
+      );
+    });
 
     testWidgets('keeps an error with the row it was about when an earlier row is removed afterwards', (tester) async {
       final sent = _editState.copyWith(
