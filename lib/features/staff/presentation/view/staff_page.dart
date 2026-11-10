@@ -61,6 +61,8 @@ class StaffView extends StatefulWidget {
 }
 
 class _StaffViewState extends State<StaffView> {
+  static const _maxSearch = 100;
+
   final _search = TextEditingController();
 
   @override
@@ -73,15 +75,25 @@ class _StaffViewState extends State<StaffView> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final bloc = context.read<StaffBloc>();
+    final idle = context.select<StaffBloc, bool>(
+      (bloc) => switch (bloc.state) {
+        PagedListLoaded<StaffListEntry>(:final busyId) => busyId == null,
+        _ => true,
+      },
+    );
     return Column(
       children: [
         Padding(
           padding: const EdgeInsets.fromLTRB(AppSpacing.screenMargin, AppSpacing.sm, AppSpacing.screenMargin, 0),
+          // The search waits while a deactivation goes, so its outcome is not lost to a new list.
           child: AppSearchField(
             key: const Key('staff.search'),
             controller: _search,
             hint: l10n.staffSearchHint,
             clearTooltip: l10n.staffSearchClear,
+            enabled: idle,
+            // STF-01 takes 2 to 100 letters (API design 13.1); a pasted line is cut instead of refused.
+            maxLength: _maxSearch,
             // The search is sent on the keyboard's search key, and cleared as soon as the box is emptied.
             onSubmitted: (text) => bloc.add(PagedListSearched(text)),
             onChanged: (text) {
@@ -185,7 +197,7 @@ class _StaffCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final summary = entry.summary;
-    final detail = [?summary.employeeCode, ?entry.designationName, entry.categoryName].join(' · ');
+    final detail = [?summary.employeeCode, ?entry.designationName, ?entry.categoryName].join(' · ');
     return AppCard(
       key: ValueKey('staff.${summary.id}'),
       child: Column(

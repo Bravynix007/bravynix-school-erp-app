@@ -68,7 +68,7 @@ class StaffProfileBloc extends Bloc<StaffProfileEvent, StaffProfileState> {
           StaffProfile(
             member,
             designationName: await _masters.nameOf(MasterType.designations, member.designationId),
-            categoryName: await _masters.nameOf(MasterType.classCategories, member.classCategoryId) ?? '',
+            categoryName: await _masters.nameOf(MasterType.classCategories, member.classCategoryId),
             countryName: await _masters.nameOf(MasterType.countries, address.countryId),
             stateName: await _masters.nameOf(MasterType.states, address.stateId, parentId: address.countryId),
             cityName: address.stateId == null

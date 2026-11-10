@@ -126,7 +126,7 @@ class _Details extends StatelessWidget {
                 KeyValueRow(label: l10n.staffEmployeeId, value: code, mono: true),
               if (profile.designationName case final designation?)
                 KeyValueRow(label: l10n.staffDesignation, value: designation),
-              KeyValueRow(label: l10n.staffCategory, value: profile.categoryName),
+              if (profile.categoryName case final category?) KeyValueRow(label: l10n.staffCategory, value: category),
               if (member.gender case final gender?)
                 KeyValueRow(label: l10n.staffGender, value: _genderName(l10n, gender)),
               if (member.dateOfBirth case final day?)

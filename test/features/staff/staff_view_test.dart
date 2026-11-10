@@ -4,6 +4,7 @@ import 'package:bravynix_school_erp/core/bloc/paged_list_bloc.dart';
 import 'package:bravynix_school_erp/core/network/api_failure.dart';
 import 'package:bravynix_school_erp/core/theme/app_theme.dart';
 import 'package:bravynix_school_erp/core/widgets/app_icon_button.dart';
+import 'package:bravynix_school_erp/core/widgets/person_list_tile.dart';
 import 'package:bravynix_school_erp/features/staff/domain/staff_member.dart';
 import 'package:bravynix_school_erp/features/staff/presentation/bloc/staff_bloc.dart';
 import 'package:bravynix_school_erp/features/staff/presentation/view/staff_page.dart';
@@ -130,6 +131,69 @@ void main() {
     await pump(tester, const _Loaded([kavyaEntry, raviEntry], busyId: 'f1'));
     expect(tester.widget<ButtonStyleButton>(button('staff.deactivate.f1')).onPressed, isNull);
     expect(tester.widget<ButtonStyleButton>(button('staff.deactivate.f2')).onPressed, isNull);
+  });
+
+  testWidgets('a card opens its profile', (tester) async {
+    await pump(tester, const _Loaded([kavyaEntry, raviEntry]));
+    expect(
+      tester.widgetList<PersonListTile>(find.byType(PersonListTile)).map((tile) => tile.onTap),
+      everyElement(isNotNull),
+    );
+  });
+
+  testWidgets('no card opens a profile while a change is going', (tester) async {
+    await pump(tester, const _Loaded([kavyaEntry, raviEntry], busyId: 'f1'));
+    expect(
+      tester.widgetList<PersonListTile>(find.byType(PersonListTile)).map((tile) => tile.onTap),
+      everyElement(isNull),
+    );
+  });
+
+  testWidgets('locks the search box while a deactivation goes', (tester) async {
+    await pump(tester, const _Loaded([kavyaEntry], busyId: 'f1'));
+    expect(tester.widget<TextField>(find.byType(TextField)).enabled, isFalse);
+  });
+
+  testWidgets('leaves the search box open when no change is going', (tester) async {
+    await pump(tester, const _Loaded([kavyaEntry]));
+    expect(tester.widget<TextField>(find.byType(TextField)).enabled, isTrue);
+  });
+
+  testWidgets('never sends more than 100 letters, which is all STF-01 takes', (tester) async {
+    await pump(tester, const _Loaded([kavyaEntry]));
+    await tester.enterText(find.byKey(const Key('staff.search')), 'k' * 101);
+    await tester.testTextInput.receiveAction(TextInputAction.search);
+    verify(() => bloc.add(PagedListSearched('k' * 100))).called(1);
+    expect(find.text('101'), findsNothing);
+    expect(find.textContaining('/100'), findsNothing);
+  });
+
+  testWidgets('says nothing when a list arrives that no change made', (tester) async {
+    whenListen(
+      bloc,
+      Stream.fromIterable([
+        const _Loaded([kavyaEntry], hasMore: true, loadingMore: true),
+        const _Loaded([kavyaEntry, raviEntry]),
+      ]),
+      initialState: const _Loaded([kavyaEntry], hasMore: true),
+    );
+    await tester.pumpAppScaled(
+      Scaffold(
+        body: BlocProvider<StaffBloc>.value(value: bloc, child: const StaffView()),
+      ),
+      size: const Size(400, 1200),
+    );
+    await tester.pump();
+    expect(find.byType(SnackBar), findsNothing);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('leaves the category out of a card when the master no longer shows it', (tester) async {
+    await pump(
+      tester,
+      const _Loaded([StaffListEntry(kavya, designationName: 'Mathematics Teacher')]),
+    );
+    expect(find.text('T-014 · Mathematics Teacher'), findsOneWidget);
   });
 
   testWidgets('says why a deactivation was refused, above the list', (tester) async {

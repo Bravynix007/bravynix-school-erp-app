@@ -1111,9 +1111,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get staffProfileTitle => 'Teacher profile';
 
   @override
-  String get staffSectionPersonal => 'Personal information';
-
-  @override
   String get staffSectionContact => 'Contact';
 
   @override

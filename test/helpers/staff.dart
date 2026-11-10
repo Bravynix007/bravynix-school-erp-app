@@ -4,6 +4,7 @@ import 'package:bravynix_school_erp/features/staff/domain/staff_member.dart';
 import 'package:bravynix_school_erp/features/staff/domain/staff_profile.dart';
 
 const designationEntry = MasterEntry(id: 'd1', name: 'Mathematics Teacher');
+const otherDesignation = MasterEntry(id: 'd2', name: 'Principal');
 const countryEntry = MasterEntry(id: 'k1', name: 'India');
 const stateEntry = MasterEntry(id: 's1', name: 'Karnataka', parentId: 'k1');
 const cityEntry = MasterEntry(id: 'y1', name: 'Bengaluru', parentId: 's1');

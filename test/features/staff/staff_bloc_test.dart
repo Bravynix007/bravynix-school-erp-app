@@ -22,8 +22,8 @@ void main() {
   setUp(() {
     staff = MockStaffRepository();
     masters = MockMastersRepository();
-    when(() => masters.entries(MasterType.designations)).thenAnswer((_) async => [designationEntry]);
-    when(() => masters.entries(MasterType.classCategories)).thenAnswer((_) async => [lowerPrimary, higherPrimary]);
+    when(() => masters.entries(MasterType.designations)).thenAnswer((_) async => [otherDesignation, designationEntry]);
+    when(() => masters.entries(MasterType.classCategories)).thenAnswer((_) async => [higherPrimary, lowerPrimary]);
   });
 
   group('StaffBloc', () {
@@ -102,6 +102,21 @@ void main() {
       expect: () => [
         const PagedListLoaded<StaffListEntry>([kavyaEntry], busyId: 'f1'),
         const PagedListLoaded<StaffListEntry>([kavyaEntry], actionFailure: _self),
+      ],
+    );
+
+    blocTest<StaffBloc, PagedListState<StaffListEntry>>(
+      'leaves the category name out when the master no longer shows it',
+      setUp: () {
+        when(() => staff.staff('i1', query: any(named: 'query')))
+            .thenAnswer((_) async => const ItemsPage([kavya], page: 1, totalPages: 1));
+        when(() => masters.entries(MasterType.classCategories)).thenAnswer((_) async => [higherPrimary]);
+      },
+      build: build,
+      act: (bloc) => bloc.add(const PagedListRequested()),
+      expect: () => [
+        const PagedListLoading<StaffListEntry>(),
+        const PagedListLoaded<StaffListEntry>([StaffListEntry(kavya, designationName: 'Mathematics Teacher')]),
       ],
     );
 

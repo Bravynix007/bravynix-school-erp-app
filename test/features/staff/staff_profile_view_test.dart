@@ -113,6 +113,12 @@ void main() {
     });
   }
 
+  testWidgets('leaves out the Category row when the master no longer shows the category', (tester) async {
+    await pump(tester, const StaffProfileLoaded(StaffProfile(kavyaMember, designationName: 'Mathematics Teacher')));
+    expect(find.text('Category'), findsNothing);
+    expect(find.text('Designation'), findsOneWidget);
+  });
+
   testWidgets('shows a placeholder while it loads', (tester) async {
     await pump(tester, const StaffProfileLoading());
     expect(find.bySemanticsLabel('Loading'), findsOneWidget);

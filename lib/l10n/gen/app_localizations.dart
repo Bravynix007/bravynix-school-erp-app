@@ -2017,12 +2017,6 @@ abstract class AppLocalizations {
   /// **'Teacher profile'**
   String get staffProfileTitle;
 
-  /// No description provided for @staffSectionPersonal.
-  ///
-  /// In en, this message translates to:
-  /// **'Personal information'**
-  String get staffSectionPersonal;
-
   /// No description provided for @staffSectionContact.
   ///
   /// In en, this message translates to:

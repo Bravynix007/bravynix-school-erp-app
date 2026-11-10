@@ -230,6 +230,84 @@ void main() {
     ],
   );
 
+  test('reads nothing more for a Load more asked while one is on its way', () async {
+    final bloc = _Bloc();
+    addTearDown(bloc.close);
+    bloc.add(const PagedListRequested());
+    await bloc.stream.firstWhere((state) => state is PagedListLoaded<String>);
+    final gate = bloc.gates[(2, '')] = Completer();
+    bloc
+      ..add(const PagedListMoreRequested())
+      ..add(const PagedListMoreRequested());
+    await Future<void>.delayed(Duration.zero);
+    gate.complete(const ItemsPage(['b1', 'b2'], page: 2, totalPages: 3));
+    await bloc.stream.firstWhere((state) => state is PagedListLoaded<String> && state.page == 2);
+    expect(bloc.asked.where((ask) => ask.$1 == 2), hasLength(1));
+  });
+
+  test('drops the failure of a Load more asked before a new search, and keeps the search list', () async {
+    final bloc = _Bloc();
+    addTearDown(bloc.close);
+    bloc.add(const PagedListRequested());
+    await bloc.stream.firstWhere((state) => state is PagedListLoaded<String>);
+    final late = bloc.gates[(2, '')] = Completer();
+    bloc.add(const PagedListMoreRequested());
+    await Future<void>.delayed(Duration.zero);
+    bloc.add(const PagedListSearched('c2'));
+    await bloc.stream.firstWhere((state) => state is PagedListLoaded<String> && state.query == 'c2');
+    final seen = <PagedListState<String>>[];
+    final listening = bloc.stream.listen(seen.add);
+    addTearDown(listening.cancel);
+    late.completeError(_failure);
+    await Future<void>.delayed(Duration.zero);
+    expect(seen, isEmpty);
+    expect(bloc.state, const PagedListLoaded<String>(['c2'], query: 'c2'));
+  });
+
+  test('reads the first page of the same search again after a change', () async {
+    final bloc = _Bloc();
+    addTearDown(bloc.close);
+    bloc.add(const PagedListSearched('a1'));
+    await bloc.stream.firstWhere((state) => state is PagedListLoaded<String>);
+    bloc.add(const _Remove('a1'));
+    final state = await bloc.stream.firstWhere((state) => state is PagedListLoaded<String> && state.busyId == null);
+    expect(state, const PagedListLoaded<String>([], query: 'a1', changed: 'a1'));
+    expect(bloc.asked.last, (1, 'a1'));
+  });
+
+  test('runs a change asked while Load more is on its way, and drops the page that comes after', () async {
+    final bloc = _Bloc();
+    addTearDown(bloc.close);
+    bloc.add(const PagedListRequested());
+    await bloc.stream.firstWhere((state) => state is PagedListLoaded<String>);
+    final late = bloc.gates[(2, '')] = Completer();
+    bloc.add(const PagedListMoreRequested());
+    await Future<void>.delayed(Duration.zero);
+    bloc.add(const _Remove('a1'));
+    final done = await bloc.stream.firstWhere((state) => state is PagedListLoaded<String> && state.changed != null);
+    expect(bloc.removed, ['a1']);
+    late.complete(const ItemsPage(['b1', 'b2'], page: 2, totalPages: 3));
+    await Future<void>.delayed(Duration.zero);
+    expect(done, const PagedListLoaded<String>(['a2', 'b1'], hasMore: true, changed: 'a1'));
+    expect(bloc.state, done);
+  });
+
+  test('keeps a search for when the change is over, so its outcome is not lost', () async {
+    final bloc = _RefusingBloc();
+    addTearDown(bloc.close);
+    bloc.add(const PagedListRequested());
+    await bloc.stream.firstWhere((state) => state is PagedListLoaded<String>);
+    final gate = bloc.gates[(1, '')] = Completer();
+    bloc
+      ..add(const _Refuse('a1'))
+      ..add(const PagedListSearched('b1'));
+    await Future<void>.delayed(Duration.zero);
+    gate.complete(const ItemsPage(['a1', 'a2'], page: 1, totalPages: 3));
+    final state = await bloc.stream.firstWhere((state) => state is PagedListLoaded<String> && state.busyId == null);
+    expect(state, const PagedListLoaded<String>(['a1', 'a2'], hasMore: true, actionFailure: _refused));
+    expect(bloc.asked, isNot(contains((1, 'b1'))));
+  });
+
   test('a refused change keeps its reason with the list read again', () async {
     final bloc = _RefusingBloc();
     addTearDown(bloc.close);

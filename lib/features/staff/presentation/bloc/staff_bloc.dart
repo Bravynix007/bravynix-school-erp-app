@@ -40,7 +40,7 @@ class StaffBloc extends PagedListBloc<StaffListEntry> {
           StaffListEntry(
             summary,
             designationName: designations[summary.designationId],
-            categoryName: categories[summary.classCategoryId] ?? '',
+            categoryName: categories[summary.classCategoryId],
           ),
       ],
       page: read.page,

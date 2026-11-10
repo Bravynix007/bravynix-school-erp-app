@@ -84,7 +84,8 @@ class PagedListLoaded<T> extends PagedListState<T> {
 /// A screen that lists one kind of record a page at a time, with a search, and changes one at a time from its card.
 /// Like `ListBloc`, but the list is read a page at a time and asked for again from the first page after a change: a
 /// change moves what the list shows, so the pages already read are not trusted. An answer that arrives after the list
-/// was asked for again (a new search, a change) is dropped.
+/// was asked for again (a new search, a change) is dropped, so a change may start while Load more is on its way, and a
+/// search waits while a change is.
 abstract class PagedListBloc<T> extends Bloc<PagedListEvent, PagedListState<T>> {
   new() : super(PagedListLoading<T>()) {
     on<PagedListRequested>((event, emit) => _reload(emit));
@@ -96,9 +97,6 @@ abstract class PagedListBloc<T> extends Bloc<PagedListEvent, PagedListState<T>> 
   Future<ItemsPage<T>> read(int page, String query);
 
   String _query = '';
-
-  /// The search the list answers.
-  String get query => _query;
 
   /// Counts the times the list was asked for again, so an answer to an earlier ask can tell it is out of date.
   int _round = 0;
@@ -125,7 +123,12 @@ abstract class PagedListBloc<T> extends Bloc<PagedListEvent, PagedListState<T>> 
 
   Future<void> _onSearched(PagedListSearched event, Emitter<PagedListState<T>> emit) async {
     final text = event.text.trim();
-    if (text == _query || text.length == 1) return;
+    // A search moves the round on, which would drop the outcome of the change that is going, so it waits.
+    if (text == _query ||
+        text.length == 1 ||
+        (state is PagedListLoaded<T> && (state as PagedListLoaded<T>).busyId != null)) {
+      return;
+    }
     _query = text;
     await _reload(emit);
   }
@@ -166,7 +169,7 @@ abstract class PagedListBloc<T> extends Bloc<PagedListEvent, PagedListState<T>> 
 
   /// Runs [run] for [item] (one change at a time, and only once the list is shown), then reads the first page again.
   Future<void> change(Emitter<PagedListState<T>> emit, T item, String id, Future<Object?> Function() run) async {
-    if (state case final PagedListLoaded<T> loaded when loaded.busyId == null && !loaded.loadingMore) {
+    if (state case final PagedListLoaded<T> loaded when loaded.busyId == null) {
       final round = ++_round;
       emit(
         PagedListLoaded<T>(

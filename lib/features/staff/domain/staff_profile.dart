@@ -5,7 +5,7 @@ import 'package:equatable/equatable.dart';
 class StaffProfile extends Equatable {
   const new(
     this.member, {
-    required this.categoryName,
+    this.categoryName,
     this.designationName,
     this.countryName,
     this.stateName,
@@ -14,7 +14,7 @@ class StaffProfile extends Equatable {
 
   final StaffMember member;
   final String? designationName;
-  final String categoryName;
+  final String? categoryName;
   final String? countryName;
   final String? stateName;
   final String? cityName;

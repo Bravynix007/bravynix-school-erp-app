@@ -71,11 +71,13 @@ class StaffSummary extends Equatable {
 
 /// A row of the list with the names its IDs stand for.
 class StaffListEntry extends Equatable {
-  const new(this.summary, {required this.categoryName, this.designationName});
+  const new(this.summary, {this.categoryName, this.designationName});
 
   final StaffSummary summary;
   final String? designationName;
-  final String categoryName;
+
+  /// Null when the master no longer shows the category (it was hidden, MST-01).
+  final String? categoryName;
 
   @override
   List<Object?> get props => [summary, designationName, categoryName];
