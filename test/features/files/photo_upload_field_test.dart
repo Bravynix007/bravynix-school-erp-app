@@ -198,6 +198,36 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
+  testWidgets('does not open the picker for a source chosen after the screen went', (tester) async {
+    final picking = FakeFilePicking(result: photo);
+    final shown = ValueNotifier(true);
+    addTearDown(shown.dispose);
+    when(() => bloc.state).thenReturn(const FileUploadIdle());
+    await tester.pumpAppScaled(
+      Scaffold(
+        body: ValueListenableBuilder<bool>(
+          valueListenable: shown,
+          builder: (context, isShown, _) => isShown
+              ? BlocProvider<FileUploadBloc>.value(
+                  value: bloc,
+                  child: PhotoUploadField(picking: picking, imageLabel: 'Photo of Kavya', onChanged: changes.add),
+                )
+              : const SizedBox(),
+        ),
+      ),
+      size: const Size(400, 800),
+    );
+    await tester.tap(find.text('Add photo'));
+    await tester.pumpAndSettle();
+    // The screen goes while the sheet is still up, and then a source is chosen.
+    shown.value = false;
+    await tester.pump();
+    await tester.tap(find.byKey(const Key('photo.camera')));
+    await tester.pumpAndSettle();
+    expect(picking.asked, isEmpty);
+    verifyNever(() => bloc.add(any()));
+  });
+
   testWidgets('a photo the app refused shows on the tile why, with no way to send it again', (tester) async {
     await pump(tester, FileUploadFailed(pdf, problem: FileProblem.typeNotAllowed));
     expect(find.text("This kind of file can't be used here. Choose a different one."), findsOneWidget);

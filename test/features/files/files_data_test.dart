@@ -186,6 +186,44 @@ void main() {
       }
     });
 
+    group('when the screen goes', () {
+      test('send nothing when it was cancelled before FIL-01', () async {
+        final token = CancelToken()..cancel();
+        final (:repository, :adapter) = build();
+        await expectLater(
+          repository.upload(photo, purpose: FilePurpose.staffPhoto, institutionId: 'i1', cancelToken: token),
+          throwsA(isA<ApiFailure>()),
+        );
+        expect(adapter.paths, isEmpty);
+      });
+
+      test(
+        'carry the token on FIL-01, the send to the store and FIL-02, so a cancel stops whichever is going',
+        () async {
+          final token = CancelToken();
+          final (:repository, :adapter) = build();
+          await repository.upload(photo, purpose: FilePurpose.staffPhoto, institutionId: 'i1', cancelToken: token);
+          expect(adapter.paths, ['/v1/files/uploads', '/v1/local-storage/token', '/v1/files/f1/confirm']);
+          expect([for (final request in adapter.requests) request.cancelToken], everyElement(same(token)));
+        },
+      );
+
+      test('stop a send to the store that a cancel interrupts, and never confirm it', () async {
+        final token = CancelToken();
+        final (:repository, :adapter) = build(
+          store: (_) async {
+            token.cancel();
+            return storeOk;
+          },
+        );
+        await expectLater(
+          repository.upload(photo, purpose: FilePurpose.staffPhoto, institutionId: 'i1', cancelToken: token),
+          throwsA(isA<ApiFailure>()),
+        );
+        expect(adapter.paths, ['/v1/files/uploads', '/v1/local-storage/token']);
+      });
+    });
+
     test('never confirm a file the store refused', () async {
       final (:repository, :adapter) = build(
         store: (_) async => errorReply(400, 'BAD_UPLOAD'),
