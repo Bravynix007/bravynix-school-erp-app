@@ -325,6 +325,16 @@ void main() {
 
   group('emergency contacts', () {
     blocTest<StaffFormBloc, StaffFormState>(
+      'starts a new contact at the same dial code a new mobile starts at, so a number alone is a whole phone',
+      build: add,
+      act: (bloc) async {
+        await started(bloc);
+        bloc.add(const StaffContactAdded());
+      },
+      verify: (bloc) => expect(ready(bloc).contacts.single.texts.countryCode, indiaDialCode),
+    );
+
+    blocTest<StaffFormBloc, StaffFormState>(
       'makes one contact the primary, which takes the mark from another, and removes one',
       build: add,
       act: (bloc) async {
