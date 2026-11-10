@@ -16,8 +16,10 @@ import 'package:bravynix_school_erp/features/institutions/domain/institutions_re
 import 'package:bravynix_school_erp/features/institutions/presentation/bloc/institution_form_bloc.dart';
 import 'package:bravynix_school_erp/features/institutions/presentation/view/board_name.dart';
 import 'package:bravynix_school_erp/features/institutions/presentation/view/institution_form_error_text.dart';
-import 'package:bravynix_school_erp/features/masters/domain/master_entry.dart';
 import 'package:bravynix_school_erp/features/masters/domain/masters_repository.dart';
+import 'package:bravynix_school_erp/features/masters/domain/place_choice.dart';
+import 'package:bravynix_school_erp/features/masters/presentation/bloc/place_bloc.dart';
+import 'package:bravynix_school_erp/features/masters/presentation/view/place_fields.dart';
 import 'package:bravynix_school_erp/l10n/gen/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -97,17 +99,39 @@ class InstitutionFormView extends StatelessWidget {
 /// The dial code a new Institution's phone starts with: India is the only country for now.
 const _indiaDialCode = '91';
 
-class _Form extends StatefulWidget {
+/// The form with its own place picker, started from the place the Institution holds (a new one starts in India, the
+/// only country for now).
+class _Form extends StatelessWidget {
   const new({required this.state, required this.title});
 
   final InstitutionFormReady state;
   final String title;
 
   @override
-  State<_Form> createState() => _FormState();
+  Widget build(BuildContext context) {
+    final existing = state.existing;
+    return BlocProvider(
+      create: (_) => PlaceBloc(
+        getIt<MastersRepository>(),
+        initial: PlaceChoice(countryId: existing?.countryId, stateId: existing?.stateId, cityId: existing?.cityId),
+        soleCountry: existing == null,
+      )..add(const PlaceStarted()),
+      child: _FormBody(state: state, title: title),
+    );
+  }
 }
 
-class _FormState extends State<_Form> {
+class _FormBody extends StatefulWidget {
+  const new({required this.state, required this.title});
+
+  final InstitutionFormReady state;
+  final String title;
+
+  @override
+  State<_FormBody> createState() => _FormBodyState();
+}
+
+class _FormBodyState extends State<_FormBody> {
   late final TextEditingController _name;
   late final TextEditingController _code;
   late final TextEditingController _place;
@@ -160,7 +184,7 @@ class _FormState extends State<_Form> {
     super.dispose();
   }
 
-  void _save() => context.read<InstitutionFormBloc>().add(
+  void _save(PlaceChoice place) => context.read<InstitutionFormBloc>().add(
     InstitutionFormSubmitted(
       InstitutionTexts(
         name: _name.text,
@@ -176,6 +200,7 @@ class _FormState extends State<_Form> {
         addressLine2: _line2.text,
         pincode: _pincode.text,
       ),
+      place,
     ),
   );
 
@@ -185,9 +210,14 @@ class _FormState extends State<_Form> {
     final state = widget.state;
     final bloc = context.read<InstitutionFormBloc>();
     final failure = state.failure;
+    final place = context.select<PlaceBloc, PlaceChoice?>(
+      (bloc) => switch (bloc.state) {
+        PlaceReady(:final choice) => choice,
+        _ => null,
+      },
+    );
     String? error(String field) => failure?.fieldError(field)?.message;
-    // A save that failed on fields of this form is shown under them; any other failure, and a list that did not load,
-    // is said above.
+    // A save that failed on fields of this form is shown under them; any other failure is said above.
     final banner = failure != null && !failure.namesOnly(_fields) ? institutionFormErrorText(l10n, failure) : null;
     return Scaffold(
       body: Column(
@@ -334,32 +364,11 @@ class _FormState extends State<_Form> {
                         textInputAction: TextInputAction.next,
                       ),
                       const SizedBox(height: AppSpacing.sm),
-                      _PlaceDropdown(
-                        fieldKey: const Key('institutionForm.country'),
-                        label: l10n.institutionCountry,
-                        entries: state.countries,
-                        value: state.countryId,
-                        error: error('address.countryId'),
-                        onChanged: (id) => bloc.add(InstitutionCountryChosen(id)),
-                      ),
-                      const SizedBox(height: AppSpacing.sm),
-                      _PlaceDropdown(
-                        fieldKey: const Key('institutionForm.state'),
-                        label: l10n.institutionState,
-                        entries: state.states,
-                        value: state.stateId,
-                        error: error('address.stateId'),
-                        // A state is chosen within a country.
-                        onChanged: state.countryId == null ? null : (id) => bloc.add(InstitutionStateChosen(id)),
-                      ),
-                      const SizedBox(height: AppSpacing.sm),
-                      _PlaceDropdown(
-                        fieldKey: const Key('institutionForm.city'),
-                        label: l10n.institutionCity,
-                        entries: state.cities,
-                        value: state.cityId,
-                        error: error('address.cityId'),
-                        onChanged: state.stateId == null ? null : (id) => bloc.add(InstitutionCityChosen(id)),
+                      PlaceFields(
+                        keyPrefix: 'institutionForm',
+                        countryError: error('address.countryId'),
+                        stateError: error('address.stateId'),
+                        cityError: error('address.cityId'),
                       ),
                       const SizedBox(height: AppSpacing.sm),
                       AppTextField(
@@ -430,7 +439,8 @@ class _FormState extends State<_Form> {
       bottomNavigationBar: StickyBottomActions(
         primaryLabel: l10n.institutionSave,
         primaryLoading: state.saving,
-        onPrimary: state.saving ? null : _save,
+        // The place is sent with the rest, so Save waits until it is read (an edit would otherwise drop it).
+        onPrimary: state.saving || place == null ? null : () => _save(place),
         secondaryLabel: l10n.cancel,
         onSecondary: () => context.pop(),
       ),
@@ -458,34 +468,4 @@ class _FormState extends State<_Form> {
     'address.stateId',
     'address.cityId',
   };
-}
-
-/// A country, state or city picker. A value that is not in [entries] (the list is still loading, or the entry was
-/// hidden since it was chosen) shows as empty rather than breaking the dropdown.
-class _PlaceDropdown extends StatelessWidget {
-  const new({
-    required this.fieldKey,
-    required this.label,
-    required this.entries,
-    required this.value,
-    required this.onChanged,
-    this.error,
-  });
-
-  final Key fieldKey;
-  final String label;
-  final List<MasterEntry> entries;
-  final String? value;
-  final String? error;
-  final ValueChanged<String?>? onChanged;
-
-  @override
-  Widget build(BuildContext context) => AppDropdownField<String>(
-    key: fieldKey,
-    label: label,
-    value: entries.any((entry) => entry.id == value) ? value : null,
-    error: error,
-    items: [for (final entry in entries) DropdownMenuItem(value: entry.id, child: Text(entry.name))],
-    onChanged: onChanged,
-  );
 }
