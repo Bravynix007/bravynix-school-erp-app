@@ -17,6 +17,11 @@ final class PlaceStarted extends PlaceEvent {
   const new();
 }
 
+/// Try again after the states of the chosen country, or the cities of the chosen state, could not be read.
+final class PlaceListsRetried extends PlaceEvent {
+  const new();
+}
+
 final class PlaceCountryChosen extends PlaceEvent {
   const new(this.id);
 
@@ -106,6 +111,7 @@ class PlaceReady extends PlaceState {
 class PlaceBloc extends Bloc<PlaceEvent, PlaceState> {
   new(this._masters, {this.initial = const PlaceChoice(), this.soleCountry = false}) : super(const PlaceLoading()) {
     on<PlaceStarted>(_onStarted);
+    on<PlaceListsRetried>(_onListsRetried);
     on<PlaceCountryChosen>(_onCountryChosen);
     on<PlaceStateChosen>(_onStateChosen);
     on<PlaceCityChosen>(
@@ -144,6 +150,21 @@ class PlaceBloc extends Bloc<PlaceEvent, PlaceState> {
       );
     } on ApiFailure catch (failure) {
       emit(PlaceFailed(failure));
+    }
+  }
+
+  /// Reads again the list that is empty under a chosen parent: the states of the country, the cities of the state. A
+  /// choice that is already there is not asked for again, so only a failure needs this.
+  Future<void> _onListsRetried(PlaceListsRetried event, Emitter<PlaceState> emit) async {
+    if (state case final PlaceReady ready) {
+      emit(ready.copyWith(failure: () => null));
+      final choice = ready.choice;
+      if (choice.countryId != null && ready.states.isEmpty) {
+        await _loadPlaces(emit, MasterType.states, choice.countryId!);
+      }
+      if (choice.stateId != null && ready.cities.isEmpty) {
+        await _loadPlaces(emit, MasterType.cities, choice.stateId!);
+      }
     }
   }
 
