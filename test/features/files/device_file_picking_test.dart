@@ -31,12 +31,15 @@ class _FakeImagePicker extends ImagePickerPlatform with MockPlatformInterfaceMix
 
 /// A file the phone's file browser hands back: [size] is what the phone says, and nothing is read until asked.
 base class _FakePlatformFile extends PlatformFile {
-  new(this.name, this.bytes, {this.size});
+  new(this.name, this.bytes, {this.size, this.sizeKnown = true});
 
   @override
   final String name;
   final Uint8List bytes;
   final int? size;
+
+  /// Whether the phone said the size with the pick, or it has to be asked for.
+  final bool sizeKnown;
 
   /// Set when the bytes were read, so a test can say a file was not.
   bool read = false;
@@ -48,7 +51,7 @@ base class _FakePlatformFile extends PlatformFile {
   XFile get xFile => XFile.fromData(bytes);
 
   @override
-  int? lengthSync() => size;
+  int? lengthSync() => sizeKnown ? size : null;
 
   @override
   Future<int?> length() async => size ?? bytes.length;
@@ -205,6 +208,14 @@ void main() {
       final picked = await const DeviceFilePicking().document();
       expect(unknown.read, isTrue);
       expect(picked?.sizeBytes, pdfBytes.length);
+    });
+
+    test('asks the file for its size when the phone did not say, and does not read one over 5 MB', () async {
+      final big = _FakePlatformFile('scan.pdf', pdfBytes, size: maxFileBytes + 1, sizeKnown: false);
+      files.next = big;
+      final picked = await const DeviceFilePicking().document();
+      expect(big.read, isFalse);
+      expect(checkFile(picked!, FilePurpose.staffDocument), FileProblem.tooLarge);
     });
 
     test('is null when the person backs out, and says when the phone would not open the files', () async {
