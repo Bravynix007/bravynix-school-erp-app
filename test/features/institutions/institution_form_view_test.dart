@@ -160,6 +160,21 @@ void main() {
     expect(sent.place, const PlaceChoice(countryId: 'k1', stateId: 's1', cityId: 'y2'));
   });
 
+  testWidgets('an edit of an Institution with no country keeps it empty, and saves it so', (tester) async {
+    await pump(
+      tester,
+      const InstitutionFormReady(existing: bareInstitution, categories: [lowerPrimary]),
+      id: 'i2',
+    );
+    // India is the only country, but only a new Institution starts there.
+    expect(find.text('India'), findsNothing);
+    await tester.tap(find.text('Save'));
+    final sent =
+        verify(() => bloc.add(captureAny(that: isA<InstitutionFormSubmitted>()))).captured.single
+            as InstitutionFormSubmitted;
+    expect(sent.place, const PlaceChoice());
+  });
+
   testWidgets('Save waits until the place is read, so an edit does not drop it', (tester) async {
     final lists = Completer<List<MasterEntry>>();
     when(() => masters.entries(MasterType.countries)).thenAnswer((_) => lists.future);

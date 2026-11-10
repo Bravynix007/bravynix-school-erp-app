@@ -10,8 +10,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 /// The country, state and city of an address, chosen through the [PlaceBloc] above it. [keyPrefix] names the three
-/// fields (`<prefix>.country`, `.state`, `.city`) and the error under the lists (`<prefix>.placeFailed`); the errors
-/// are what the API said about each of them.
+/// fields (`<prefix>.country`, `.state`, `.city`); a start that failed shows `<prefix>.placeFailed` with
+/// `<prefix>.placeRetry`, and a list that failed later shows `<prefix>.listFailed` with `<prefix>.listRetry`. The
+/// errors are what the API said about each of the three.
 class PlaceFields extends StatelessWidget {
   const new({required this.keyPrefix, this.countryError, this.stateError, this.cityError, super.key});
 
@@ -37,13 +38,6 @@ class PlaceFields extends StatelessWidget {
         PlaceReady() => Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            if (state.failure case final failure?) ...[
-              InlineMessage.error(
-                apiErrorText(l10n, failure, notFound: l10n.errorGeneric),
-                key: Key('$keyPrefix.placeFailed'),
-              ),
-              const SizedBox(height: AppSpacing.sm),
-            ],
             _PlaceDropdown(
               fieldKey: Key('$keyPrefix.country'),
               label: l10n.placeCountry,
@@ -71,6 +65,17 @@ class PlaceFields extends StatelessWidget {
               error: cityError,
               onChanged: state.choice.stateId == null ? null : (id) => bloc.add(PlaceCityChosen(id)),
             ),
+            // A list that could not be read is said under the lists, with a way to read it again.
+            if (state.failure case final failure?) ...[
+              const SizedBox(height: AppSpacing.sm),
+              InlineMessage.error(
+                apiErrorText(l10n, failure, notFound: l10n.errorGeneric),
+                key: Key('$keyPrefix.listFailed'),
+                actionLabel: l10n.retry,
+                onAction: () => bloc.add(const PlaceListsRetried()),
+                actionKey: Key('$keyPrefix.listRetry'),
+              ),
+            ],
           ],
         ),
       },

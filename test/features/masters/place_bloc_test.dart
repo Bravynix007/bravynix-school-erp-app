@@ -229,5 +229,149 @@ void main() {
       act: (bloc) => bloc.add(const PlaceStarted()),
       verify: (bloc) => expect((bloc.state as PlaceReady).choice.stateId, 's9'),
     );
+
+    blocTest<PlaceBloc, PlaceState>(
+      'choosing the state again changes nothing',
+      build: () => build(soleCountry: true),
+      act: (bloc) async {
+        await started(bloc);
+        bloc.add(const PlaceStateChosen('s1'));
+        await bloc.stream.firstWhere((state) => state is PlaceReady && state.cities.isNotEmpty);
+        bloc.add(const PlaceStateChosen('s1'));
+      },
+      skip: 4,
+      expect: () => <PlaceState>[],
+      verify: (_) => verify(() => masters.entries(MasterType.cities, parentId: 's1')).called(1),
+    );
+
+    blocTest<PlaceBloc, PlaceState>(
+      'another country clears the failure of an old list',
+      build: () => build(soleCountry: true),
+      setUp: () => when(() => masters.entries(MasterType.cities, parentId: 's1')).thenThrow(const ApiFailure.network()),
+      act: (bloc) async {
+        await started(bloc);
+        bloc.add(const PlaceStateChosen('s1'));
+        await bloc.stream.firstWhere((state) => state is PlaceReady && state.failure != null);
+        bloc.add(const PlaceCountryChosen(null));
+      },
+      verify: (bloc) => expect((bloc.state as PlaceReady).failure, isNull),
+    );
+
+    blocTest<PlaceBloc, PlaceState>(
+      'another state clears the failure of an old list',
+      build: () => build(soleCountry: true),
+      setUp: () => when(() => masters.entries(MasterType.cities, parentId: 's1')).thenThrow(const ApiFailure.network()),
+      act: (bloc) async {
+        await started(bloc);
+        bloc.add(const PlaceStateChosen('s1'));
+        await bloc.stream.firstWhere((state) => state is PlaceReady && state.failure != null);
+        bloc.add(const PlaceStateChosen('s2'));
+      },
+      verify: (bloc) {
+        final ready = bloc.state as PlaceReady;
+        expect(ready.failure, isNull);
+        expect(ready.cities, [kochi]);
+      },
+    );
+
+    blocTest<PlaceBloc, PlaceState>(
+      'a failure of the list for an earlier choice, arriving late, is dropped',
+      build: () => build(soleCountry: true),
+      setUp: () {
+        final late = Completer<List<MasterEntry>>();
+        when(() => masters.entries(MasterType.cities, parentId: 's1')).thenAnswer((_) => late.future);
+        when(() => masters.entries(MasterType.cities, parentId: 's2')).thenAnswer((_) async {
+          // The first state's list fails after this one has answered.
+          Future<void>.delayed(const Duration(milliseconds: 10), () => late.completeError(const ApiFailure.network()));
+          return [kochi];
+        });
+      },
+      act: (bloc) async {
+        await started(bloc);
+        bloc
+          ..add(const PlaceStateChosen('s1'))
+          ..add(const PlaceStateChosen('s2'));
+        await Future<void>.delayed(const Duration(milliseconds: 50));
+      },
+      verify: (bloc) {
+        final ready = bloc.state as PlaceReady;
+        expect(ready.failure, isNull);
+        expect(ready.cities, [kochi]);
+      },
+    );
+  });
+
+  group('trying again', () {
+    blocTest<PlaceBloc, PlaceState>(
+      'reads the states of the chosen country again after they failed, so one country is not a dead end',
+      build: build,
+      setUp: () {
+        var calls = 0;
+        when(() => masters.entries(MasterType.states, parentId: 'k1')).thenAnswer((_) async {
+          if (++calls == 1) throw const ApiFailure.network();
+          return [karnataka, kerala];
+        });
+      },
+      act: (bloc) async {
+        await started(bloc);
+        bloc.add(const PlaceCountryChosen('k1'));
+        await bloc.stream.firstWhere((state) => state is PlaceReady && state.failure != null);
+        // Choosing the country again reads nothing, as it is already chosen.
+        bloc
+          ..add(const PlaceCountryChosen('k1'))
+          ..add(const PlaceListsRetried());
+        await bloc.stream.firstWhere((state) => state is PlaceReady && state.states.isNotEmpty);
+      },
+      verify: (bloc) {
+        final ready = bloc.state as PlaceReady;
+        expect(ready.states, [karnataka, kerala]);
+        expect(ready.failure, isNull);
+        expect(ready.choice.countryId, 'k1');
+        verify(() => masters.entries(MasterType.states, parentId: 'k1')).called(2);
+      },
+    );
+
+    blocTest<PlaceBloc, PlaceState>(
+      'reads the cities of the chosen state again after they failed, and fails again when they still do',
+      build: () => build(soleCountry: true),
+      setUp: () {
+        var calls = 0;
+        when(() => masters.entries(MasterType.cities, parentId: 's1')).thenAnswer((_) async {
+          if (++calls < 3) throw const ApiFailure.network();
+          return [bengaluru, mysuru];
+        });
+      },
+      act: (bloc) async {
+        await started(bloc);
+        bloc.add(const PlaceStateChosen('s1'));
+        await bloc.stream.firstWhere((state) => state is PlaceReady && state.failure != null);
+        bloc.add(const PlaceListsRetried());
+        // The second read fails too: the message comes back.
+        await bloc.stream.firstWhere((state) => state is PlaceReady && state.failure == null);
+        await bloc.stream.firstWhere((state) => state is PlaceReady && state.failure != null);
+        bloc.add(const PlaceListsRetried());
+        await bloc.stream.firstWhere((state) => state is PlaceReady && state.cities.isNotEmpty);
+      },
+      verify: (bloc) {
+        final ready = bloc.state as PlaceReady;
+        expect(ready.cities, [bengaluru, mysuru]);
+        expect(ready.failure, isNull);
+        expect(ready.choice, const PlaceChoice(countryId: 'k1', stateId: 's1'));
+        verify(() => masters.entries(MasterType.cities, parentId: 's1')).called(3);
+      },
+    );
+
+    blocTest<PlaceBloc, PlaceState>(
+      'reads nothing when no list is missing',
+      build: () => build(soleCountry: true),
+      act: (bloc) async {
+        await started(bloc);
+        bloc.add(const PlaceListsRetried());
+      },
+      verify: (_) {
+        verify(() => masters.entries(MasterType.states, parentId: 'k1')).called(1);
+        verifyNever(() => masters.entries(MasterType.cities, parentId: any(named: 'parentId')));
+      },
+    );
   });
 }
