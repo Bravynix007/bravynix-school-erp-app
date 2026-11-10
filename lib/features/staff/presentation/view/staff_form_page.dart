@@ -18,10 +18,10 @@ import 'package:bravynix_school_erp/features/files/domain/file_purpose.dart';
 import 'package:bravynix_school_erp/features/files/domain/files_repository.dart';
 import 'package:bravynix_school_erp/features/files/presentation/bloc/file_upload_bloc.dart';
 import 'package:bravynix_school_erp/features/files/presentation/view/photo_upload_field.dart';
-import 'package:bravynix_school_erp/features/masters/domain/master_entry.dart';
 import 'package:bravynix_school_erp/features/masters/domain/masters_repository.dart';
 import 'package:bravynix_school_erp/features/masters/domain/place_choice.dart';
 import 'package:bravynix_school_erp/features/masters/presentation/bloc/place_bloc.dart';
+import 'package:bravynix_school_erp/features/masters/presentation/view/master_dropdown.dart';
 import 'package:bravynix_school_erp/features/masters/presentation/view/place_fields.dart';
 import 'package:bravynix_school_erp/features/staff/domain/staff_member.dart';
 import 'package:bravynix_school_erp/features/staff/domain/staff_repository.dart';
@@ -77,7 +77,8 @@ class StaffFormView extends StatelessWidget {
       },
       child: BlocBuilder<StaffFormBloc, StaffFormState>(
         builder: (context, state) => switch (state) {
-          StaffFormReady() => _Form(state: state, title: title),
+          // A read of another version builds a new form, so no typed text or picker outlives the record it was typed on.
+          StaffFormReady() => _Form(key: ValueKey(state.existing?.version), state: state, title: title),
           _ => Scaffold(
             body: Column(
               children: [
@@ -116,7 +117,7 @@ const _indiaDialCode = '91';
 /// The form with its own place picker and photo upload: the place starts from the one the record holds (a new record
 /// starts in India), and the photo is sent for the Institution the staff member is based at.
 class _Form extends StatelessWidget {
-  const new({required this.state, required this.title});
+  const new({required this.state, required this.title, super.key});
 
   final StaffFormReady state;
   final String title;
@@ -229,9 +230,9 @@ class _FormBodyState extends State<_FormBody> {
   /// The fields the form shows an error under, named as the API names them, for the rows it holds now.
   Set<String> _fieldsShown(StaffFormReady state) => {
     ..._fields,
-    for (var i = 0; i < state.educations.length; i++)
+    for (var i = 0; i < state.failedEducationIds.length; i++)
       for (final field in educationFields) 'educations[$i].$field',
-    for (var i = 0; i < state.contacts.length; i++)
+    for (var i = 0; i < state.failedContactIds.length; i++)
       for (final field in contactFields) 'emergencyContacts[$i].$field',
   };
 
@@ -268,6 +269,12 @@ class _FormBodyState extends State<_FormBody> {
     final bloc = context.read<StaffFormBloc>();
     final failure = state.failure;
     String? error(String field) => failure?.fieldError(field)?.message;
+    // The API names a row by its place among those the save sent; see StaffFormReady.failedEducationIds.
+    String? rowError(String list, List<int> sentIds, int rowId, String field) {
+      final position = sentIds.indexOf(rowId);
+      return position < 0 ? null : error('$list[$position].$field');
+    }
+
     final place = context.select<PlaceBloc, PlaceChoice?>(
       (bloc) => switch (bloc.state) {
         PlaceReady(:final choice) => choice,
@@ -311,6 +318,14 @@ class _FormBodyState extends State<_FormBody> {
                           imageLabel: l10n.staffPhotoLabel,
                           onChanged: (id) => bloc.add(StaffPhotoChosen(id)),
                         ),
+                        if (uploading) ...[
+                          const SizedBox(height: AppSpacing.xs),
+                          Text(
+                            l10n.staffUploadingWait,
+                            key: const Key('staffForm.uploadingWait'),
+                            style: Theme.of(context).textTheme.bodySmall,
+                          ),
+                        ],
                         if (state.isEdit && state.existing!.photoFileId != null && state.photoFileId == null) ...[
                           const SizedBox(height: AppSpacing.xs),
                           Text(
@@ -509,8 +524,8 @@ class _FormBodyState extends State<_FormBody> {
                           textInputAction: TextInputAction.next,
                         ),
                         const SizedBox(height: AppSpacing.sm),
-                        _MasterDropdown(
-                          fieldKey: const Key('staffForm.category'),
+                        MasterDropdown(
+                          key: const Key('staffForm.category'),
                           label: l10n.staffCategory,
                           entries: state.categories,
                           value: state.categoryId,
@@ -520,8 +535,8 @@ class _FormBodyState extends State<_FormBody> {
                           onChanged: (id) => bloc.add(StaffCategoryChosen(id)),
                         ),
                         const SizedBox(height: AppSpacing.sm),
-                        _MasterDropdown(
-                          fieldKey: const Key('staffForm.designation'),
+                        MasterDropdown(
+                          key: const Key('staffForm.designation'),
                           label: l10n.staffDesignation,
                           entries: state.designations,
                           value: state.designationId,
@@ -577,7 +592,7 @@ class _FormBodyState extends State<_FormBody> {
                       key: ValueKey('staffForm.education.${entry.id}'),
                       entry: entry,
                       index: index,
-                      errorOf: (field) => error('educations[$index].$field'),
+                      errorOf: (field) => rowError('educations', state.failedEducationIds, entry.id, field),
                     ),
                     const SizedBox(height: AppSpacing.xs),
                   ],
@@ -596,7 +611,7 @@ class _FormBodyState extends State<_FormBody> {
                       key: ValueKey('staffForm.contact.${entry.id}'),
                       entry: entry,
                       index: index,
-                      errorOf: (field) => error('emergencyContacts[$index].$field'),
+                      errorOf: (field) => rowError('emergencyContacts', state.failedContactIds, entry.id, field),
                     ),
                     const SizedBox(height: AppSpacing.xs),
                   ],
@@ -625,45 +640,4 @@ class _FormBodyState extends State<_FormBody> {
       ),
     );
   }
-}
-
-/// A category or designation picker over a master. A value that is not in [entries] (the entry was hidden since it was
-/// chosen) shows as empty, but stays chosen. With [noneLabel] the field may be left empty.
-class _MasterDropdown extends StatelessWidget {
-  const new({
-    required this.fieldKey,
-    required this.label,
-    required this.entries,
-    required this.value,
-    required this.onChanged,
-    this.noneLabel,
-    this.error,
-    this.required = false,
-    this.requiredLabel,
-  });
-
-  final Key fieldKey;
-  final String label;
-  final List<MasterEntry> entries;
-  final String? value;
-  final String? noneLabel;
-  final String? error;
-  final bool required;
-  final String? requiredLabel;
-  final ValueChanged<String?> onChanged;
-
-  @override
-  Widget build(BuildContext context) => AppDropdownField<String?>(
-    key: fieldKey,
-    label: label,
-    value: entries.any((entry) => entry.id == value) ? value : null,
-    required: required,
-    requiredLabel: requiredLabel,
-    error: error,
-    items: [
-      if (noneLabel != null) DropdownMenuItem<String?>(child: Text(noneLabel!)),
-      for (final entry in entries) DropdownMenuItem<String?>(value: entry.id, child: Text(entry.name)),
-    ],
-    onChanged: onChanged,
-  );
 }

@@ -59,7 +59,8 @@ class InstitutionFormView extends StatelessWidget {
           final isEdit = context.read<InstitutionFormBloc>().institutionId != null;
           final title = isEdit ? l10n.institutionEditTitle : l10n.institutionAddTitle;
           return switch (state) {
-            InstitutionFormReady() => _Form(state: state, title: title),
+            // A read of another version builds a new form, so no typed text or picker outlives the record it was typed on.
+            InstitutionFormReady() => _Form(key: ValueKey(state.existing?.version), state: state, title: title),
             _ => Scaffold(
               body: Column(
                 children: [
@@ -102,7 +103,7 @@ const _indiaDialCode = '91';
 /// The form with its own place picker, started from the place the Institution holds (a new one starts in India, the
 /// only country for now).
 class _Form extends StatelessWidget {
-  const new({required this.state, required this.title});
+  const new({required this.state, required this.title, super.key});
 
   final InstitutionFormReady state;
   final String title;

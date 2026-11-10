@@ -407,6 +407,7 @@
   "staffFormEducation": "Education",
   "staffFormEmergency": "Emergency contacts",
   "choiceNone": "Not set",
+  "masterEntryKept": "No longer offered (kept)",
   "chooseDate": "Choose a date",
   "clearDate": "Clear {label}",
   "@clearDate": { "placeholders": { "label": { "type": "String" } } },

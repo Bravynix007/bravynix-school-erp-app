@@ -1,10 +1,9 @@
 import 'package:bravynix_school_erp/core/theme/app_spacing.dart';
-import 'package:bravynix_school_erp/core/widgets/app_dropdown_field.dart';
 import 'package:bravynix_school_erp/core/widgets/inline_message.dart';
 import 'package:bravynix_school_erp/core/widgets/skeleton.dart';
 import 'package:bravynix_school_erp/features/auth/presentation/role/view/role_error_text.dart';
-import 'package:bravynix_school_erp/features/masters/domain/master_entry.dart';
 import 'package:bravynix_school_erp/features/masters/presentation/bloc/place_bloc.dart';
+import 'package:bravynix_school_erp/features/masters/presentation/view/master_dropdown.dart';
 import 'package:bravynix_school_erp/l10n/gen/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -38,8 +37,8 @@ class PlaceFields extends StatelessWidget {
         PlaceReady() => Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            _PlaceDropdown(
-              fieldKey: Key('$keyPrefix.country'),
+            MasterDropdown(
+              key: Key('$keyPrefix.country'),
               label: l10n.placeCountry,
               entries: state.countries,
               value: state.choice.countryId,
@@ -47,8 +46,8 @@ class PlaceFields extends StatelessWidget {
               onChanged: (id) => bloc.add(PlaceCountryChosen(id)),
             ),
             const SizedBox(height: AppSpacing.sm),
-            _PlaceDropdown(
-              fieldKey: Key('$keyPrefix.state'),
+            MasterDropdown(
+              key: Key('$keyPrefix.state'),
               label: l10n.placeState,
               entries: state.states,
               value: state.choice.stateId,
@@ -57,8 +56,8 @@ class PlaceFields extends StatelessWidget {
               onChanged: state.choice.countryId == null ? null : (id) => bloc.add(PlaceStateChosen(id)),
             ),
             const SizedBox(height: AppSpacing.sm),
-            _PlaceDropdown(
-              fieldKey: Key('$keyPrefix.city'),
+            MasterDropdown(
+              key: Key('$keyPrefix.city'),
               label: l10n.placeCity,
               entries: state.cities,
               value: state.choice.cityId,
@@ -81,34 +80,4 @@ class PlaceFields extends StatelessWidget {
       },
     );
   }
-}
-
-/// A country, state or city picker. A value that is not in [entries] (the list is still loading, or the entry was
-/// hidden since it was chosen) shows as empty rather than breaking the dropdown.
-class _PlaceDropdown extends StatelessWidget {
-  const new({
-    required this.fieldKey,
-    required this.label,
-    required this.entries,
-    required this.value,
-    required this.onChanged,
-    this.error,
-  });
-
-  final Key fieldKey;
-  final String label;
-  final List<MasterEntry> entries;
-  final String? value;
-  final String? error;
-  final ValueChanged<String?>? onChanged;
-
-  @override
-  Widget build(BuildContext context) => AppDropdownField<String>(
-    key: fieldKey,
-    label: label,
-    value: entries.any((entry) => entry.id == value) ? value : null,
-    error: error,
-    items: [for (final entry in entries) DropdownMenuItem(value: entry.id, child: Text(entry.name))],
-    onChanged: onChanged,
-  );
 }

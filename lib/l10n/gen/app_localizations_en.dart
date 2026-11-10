@@ -1239,6 +1239,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get choiceNone => 'Not set';
 
   @override
+  String get masterEntryKept => 'No longer offered (kept)';
+
+  @override
   String get chooseDate => 'Choose a date';
 
   @override

@@ -346,6 +346,8 @@ class StaffFormReady extends StaffFormState {
     this.photoFileId,
     this.saving = false,
     this.failure,
+    this.failedEducationIds = const [],
+    this.failedContactIds = const [],
   });
 
   final StaffMember? existing;
@@ -370,6 +372,11 @@ class StaffFormReady extends StaffFormState {
   /// The last save.
   final ApiFailure? failure;
 
+  /// The rows the last save sent, in the order it sent them: the API names a row by its place in that order, and rows
+  /// are added and removed afterwards, so an error is shown under the row it was about and not the one now in its place.
+  final List<int> failedEducationIds;
+  final List<int> failedContactIds;
+
   bool get isEdit => existing != null;
   bool get canAddEducation => educations.length < maxEducations;
   bool get canAddContact => contacts.length < maxEmergencyContacts;
@@ -389,6 +396,8 @@ class StaffFormReady extends StaffFormState {
     int? nextRowId,
     bool? saving,
     ApiFailure? Function()? failure,
+    List<int>? failedEducationIds,
+    List<int>? failedContactIds,
   }) => StaffFormReady(
     existing: existing,
     categories: categories,
@@ -407,6 +416,8 @@ class StaffFormReady extends StaffFormState {
     nextRowId: nextRowId ?? this.nextRowId,
     saving: saving ?? this.saving,
     failure: failure == null ? this.failure : failure(),
+    failedEducationIds: failedEducationIds ?? this.failedEducationIds,
+    failedContactIds: failedContactIds ?? this.failedContactIds,
   );
 
   @override
@@ -428,6 +439,8 @@ class StaffFormReady extends StaffFormState {
     nextRowId,
     saving,
     failure,
+    failedEducationIds,
+    failedContactIds,
   ];
 }
 
@@ -599,7 +612,7 @@ class StaffFormBloc extends Bloc<StaffFormEvent, StaffFormState> {
 
   Future<void> _onSubmitted(StaffFormSubmitted event, Emitter<StaffFormState> emit) async {
     if (state case final StaffFormReady ready when !ready.saving) {
-      emit(ready.copyWith(saving: true, failure: () => null));
+      emit(ready.copyWith(saving: true, failure: () => null, failedEducationIds: const [], failedContactIds: const []));
       final draft = _draft(ready, event.texts, event.place);
       try {
         final existing = ready.existing;
@@ -608,7 +621,17 @@ class StaffFormBloc extends Bloc<StaffFormEvent, StaffFormState> {
             : await _staff.update(existing.id, existing.version, draft);
         emit(StaffFormSaved(saved));
       } on ApiFailure catch (failure) {
-        emit(ready.copyWith(failure: () => failure));
+        // The rows can be changed while the save is out; keep what the form holds now, not what it held at the start.
+        if (state case final StaffFormReady now) {
+          emit(
+            now.copyWith(
+              saving: false,
+              failure: () => failure,
+              failedEducationIds: [for (final entry in ready.educations) entry.id],
+              failedContactIds: [for (final entry in ready.contacts) entry.id],
+            ),
+          );
+        }
       }
     }
   }

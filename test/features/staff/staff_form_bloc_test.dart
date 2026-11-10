@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:bloc_test/bloc_test.dart';
 import 'package:bravynix_school_erp/core/model/phone.dart';
 import 'package:bravynix_school_erp/core/network/api_failure.dart';
@@ -511,5 +513,79 @@ void main() {
       verify: (_) => verify(() => staff.member('f1')).called(2),
       expect: () => anything,
     );
+  });
+
+  group('a save that is refused while the form was changed', () {
+    const refusal = ApiFailure(
+      statusCode: 400,
+      code: 'VALIDATION_FAILED',
+      message: 'x',
+      fieldErrors: [FieldError(field: 'educations[0].degree', code: 'REQUIRED', message: 'Enter the degree')],
+    );
+
+    /// Opens Kavya's form, sends Save, and holds the save on its way; [change] runs while it is out, then it is refused.
+    Future<StaffFormBloc> refusedAfter(void Function(StaffFormBloc bloc) change) async {
+      final held = Completer<StaffMember>();
+      when(() => staff.member('f1')).thenAnswer((_) async => kavyaMember);
+      when(() => staff.update(any(), any(), any())).thenAnswer((_) => held.future);
+      final bloc = edit();
+      addTearDown(bloc.close);
+      await started(bloc);
+      bloc.add(const StaffFormSubmitted(_texts, _place));
+      await bloc.stream.firstWhere((state) => state is StaffFormReady && state.saving);
+      change(bloc);
+      await pumpEventQueue();
+      held.completeError(refusal);
+      await bloc.stream.firstWhere((state) => state is StaffFormReady && !state.saving);
+      return bloc;
+    }
+
+    test('keeps a line changed, a contact added and a choice made meanwhile, and the next Save sends them', () async {
+      final bloc = await refusedAfter(
+        (bloc) => bloc
+          ..add(const StaffEducationEdited(0, EducationTexts(degree: 'M.Ed')))
+          ..add(const StaffContactAdded())
+          ..add(const StaffGenderChosen(Gender.other)),
+      );
+      final state = ready(bloc);
+      expect(state.educations.single.texts.degree, 'M.Ed');
+      expect(state.contacts, hasLength(3));
+      expect(state.gender, Gender.other);
+      expect(state.saving, isFalse);
+      expect(state.failure, refusal);
+      when(() => staff.update(any(), any(), any())).thenAnswer((_) async => kavyaMember);
+      bloc.add(const StaffFormSubmitted(_texts, _place));
+      await bloc.stream.firstWhere((state) => state is StaffFormSaved);
+      final draft = verify(() => staff.update('f1', 4, captureAny())).captured.last as StaffDraft;
+      expect(draft.educations.single.degree, 'M.Ed');
+      expect(draft.emergencyContacts, hasLength(3));
+      expect(draft.gender, Gender.other);
+    });
+
+    test('names the rows the save sent, so an error stays with its row when rows are added or removed', () async {
+      final bloc = await refusedAfter(
+        (bloc) => bloc
+          ..add(const StaffContactRemoved(1))
+          ..add(const StaffEducationAdded()),
+      );
+      final state = ready(bloc);
+      expect(state.failedEducationIds, [0]);
+      expect(state.failedContactIds, [1, 2]);
+      expect(state.educations.map((e) => e.id), [0, 3]);
+      expect(state.contacts.map((c) => c.id), [2]);
+    });
+
+    test('forgets the rows of the last refusal when Save is sent again', () async {
+      final bloc = await refusedAfter((_) {});
+      expect(ready(bloc).failedEducationIds, [0]);
+      final held = Completer<StaffMember>();
+      when(() => staff.update(any(), any(), any())).thenAnswer((_) => held.future);
+      bloc.add(const StaffFormSubmitted(_texts, _place));
+      await bloc.stream.firstWhere((state) => state is StaffFormReady && state.saving);
+      expect(ready(bloc).failure, isNull);
+      expect(ready(bloc).failedEducationIds, isEmpty);
+      expect(ready(bloc).failedContactIds, isEmpty);
+      held.complete(kavyaMember);
+    });
   });
 }

@@ -241,7 +241,8 @@ class InstitutionFormBloc extends Bloc<InstitutionFormEvent, InstitutionFormStat
             : await _institutions.update(ready.existing!.id, ready.existing!.version, draft);
         emit(InstitutionFormSaved(saved));
       } on ApiFailure catch (failure) {
-        emit(ready.copyWith(failure: () => failure));
+        // A choice can be made while the save is out; keep what the form holds now, not what it held at the start.
+        if (state case final InstitutionFormReady now) emit(now.copyWith(saving: false, failure: () => failure));
       }
     }
   }

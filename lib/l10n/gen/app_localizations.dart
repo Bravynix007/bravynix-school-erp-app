@@ -2269,6 +2269,12 @@ abstract class AppLocalizations {
   /// **'Not set'**
   String get choiceNone;
 
+  /// No description provided for @masterEntryKept.
+  ///
+  /// In en, this message translates to:
+  /// **'No longer offered (kept)'**
+  String get masterEntryKept;
+
   /// No description provided for @chooseDate.
   ///
   /// In en, this message translates to:

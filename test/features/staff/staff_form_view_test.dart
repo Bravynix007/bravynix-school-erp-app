@@ -5,6 +5,7 @@ import 'package:bravynix_school_erp/app/di/injection.dart';
 import 'package:bravynix_school_erp/core/network/api_failure.dart';
 import 'package:bravynix_school_erp/core/theme/app_theme.dart';
 import 'package:bravynix_school_erp/core/widgets/app_button.dart';
+import 'package:bravynix_school_erp/core/widgets/optional_date_field.dart';
 import 'package:bravynix_school_erp/core/widgets/sticky_bottom_actions.dart';
 import 'package:bravynix_school_erp/features/files/domain/chosen_file.dart';
 import 'package:bravynix_school_erp/features/files/domain/file_picking.dart';
@@ -17,6 +18,7 @@ import 'package:bravynix_school_erp/features/masters/domain/place_choice.dart';
 import 'package:bravynix_school_erp/features/staff/domain/staff_member.dart';
 import 'package:bravynix_school_erp/features/staff/presentation/bloc/staff_form_bloc.dart';
 import 'package:bravynix_school_erp/features/staff/presentation/view/staff_form_page.dart';
+import 'package:bravynix_school_erp/features/staff/presentation/view/staff_form_rows.dart';
 import 'package:bravynix_school_erp/l10n/gen/app_localizations.dart';
 import 'package:dio/dio.dart' show CancelToken;
 import 'package:flutter/material.dart';
@@ -238,6 +240,18 @@ void main() {
       expect(tester.widget<FilledButton>(saveButton()).onPressed, isNotNull);
     });
 
+    testWidgets('says why Save waits while the photo is on its way, and says no more when it is checked', (
+      tester,
+    ) async {
+      await pump(tester, _addState);
+      expect(find.byKey(const Key('staffForm.uploadingWait')), findsNothing);
+      await chooseFromGallery(tester);
+      expect(find.text('Wait for the photo to finish sending.'), findsOneWidget);
+      files.release.complete();
+      await tester.pumpAndSettle();
+      expect(find.byKey(const Key('staffForm.uploadingWait')), findsNothing);
+    });
+
     testWidgets('says a saved photo is kept until another is chosen, for an edit that has one', (tester) async {
       await pump(tester, _editState, staffId: 'f1');
       expect(find.byKey(const Key('staffForm.photoKept')), findsOneWidget);
@@ -324,6 +338,25 @@ void main() {
       expect(submitted().place, const PlaceChoice(countryId: 'k1', stateId: 's1', cityId: 'y1'));
     });
 
+    testWidgets('keeps the country empty for an edit of a staff member who holds none, and sends none', (tester) async {
+      await pump(
+        tester,
+        const StaffFormReady(
+          existing: raviMember,
+          categories: [_lowerPrimary],
+          designations: [],
+          categoryId: 'c1',
+          educations: [],
+          contacts: [],
+          nextRowId: 0,
+        ),
+        staffId: 'f2',
+      );
+      expect(find.text('India'), findsNothing);
+      await tester.tap(find.text('Save'));
+      expect(submitted().place, const PlaceChoice());
+    });
+
     testWidgets('sends the place chosen in the address', (tester) async {
       await pump(tester, _editState, staffId: 'f1');
       await tester.tap(find.byKey(const Key('staffForm.city')));
@@ -370,13 +403,44 @@ void main() {
       expect(itemsOf('staffForm.category'), hasLength(1));
     });
 
-    testWidgets('keeps a category or designation that is hidden now, shown as empty', (tester) async {
+    StaffFormReady hidden() => const StaffFormReady(
+      existing: kavyaMember,
+      categories: [],
+      designations: [],
+      categoryId: 'c1',
+      designationId: 'd1',
+      educations: [],
+      contacts: [],
+      nextRowId: 0,
+    );
+
+    testWidgets('says a category or designation hidden since it was chosen is no longer offered, and keeps it', (
+      tester,
+    ) async {
+      await pump(tester, hidden(), staffId: 'f1');
+      expect(tester.takeException(), isNull);
+      expect(find.text('Mathematics Teacher'), findsNothing);
+      for (final key in ['staffForm.category', 'staffForm.designation']) {
+        expect(
+          find.descendant(of: find.byKey(Key(key)), matching: find.text('No longer offered (kept)')),
+          findsOneWidget,
+          reason: key,
+        );
+      }
+      // Not "Not set": the designation is held, and the form says so.
+      expect(find.text('Not set'), findsNWidgets(3));
+      await tester.tap(find.text('Save'));
+      verifyNever(() => bloc.add(any(that: isA<StaffDesignationChosen>())));
+      verifyNever(() => bloc.add(any(that: isA<StaffCategoryChosen>())));
+    });
+
+    testWidgets('replaces a held hidden designation by another, or clears it', (tester) async {
       await pump(
         tester,
         const StaffFormReady(
           existing: kavyaMember,
-          categories: [],
-          designations: [],
+          categories: [_lowerPrimary],
+          designations: [otherDesignation],
           categoryId: 'c1',
           designationId: 'd1',
           educations: [],
@@ -385,8 +449,15 @@ void main() {
         ),
         staffId: 'f1',
       );
-      expect(tester.takeException(), isNull);
-      expect(find.text('Mathematics Teacher'), findsNothing);
+      expect(find.text('No longer offered (kept)'), findsOneWidget);
+      await choose(tester, 'staffForm.designation', 'Principal');
+      verify(() => bloc.add(const StaffDesignationChosen('d2'))).called(1);
+    });
+
+    testWidgets('lets a held hidden designation be cleared with Not set', (tester) async {
+      await pump(tester, hidden(), staffId: 'f1');
+      await choose(tester, 'staffForm.designation', 'Not set');
+      verify(() => bloc.add(const StaffDesignationChosen(null))).called(1);
     });
 
     testWidgets('opens the calendar on the day set, and tells the bloc the day picked', (tester) async {
@@ -407,6 +478,14 @@ void main() {
       final day =
           verify(() => bloc.add(captureAny(that: isA<StaffBirthDateChosen>()))).captured.single as StaffBirthDateChosen;
       expect(day.day, '${DateTime.now().year - 30}-01-01');
+    });
+
+    testWidgets('offers no date of birth from today on: the API refuses one that is not before today', (tester) async {
+      await pump(tester, _addState);
+      final picker = tester.widget<OptionalDateField>(find.byKey(const Key('staffForm.dateOfBirth')));
+      final today = DateTime.now();
+      final yesterday = DateTime(today.year, today.month, today.day - 1);
+      expect(DateUtils.dateOnly(picker.lastDay), yesterday);
     });
 
     testWidgets('tells the bloc the joining and resignation days picked', (tester) async {
@@ -461,6 +540,64 @@ void main() {
       expect(textOf(tester, 'staffForm.education.0.yearOfPassing'), '201');
     });
 
+    testWidgets('tells the bloc what is typed in every field of a line and of a contact', (tester) async {
+      await pump(
+        tester,
+        _addState.copyWith(
+          educations: [const EducationEntry(0, EducationTexts())],
+          contacts: [
+            const ContactEntry(1, ContactTexts()),
+          ],
+          nextRowId: 2,
+        ),
+      );
+      for (final (name, text) in [
+        ('degree', 'B.Sc'),
+        ('qualification', 'Science'),
+        ('specialization', 'Physics'),
+        ('institutionName', 'Delhi University'),
+        ('yearOfPassing', '2010'),
+      ]) {
+        await tester.enterText(field('staffForm.education.0.$name'), text);
+      }
+      for (final (name, text) in [
+        ('name', 'Sita'),
+        ('relation', 'Mother'),
+        ('code', '44'),
+        ('number', '9876500001'),
+        ('alternate', '9876500002'),
+      ]) {
+        await tester.enterText(field('staffForm.contact.1.$name'), text);
+      }
+      final events = verify(() => bloc.add(captureAny())).captured;
+      expect(
+        events.whereType<StaffEducationEdited>().last,
+        const StaffEducationEdited(
+          0,
+          EducationTexts(
+            degree: 'B.Sc',
+            qualification: 'Science',
+            specialization: 'Physics',
+            institutionName: 'Delhi University',
+            yearOfPassing: '2010',
+          ),
+        ),
+      );
+      expect(
+        events.whereType<StaffContactEdited>().last,
+        const StaffContactEdited(
+          1,
+          ContactTexts(
+            contactName: 'Sita',
+            relation: 'Mother',
+            countryCode: '44',
+            number: '9876500001',
+            alternateNumber: '9876500002',
+          ),
+        ),
+      );
+    });
+
     testWidgets('removes a line', (tester) async {
       await pump(tester, _editState, staffId: 'f1');
       await tester.tap(find.byKey(const Key('staffForm.education.0.remove')));
@@ -513,8 +650,12 @@ void main() {
   });
 
   group('after a refused save', () {
-    StaffFormReady refused(ApiFailure failure, {StaffFormReady? from}) =>
-        (from ?? _editState).copyWith(failure: () => failure);
+    /// The form after a save of the rows it holds was refused.
+    StaffFormReady refused(ApiFailure failure, {StaffFormReady? from}) => (from ?? _editState).copyWith(
+      failure: () => failure,
+      failedEducationIds: [for (final row in (from ?? _editState).educations) row.id],
+      failedContactIds: [for (final row in (from ?? _editState).contacts) row.id],
+    );
 
     testWidgets('shows each field error under its field, and under the row it names', (tester) async {
       await pump(
@@ -553,6 +694,141 @@ void main() {
       ]) {
         expect(find.text(text), findsOneWidget, reason: text);
       }
+      expect(find.byKey(const Key('staffForm.error')), findsNothing);
+    });
+
+    // Every field the form claims to show an error under, as the API names it: each shows it under one field and says
+    // nothing above the form.
+    for (final field in [
+      'firstName',
+      'lastName',
+      'email',
+      'mobile',
+      'mobile.countryCode',
+      'mobile.number',
+      'alternateNumber',
+      'gender',
+      'dateOfBirth',
+      'bloodGroup',
+      'nationality',
+      'classCategoryId',
+      'designationId',
+      'employeeCode',
+      'joiningDate',
+      'resignationDate',
+      'employmentType',
+      'address.line1',
+      'address.line2',
+      'address.pincode',
+      'address.countryId',
+      'address.stateId',
+      'address.cityId',
+      for (final name in educationFields) 'educations[0].$name',
+      for (final name in contactFields) 'emergencyContacts[0].$name',
+    ]) {
+      testWidgets('shows an error on $field under its own field only', (tester) async {
+        await pump(
+          tester,
+          refused(
+            _failure(
+              400,
+              'VALIDATION_FAILED',
+              fields: [FieldError(field: field, code: 'INVALID_VALUE', message: 'About $field')],
+            ),
+          ),
+          staffId: 'f1',
+        );
+        expect(find.text('About $field'), findsOneWidget);
+        expect(find.byKey(const Key('staffForm.error')), findsNothing);
+      });
+    }
+
+    testWidgets('keeps an error with the row it was about when an earlier row is removed afterwards', (tester) async {
+      final sent = _editState.copyWith(
+        educations: [
+          const EducationEntry(0, EducationTexts(degree: 'A')),
+          const EducationEntry(3, EducationTexts(degree: 'B')),
+          const EducationEntry(4, EducationTexts(degree: 'C')),
+        ],
+      );
+      final failure = _failure(
+        400,
+        'VALIDATION_FAILED',
+        fields: const [FieldError(field: 'educations[1].degree', code: 'REQUIRED', message: 'Enter the degree')],
+      );
+      final refusedWithThree = sent.copyWith(
+        failure: () => failure,
+        failedEducationIds: [0, 3, 4],
+        failedContactIds: [1, 2],
+      );
+      await pump(tester, refusedWithThree, staffId: 'f1');
+      Finder errorUnder(int id) => find.descendant(
+        of: find.byKey(Key('staffForm.education.$id.degree')),
+        matching: find.text('Enter the degree'),
+      );
+      expect(errorUnder(3), findsOneWidget);
+      expect(errorUnder(4), findsNothing);
+      // The first row was removed after the save: the error stays with its row, not with the one now in its place.
+      await pump(
+        tester,
+        refusedWithThree.copyWith(educations: [refusedWithThree.educations[1], refusedWithThree.educations[2]]),
+        staffId: 'f1',
+      );
+      expect(errorUnder(3), findsOneWidget);
+      expect(errorUnder(4), findsNothing);
+      // A row added after the save has no error.
+      await pump(
+        tester,
+        refusedWithThree.copyWith(
+          educations: [...refusedWithThree.educations, const EducationEntry(5, EducationTexts())],
+        ),
+        staffId: 'f1',
+      );
+      expect(errorUnder(5), findsNothing);
+      expect(find.text('Enter the degree'), findsOneWidget);
+      expect(find.byKey(const Key('staffForm.error')), findsNothing);
+    });
+
+    testWidgets('says nothing above the form when the line an error named was removed after the save', (tester) async {
+      final failure = _failure(
+        400,
+        'VALIDATION_FAILED',
+        fields: const [FieldError(field: 'educations[2].degree', code: 'REQUIRED', message: 'Enter the degree')],
+      );
+      await pump(
+        tester,
+        _editState
+            .copyWith(
+              educations: [
+                const EducationEntry(0, EducationTexts(degree: 'A')),
+                const EducationEntry(3, EducationTexts(degree: 'B')),
+              ],
+            )
+            .copyWith(failure: () => failure, failedEducationIds: [0, 3, 4], failedContactIds: [1, 2]),
+        staffId: 'f1',
+      );
+      expect(find.text('Enter the degree'), findsNothing);
+      expect(find.byKey(const Key('staffForm.error')), findsNothing);
+    });
+
+    testWidgets('says nothing above the form when the contact an error named was removed after the save', (
+      tester,
+    ) async {
+      final failure = _failure(
+        400,
+        'VALIDATION_FAILED',
+        fields: const [
+          FieldError(field: 'emergencyContacts[1].contactName', code: 'REQUIRED', message: 'Enter the name'),
+        ],
+      );
+      await pump(
+        tester,
+        _editState
+            .copyWith(contacts: [_editState.contacts.first])
+            .copyWith(failure: () => failure, failedEducationIds: [0], failedContactIds: [1, 2]),
+        staffId: 'f1',
+      );
+      expect(find.text('Enter the name'), findsNothing);
       expect(find.byKey(const Key('staffForm.error')), findsNothing);
     });
 
