@@ -85,6 +85,9 @@ class EducationTexts extends Equatable {
   List<Object?> get props => [degree, qualification, specialization, institutionName, yearOfPassing];
 }
 
+/// The dial code a new phone starts with: India is the only country for now.
+const indiaDialCode = '91';
+
 /// The text of one emergency contact, as typed.
 class ContactTexts extends Equatable {
   const new({
@@ -571,7 +574,10 @@ class StaffFormBloc extends Bloc<StaffFormEvent, StaffFormState> {
     if (!ready.canAddContact) return;
     emit(
       ready.copyWith(
-        contacts: [...ready.contacts, ContactEntry(ready.nextRowId, const ContactTexts())],
+        contacts: [
+          ...ready.contacts,
+          ContactEntry(ready.nextRowId, const ContactTexts(countryCode: indiaDialCode)),
+        ],
         nextRowId: ready.nextRowId + 1,
       ),
     );

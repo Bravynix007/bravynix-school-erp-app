@@ -111,9 +111,6 @@ class StaffFormView extends StatelessWidget {
   }
 }
 
-/// The dial code a new staff member's phone starts with: India is the only country for now.
-const _indiaDialCode = '91';
-
 /// The form with its own place picker and photo upload: the place starts from the one the record holds (a new record
 /// starts in India), and the photo is sent for the Institution the staff member is based at.
 class _Form extends StatelessWidget {
@@ -178,7 +175,7 @@ class _FormBodyState extends State<_FormBody> {
     _firstName = TextEditingController(text: existing?.firstName);
     _lastName = TextEditingController(text: existing?.lastName);
     _email = TextEditingController(text: existing?.email);
-    _mobileCode = TextEditingController(text: existing == null ? _indiaDialCode : existing.mobile.countryCode);
+    _mobileCode = TextEditingController(text: existing == null ? indiaDialCode : existing.mobile.countryCode);
     _mobileNumber = TextEditingController(text: existing?.mobile.number);
     _alternate = TextEditingController(text: existing?.alternateNumber);
     _nationality = TextEditingController(text: existing?.nationality);
