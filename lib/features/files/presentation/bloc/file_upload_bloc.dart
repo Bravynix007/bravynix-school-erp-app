@@ -5,6 +5,7 @@ import 'package:bravynix_school_erp/features/files/domain/file_check.dart';
 import 'package:bravynix_school_erp/features/files/domain/file_purpose.dart';
 import 'package:bravynix_school_erp/features/files/domain/files_repository.dart';
 import 'package:bravynix_school_erp/features/files/domain/uploaded_file.dart';
+import 'package:dio/dio.dart' show CancelToken;
 import 'package:equatable/equatable.dart';
 
 sealed class FileUploadEvent extends Equatable {
@@ -78,7 +79,7 @@ final class FileUploadDone extends FileUploadState {
 }
 
 /// The file could not be used: [problem] when the app refused it before sending, [failure] when the server or the
-/// network did. Exactly one is set. A refused file cannot be retried, only replaced.
+/// network did. Exactly one is set. A refusal that would come again cannot be retried, only replaced.
 final class FileUploadFailed extends FileUploadState {
   const new(this.file, {this.problem, this.failure}) : assert((problem == null) != (failure == null), 'One reason');
 
@@ -86,7 +87,16 @@ final class FileUploadFailed extends FileUploadState {
   final FileProblem? problem;
   final ApiFailure? failure;
 
-  bool get canRetry => failure != null;
+  /// The store's refusals and `UPLOAD_NOT_FOUND` can pass on a new ticket; so can a network that came back and a server
+  /// that was down. The rest (too large, wrong type, a file that is not what it said, no access) answer the same to the
+  /// same file, so the file has to be replaced.
+  bool get canRetry {
+    final reason = failure;
+    return reason != null &&
+        (reason.isNetwork || reason.isRetryable || reason.statusCode >= 500 || _passes.contains(reason.code));
+  }
+
+  static const _passes = {'UPLOAD_NOT_FOUND', 'UPLOAD_REFUSED', 'BAD_UPLOAD', 'ALREADY_UPLOADED'};
 
   @override
   List<Object?> get props => [file, problem, failure];
@@ -105,6 +115,15 @@ class FileUploadBloc extends Bloc<FileUploadEvent, FileUploadState> {
   final FilesRepository _files;
   final FilePurpose purpose;
   final String institutionId;
+
+  /// Stops the upload when the screen goes, so nothing more is sent for a field nobody sees.
+  final _cancel = CancelToken();
+
+  @override
+  Future<void> close() {
+    _cancel.cancel();
+    return super.close();
+  }
 
   Future<void> _onRetried(FileUploadRetried event, Emitter<FileUploadState> emit) async {
     if (state case final FileUploadFailed failed when failed.canRetry) await _send(failed.file, emit);
@@ -131,7 +150,10 @@ class FileUploadBloc extends Bloc<FileUploadEvent, FileUploadState> {
         file,
         purpose: purpose,
         institutionId: institutionId,
-        onProgress: (sent) => add(_FileUploadProgressed(sent)),
+        cancelToken: _cancel,
+        onProgress: (sent) {
+          if (!isClosed) add(_FileUploadProgressed(sent));
+        },
       );
       emit(FileUploadDone(file, uploaded));
     } on ApiFailure catch (failure) {

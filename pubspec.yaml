@@ -30,6 +30,7 @@ dependencies:
 
 dev_dependencies:
   bloc_test: ^10.0.0
+  file_picker_platform_interface: ^4.2.0
   flutter_test:
     sdk: flutter
   image_picker_platform_interface: ^2.11.2

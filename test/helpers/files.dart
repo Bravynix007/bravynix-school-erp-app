@@ -5,10 +5,10 @@ import 'package:bravynix_school_erp/features/files/domain/chosen_file.dart';
 import 'package:bravynix_school_erp/features/files/domain/file_picking.dart';
 import 'package:bravynix_school_erp/features/files/domain/uploaded_file.dart';
 
-/// A real 1x1 picture, so a widget test can show it; the app only looks at its length and the type it is sent as.
+/// A real 1x1 PNG, so a widget test can show it, named and typed as the bytes are.
 final photo = ChosenFile(
-  name: 'kavya.jpg',
-  contentType: 'image/jpeg',
+  name: 'kavya.png',
+  contentType: 'image/png',
   bytes: base64Decode(
     'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR4nGNgYGD4DwABBAEAHnOcQAAAAABJRU5ErkJggg==',
   ),
@@ -17,10 +17,10 @@ final photo = ChosenFile(
 final pdf = ChosenFile(
   name: 'letter.pdf',
   contentType: 'application/pdf',
-  bytes: Uint8List.fromList(List.filled(900, 2)),
+  bytes: Uint8List.fromList([...'%PDF-1.4'.codeUnits, ...List.filled(900, 2)]),
 );
 
-final uploadedPhoto = UploadedFile(id: 'f1', contentType: 'image/jpeg', sizeBytes: photo.sizeBytes);
+final uploadedPhoto = UploadedFile(id: 'f1', contentType: 'image/png', sizeBytes: photo.sizeBytes);
 
 Map<String, Object?> grantJson({String fileId = 'f1', String url = 'http://store.test/v1/local-storage/token'}) => {
   'fileId': fileId,
@@ -35,7 +35,7 @@ Map<String, Object?> grantJson({String fileId = 'f1', String url = 'http://store
 Map<String, Object?> confirmedJson({String id = 'f1'}) => {
   'id': id,
   'purpose': 4,
-  'contentType': 'image/jpeg',
+  'contentType': 'image/png',
   'sizeBytes': photo.sizeBytes,
   'fileStatus': 2,
 };

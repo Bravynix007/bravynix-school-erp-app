@@ -1,4 +1,5 @@
 import 'package:bravynix_school_erp/features/files/domain/chosen_file.dart';
+import 'package:bravynix_school_erp/features/files/domain/file_check.dart';
 import 'package:bravynix_school_erp/features/files/domain/file_picking.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/services.dart';
@@ -29,12 +30,9 @@ class DeviceFilePicking implements FilePicking {
       throw FilePickFailure(source);
     }
     if (image == null) return null;
-    final bytes = await image.readAsBytes();
-    return ChosenFile(
-      name: image.name,
-      contentType: image.mimeType ?? contentTypeOfName(image.name) ?? 'image/jpeg',
-      bytes: bytes,
-    );
+    // The phone's own word for the type is not used: on Android the picker re-saves the picture as a JPEG and keeps
+    // its name, so only the bytes say what it is.
+    return ChosenFile.read(name: image.name, bytes: await image.readAsBytes());
   }
 
   @override
@@ -46,11 +44,9 @@ class DeviceFilePicking implements FilePicking {
       throw const FilePickFailure(null);
     }
     if (file == null) return null;
-    // A type the app does not know is passed on as it is, so the check says "not allowed" instead of guessing.
-    return ChosenFile(
-      name: file.name,
-      contentType: contentTypeOfName(file.name) ?? 'application/octet-stream',
-      bytes: await file.readAsBytes(),
-    );
+    // A file over the limit is not read: the check refuses it by its size.
+    final size = file.lengthSync() ?? await file.length();
+    if (size != null && size > maxFileBytes) return ChosenFile.unread(name: file.name, size: size);
+    return ChosenFile.read(name: file.name, bytes: await file.readAsBytes());
   }
 }
