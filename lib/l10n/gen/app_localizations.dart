@@ -973,23 +973,23 @@ abstract class AppLocalizations {
   /// **'Pincode'**
   String get institutionPincode;
 
-  /// No description provided for @institutionCountry.
+  /// No description provided for @placeCountry.
   ///
   /// In en, this message translates to:
   /// **'Country'**
-  String get institutionCountry;
+  String get placeCountry;
 
-  /// No description provided for @institutionState.
+  /// No description provided for @placeState.
   ///
   /// In en, this message translates to:
   /// **'State'**
-  String get institutionState;
+  String get placeState;
 
-  /// No description provided for @institutionCity.
+  /// No description provided for @placeCity.
   ///
   /// In en, this message translates to:
   /// **'City'**
-  String get institutionCity;
+  String get placeCity;
 
   /// No description provided for @institutionCountryCode.
   ///
