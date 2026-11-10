@@ -292,7 +292,7 @@ void main() {
     expect(bloc.state, done);
   });
 
-  test('keeps a search for when the change is over, so its outcome is not lost', () async {
+  test('ignores a search while a change is going, so the outcome of the change is not lost', () async {
     final bloc = _RefusingBloc();
     addTearDown(bloc.close);
     bloc.add(const PagedListRequested());

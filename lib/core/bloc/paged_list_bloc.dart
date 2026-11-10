@@ -85,7 +85,7 @@ class PagedListLoaded<T> extends PagedListState<T> {
 /// Like `ListBloc`, but the list is read a page at a time and asked for again from the first page after a change: a
 /// change moves what the list shows, so the pages already read are not trusted. An answer that arrives after the list
 /// was asked for again (a new search, a change) is dropped, so a change may start while Load more is on its way, and a
-/// search waits while a change is.
+/// search is ignored while a change is going (the screen locks its search box meanwhile).
 abstract class PagedListBloc<T> extends Bloc<PagedListEvent, PagedListState<T>> {
   new() : super(PagedListLoading<T>()) {
     on<PagedListRequested>((event, emit) => _reload(emit));
@@ -123,7 +123,8 @@ abstract class PagedListBloc<T> extends Bloc<PagedListEvent, PagedListState<T>> 
 
   Future<void> _onSearched(PagedListSearched event, Emitter<PagedListState<T>> emit) async {
     final text = event.text.trim();
-    // A search moves the round on, which would drop the outcome of the change that is going, so it waits.
+    // A search moves the round on, which would drop the outcome of the change that is going, so it is ignored (the
+    // screen locks its search box meanwhile).
     if (text == _query ||
         text.length == 1 ||
         (state is PagedListLoaded<T> && (state as PagedListLoaded<T>).busyId != null)) {
