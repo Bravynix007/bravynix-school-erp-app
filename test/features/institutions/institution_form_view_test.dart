@@ -1,10 +1,16 @@
+import 'dart:async';
+
 import 'package:bloc_test/bloc_test.dart';
+import 'package:bravynix_school_erp/app/di/injection.dart';
 import 'package:bravynix_school_erp/core/network/api_failure.dart';
 import 'package:bravynix_school_erp/core/theme/app_theme.dart';
 import 'package:bravynix_school_erp/core/widgets/sticky_bottom_actions.dart';
 import 'package:bravynix_school_erp/features/institutions/domain/institution.dart';
 import 'package:bravynix_school_erp/features/institutions/presentation/bloc/institution_form_bloc.dart';
 import 'package:bravynix_school_erp/features/institutions/presentation/view/institution_form_page.dart';
+import 'package:bravynix_school_erp/features/masters/domain/master_entry.dart';
+import 'package:bravynix_school_erp/features/masters/domain/masters_repository.dart';
+import 'package:bravynix_school_erp/features/masters/domain/place_choice.dart';
 import 'package:bravynix_school_erp/l10n/gen/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -14,28 +20,18 @@ import 'package:mocktail/mocktail.dart';
 
 import '../../helpers/clipped_text.dart';
 import '../../helpers/institutions.dart';
+import '../../helpers/mocks.dart';
 import '../../helpers/pump_app.dart';
 
 class _MockFormBloc extends MockBloc<InstitutionFormEvent, InstitutionFormState> implements InstitutionFormBloc;
 
-const _addState = InstitutionFormReady(
-  categories: [lowerPrimary, higherPrimary],
-  countries: [india],
-  states: [karnataka, kerala],
-  countryId: 'k1',
-);
+const _addState = InstitutionFormReady(categories: [lowerPrimary, higherPrimary]);
 
 const _editState = InstitutionFormReady(
   existing: institution,
   categories: [lowerPrimary, higherPrimary],
-  countries: [india],
-  states: [karnataka, kerala],
-  cities: [bengaluru, mysuru],
   board: Board.cbse,
   categoryIds: ['c1', 'c2'],
-  countryId: 'k1',
-  stateId: 's1',
-  cityId: 'y1',
 );
 
 ApiFailure _failure(int status, String code, {List<FieldError> fields = const []}) =>
@@ -43,8 +39,21 @@ ApiFailure _failure(int status, String code, {List<FieldError> fields = const []
 
 void main() {
   late _MockFormBloc bloc;
-  setUpAll(() => registerFallbackValue(const InstitutionFormStarted()));
-  setUp(() => bloc = _MockFormBloc());
+  late MockMastersRepository masters;
+  setUpAll(() {
+    registerFallbackValue(const InstitutionFormStarted());
+    registerFallbackValue(MasterType.countries);
+  });
+  setUp(() {
+    bloc = _MockFormBloc();
+    masters = MockMastersRepository();
+    when(() => masters.entries(MasterType.countries)).thenAnswer((_) async => [india]);
+    when(() => masters.entries(MasterType.states, parentId: 'k1')).thenAnswer((_) async => [karnataka, kerala]);
+    when(() => masters.entries(MasterType.cities, parentId: 's1')).thenAnswer((_) async => [bengaluru, mysuru]);
+    // The form starts its own place picker from the lists of the masters.
+    getIt.registerSingleton<MastersRepository>(masters);
+  });
+  tearDown(getIt.reset);
 
   Future<void> pump(
     WidgetTester tester,
@@ -52,14 +61,16 @@ void main() {
     String? id,
     double textScale = 1,
     Size size = const Size(400, 3000),
-  }) {
+  }) async {
     when(() => bloc.state).thenReturn(state);
     when(() => bloc.institutionId).thenReturn(id);
-    return tester.pumpAppScaled(
+    await tester.pumpAppScaled(
       BlocProvider<InstitutionFormBloc>.value(value: bloc, child: const InstitutionFormView()),
       textScale: textScale,
       size: size,
     );
+    // The place lists are read as the form opens.
+    await tester.pump();
   }
 
   Finder field(String key) => find.descendant(of: find.byKey(Key(key)), matching: find.byType(TextField));
@@ -109,6 +120,7 @@ void main() {
     final sent =
         verify(() => bloc.add(captureAny(that: isA<InstitutionFormSubmitted>()))).captured.single
             as InstitutionFormSubmitted;
+    expect(sent.place, const PlaceChoice(countryId: 'k1'));
     expect(
       sent.texts,
       const InstitutionTexts(
@@ -131,61 +143,92 @@ void main() {
     await tester.tap(find.text('IB').last);
     await tester.pumpAndSettle();
     verify(() => bloc.add(const InstitutionBoardChosen(Board.ib))).called(1);
+  });
 
-    await tester.tap(find.byKey(const Key('institutionForm.state')));
-    await tester.pumpAndSettle();
-    await tester.tap(find.text('Kerala').last);
-    await tester.pumpAndSettle();
-    verify(() => bloc.add(const InstitutionStateChosen('s2'))).called(1);
-
+  testWidgets('sends the place chosen with the rest, and starts from the one the Institution holds', (tester) async {
+    await pump(tester, _editState, id: 'i1');
+    expect(find.text('Karnataka'), findsOneWidget);
+    expect(find.text('Bengaluru'), findsOneWidget);
     await tester.tap(find.byKey(const Key('institutionForm.city')));
     await tester.pumpAndSettle();
     await tester.tap(find.text('Mysuru').last);
-    verify(() => bloc.add(const InstitutionCityChosen('y2'))).called(1);
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Save'));
+    final sent =
+        verify(() => bloc.add(captureAny(that: isA<InstitutionFormSubmitted>()))).captured.single
+            as InstitutionFormSubmitted;
+    expect(sent.place, const PlaceChoice(countryId: 'k1', stateId: 's1', cityId: 'y2'));
   });
 
-  testWidgets('a state is chosen within a country and a city within a state', (tester) async {
+  testWidgets('an edit of an Institution with no country keeps it empty, and saves it so', (tester) async {
     await pump(
       tester,
-      const InstitutionFormReady(categories: [lowerPrimary], countries: [india]),
+      const InstitutionFormReady(existing: bareInstitution, categories: [lowerPrimary]),
+      id: 'i2',
     );
-    final state = tester.widget<DropdownButtonFormField<String>>(
-      find.descendant(
-        of: find.byKey(const Key('institutionForm.state')),
-        matching: find.byType(DropdownButtonFormField<String>),
-      ),
-    );
-    final city = tester.widget<DropdownButtonFormField<String>>(
-      find.descendant(
-        of: find.byKey(const Key('institutionForm.city')),
-        matching: find.byType(DropdownButtonFormField<String>),
-      ),
-    );
-    expect(state.onChanged, isNull);
-    expect(city.onChanged, isNull);
+    // India is the only country, but only a new Institution starts there.
+    expect(find.text('India'), findsNothing);
+    await tester.tap(find.text('Save'));
+    final sent =
+        verify(() => bloc.add(captureAny(that: isA<InstitutionFormSubmitted>()))).captured.single
+            as InstitutionFormSubmitted;
+    expect(sent.place, const PlaceChoice());
   });
 
-  testWidgets('keeps a place the Institution holds although its entry is not listed now', (tester) async {
-    await pump(
-      tester,
-      const InstitutionFormReady(
-        existing: institution,
-        categories: [lowerPrimary],
-        countries: [india],
-        states: [kerala],
-        categoryIds: ['c1'],
-        countryId: 'k1',
-        stateId: 's1',
-      ),
-      id: 'i1',
+  testWidgets('Save waits until the place is read, so an edit does not drop it', (tester) async {
+    final lists = Completer<List<MasterEntry>>();
+    when(() => masters.entries(MasterType.countries)).thenAnswer((_) => lists.future);
+    await pump(tester, _editState, id: 'i1');
+    expect(
+      tester
+          .widget<FilledButton>(
+            find.descendant(of: find.byType(StickyBottomActions), matching: find.byType(FilledButton)),
+          )
+          .onPressed,
+      isNull,
     );
-    expect(tester.takeException(), isNull);
-    expect(find.text('Karnataka'), findsNothing);
+    lists.complete([india]);
+    await tester.pump();
+    expect(
+      tester
+          .widget<FilledButton>(
+            find.descendant(of: find.byType(StickyBottomActions), matching: find.byType(FilledButton)),
+          )
+          .onPressed,
+      isNotNull,
+    );
+  });
+
+  testWidgets('says why the place could not be read, and reads it again on Try again', (tester) async {
+    var calls = 0;
+    when(() => masters.entries(MasterType.countries)).thenAnswer((_) async {
+      if (++calls == 1) throw const ApiFailure.network();
+      return [india];
+    });
+    await pump(tester, _addState);
+    expect(find.byKey(const Key('institutionForm.placeFailed')), findsOneWidget);
+    await tester.tap(find.byKey(const Key('institutionForm.placeRetry')));
+    await tester.pump();
+    expect(find.byKey(const Key('institutionForm.placeFailed')), findsNothing);
     expect(find.text('India'), findsOneWidget);
   });
 
+  testWidgets('shows the errors the API names under the place', (tester) async {
+    await pump(
+      tester,
+      _addState.copyWith(
+        failure: () => _failure(
+          400,
+          'VALIDATION_FAILED',
+          fields: const [FieldError(field: 'address.stateId', code: 'INVALID_VALUE', message: 'Not a state of India')],
+        ),
+      ),
+    );
+    expect(find.text('Not a state of India'), findsOneWidget);
+  });
+
   testWidgets('says there is nothing to choose when no class category is listed', (tester) async {
-    await pump(tester, const InstitutionFormReady(categories: [], countries: [india]));
+    await pump(tester, const InstitutionFormReady(categories: []));
     expect(find.text('There are no class categories to choose from.'), findsOneWidget);
   });
 

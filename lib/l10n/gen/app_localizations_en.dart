@@ -526,13 +526,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get institutionPincode => 'Pincode';
 
   @override
-  String get institutionCountry => 'Country';
+  String get placeCountry => 'Country';
 
   @override
-  String get institutionState => 'State';
+  String get placeState => 'State';
 
   @override
-  String get institutionCity => 'City';
+  String get placeCity => 'City';
 
   @override
   String get institutionCountryCode => 'Country code';
