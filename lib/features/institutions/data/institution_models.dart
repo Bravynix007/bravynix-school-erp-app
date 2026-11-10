@@ -1,6 +1,7 @@
 import 'package:bravynix_school_erp/core/model/phone.dart';
 import 'package:bravynix_school_erp/core/network/json_shape.dart';
 import 'package:bravynix_school_erp/features/institutions/domain/institution.dart';
+import 'package:bravynix_school_erp/features/institutions/domain/institution_admin.dart';
 
 /// JSON → domain for INS-01 and INS-03. Unknown fields are ignored, as /v1 only ever adds fields (API design 5.2).
 abstract final class InstitutionModels {
@@ -16,6 +17,17 @@ abstract final class InstitutionModels {
   }
 
   static List<InstitutionSummary> summaries(Object? raw) => [for (final item in jsonList(raw)) summary(item)];
+
+  static InstitutionAdmin admin(Object? raw) {
+    final json = jsonObject(raw);
+    return InstitutionAdmin(
+      institutionId: json['institutionId'] as String,
+      staffMemberId: json['staffMemberId'] as String,
+      displayName: jsonObject(json['person'])['displayName'] as String,
+    );
+  }
+
+  static List<InstitutionAdmin> admins(Object? raw) => [for (final item in jsonList(raw)) admin(item)];
 
   static Institution institution(Object? raw) {
     final json = jsonObject(raw);

@@ -19,3 +19,14 @@ String staffErrorText(AppLocalizations l10n, ApiFailure failure) => switch (fail
   'ADMIN_ACCESS_HELD' => l10n.errorAdminAccessHeld,
   _ => apiErrorText(l10n, failure, notFound: l10n.errorStaffNotFound),
 };
+
+/// Copy for the codes INS-09 and INS-10 add (API design 10.5): 422 STAFF_BLOCKED for a blocked record, 422
+/// STAFF_NOT_AT_INSTITUTION for an Institution that is neither their home nor one of their extra ones, 409 ALREADY_ADMIN,
+/// and 409 INVALID_STATE for an account that cannot hold a role. The rest reads as for the other staff calls.
+String staffAdminErrorText(AppLocalizations l10n, ApiFailure failure) => switch (failure.code) {
+  'ALREADY_ADMIN' => l10n.errorAdminAlready,
+  'STAFF_BLOCKED' => l10n.errorAdminStaffBlocked,
+  'STAFF_NOT_AT_INSTITUTION' => l10n.errorAdminNotAtInstitution,
+  'INVALID_STATE' => l10n.errorAdminAccountState,
+  _ => staffErrorText(l10n, failure),
+};

@@ -12,6 +12,17 @@ void main() {
     expect(list.last, summary(id: 'i2', place: null, board: Board.other));
   });
 
+  test('reads the Admins of INS-08 by the person they are, ignoring the fields it does not show', () {
+    expect(InstitutionModels.admins([adminJson(), adminJson(institutionId: 'i2', staffMemberId: 'f2', name: 'Ravi')]), [
+      adminOf(),
+      adminOf(institutionId: 'i2', staffMemberId: 'f2', name: 'Ravi'),
+    ]);
+  });
+
+  test('refuses an Admin without the person instead of showing no name', () {
+    expect(() => InstitutionModels.admin({'institutionId': 'i1', 'staffMemberId': 'f1'}), throwsA(anything));
+  });
+
   test('reads an Institution with all its fields from INS-03', () {
     expect(InstitutionModels.institution(institutionJson()), institution);
   });

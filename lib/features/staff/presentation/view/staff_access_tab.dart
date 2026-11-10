@@ -13,6 +13,7 @@ import 'package:bravynix_school_erp/features/staff/domain/staff_member.dart';
 import 'package:bravynix_school_erp/features/staff/domain/staff_repository.dart';
 import 'package:bravynix_school_erp/features/staff/presentation/bloc/staff_access_bloc.dart';
 import 'package:bravynix_school_erp/features/staff/presentation/bloc/staff_profile_bloc.dart';
+import 'package:bravynix_school_erp/features/staff/presentation/view/staff_admin_access_section.dart';
 import 'package:bravynix_school_erp/features/staff/presentation/view/staff_error_text.dart';
 import 'package:bravynix_school_erp/features/subjects/domain/subjects_repository.dart';
 import 'package:bravynix_school_erp/l10n/gen/app_localizations.dart';
@@ -39,12 +40,15 @@ class StaffAccessTab extends StatelessWidget {
       member: member,
       canChangeInstitutions: isOwner,
     )..add(const StaffAccessStarted()),
-    child: const StaffAccessView(),
+    child: StaffAccessView(adminAccess: isOwner ? StaffAdminAccessSection(member: member) : null),
   );
 }
 
 class StaffAccessView extends StatelessWidget {
-  const new({super.key});
+  const new({this.adminAccess, super.key});
+
+  /// The Admin access part, which only the Society Owner is given; it goes below the lists.
+  final Widget? adminAccess;
 
   @override
   Widget build(BuildContext context) {
@@ -69,16 +73,17 @@ class StaffAccessView extends StatelessWidget {
           actionLabel: l10n.retry,
           onAction: () => context.read<StaffAccessBloc>().add(const StaffAccessStarted()),
         ),
-        StaffAccessReady() => _Lists(state: state),
+        StaffAccessReady() => _Lists(state: state, adminAccess: adminAccess),
       },
     );
   }
 }
 
 class _Lists extends StatelessWidget {
-  const new({required this.state});
+  const new({required this.state, required this.adminAccess});
 
   final StaffAccessReady state;
+  final Widget? adminAccess;
 
   @override
   Widget build(BuildContext context) {
@@ -126,6 +131,7 @@ class _Lists extends StatelessWidget {
                 : null,
           ),
         ],
+        if (adminAccess case final section?) ...[const SizedBox(height: AppSpacing.md), section],
       ],
     );
   }

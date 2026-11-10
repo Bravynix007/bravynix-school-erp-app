@@ -125,12 +125,14 @@ void main() {
       );
       await tester.pump();
       expect(find.byKey(const Key('staffAccess.saveInstitutions')), findsOneWidget);
+      expect(find.text('Admin access'), findsOneWidget);
     });
 
     testWidgets('keep the Institutions list from the Admin on Access', (tester) async {
       await pump(tester, const StaffProfileLoaded(kavyaProfile, tab: StaffProfileTab.access));
       await tester.pump();
       expect(find.byKey(const Key('staffAccess.saveInstitutions')), findsNothing);
+      expect(find.text('Admin access'), findsNothing);
     });
 
     testWidgets('show the access to the app on Settings', (tester) async {
