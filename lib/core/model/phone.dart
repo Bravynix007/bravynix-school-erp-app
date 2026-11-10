@@ -11,6 +11,14 @@ class Phone extends Equatable {
     return Phone(countryCode: json['countryCode'] as String, number: json['number'] as String);
   }
 
+  /// What a person typed: the dial code without a plus or spaces, the number without spaces (people type either way).
+  /// Null when no number was typed. A number without its dial code is kept as it is, so the API names the field.
+  static Phone? typed(String countryCode, String number) {
+    final digits = number.replaceAll(RegExp(r'\s'), '');
+    if (digits.isEmpty) return null;
+    return Phone(countryCode: countryCode.replaceAll(RegExp(r'[\s+]'), ''), number: digits);
+  }
+
   final String countryCode;
   final String number;
 

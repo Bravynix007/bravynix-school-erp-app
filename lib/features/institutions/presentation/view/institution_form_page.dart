@@ -340,7 +340,7 @@ class _FormBodyState extends State<_FormBody> {
                         ),
                 ),
                 const SizedBox(height: AppSpacing.md),
-                SectionHeader(title: l10n.institutionAddress),
+                SectionHeader(title: l10n.addressSection),
                 const SizedBox(height: AppSpacing.xs),
                 AppCard(
                   child: Column(
@@ -348,7 +348,7 @@ class _FormBodyState extends State<_FormBody> {
                     children: [
                       AppTextField(
                         key: const Key('institutionForm.line1'),
-                        label: l10n.institutionAddressLine1,
+                        label: l10n.addressLine1,
                         controller: _line1,
                         required: true,
                         requiredLabel: l10n.fieldRequired,
@@ -358,7 +358,7 @@ class _FormBodyState extends State<_FormBody> {
                       const SizedBox(height: AppSpacing.sm),
                       AppTextField(
                         key: const Key('institutionForm.line2'),
-                        label: l10n.institutionAddressLine2,
+                        label: l10n.addressLine2,
                         controller: _line2,
                         error: error('address.line2'),
                         textInputAction: TextInputAction.next,
@@ -373,7 +373,7 @@ class _FormBodyState extends State<_FormBody> {
                       const SizedBox(height: AppSpacing.sm),
                       AppTextField(
                         key: const Key('institutionForm.pincode'),
-                        label: l10n.institutionPincode,
+                        label: l10n.addressPincode,
                         controller: _pincode,
                         mono: true,
                         keyboardType: TextInputType.number,
@@ -401,7 +401,7 @@ class _FormBodyState extends State<_FormBody> {
                       const SizedBox(height: AppSpacing.sm),
                       AppTextField(
                         key: const Key('institutionForm.phoneCode'),
-                        label: l10n.institutionCountryCode,
+                        label: l10n.phoneCountryCode,
                         controller: _phoneCode,
                         mono: true,
                         keyboardType: TextInputType.number,
@@ -411,7 +411,7 @@ class _FormBodyState extends State<_FormBody> {
                       const SizedBox(height: AppSpacing.sm),
                       AppTextField(
                         key: const Key('institutionForm.phoneNumber'),
-                        label: l10n.institutionPhoneNumber,
+                        label: l10n.phoneNumber,
                         controller: _phoneNumber,
                         mono: true,
                         keyboardType: TextInputType.phone,

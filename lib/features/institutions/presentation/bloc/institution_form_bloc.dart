@@ -252,9 +252,6 @@ class InstitutionFormBloc extends Bloc<InstitutionFormEvent, InstitutionFormStat
   }
 
   InstitutionDraft _draft(InstitutionFormReady ready, InstitutionTexts texts, PlaceChoice place) {
-    // The API takes the dial code without the plus and the number without spaces, which people type either way.
-    final countryCode = _text(texts.phoneCountryCode.replaceAll(RegExp(r'[\s+]'), ''));
-    final number = _text(texts.phoneNumber.replaceAll(RegExp(r'\s'), ''));
     return InstitutionDraft(
       name: texts.name.trim(),
       // An edit never sends the code; the draft carries the one it has.
@@ -266,8 +263,8 @@ class InstitutionFormBloc extends Bloc<InstitutionFormEvent, InstitutionFormStat
       affiliationNumber: _text(texts.affiliationNumber),
       gstin: _text(texts.gstin)?.toUpperCase(),
       email: _text(texts.email),
-      // A country code alone is no number. A number without its code is sent as it is, so the API names the field.
-      phone: number == null ? null : Phone(countryCode: countryCode ?? '', number: number),
+      // A country code alone is no number.
+      phone: Phone.typed(texts.phoneCountryCode, texts.phoneNumber),
       telephone: _text(texts.telephone),
       addressLine2: _text(texts.addressLine2),
       pincode: _text(texts.pincode),

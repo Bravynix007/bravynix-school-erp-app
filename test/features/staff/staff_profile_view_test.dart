@@ -1,14 +1,18 @@
 import 'package:bloc_test/bloc_test.dart';
+import 'package:bravynix_school_erp/app/router/app_routes.dart';
 import 'package:bravynix_school_erp/core/network/api_failure.dart';
+import 'package:bravynix_school_erp/core/theme/app_theme.dart';
 import 'package:bravynix_school_erp/features/staff/domain/staff_member.dart';
 import 'package:bravynix_school_erp/features/staff/domain/staff_profile.dart';
 import 'package:bravynix_school_erp/features/staff/presentation/bloc/staff_profile_bloc.dart';
 import 'package:bravynix_school_erp/features/staff/presentation/view/staff_error_text.dart';
+import 'package:bravynix_school_erp/features/staff/presentation/view/staff_form_page.dart';
 import 'package:bravynix_school_erp/features/staff/presentation/view/staff_profile_page.dart';
 import 'package:bravynix_school_erp/l10n/gen/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:go_router/go_router.dart';
 import 'package:mocktail/mocktail.dart';
 
 import '../../helpers/clipped_text.dart';
@@ -171,5 +175,74 @@ void main() {
       staffErrorText(l10n, const ApiFailure(statusCode: 403, code: 'FORBIDDEN', message: 'x')),
       l10n.errorForbidden,
     );
+  });
+
+  group('Edit', () {
+    testWidgets('is offered once the profile is read', (tester) async {
+      await pump(tester, const StaffProfileLoaded(kavyaProfile));
+      expect(find.byKey(const Key('staffProfile.edit')), findsOneWidget);
+    });
+
+    testWidgets('is not offered while the profile loads', (tester) async {
+      await pump(tester, const StaffProfileLoading());
+      expect(find.byKey(const Key('staffProfile.edit')), findsNothing);
+    });
+
+    testWidgets('is not offered when the profile could not be read', (tester) async {
+      await pump(tester, const StaffProfileFailed(ApiFailure.network()));
+      expect(find.byKey(const Key('staffProfile.edit')), findsNothing);
+    });
+
+    Future<List<StaffFormArgs>> pumpWithForm(WidgetTester tester, {required bool? result}) async {
+      when(() => bloc.state).thenReturn(const StaffProfileLoaded(kavyaProfile));
+      when(() => bloc.id).thenReturn('f1');
+      final opened = <StaffFormArgs>[];
+      final router = GoRouter(
+        routes: [
+          GoRoute(
+            path: '/',
+            builder: (_, _) => BlocProvider<StaffProfileBloc>.value(value: bloc, child: const StaffProfileView()),
+          ),
+          GoRoute(
+            path: AppRoutes.staffForm,
+            builder: (context, routeState) {
+              opened.add(routeState.extra! as StaffFormArgs);
+              return Scaffold(
+                body: TextButton(onPressed: () => context.pop(result), child: const Text('close form')),
+              );
+            },
+          ),
+        ],
+      );
+      addTearDown(router.dispose);
+      await tester.pumpWidget(
+        MaterialApp.router(
+          theme: AppTheme.light(),
+          routerConfig: router,
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+        ),
+      );
+      return opened;
+    }
+
+    testWidgets('opens the form for this staff member, and reads the profile again once it saved', (tester) async {
+      final opened = await pumpWithForm(tester, result: true);
+      await tester.tap(find.byKey(const Key('staffProfile.edit')));
+      await tester.pumpAndSettle();
+      expect([opened.single.staffId, opened.single.institutionId], ['f1', null]);
+      await tester.tap(find.text('close form'));
+      await tester.pumpAndSettle();
+      verify(() => bloc.add(const StaffProfileRequested())).called(1);
+    });
+
+    testWidgets('leaves the profile as it is when the form closed without saving', (tester) async {
+      await pumpWithForm(tester, result: null);
+      await tester.tap(find.byKey(const Key('staffProfile.edit')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('close form'));
+      await tester.pumpAndSettle();
+      verifyNever(() => bloc.add(const StaffProfileRequested()));
+    });
   });
 }

@@ -7,6 +7,7 @@ import 'package:bravynix_school_erp/core/widgets/app_icon_button.dart';
 import 'package:bravynix_school_erp/core/widgets/person_list_tile.dart';
 import 'package:bravynix_school_erp/features/staff/domain/staff_member.dart';
 import 'package:bravynix_school_erp/features/staff/presentation/bloc/staff_bloc.dart';
+import 'package:bravynix_school_erp/features/staff/presentation/view/staff_form_page.dart';
 import 'package:bravynix_school_erp/features/staff/presentation/view/staff_page.dart';
 import 'package:bravynix_school_erp/l10n/gen/app_localizations.dart';
 import 'package:flutter/material.dart';
@@ -29,7 +30,10 @@ void main() {
     registerFallbackValue(const PagedListRequested());
     registerFallbackValue(const StaffDeactivated(kavyaEntry));
   });
-  setUp(() => bloc = _MockStaffBloc());
+  setUp(() {
+    bloc = _MockStaffBloc();
+    when(() => bloc.isClosed).thenReturn(false);
+  });
 
   Future<void> pump(
     WidgetTester tester,
@@ -93,6 +97,114 @@ void main() {
     await tester.tap(find.text('Ravi'));
     await tester.pumpAndSettle();
     expect(opened, ['f2']);
+  });
+
+  group('Add staff', () {
+    /// The list on a router that has the form's location, which closes with [result] (null: backed out).
+    Future<List<StaffFormArgs>> pumpWithForm(
+      WidgetTester tester,
+      PagedListState<StaffListEntry> state, {
+      required bool? result,
+    }) async {
+      when(() => bloc.state).thenReturn(state);
+      when(() => bloc.institutionId).thenReturn('i1');
+      final opened = <StaffFormArgs>[];
+      final router = GoRouter(
+        routes: [
+          GoRoute(
+            path: '/',
+            builder: (_, _) => Scaffold(
+              body: BlocProvider<StaffBloc>.value(value: bloc, child: const StaffView()),
+            ),
+          ),
+          GoRoute(
+            path: AppRoutes.staffForm,
+            builder: (context, routeState) {
+              opened.add(routeState.extra! as StaffFormArgs);
+              return Scaffold(
+                body: TextButton(onPressed: () => context.pop(result), child: const Text('close form')),
+              );
+            },
+          ),
+        ],
+      );
+      addTearDown(router.dispose);
+      await tester.pumpWidget(
+        MaterialApp.router(
+          theme: AppTheme.light(),
+          routerConfig: router,
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+        ),
+      );
+      return opened;
+    }
+
+    testWidgets('opens the form for this Institution, and reads the list again once something was saved', (
+      tester,
+    ) async {
+      final opened = await pumpWithForm(tester, const _Loaded([kavyaEntry]), result: true);
+      await tester.tap(find.byKey(const Key('staff.add')));
+      await tester.pumpAndSettle();
+      expect([opened.single.institutionId, opened.single.staffId], ['i1', null]);
+      await tester.tap(find.text('close form'));
+      await tester.pumpAndSettle();
+      verify(() => bloc.add(const PagedListRequested())).called(1);
+    });
+
+    testWidgets('leaves the list alone when the form closed without saving', (tester) async {
+      await pumpWithForm(tester, const _Loaded([kavyaEntry]), result: null);
+      await tester.tap(find.byKey(const Key('staff.add')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('close form'));
+      await tester.pumpAndSettle();
+      verifyNever(() => bloc.add(const PagedListRequested()));
+    });
+
+    testWidgets('is offered on an empty list as well', (tester) async {
+      final opened = await pumpWithForm(tester, const _Loaded([]), result: true);
+      await tester.tap(find.text('Add staff'));
+      await tester.pumpAndSettle();
+      expect(opened.single.institutionId, 'i1');
+    });
+
+    testWidgets('waits while a deactivation goes', (tester) async {
+      await pump(tester, const _Loaded([kavyaEntry], busyId: 'f1'));
+      expect(tester.widget<ButtonStyleButton>(button('staff.add')).onPressed, isNull);
+    });
+  });
+
+  testWidgets('reads the list again when a profile closes, which may have changed the person', (tester) async {
+    when(() => bloc.state).thenReturn(const _Loaded([kavyaEntry]));
+    final router = GoRouter(
+      routes: [
+        GoRoute(
+          path: '/',
+          builder: (_, _) => Scaffold(
+            body: BlocProvider<StaffBloc>.value(value: bloc, child: const StaffView()),
+          ),
+        ),
+        GoRoute(
+          path: AppRoutes.staffMemberPattern,
+          builder: (context, _) => TextButton(onPressed: context.pop, child: const Text('back')),
+        ),
+      ],
+    );
+    addTearDown(router.dispose);
+    await tester.pumpWidget(
+      MaterialApp.router(
+        theme: AppTheme.light(),
+        routerConfig: router,
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+      ),
+    );
+    await tester.tap(find.text('Kavya Nair'));
+    await tester.pumpAndSettle();
+    verifyNever(() => bloc.add(const PagedListRequested()));
+    await tester.tap(find.text('back'));
+    await tester.pumpAndSettle();
+    verify(() => bloc.add(const PagedListRequested())).called(1);
   });
 
   testWidgets('searches when the keyboard says search, and clears the search when the box is emptied', (tester) async {

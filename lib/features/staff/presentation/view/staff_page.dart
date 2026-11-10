@@ -19,6 +19,7 @@ import 'package:bravynix_school_erp/features/staff/domain/staff_member.dart';
 import 'package:bravynix_school_erp/features/staff/domain/staff_repository.dart';
 import 'package:bravynix_school_erp/features/staff/presentation/bloc/staff_bloc.dart';
 import 'package:bravynix_school_erp/features/staff/presentation/view/staff_error_text.dart';
+import 'package:bravynix_school_erp/features/staff/presentation/view/staff_form_page.dart';
 import 'package:bravynix_school_erp/l10n/gen/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -50,6 +51,14 @@ class StaffPage extends StatelessWidget {
       ),
     );
   }
+}
+
+/// Opens the form that adds a staff member to this Institution; a saved one joins the list, so it is read again when the
+/// form closes with true.
+Future<void> _openAddForm(BuildContext context) async {
+  final bloc = context.read<StaffBloc>();
+  final saved = await context.push<bool>(AppRoutes.staffForm, extra: StaffFormArgs.add(bloc.institutionId));
+  if (saved ?? false) bloc.add(const PagedListRequested());
 }
 
 /// The staff of one Institution, under the switcher: a search box over the pages read so far.
@@ -130,7 +139,12 @@ class _StaffViewState extends State<StaffView> {
               ),
               PagedListLoaded<StaffListEntry>(:final items, :final query) when items.isEmpty =>
                 query.isEmpty
-                    ? StatePanel.empty(title: l10n.staffEmptyTitle, message: l10n.staffEmptyMessage)
+                    ? StatePanel.empty(
+                        title: l10n.staffEmptyTitle,
+                        message: l10n.staffEmptyMessage,
+                        actionLabel: l10n.staffAddTitle,
+                        onAction: () => _openAddForm(context),
+                      )
                     : StatePanel.empty(
                         key: const Key('staff.noMatch'),
                         title: l10n.staffNoMatchTitle(query),
@@ -161,6 +175,14 @@ class _StaffList extends StatelessWidget {
           InlineMessage.error(staffErrorText(l10n, failure), key: const Key('staff.actionFailed')),
           const SizedBox(height: AppSpacing.sm),
         ],
+        AppButton(
+          key: const Key('staff.add'),
+          label: l10n.staffAddTitle,
+          icon: Icons.add,
+          variant: AppButtonVariant.secondary,
+          onPressed: state.busyId == null ? () => _openAddForm(context) : null,
+        ),
+        const SizedBox(height: AppSpacing.sm),
         for (final entry in state.items) ...[
           _StaffCard(entry: entry, busy: state.busyId == entry.summary.id, locked: state.busyId != null),
           const SizedBox(height: AppSpacing.xs),
@@ -207,7 +229,7 @@ class _StaffCard extends StatelessWidget {
             name: summary.fullName,
             subtitle: detail,
             trailing: summary.isBlocked ? StatusChip(label: l10n.staffBlocked, tone: StatusTone.error) : null,
-            onTap: locked ? null : () => context.push(AppRoutes.staffMember(summary.id)),
+            onTap: locked ? null : () => _openProfile(context),
           ),
           Align(
             alignment: AlignmentDirectional.centerEnd,
@@ -223,6 +245,14 @@ class _StaffCard extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  /// The profile may have changed the person (Edit, and the access screens to come), so the list is read again on the
+  /// way back.
+  Future<void> _openProfile(BuildContext context) async {
+    final bloc = context.read<StaffBloc>();
+    await context.push<void>(AppRoutes.staffMember(entry.summary.id));
+    if (!bloc.isClosed) bloc.add(const PagedListRequested());
   }
 
   Future<void> _confirmDeactivate(BuildContext context) async {

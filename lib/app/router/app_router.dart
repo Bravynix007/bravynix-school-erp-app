@@ -21,6 +21,7 @@ import 'package:bravynix_school_erp/features/profile/presentation/profile_page.d
 import 'package:bravynix_school_erp/features/school_setup/presentation/school_setup_page.dart';
 import 'package:bravynix_school_erp/features/sections/presentation/view/section_form_page.dart';
 import 'package:bravynix_school_erp/features/sections/presentation/view/sections_page.dart';
+import 'package:bravynix_school_erp/features/staff/presentation/view/staff_form_page.dart';
 import 'package:bravynix_school_erp/features/staff/presentation/view/staff_page.dart';
 import 'package:bravynix_school_erp/features/staff/presentation/view/staff_profile_page.dart';
 import 'package:bravynix_school_erp/features/subjects/presentation/view/subject_form_page.dart';
@@ -64,6 +65,9 @@ String? sectionFormRedirect(Object? extra) => extra is SectionFormArgs ? null : 
 /// The subject form needs the subject (or none, to add) the list passes as `extra`; opened any other way it goes back
 /// to the list, so an Edit that lost its subject cannot open as an Add.
 String? subjectFormRedirect(Object? extra) => extra is SubjectFormArgs ? null : AppRoutes.subjects;
+
+/// The staff form needs the Institution or the staff member the screen behind it hands over.
+String? staffFormRedirect(Object? extra) => extra is StaffFormArgs ? null : AppRoutes.staff;
 
 /// Re-runs the redirect whenever the session changes. GoRouter does not own
 /// its `refreshListenable`, so whoever creates this disposes it.
@@ -142,6 +146,11 @@ GoRouter createRouter(SessionBloc session, {required SessionChanges changes}) {
         builder: (_, state) => SectionFormPage(args: state.extra! as SectionFormArgs),
       ),
       GoRoute(path: AppRoutes.staff, builder: (_, _) => const StaffPage()),
+      GoRoute(
+        path: AppRoutes.staffForm,
+        redirect: (_, state) => staffFormRedirect(state.extra),
+        builder: (_, state) => StaffFormPage(args: state.extra! as StaffFormArgs),
+      ),
       GoRoute(
         path: AppRoutes.staffMemberPattern,
         builder: (_, state) => StaffProfilePage(id: state.pathParameters['id']!),

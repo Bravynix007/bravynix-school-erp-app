@@ -1,7 +1,9 @@
 import 'package:bravynix_school_erp/app/di/injection.dart';
+import 'package:bravynix_school_erp/app/router/app_routes.dart';
 import 'package:bravynix_school_erp/core/format/formatters.dart';
 import 'package:bravynix_school_erp/core/theme/app_spacing.dart';
 import 'package:bravynix_school_erp/core/widgets/app_card.dart';
+import 'package:bravynix_school_erp/core/widgets/app_icon_button.dart';
 import 'package:bravynix_school_erp/core/widgets/app_tag.dart';
 import 'package:bravynix_school_erp/core/widgets/app_top_bar.dart';
 import 'package:bravynix_school_erp/core/widgets/key_value_row.dart';
@@ -15,6 +17,8 @@ import 'package:bravynix_school_erp/features/staff/domain/staff_profile.dart';
 import 'package:bravynix_school_erp/features/staff/domain/staff_repository.dart';
 import 'package:bravynix_school_erp/features/staff/presentation/bloc/staff_profile_bloc.dart';
 import 'package:bravynix_school_erp/features/staff/presentation/view/staff_error_text.dart';
+import 'package:bravynix_school_erp/features/staff/presentation/view/staff_form_page.dart';
+import 'package:bravynix_school_erp/features/staff/presentation/view/staff_names.dart';
 import 'package:bravynix_school_erp/l10n/gen/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -38,13 +42,33 @@ class StaffProfilePage extends StatelessWidget {
 class StaffProfileView extends StatelessWidget {
   const new({super.key});
 
+  /// A saved change shows here, so the profile is read again when the form closes with true.
+  static Future<void> _openEditForm(BuildContext context) async {
+    final bloc = context.read<StaffProfileBloc>();
+    final saved = await context.push<bool>(AppRoutes.staffForm, extra: StaffFormArgs.edit(bloc.id));
+    if (saved ?? false) bloc.add(const StaffProfileRequested());
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     return Scaffold(
       body: Column(
         children: [
-          AppTopBar(title: l10n.staffProfileTitle, onBack: () => context.pop(), backTooltip: l10n.back),
+          AppTopBar(
+            title: l10n.staffProfileTitle,
+            onBack: () => context.pop(),
+            backTooltip: l10n.back,
+            actions: [
+              if (context.select<StaffProfileBloc, bool>((bloc) => bloc.state is StaffProfileLoaded))
+                AppIconButton(
+                  key: const Key('staffProfile.edit'),
+                  icon: Icons.edit_outlined,
+                  tooltip: l10n.staffEditTitle,
+                  onPressed: () => _openEditForm(context),
+                ),
+            ],
+          ),
           Expanded(
             child: BlocBuilder<StaffProfileBloc, StaffProfileState>(
               builder: (context, state) => switch (state) {
@@ -72,19 +96,6 @@ class StaffProfileView extends StatelessWidget {
     );
   }
 }
-
-String _genderName(AppLocalizations l10n, Gender gender) => switch (gender) {
-  Gender.male => l10n.genderMale,
-  Gender.female => l10n.genderFemale,
-  Gender.other => l10n.genderOther,
-};
-
-String _employmentName(AppLocalizations l10n, EmploymentType type) => switch (type) {
-  EmploymentType.fullTime => l10n.employmentFullTime,
-  EmploymentType.partTime => l10n.employmentPartTime,
-  EmploymentType.visiting => l10n.employmentVisiting,
-  EmploymentType.contract => l10n.employmentContract,
-};
 
 class _Details extends StatelessWidget {
   const new({required this.profile});
@@ -128,7 +139,7 @@ class _Details extends StatelessWidget {
                 KeyValueRow(label: l10n.staffDesignation, value: designation),
               if (profile.categoryName case final category?) KeyValueRow(label: l10n.staffCategory, value: category),
               if (member.gender case final gender?)
-                KeyValueRow(label: l10n.staffGender, value: _genderName(l10n, gender)),
+                KeyValueRow(label: l10n.staffGender, value: genderName(l10n, gender)),
               if (member.dateOfBirth case final day?)
                 KeyValueRow(label: l10n.staffDateOfBirth, value: Formatters.schoolDate(day)),
               if (member.bloodGroup case final group?) KeyValueRow(label: l10n.staffBloodGroup, value: group),
@@ -161,7 +172,7 @@ class _Details extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 if (member.employmentType case final type?)
-                  KeyValueRow(label: l10n.staffEmploymentType, value: _employmentName(l10n, type)),
+                  KeyValueRow(label: l10n.staffEmploymentType, value: employmentName(l10n, type)),
                 if (member.joiningDate case final day?)
                   KeyValueRow(label: l10n.staffJoiningDate, value: Formatters.schoolDate(day)),
                 if (member.resignationDate case final day?)

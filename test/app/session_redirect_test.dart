@@ -7,6 +7,7 @@ import 'package:bravynix_school_erp/features/classes/presentation/view/class_bul
 import 'package:bravynix_school_erp/features/classes/presentation/view/class_form_page.dart';
 import 'package:bravynix_school_erp/features/sections/presentation/view/section_form_page.dart';
 import 'package:bravynix_school_erp/features/sections/presentation/view/sections_page.dart';
+import 'package:bravynix_school_erp/features/staff/presentation/view/staff_form_page.dart';
 import 'package:bravynix_school_erp/features/subjects/presentation/view/subject_form_page.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -97,5 +98,12 @@ void main() {
     expect(subjectFormRedirect(const SubjectFormArgs(subject: maths)), isNull);
     expect(subjectFormRedirect(null), AppRoutes.subjects);
     expect(subjectFormRedirect(maths), AppRoutes.subjects);
+  });
+
+  test('the staff form opens only with the Institution or staff member the screen passes, else back to the list', () {
+    expect(staffFormRedirect(const StaffFormArgs.add('i1')), isNull);
+    expect(staffFormRedirect(const StaffFormArgs.edit('f1')), isNull);
+    expect(staffFormRedirect(null), AppRoutes.staff);
+    expect(staffFormRedirect('i1'), AppRoutes.staff);
   });
 }

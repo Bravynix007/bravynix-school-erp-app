@@ -172,4 +172,139 @@ void main() {
       );
     });
   });
+
+  group('STF-02', () {
+    test('sends what is set, with the Institution, and reads the staff member made', () async {
+      final (:repository, :adapter) = build(() => okReply(memberJson(), status: 201));
+      expect(await repository.create('i1', kavyaDraft), kavyaMember);
+      final request = adapter.requests.single;
+      expect([request.method, request.uri.path], ['POST', '/v1/staff']);
+      expect(bodyOf(request), {
+        'homeInstitutionId': 'i1',
+        'email': 'kavya.nair@example.com',
+        'firstName': 'Kavya',
+        'classCategoryId': 'c1',
+        'mobile': {'countryCode': '91', 'number': '9876543210'},
+        'lastName': 'Nair',
+        'employeeCode': 'T-014',
+        'gender': 2,
+        'dateOfBirth': '1990-04-17',
+        'bloodGroup': 'O+',
+        'nationality': 'Indian',
+        'designationId': 'd1',
+        'alternateNumber': '9876500000',
+        'joiningDate': '2020-06-01',
+        'resignationDate': '2026-03-31',
+        'employmentType': 1,
+        'photoFileId': 'p2',
+        'address': {
+          'line1': '12 Lake Road',
+          'line2': 'Near the park',
+          'countryId': 'k1',
+          'stateId': 's1',
+          'cityId': 'y1',
+          'pincode': '560066',
+        },
+        'educations': [
+          {
+            'degree': 'B.Ed',
+            'qualification': 'Education',
+            'specialization': 'Mathematics',
+            'institutionName': 'Mysore University',
+            'yearOfPassing': 2014,
+          },
+        ],
+        'emergencyContacts': [
+          {
+            'contactName': 'Anil Nair',
+            'phone': {'countryCode': '91', 'number': '9876511111'},
+            'isPrimary': true,
+            'relation': 'Father',
+            'alternateNumber': '9876522222',
+          },
+          {
+            'contactName': 'Mini Nair',
+            'phone': {'countryCode': '91', 'number': '9876533333'},
+            'isPrimary': false,
+          },
+        ],
+      });
+    });
+
+    test('leaves out what is empty, and sends the two lists even when empty', () async {
+      final (:repository, :adapter) = build(() => okReply(memberJson(), status: 201));
+      await repository.create('i1', raviDraft);
+      expect(bodyOf(adapter.requests.single), {
+        'homeInstitutionId': 'i1',
+        'email': 'ravi@example.com',
+        'firstName': 'Ravi',
+        'classCategoryId': 'c1',
+        'mobile': {'countryCode': '91', 'number': '9876543210'},
+        'educations': <Object?>[],
+        'emergencyContacts': <Object?>[],
+      });
+    });
+
+    for (final code in ['EMPLOYEE_ID_TAKEN', 'DUPLICATE', 'ROLE_CONFLICT', 'ACCOUNT_BLOCKED']) {
+      test('fails with $code as the server said', () async {
+        final (:repository, adapter: _) = build(() => errorReply(409, code));
+        await expectLater(
+          repository.create('i1', raviDraft),
+          throwsA(isA<ApiFailure>().having((failure) => failure.code, 'code', code)),
+        );
+      });
+    }
+  });
+
+  group('STF-04', () {
+    test('sends the version and every field, with null for what is empty, and never the email', () async {
+      final (:repository, :adapter) = build(() => okReply(memberJson()));
+      await repository.update('f1', 4, raviDraft);
+      final request = adapter.requests.single;
+      expect([request.method, request.uri.path], ['PATCH', '/v1/staff/f1']);
+      expect(bodyOf(request), {
+        'version': 4,
+        'firstName': 'Ravi',
+        'classCategoryId': 'c1',
+        'mobile': {'countryCode': '91', 'number': '9876543210'},
+        'lastName': null,
+        'employeeCode': null,
+        'gender': null,
+        'dateOfBirth': null,
+        'bloodGroup': null,
+        'nationality': null,
+        'designationId': null,
+        'alternateNumber': null,
+        'joiningDate': null,
+        'resignationDate': null,
+        'employmentType': null,
+        'address': {
+          'line1': null,
+          'line2': null,
+          'countryId': null,
+          'stateId': null,
+          'cityId': null,
+          'pincode': null,
+        },
+        'educations': <Object?>[],
+        'emergencyContacts': <Object?>[],
+      });
+    });
+
+    test('sends the photo only when a new one was uploaded', () async {
+      final (:repository, :adapter) = build(() => okReply(memberJson()));
+      await repository.update('f1', 4, kavyaDraft);
+      expect(bodyOf(adapter.requests.last)['photoFileId'], 'p2');
+      await repository.update('f1', 4, raviDraft);
+      expect(bodyOf(adapter.requests.last).containsKey('photoFileId'), isFalse);
+    });
+
+    test('says someone saved first', () async {
+      final (:repository, adapter: _) = build(() => errorReply(409, 'VERSION_CONFLICT'));
+      await expectLater(
+        repository.update('f1', 4, raviDraft),
+        throwsA(isA<ApiFailure>().having((failure) => failure.code, 'code', 'VERSION_CONFLICT')),
+      );
+    });
+  });
 }

@@ -3,9 +3,15 @@ import 'package:bravynix_school_erp/features/auth/presentation/role/view/role_er
 import 'package:bravynix_school_erp/l10n/gen/app_localizations.dart';
 
 /// Copy for the codes STF-01 to STF-05 add (API design 10.5): 409 CANNOT_ACT_ON_SELF for the caller's own record on
-/// Deactivate, and 404 for a staff member outside the caller's scope or already deactivated; the rest reads as
-/// everywhere else.
+/// Deactivate; 409 EMPLOYEE_ID_TAKEN, DUPLICATE (the person already has an active record) and ROLE_CONFLICT (a platform
+/// account) when a staff member is added; 422 REFERENCE_INACTIVE for a category, designation or photo no longer
+/// available; and 404 for a staff member outside the caller's scope or already deactivated. The rest reads as
+/// everywhere else, ACCOUNT_BLOCKED among it.
 String staffErrorText(AppLocalizations l10n, ApiFailure failure) => switch (failure.code) {
   'CANNOT_ACT_ON_SELF' => l10n.errorCannotActOnSelf,
+  'EMPLOYEE_ID_TAKEN' => l10n.errorEmployeeIdTaken,
+  'DUPLICATE' => l10n.errorStaffDuplicate,
+  'ROLE_CONFLICT' => l10n.errorRoleConflict,
+  'REFERENCE_INACTIVE' => l10n.errorReferenceInactive,
   _ => apiErrorText(l10n, failure, notFound: l10n.errorStaffNotFound),
 };

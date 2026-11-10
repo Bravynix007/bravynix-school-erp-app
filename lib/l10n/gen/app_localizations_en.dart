@@ -457,7 +457,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get institutionContact => 'Contact';
 
   @override
-  String get institutionAddress => 'Address';
+  String get addressSection => 'Address';
 
   @override
   String get institutionPhone => 'Phone';
@@ -517,13 +517,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get institutionBoardNone => 'Not set';
 
   @override
-  String get institutionAddressLine1 => 'Address line 1';
+  String get addressLine1 => 'Address line 1';
 
   @override
-  String get institutionAddressLine2 => 'Address line 2';
+  String get addressLine2 => 'Address line 2';
 
   @override
-  String get institutionPincode => 'Pincode';
+  String get addressPincode => 'Pincode';
 
   @override
   String get placeCountry => 'Country';
@@ -535,10 +535,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get placeCity => 'City';
 
   @override
-  String get institutionCountryCode => 'Country code';
+  String get phoneCountryCode => 'Country code';
 
   @override
-  String get institutionPhoneNumber => 'Phone number';
+  String get phoneNumber => 'Phone number';
 
   @override
   String get institutionNoCategories => 'There are no class categories to choose from.';
@@ -1189,4 +1189,119 @@ class AppLocalizationsEn extends AppLocalizations {
   String staffContactRelation(String name, String relation) {
     return '$name ($relation)';
   }
+
+  @override
+  String get staffAddTitle => 'Add staff';
+
+  @override
+  String get staffEditTitle => 'Edit staff';
+
+  @override
+  String get staffSave => 'Save';
+
+  @override
+  String get staffSaved => 'Staff saved';
+
+  @override
+  String get staffFormPhoto => 'Photo';
+
+  @override
+  String get staffPhotoKept => 'A photo is saved. Choose another to replace it.';
+
+  @override
+  String get staffPhotoLabel => 'Staff photo';
+
+  @override
+  String get staffFormPersonal => 'Personal details';
+
+  @override
+  String get staffFirstName => 'First name';
+
+  @override
+  String get staffLastName => 'Last name';
+
+  @override
+  String get staffEmailAddHelper => 'They sign in with a code sent to this email.';
+
+  @override
+  String get staffEmailEditHelper => 'The login email can\'t be changed here.';
+
+  @override
+  String get staffFormAddress => 'Address';
+
+  @override
+  String get staffFormEducation => 'Education';
+
+  @override
+  String get staffFormEmergency => 'Emergency contacts';
+
+  @override
+  String get choiceNone => 'Not set';
+
+  @override
+  String get chooseDate => 'Choose a date';
+
+  @override
+  String clearDate(String label) {
+    return 'Clear $label';
+  }
+
+  @override
+  String staffEducationRow(int number) {
+    return 'Education $number';
+  }
+
+  @override
+  String get staffEducationDegree => 'Degree';
+
+  @override
+  String get staffEducationQualification => 'Qualification';
+
+  @override
+  String get staffEducationSpecialization => 'Specialization';
+
+  @override
+  String get staffEducationSchool => 'School or college';
+
+  @override
+  String get staffEducationYear => 'Year of passing';
+
+  @override
+  String get staffAddEducation => 'Add education';
+
+  @override
+  String staffRemoveEducation(int number) {
+    return 'Remove education $number';
+  }
+
+  @override
+  String staffContactRow(int number) {
+    return 'Contact $number';
+  }
+
+  @override
+  String get staffContactName => 'Name';
+
+  @override
+  String get staffContactRelationLabel => 'Relation';
+
+  @override
+  String get staffAddContact => 'Add emergency contact';
+
+  @override
+  String staffRemoveContact(int number) {
+    return 'Remove contact $number';
+  }
+
+  @override
+  String get staffUploadingWait => 'Wait for the photo to finish sending.';
+
+  @override
+  String get errorEmployeeIdTaken => 'Another staff member of this Institution has this Employee ID.';
+
+  @override
+  String get errorStaffDuplicate => 'This person already has a staff record in this Society.';
+
+  @override
+  String get errorRoleConflict => 'This email belongs to a platform account, which can\'t also be staff.';
 }
