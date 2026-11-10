@@ -1,4 +1,5 @@
 import 'package:bravynix_school_erp/app/di/injection.dart';
+import 'package:bravynix_school_erp/core/model/phone.dart';
 import 'package:bravynix_school_erp/core/theme/app_spacing.dart';
 import 'package:bravynix_school_erp/core/widgets/app_card.dart';
 import 'package:bravynix_school_erp/core/widgets/app_dropdown_field.dart';
@@ -97,9 +98,6 @@ class InstitutionFormView extends StatelessWidget {
   }
 }
 
-/// The dial code a new Institution's phone starts with: India is the only country for now.
-const _indiaDialCode = '91';
-
 /// The form with its own place picker, started from the place the Institution holds (a new one starts in India, the
 /// only country for now).
 class _Form extends StatelessWidget {
@@ -159,7 +157,7 @@ class _FormBodyState extends State<_FormBody> {
     _line2 = TextEditingController(text: existing?.addressLine2);
     _pincode = TextEditingController(text: existing?.pincode);
     _email = TextEditingController(text: existing?.email);
-    _phoneCode = TextEditingController(text: existing == null ? _indiaDialCode : existing.phone?.countryCode);
+    _phoneCode = TextEditingController(text: existing == null ? Phone.indiaDialCode : existing.phone?.countryCode);
     _phoneNumber = TextEditingController(text: existing?.phone?.number);
     _telephone = TextEditingController(text: existing?.telephone);
   }

@@ -1,4 +1,3 @@
-import 'package:bravynix_school_erp/app/di/injection.dart';
 import 'package:bravynix_school_erp/core/theme/app_spacing.dart';
 import 'package:bravynix_school_erp/core/widgets/app_button.dart';
 import 'package:bravynix_school_erp/core/widgets/app_card.dart';
@@ -8,7 +7,6 @@ import 'package:bravynix_school_erp/core/widgets/inline_message.dart';
 import 'package:bravynix_school_erp/core/widgets/section_header.dart';
 import 'package:bravynix_school_erp/core/widgets/status_chip.dart';
 import 'package:bravynix_school_erp/features/staff/domain/staff_member.dart';
-import 'package:bravynix_school_erp/features/staff/domain/staff_repository.dart';
 import 'package:bravynix_school_erp/features/staff/presentation/bloc/staff_block_bloc.dart';
 import 'package:bravynix_school_erp/features/staff/presentation/bloc/staff_profile_bloc.dart';
 import 'package:bravynix_school_erp/features/staff/presentation/view/staff_error_text.dart';
@@ -18,18 +16,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 /// The settings tab of the staff profile (PRD 7.5): blocks the person's access to the app in this Society (STF-06) or
 /// lifts the block (STF-07). The profile behind learns of the answer.
-class StaffSettingsTab extends StatelessWidget {
-  const new({required this.member, super.key});
-
-  final StaffMember member;
-
-  @override
-  Widget build(BuildContext context) => BlocProvider(
-    create: (_) => StaffBlockBloc(getIt<StaffRepository>(), member),
-    child: const StaffSettingsView(),
-  );
-}
-
 class StaffSettingsView extends StatelessWidget {
   const new({super.key});
 
@@ -51,17 +37,20 @@ class StaffSettingsView extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     return BlocConsumer<StaffBlockBloc, StaffBlockState>(
-      // A block or a lift changes the staff member, which the profile behind keeps. The bloc is idle only after one.
-      listenWhen: (_, current) => current is StaffBlockIdle,
+      // A block or a lift changes the staff member, which the profile behind keeps; so does a refusal that read the
+      // record again because it was already as asked.
+      listenWhen: (previous, current) => previous.member != current.member,
       listener: (context, state) {
         context.read<StaffProfileBloc>().add(StaffProfileMemberChanged(state.member));
-        AppSnackbar.show(
-          context,
-          message: state.member.isBlocked
-              ? l10n.staffBlockDone(state.member.fullName)
-              : l10n.staffUnblockDone(state.member.fullName),
-          kind: AppSnackbarKind.success,
-        );
+        if (state is StaffBlockIdle) {
+          AppSnackbar.show(
+            context,
+            message: state.member.isBlocked
+                ? l10n.staffBlockDone(state.member.fullName)
+                : l10n.staffUnblockDone(state.member.fullName),
+            kind: AppSnackbarKind.success,
+          );
+        }
       },
       builder: (context, state) {
         final member = state.member;

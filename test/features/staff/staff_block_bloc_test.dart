@@ -59,6 +59,59 @@ void main() {
     ],
   );
 
+  const alreadyBlocked = ApiFailure(statusCode: 409, code: 'INVALID_STATE', message: 'x');
+
+  blocTest<StaffBlockBloc, StaffBlockState>(
+    'reads the record again when someone else already blocked it, so the screen is as the API holds it',
+    setUp: () {
+      when(() => staff.block('f1')).thenThrow(alreadyBlocked);
+      when(() => staff.member('f1')).thenAnswer((_) async => blocked);
+    },
+    build: () => StaffBlockBloc(staff, active),
+    act: (bloc) => bloc.add(const StaffBlockToggled()),
+    expect: () => [StaffBlockWorking(active), StaffBlockRefused(blocked, alreadyBlocked)],
+    verify: (_) => verify(() => staff.member('f1')).called(1),
+  );
+
+  blocTest<StaffBlockBloc, StaffBlockState>(
+    'asks for the other thing on the next press once it knows the record is blocked',
+    setUp: () {
+      when(() => staff.block('f1')).thenThrow(alreadyBlocked);
+      when(() => staff.member('f1')).thenAnswer((_) async => blocked);
+      when(() => staff.unblock('f1')).thenAnswer((_) async => active);
+    },
+    build: () => StaffBlockBloc(staff, active),
+    act: (bloc) async {
+      bloc.add(const StaffBlockToggled());
+      await bloc.stream.firstWhere((state) => state is StaffBlockRefused);
+      bloc.add(const StaffBlockToggled());
+    },
+    verify: (bloc) {
+      expect(bloc.state, StaffBlockIdle(active));
+      verify(() => staff.block('f1')).called(1);
+      verify(() => staff.unblock('f1')).called(1);
+    },
+  );
+
+  blocTest<StaffBlockBloc, StaffBlockState>(
+    'keeps the record it had when it cannot read it again',
+    setUp: () {
+      when(() => staff.block('f1')).thenThrow(alreadyBlocked);
+      when(() => staff.member('f1')).thenThrow(const ApiFailure.network());
+    },
+    build: () => StaffBlockBloc(staff, active),
+    act: (bloc) => bloc.add(const StaffBlockToggled()),
+    expect: () => [StaffBlockWorking(active), StaffBlockRefused(active, alreadyBlocked)],
+  );
+
+  blocTest<StaffBlockBloc, StaffBlockState>(
+    'does not read the record again for a refusal that says nothing of its state',
+    setUp: () => when(() => staff.block('f1')).thenThrow(refusal),
+    build: () => StaffBlockBloc(staff, active),
+    act: (bloc) => bloc.add(const StaffBlockToggled()),
+    verify: (_) => verifyNever(() => staff.member(any())),
+  );
+
   test('does not send twice while a request is on its way', () async {
     final held = Completer<StaffMember>();
     when(() => staff.block('f1')).thenAnswer((_) => held.future);

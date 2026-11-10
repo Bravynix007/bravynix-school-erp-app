@@ -1340,7 +1340,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get staffSettingsAccess => 'Access to the app';
 
   @override
-  String get staffSettingsActive => 'They can sign in as staff.';
+  String get staffSettingsActive => 'They can use the app as staff.';
 
   @override
   String get staffSettingsBlockedMessage =>
@@ -1359,7 +1359,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get staffBlockMessage =>
-      'They are signed out at once and cannot sign in as staff or Admin of this Society until you unblock them. Their record is kept.';
+      'They are signed out at once and cannot use the app as staff or Admin of this Society until you unblock them. Their record is kept.';
 
   @override
   String staffUnblockTitle(String name) {
@@ -1367,7 +1367,7 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get staffUnblockMessage => 'They can sign in as staff again.';
+  String get staffUnblockMessage => 'They can use the app as staff again.';
 
   @override
   String staffBlockDone(String name) {

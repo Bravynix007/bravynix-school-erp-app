@@ -4,6 +4,7 @@ import 'package:bravynix_school_erp/core/network/api_failure.dart';
 import 'package:bravynix_school_erp/core/paging/items_page.dart';
 import 'package:bravynix_school_erp/features/masters/domain/master_entry.dart';
 import 'package:bravynix_school_erp/features/staff/domain/staff_member.dart';
+import 'package:bravynix_school_erp/features/staff/domain/staff_profile.dart';
 import 'package:bravynix_school_erp/features/staff/presentation/bloc/staff_bloc.dart';
 import 'package:bravynix_school_erp/features/staff/presentation/bloc/staff_profile_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -199,7 +200,17 @@ void main() {
       skip: 2,
       expect: () => [
         const StaffProfileLoaded(kavyaProfile, tab: StaffProfileTab.settings),
-        StaffProfileLoaded(kavyaProfile.withMember(raviMember), tab: StaffProfileTab.settings),
+        const StaffProfileLoaded(
+          StaffProfile(
+            raviMember,
+            designationName: 'Mathematics Teacher',
+            categoryName: 'Lower Primary',
+            countryName: 'India',
+            stateName: 'Karnataka',
+            cityName: 'Bengaluru',
+          ),
+          tab: StaffProfileTab.settings,
+        ),
       ],
     );
 

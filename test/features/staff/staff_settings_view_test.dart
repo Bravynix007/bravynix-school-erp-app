@@ -3,13 +3,14 @@ import 'package:bravynix_school_erp/core/network/api_failure.dart';
 import 'package:bravynix_school_erp/core/widgets/app_button.dart';
 import 'package:bravynix_school_erp/features/staff/presentation/bloc/staff_block_bloc.dart';
 import 'package:bravynix_school_erp/features/staff/presentation/bloc/staff_profile_bloc.dart';
-import 'package:bravynix_school_erp/features/staff/presentation/view/staff_settings_tab.dart';
+import 'package:bravynix_school_erp/features/staff/presentation/view/staff_settings_view.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 
 import '../../helpers/clipped_text.dart';
+import '../../helpers/mocks.dart';
 import '../../helpers/pump_app.dart';
 import '../../helpers/staff.dart';
 
@@ -60,7 +61,7 @@ void main() {
   group('a staff member who can sign in', () {
     testWidgets('is told so, with Block access offered', (tester) async {
       await pump(tester, StaffBlockIdle(active));
-      expect(find.text('They can sign in as staff.'), findsOneWidget);
+      expect(find.text('They can use the app as staff.'), findsOneWidget);
       expect(find.text('Blocked'), findsNothing);
       expect(find.text('Block access'), findsOneWidget);
     });
@@ -180,6 +181,23 @@ void main() {
       expect(find.text('Kavya Nair unblocked'), findsOneWidget);
     });
 
+    testWidgets('tells the profile of the record read again when it was already as asked, with no word of success', (
+      tester,
+    ) async {
+      whenListen(
+        bloc,
+        Stream.fromIterable([
+          StaffBlockWorking(active),
+          StaffBlockRefused(blocked, const ApiFailure(statusCode: 409, code: 'INVALID_STATE', message: 'x')),
+        ]),
+        initialState: StaffBlockIdle(active),
+      );
+      await pump(tester, StaffBlockIdle(active));
+      await tester.pump();
+      verify(() => profile.add(StaffProfileMemberChanged(blocked))).called(1);
+      expect(find.text('Kavya Nair blocked'), findsNothing);
+    });
+
     testWidgets('says nothing to the profile of a refusal', (tester) async {
       whenListen(
         bloc,
@@ -193,6 +211,33 @@ void main() {
       await tester.pump();
       verifyNever(() => profile.add(any()));
     });
+  });
+
+  testWidgets('follows the record when someone else already blocked it: the status and the button change', (
+    tester,
+  ) async {
+    final staff = MockStaffRepository();
+    when(() => staff.block('f1')).thenThrow(const ApiFailure(statusCode: 409, code: 'INVALID_STATE', message: 'x'));
+    when(() => staff.member('f1')).thenAnswer((_) async => blocked);
+    final real = StaffBlockBloc(staff, active);
+    addTearDown(real.close);
+    await tester.pumpAppScaled(
+      MultiBlocProvider(
+        providers: [
+          BlocProvider<StaffBlockBloc>.value(value: real),
+          BlocProvider<StaffProfileBloc>.value(value: profile),
+        ],
+        child: const Scaffold(body: StaffSettingsView()),
+      ),
+    );
+    await tester.tap(find.byKey(const Key('staffSettings.toggle')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.descendant(of: find.byType(Dialog), matching: find.text('Block access')));
+    await tester.pumpAndSettle();
+    expect(find.text('Their access is already as you asked. The screen is up to date now.'), findsOneWidget);
+    expect(find.textContaining('They are blocked.'), findsOneWidget);
+    expect(find.text('Unblock access'), findsOneWidget);
+    verify(() => profile.add(StaffProfileMemberChanged(blocked))).called(1);
   });
 
   testWidgets('reads whole at a large text scale on a small phone', (tester) async {

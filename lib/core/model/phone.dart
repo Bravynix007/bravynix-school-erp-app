@@ -19,6 +19,9 @@ class Phone extends Equatable {
     return Phone(countryCode: countryCode.replaceAll(RegExp(r'[\s+]'), ''), number: digits);
   }
 
+  /// The dial code a new phone starts with: India is the only country for now.
+  static const indiaDialCode = '91';
+
   final String countryCode;
   final String number;
 
