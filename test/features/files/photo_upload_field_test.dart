@@ -1,7 +1,10 @@
+import 'dart:async';
+
 import 'package:bloc_test/bloc_test.dart';
 import 'package:bravynix_school_erp/core/network/api_failure.dart';
 import 'package:bravynix_school_erp/core/widgets/app_progress.dart';
 import 'package:bravynix_school_erp/core/widgets/inline_message.dart';
+import 'package:bravynix_school_erp/features/files/domain/chosen_file.dart';
 import 'package:bravynix_school_erp/features/files/domain/file_check.dart';
 import 'package:bravynix_school_erp/features/files/domain/file_picking.dart';
 import 'package:bravynix_school_erp/features/files/presentation/bloc/file_upload_bloc.dart';
@@ -163,7 +166,9 @@ void main() {
     verify(() => bloc.add(const FileUploadRetried())).called(1);
   });
 
-  testWidgets('says in the words of the code why the server refused the photo', (tester) async {
+  testWidgets('says in the words of the code why the server refused a photo that would be refused again', (
+    tester,
+  ) async {
     await pump(
       tester,
       FileUploadFailed(
@@ -173,6 +178,24 @@ void main() {
     );
     expect(find.text('This file is larger than 5 MB. Choose a smaller one.'), findsOneWidget);
     expect(find.text('server words'), findsNothing);
+    // Sending the same file again would be refused the same way: no Try again, no preview, and Add photo replaces it.
+    expect(find.text('Try again'), findsNothing);
+    expect(find.byType(Image), findsNothing);
+    expect(find.text('Add photo'), findsOneWidget);
+  });
+
+  testWidgets('does not start an upload for a photo picked after the screen went', (tester) async {
+    final picking = _SlowPicking();
+    await pump(tester, const FileUploadIdle(), picking: picking);
+    await tester.tap(find.text('Add photo'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('photo.gallery')));
+    await tester.pump();
+    await tester.pumpWidget(const SizedBox());
+    picking.pick.complete(photo);
+    await tester.pump();
+    verifyNever(() => bloc.add(any()));
+    expect(tester.takeException(), isNull);
   });
 
   testWidgets('a photo the app refused shows on the tile why, with no way to send it again', (tester) async {
@@ -211,4 +234,12 @@ void main() {
       expect(clippedParagraphs(tester), isEmpty);
     }
   });
+}
+
+/// A picker that answers when the test says, so the screen can go first.
+class _SlowPicking extends FakeFilePicking {
+  final pick = Completer<ChosenFile?>();
+
+  @override
+  Future<ChosenFile?> photo(PhotoSource source) => pick.future;
 }

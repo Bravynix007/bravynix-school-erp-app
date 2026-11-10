@@ -29,7 +29,12 @@ class ObjectUploader {
 
   /// Sends [file]; [onProgress] gets the share sent, from 0 to 1. Throws [ApiFailure]: the network ones as for the API,
   /// and `UPLOAD_REFUSED` (or the store's own code, such as `BAD_UPLOAD` or `ALREADY_UPLOADED`) for a refusal.
-  Future<void> send(UploadTicket ticket, ChosenFile file, {void Function(double sent)? onProgress}) async {
+  Future<void> send(
+    UploadTicket ticket,
+    ChosenFile file, {
+    void Function(double sent)? onProgress,
+    CancelToken? cancelToken,
+  }) async {
     final form = FormData.fromMap({
       ...ticket.fields,
       'file': MultipartFile.fromBytes(
@@ -42,6 +47,7 @@ class ObjectUploader {
       await _dio.post<Object?>(
         ticket.url,
         data: form,
+        cancelToken: cancelToken,
         onSendProgress: (sent, total) {
           if (onProgress != null && total > 0) onProgress(sent / total);
         },

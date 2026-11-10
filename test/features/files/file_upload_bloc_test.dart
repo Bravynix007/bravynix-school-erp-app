@@ -5,6 +5,7 @@ import 'package:bravynix_school_erp/core/network/api_failure.dart';
 import 'package:bravynix_school_erp/features/files/domain/file_check.dart';
 import 'package:bravynix_school_erp/features/files/domain/file_purpose.dart';
 import 'package:bravynix_school_erp/features/files/presentation/bloc/file_upload_bloc.dart';
+import 'package:dio/dio.dart' show CancelToken;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 
@@ -31,6 +32,7 @@ void main() {
       purpose: any(named: 'purpose'),
       institutionId: any(named: 'institutionId'),
       onProgress: any(named: 'onProgress'),
+      cancelToken: any(named: 'cancelToken'),
     ),
   );
 
@@ -61,6 +63,7 @@ void main() {
         purpose: FilePurpose.staffPhoto,
         institutionId: 'i1',
         onProgress: any(named: 'onProgress'),
+        cancelToken: any(named: 'cancelToken'),
       ),
     ).called(1),
   );
@@ -76,6 +79,7 @@ void main() {
         purpose: any(named: 'purpose'),
         institutionId: any(named: 'institutionId'),
         onProgress: any(named: 'onProgress'),
+        cancelToken: any(named: 'cancelToken'),
       ),
     ),
   );
@@ -145,6 +149,7 @@ void main() {
         purpose: any(named: 'purpose'),
         institutionId: any(named: 'institutionId'),
         onProgress: any(named: 'onProgress'),
+        cancelToken: any(named: 'cancelToken'),
       ),
     ).called(1),
   );
@@ -171,9 +176,73 @@ void main() {
     expect: () => [FileUploadSending(photo), FileUploadDone(photo, uploadedPhoto)],
   );
 
-  test('a failure either names a problem or a failure, and only a failure can be retried', () {
+  test('a failure either names a problem or a failure, and only a failure that can pass can be retried', () {
     expect(FileUploadFailed(photo, failure: _offline).canRetry, isTrue);
     expect(FileUploadFailed(photo, problem: FileProblem.empty).canRetry, isFalse);
     expect(() => FileUploadFailed(photo), throwsAssertionError);
+  });
+
+  test('retries the failures that can pass, and none of the refusals that would come again', () {
+    ApiFailure failure(int status, String code) => ApiFailure(statusCode: status, code: code, message: 'x');
+    for (final passes in [
+      const ApiFailure.network(),
+      const ApiFailure.timeout(),
+      failure(500, 'INTERNAL_ERROR'),
+      failure(503, 'SERVICE_UNAVAILABLE'),
+      failure(429, 'RATE_LIMITED'),
+      failure(422, 'UPLOAD_NOT_FOUND'),
+      failure(400, 'BAD_UPLOAD'),
+      failure(403, 'UPLOAD_REFUSED'),
+      failure(409, 'ALREADY_UPLOADED'),
+    ]) {
+      expect(FileUploadFailed(photo, failure: passes).canRetry, isTrue, reason: passes.code);
+    }
+    for (final again in [
+      failure(413, 'FILE_TOO_LARGE'),
+      failure(415, 'FILE_TYPE_NOT_ALLOWED'),
+      failure(422, 'FILE_CHECK_FAILED'),
+      failure(403, 'FORBIDDEN'),
+      failure(404, 'NOT_FOUND'),
+      failure(400, 'VALIDATION_FAILED'),
+    ]) {
+      expect(FileUploadFailed(photo, failure: again).canRetry, isFalse, reason: again.code);
+    }
+  });
+
+  blocTest<FileUploadBloc, FileUploadState>(
+    'cannot retry a refusal that would come again: the file has to be replaced',
+    build: build,
+    seed: () => FileUploadFailed(photo, failure: _refused),
+    act: (bloc) => bloc.add(const FileUploadRetried()),
+    expect: () => <FileUploadState>[],
+    verify: (_) => verifyNever(
+      () => files.upload(
+        any(),
+        purpose: any(named: 'purpose'),
+        institutionId: any(named: 'institutionId'),
+        onProgress: any(named: 'onProgress'),
+        cancelToken: any(named: 'cancelToken'),
+      ),
+    ),
+  );
+
+  test('stops the upload when it is closed, and a progress tick that comes after does no harm', () async {
+    late void Function(double) report;
+    late CancelToken token;
+    final gate = Completer<void>();
+    upload().thenAnswer((invocation) async {
+      report = invocation.namedArguments[#onProgress] as void Function(double);
+      token = invocation.namedArguments[#cancelToken] as CancelToken;
+      await gate.future;
+      return uploadedPhoto;
+    });
+    final bloc = build()..add(FileUploadStarted(photo));
+    await Future<void>.delayed(Duration.zero);
+    expect(token.isCancelled, isFalse);
+    await bloc.close();
+    expect(token.isCancelled, isTrue);
+    expect(() => report(0.5), returnsNormally);
+    gate.complete();
+    await Future<void>.delayed(Duration.zero);
   });
 }

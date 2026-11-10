@@ -81,9 +81,9 @@ void main() {
       expect(FileModels.requestBody(photo, purpose: FilePurpose.staffPhoto, institutionId: 'i1'), {
         'purpose': 4,
         'institutionId': 'i1',
-        'contentType': 'image/jpeg',
+        'contentType': 'image/png',
         'sizeBytes': photo.sizeBytes,
-        'fileName': 'kavya.jpg',
+        'fileName': 'kavya.png',
       });
     });
   });
@@ -98,9 +98,9 @@ void main() {
       expect(adapter.requests.first.data, {
         'purpose': 4,
         'institutionId': 'i1',
-        'contentType': 'image/jpeg',
+        'contentType': 'image/png',
         'sizeBytes': photo.sizeBytes,
-        'fileName': 'kavya.jpg',
+        'fileName': 'kavya.png',
       });
     });
 
@@ -112,9 +112,14 @@ void main() {
       expect(sent.headers.keys.map((key) => key.toLowerCase()), isNot(contains('x-device-platform')));
       final form = sent.data! as FormData;
       expect(form.fields.map((field) => '${field.key}=${field.value}'), ['key=k1', 'policy=p1']);
+      // S3 ignores a field that comes after the file (API design 15.1), so the order on the wire is what counts.
+      final onTheWire = String.fromCharCodes(await form.clone().finalize().expand((chunk) => chunk).toList());
+      expect(onTheWire.indexOf('name="key"'), isNonNegative);
+      expect(onTheWire.indexOf('name="key"'), lessThan(onTheWire.indexOf('name="policy"')));
+      expect(onTheWire.indexOf('name="policy"'), lessThan(onTheWire.indexOf('name="file"')));
       expect(form.files.single.key, 'file');
-      expect(form.files.single.value.filename, 'kavya.jpg');
-      expect(form.files.single.value.contentType.toString(), 'image/jpeg');
+      expect(form.files.single.value.filename, 'kavya.png');
+      expect(form.files.single.value.contentType.toString(), 'image/png');
       // The API call carries the sign-in; the store call does not.
       expect(adapter.requests.first.headers['Authorization'], 'Bearer a1');
     });

@@ -54,10 +54,12 @@ class _PhotoUploadFieldState extends State<PhotoUploadField> {
         ],
       ),
     );
-    if (source == null) return;
+    if (source == null || !mounted) return;
     try {
       final photo = await widget.picking.photo(source);
-      if (mounted) setState(() => _pickFailure = null);
+      // The screen may have gone while the phone's picker was open, and its upload with it.
+      if (!mounted) return;
+      setState(() => _pickFailure = null);
       if (photo != null) bloc.add(FileUploadStarted(photo));
     } on FilePickFailure catch (failure) {
       if (mounted) setState(() => _pickFailure = failure);
@@ -75,13 +77,17 @@ class _PhotoUploadFieldState extends State<PhotoUploadField> {
         final sending = state is FileUploadSending;
         final chosen = switch (state) {
           FileUploadSending(:final file) || FileUploadDone(:final file) => file,
-          // A photo that could not be sent stays on the tile, so "Send again" is about what the person sees.
+          // A photo that could not be sent stays on the tile, so "Try again" is about what the person sees.
           FileUploadFailed(:final file) when state.canRetry => file,
           _ => null,
         };
-        // A refused file is a different file from the one before: it has no preview, and the tile says why.
-        final refused = state is FileUploadFailed && !state.canRetry ? state : null;
-        final failure = state is FileUploadFailed ? state.failure : null;
+        // A photo that will be refused again is not shown: the tile says why, and Change photo replaces it.
+        final refusal = switch (state) {
+          FileUploadFailed(:final problem?) => fileProblemText(l10n, problem),
+          FileUploadFailed(:final failure?) when !state.canRetry => fileErrorText(l10n, failure),
+          _ => null,
+        };
+        final failure = state is FileUploadFailed && state.canRetry ? state.failure : null;
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -93,7 +99,7 @@ class _PhotoUploadFieldState extends State<PhotoUploadField> {
               changeLabel: l10n.filesChangePhoto,
               onRemove: chosen == null || sending ? null : () => bloc.add(const FileUploadCleared()),
               removeLabel: l10n.filesRemovePhoto,
-              errorText: refused?.problem == null ? null : fileProblemText(l10n, refused!.problem!),
+              errorText: refusal,
             ),
             if (state case FileUploadSending(:final sent)) ...[
               const SizedBox(height: AppSpacing.xs),
