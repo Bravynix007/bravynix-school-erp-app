@@ -1914,6 +1914,264 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Couldn\'t open your files. Try again.'**
   String get errorFilePickFiles;
+
+  /// No description provided for @staffTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Teachers / Staff'**
+  String get staffTitle;
+
+  /// No description provided for @staffDetail.
+  ///
+  /// In en, this message translates to:
+  /// **'The teachers and staff of each Institution'**
+  String get staffDetail;
+
+  /// No description provided for @staffSearchHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Search name or ID'**
+  String get staffSearchHint;
+
+  /// No description provided for @staffSearchClear.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear search'**
+  String get staffSearchClear;
+
+  /// No description provided for @staffEmptyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'No staff yet'**
+  String get staffEmptyTitle;
+
+  /// No description provided for @staffEmptyMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Teachers and staff added to this Institution appear here.'**
+  String get staffEmptyMessage;
+
+  /// No description provided for @staffNoMatchTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'No staff match \"{query}\"'**
+  String staffNoMatchTitle(String query);
+
+  /// No description provided for @staffNoMatchMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Check the spelling, or search by Employee ID.'**
+  String get staffNoMatchMessage;
+
+  /// No description provided for @staffLoadMore.
+  ///
+  /// In en, this message translates to:
+  /// **'Load more'**
+  String get staffLoadMore;
+
+  /// No description provided for @staffBlocked.
+  ///
+  /// In en, this message translates to:
+  /// **'Blocked'**
+  String get staffBlocked;
+
+  /// No description provided for @staffDeactivate.
+  ///
+  /// In en, this message translates to:
+  /// **'Deactivate'**
+  String get staffDeactivate;
+
+  /// No description provided for @staffDeactivateTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Deactivate {name}?'**
+  String staffDeactivateTitle(String name);
+
+  /// No description provided for @staffDeactivateMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'They can no longer sign in as staff, any Admin Access they hold is taken away, and their class and subject assignments end. Nothing is deleted.'**
+  String get staffDeactivateMessage;
+
+  /// No description provided for @staffDeactivated.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} deactivated'**
+  String staffDeactivated(String name);
+
+  /// No description provided for @errorStaffNotFound.
+  ///
+  /// In en, this message translates to:
+  /// **'This staff member could not be found. They may have been deactivated.'**
+  String get errorStaffNotFound;
+
+  /// No description provided for @errorCannotActOnSelf.
+  ///
+  /// In en, this message translates to:
+  /// **'You can\'t do this to your own record.'**
+  String get errorCannotActOnSelf;
+
+  /// No description provided for @staffProfileTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Teacher profile'**
+  String get staffProfileTitle;
+
+  /// No description provided for @staffSectionContact.
+  ///
+  /// In en, this message translates to:
+  /// **'Contact'**
+  String get staffSectionContact;
+
+  /// No description provided for @staffSectionEmployment.
+  ///
+  /// In en, this message translates to:
+  /// **'Employment'**
+  String get staffSectionEmployment;
+
+  /// No description provided for @staffSectionEducation.
+  ///
+  /// In en, this message translates to:
+  /// **'Education'**
+  String get staffSectionEducation;
+
+  /// No description provided for @staffSectionEmergency.
+  ///
+  /// In en, this message translates to:
+  /// **'Emergency contacts'**
+  String get staffSectionEmergency;
+
+  /// No description provided for @staffEmployeeId.
+  ///
+  /// In en, this message translates to:
+  /// **'Employee ID'**
+  String get staffEmployeeId;
+
+  /// No description provided for @staffDesignation.
+  ///
+  /// In en, this message translates to:
+  /// **'Designation'**
+  String get staffDesignation;
+
+  /// No description provided for @staffCategory.
+  ///
+  /// In en, this message translates to:
+  /// **'Category'**
+  String get staffCategory;
+
+  /// No description provided for @staffGender.
+  ///
+  /// In en, this message translates to:
+  /// **'Gender'**
+  String get staffGender;
+
+  /// No description provided for @genderMale.
+  ///
+  /// In en, this message translates to:
+  /// **'Male'**
+  String get genderMale;
+
+  /// No description provided for @genderFemale.
+  ///
+  /// In en, this message translates to:
+  /// **'Female'**
+  String get genderFemale;
+
+  /// No description provided for @genderOther.
+  ///
+  /// In en, this message translates to:
+  /// **'Other'**
+  String get genderOther;
+
+  /// No description provided for @staffDateOfBirth.
+  ///
+  /// In en, this message translates to:
+  /// **'Date of birth'**
+  String get staffDateOfBirth;
+
+  /// No description provided for @staffBloodGroup.
+  ///
+  /// In en, this message translates to:
+  /// **'Blood group'**
+  String get staffBloodGroup;
+
+  /// No description provided for @staffNationality.
+  ///
+  /// In en, this message translates to:
+  /// **'Nationality'**
+  String get staffNationality;
+
+  /// No description provided for @staffMobile.
+  ///
+  /// In en, this message translates to:
+  /// **'Mobile'**
+  String get staffMobile;
+
+  /// No description provided for @staffAlternateNumber.
+  ///
+  /// In en, this message translates to:
+  /// **'Alternate number'**
+  String get staffAlternateNumber;
+
+  /// No description provided for @staffAddress.
+  ///
+  /// In en, this message translates to:
+  /// **'Address'**
+  String get staffAddress;
+
+  /// No description provided for @staffJoiningDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Joining date'**
+  String get staffJoiningDate;
+
+  /// No description provided for @staffResignationDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Resignation date'**
+  String get staffResignationDate;
+
+  /// No description provided for @staffEmploymentType.
+  ///
+  /// In en, this message translates to:
+  /// **'Employment type'**
+  String get staffEmploymentType;
+
+  /// No description provided for @employmentFullTime.
+  ///
+  /// In en, this message translates to:
+  /// **'Full time'**
+  String get employmentFullTime;
+
+  /// No description provided for @employmentPartTime.
+  ///
+  /// In en, this message translates to:
+  /// **'Part time'**
+  String get employmentPartTime;
+
+  /// No description provided for @employmentVisiting.
+  ///
+  /// In en, this message translates to:
+  /// **'Visiting'**
+  String get employmentVisiting;
+
+  /// No description provided for @employmentContract.
+  ///
+  /// In en, this message translates to:
+  /// **'Contract'**
+  String get employmentContract;
+
+  /// No description provided for @staffPrimaryContact.
+  ///
+  /// In en, this message translates to:
+  /// **'Primary'**
+  String get staffPrimaryContact;
+
+  /// No description provided for @staffContactRelation.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} ({relation})'**
+  String staffContactRelation(String name, String relation);
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {

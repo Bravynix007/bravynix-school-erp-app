@@ -103,6 +103,27 @@ void main() {
     expect(find.text('classes screen'), findsOneWidget);
   });
 
+  testWidgets('opens the Teachers / Staff', (tester) async {
+    final router = GoRouter(
+      routes: [
+        GoRoute(path: '/', builder: (_, _) => const SchoolSetupPage()),
+        GoRoute(path: AppRoutes.staff, builder: (_, _) => const Text('staff screen')),
+      ],
+    );
+    addTearDown(router.dispose);
+    await tester.pumpWidget(
+      MaterialApp.router(
+        theme: AppTheme.light(),
+        routerConfig: router,
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+      ),
+    );
+    await tester.tap(find.byKey(const Key('schoolSetup.staff')));
+    await tester.pumpAndSettle();
+    expect(find.text('staff screen'), findsOneWidget);
+  });
+
   testWidgets('is usable at a large text scale on a small phone', (tester) async {
     await tester.pumpAppScaled(const SchoolSetupPage(), textScale: 2);
     expect(tester.takeException(), isNull);

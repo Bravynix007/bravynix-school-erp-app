@@ -53,6 +53,12 @@ abstract final class AppRoutes {
   static const classSections = '/school-setup/classes/sections';
   static const sectionForm = '/school-setup/classes/sections/form';
 
+  /// Teachers / Staff of the chosen Institution (STF-01), and one staff member's profile (STF-03). The `:id` pattern is
+  /// for the router; [staffMember] builds the location of one staff member.
+  static const staff = '/school-setup/staff';
+  static const staffMemberPattern = '/school-setup/staff/:id';
+  static String staffMember(String id) => '$staff/${Uri.encodeComponent(id)}';
+
   /// The component gallery, registered in debug and profile builds only.
   static const gallery = '/gallery';
 

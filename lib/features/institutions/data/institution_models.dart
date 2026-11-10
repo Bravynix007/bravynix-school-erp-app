@@ -1,3 +1,4 @@
+import 'package:bravynix_school_erp/core/model/phone.dart';
 import 'package:bravynix_school_erp/core/network/json_shape.dart';
 import 'package:bravynix_school_erp/features/institutions/domain/institution.dart';
 
@@ -16,12 +17,6 @@ abstract final class InstitutionModels {
 
   static List<InstitutionSummary> summaries(Object? raw) => [for (final item in jsonList(raw)) summary(item)];
 
-  static Phone? _phone(Object? raw) {
-    if (raw == null) return null;
-    final json = jsonObject(raw);
-    return Phone(countryCode: json['countryCode'] as String, number: json['number'] as String);
-  }
-
   static Institution institution(Object? raw) {
     final json = jsonObject(raw);
     final address = jsonObject(json['address']);
@@ -35,7 +30,7 @@ abstract final class InstitutionModels {
       affiliationNumber: json['affiliationNumber'] as String?,
       gstin: json['gstin'] as String?,
       email: json['email'] as String?,
-      phone: _phone(json['phone']),
+      phone: json['phone'] == null ? null : Phone.fromJson(json['phone']),
       telephone: json['telephone'] as String?,
       addressLine1: address['line1'] as String,
       addressLine2: address['line2'] as String?,
@@ -80,7 +75,7 @@ abstract final class InstitutionModels {
         'gstin': draft.gstin,
         'email': draft.email,
         'telephone': draft.telephone,
-        'phone': draft.phone == null ? null : {'countryCode': draft.phone!.countryCode, 'number': draft.phone!.number},
+        'phone': draft.phone?.toJson(),
       }),
       'address': {
         'line1': draft.addressLine1,
