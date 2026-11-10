@@ -62,6 +62,16 @@ class SchoolSetupPage extends StatelessWidget {
                     onTap: () => context.push(AppRoutes.classes),
                   ),
                 ),
+                const SizedBox(height: AppSpacing.xs),
+                AppCard(
+                  child: MenuListTile(
+                    key: const Key('schoolSetup.staff'),
+                    icon: Icons.groups_outlined,
+                    title: l10n.staffTitle,
+                    subtitle: l10n.staffDetail,
+                    onTap: () => context.push(AppRoutes.staff),
+                  ),
+                ),
               ],
             ),
           ),

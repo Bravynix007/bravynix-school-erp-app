@@ -5,7 +5,7 @@ import 'package:dio/dio.dart';
 
 typedef FakeReply = ({int status, Object? body, Map<String, String> headers});
 
-FakeReply okReply(Object? data, {String code = 'OK', int status = 200}) => (
+FakeReply okReply(Object? data, {String code = 'OK', int status = 200, Map<String, Object?>? meta}) => (
   status: status,
   body: {
     'success': true,
@@ -13,7 +13,7 @@ FakeReply okReply(Object? data, {String code = 'OK', int status = 200}) => (
     'code': code,
     'message': 'OK',
     'data': data,
-    'meta': null,
+    'meta': meta,
     'requestId': 'req-1',
   },
   headers: const {},

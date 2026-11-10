@@ -20,7 +20,10 @@ class PersonListTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final text = Theme.of(context).textTheme;
-    final stacked = MediaQuery.textScalerOf(context).scale(14) / 14 >= 1.3;
+    final scale = MediaQuery.textScalerOf(context).scale(14) / 14;
+    final stacked = scale >= 1.3;
+    // At the largest text sizes the name and detail need the whole row more than the picture does.
+    final showAvatar = scale < 2;
     return Semantics(
       button: onTap != null,
       child: RingInkWell(
@@ -32,10 +35,12 @@ class PersonListTile extends StatelessWidget {
             child: MergeSemantics(
               child: Row(
                 children: [
-                  ExcludeSemantics(
-                    child: AppAvatar(name: name, image: image),
-                  ),
-                  const SizedBox(width: AppSpacing.sm),
+                  if (showAvatar) ...[
+                    ExcludeSemantics(
+                      child: AppAvatar(name: name, image: image),
+                    ),
+                    const SizedBox(width: AppSpacing.sm),
+                  ],
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,

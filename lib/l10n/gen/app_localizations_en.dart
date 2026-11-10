@@ -1051,4 +1051,145 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get errorFilePickFiles => 'Couldn\'t open your files. Try again.';
+
+  @override
+  String get staffTitle => 'Teachers / Staff';
+
+  @override
+  String get staffDetail => 'The teachers and staff of each Institution';
+
+  @override
+  String get staffSearchHint => 'Search name or ID';
+
+  @override
+  String get staffSearchClear => 'Clear search';
+
+  @override
+  String get staffEmptyTitle => 'No staff yet';
+
+  @override
+  String get staffEmptyMessage => 'Teachers and staff added to this Institution appear here.';
+
+  @override
+  String staffNoMatchTitle(String query) {
+    return 'No staff match \"$query\"';
+  }
+
+  @override
+  String get staffNoMatchMessage => 'Check the spelling, or search by Employee ID.';
+
+  @override
+  String get staffLoadMore => 'Load more';
+
+  @override
+  String get staffBlocked => 'Blocked';
+
+  @override
+  String get staffDeactivate => 'Deactivate';
+
+  @override
+  String staffDeactivateTitle(String name) {
+    return 'Deactivate $name?';
+  }
+
+  @override
+  String get staffDeactivateMessage =>
+      'They can no longer sign in as staff, any Admin Access they hold is taken away, and their class and subject assignments end. Nothing is deleted.';
+
+  @override
+  String staffDeactivated(String name) {
+    return '$name deactivated';
+  }
+
+  @override
+  String get errorStaffNotFound => 'This staff member could not be found. They may have been deactivated.';
+
+  @override
+  String get errorCannotActOnSelf => 'You can\'t do this to your own record.';
+
+  @override
+  String get staffProfileTitle => 'Teacher profile';
+
+  @override
+  String get staffSectionPersonal => 'Personal information';
+
+  @override
+  String get staffSectionContact => 'Contact';
+
+  @override
+  String get staffSectionEmployment => 'Employment';
+
+  @override
+  String get staffSectionEducation => 'Education';
+
+  @override
+  String get staffSectionEmergency => 'Emergency contacts';
+
+  @override
+  String get staffEmployeeId => 'Employee ID';
+
+  @override
+  String get staffDesignation => 'Designation';
+
+  @override
+  String get staffCategory => 'Category';
+
+  @override
+  String get staffGender => 'Gender';
+
+  @override
+  String get genderMale => 'Male';
+
+  @override
+  String get genderFemale => 'Female';
+
+  @override
+  String get genderOther => 'Other';
+
+  @override
+  String get staffDateOfBirth => 'Date of birth';
+
+  @override
+  String get staffBloodGroup => 'Blood group';
+
+  @override
+  String get staffNationality => 'Nationality';
+
+  @override
+  String get staffMobile => 'Mobile';
+
+  @override
+  String get staffAlternateNumber => 'Alternate number';
+
+  @override
+  String get staffAddress => 'Address';
+
+  @override
+  String get staffJoiningDate => 'Joining date';
+
+  @override
+  String get staffResignationDate => 'Resignation date';
+
+  @override
+  String get staffEmploymentType => 'Employment type';
+
+  @override
+  String get employmentFullTime => 'Full time';
+
+  @override
+  String get employmentPartTime => 'Part time';
+
+  @override
+  String get employmentVisiting => 'Visiting';
+
+  @override
+  String get employmentContract => 'Contract';
+
+  @override
+  String get staffPrimaryContact => 'Primary';
+
+  @override
+  String staffContactRelation(String name, String relation) {
+    return '$name ($relation)';
+  }
 }

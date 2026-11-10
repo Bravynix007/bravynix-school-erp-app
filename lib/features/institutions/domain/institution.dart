@@ -1,3 +1,4 @@
+import 'package:bravynix_school_erp/core/model/phone.dart';
 import 'package:equatable/equatable.dart';
 
 /// The boards an Institution can follow (PRD 11.4): 1 CBSE, 2 ICSE, 3 State Board, 4 IB, 5 IGCSE, 6 Other.
@@ -19,20 +20,6 @@ enum Board {
     }
     return null;
   }
-}
-
-/// A phone number as the API carries it: the country code without the plus, and the digits.
-class Phone extends Equatable {
-  const new({required this.countryCode, required this.number});
-
-  final String countryCode;
-  final String number;
-
-  /// `+91 9876543210`.
-  String get display => '+$countryCode $number';
-
-  @override
-  List<Object?> get props => [countryCode, number];
 }
 
 /// One row of the Institutions list (INS-01).
