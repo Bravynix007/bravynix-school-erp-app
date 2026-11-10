@@ -167,6 +167,52 @@ void main() {
     );
 
     blocTest<StaffProfileBloc, StaffProfileState>(
+      'moves between the tabs, and a read again keeps the one the person was on',
+      setUp: () => when(() => staff.member('f1')).thenAnswer((_) async => kavyaMember),
+      build: () => build('f1'),
+      act: (bloc) async {
+        bloc.add(const StaffProfileRequested());
+        await bloc.stream.firstWhere((state) => state is StaffProfileLoaded);
+        bloc
+          ..add(const StaffProfileTabChosen(StaffProfileTab.access))
+          ..add(const StaffProfileRequested());
+      },
+      skip: 2,
+      expect: () => [
+        const StaffProfileLoaded(kavyaProfile, tab: StaffProfileTab.access),
+        const StaffProfileLoading(),
+        const StaffProfileLoaded(kavyaProfile, tab: StaffProfileTab.access),
+      ],
+    );
+
+    blocTest<StaffProfileBloc, StaffProfileState>(
+      'takes the member an action answered with, and keeps the names and the tab',
+      setUp: () => when(() => staff.member('f1')).thenAnswer((_) async => kavyaMember),
+      build: () => build('f1'),
+      act: (bloc) async {
+        bloc.add(const StaffProfileRequested());
+        await bloc.stream.firstWhere((state) => state is StaffProfileLoaded);
+        bloc
+          ..add(const StaffProfileTabChosen(StaffProfileTab.settings))
+          ..add(const StaffProfileMemberChanged(raviMember));
+      },
+      skip: 2,
+      expect: () => [
+        const StaffProfileLoaded(kavyaProfile, tab: StaffProfileTab.settings),
+        StaffProfileLoaded(kavyaProfile.withMember(raviMember), tab: StaffProfileTab.settings),
+      ],
+    );
+
+    blocTest<StaffProfileBloc, StaffProfileState>(
+      'ignores a tab or a member that arrives before the profile is read',
+      build: () => build('f1'),
+      act: (bloc) => bloc
+        ..add(const StaffProfileTabChosen(StaffProfileTab.access))
+        ..add(const StaffProfileMemberChanged(raviMember)),
+      expect: () => <StaffProfileState>[],
+    );
+
+    blocTest<StaffProfileBloc, StaffProfileState>(
       'fails with the reason, and reads again on Try again',
       setUp: () {
         var calls = 0;

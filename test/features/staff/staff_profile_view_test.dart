@@ -1,13 +1,17 @@
 import 'package:bloc_test/bloc_test.dart';
+import 'package:bravynix_school_erp/app/di/injection.dart';
 import 'package:bravynix_school_erp/app/router/app_routes.dart';
 import 'package:bravynix_school_erp/core/network/api_failure.dart';
 import 'package:bravynix_school_erp/core/theme/app_theme.dart';
+import 'package:bravynix_school_erp/features/institutions/domain/institutions_repository.dart';
 import 'package:bravynix_school_erp/features/staff/domain/staff_member.dart';
 import 'package:bravynix_school_erp/features/staff/domain/staff_profile.dart';
+import 'package:bravynix_school_erp/features/staff/domain/staff_repository.dart';
 import 'package:bravynix_school_erp/features/staff/presentation/bloc/staff_profile_bloc.dart';
 import 'package:bravynix_school_erp/features/staff/presentation/view/staff_error_text.dart';
 import 'package:bravynix_school_erp/features/staff/presentation/view/staff_form_page.dart';
 import 'package:bravynix_school_erp/features/staff/presentation/view/staff_profile_page.dart';
+import 'package:bravynix_school_erp/features/subjects/domain/subjects_repository.dart';
 import 'package:bravynix_school_erp/l10n/gen/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -16,6 +20,7 @@ import 'package:go_router/go_router.dart';
 import 'package:mocktail/mocktail.dart';
 
 import '../../helpers/clipped_text.dart';
+import '../../helpers/mocks.dart';
 import '../../helpers/pump_app.dart';
 import '../../helpers/staff.dart';
 
@@ -34,7 +39,7 @@ void main() {
   }) {
     when(() => bloc.state).thenReturn(state);
     return tester.pumpAppScaled(
-      BlocProvider<StaffProfileBloc>.value(value: bloc, child: const StaffProfileView()),
+      BlocProvider<StaffProfileBloc>.value(value: bloc, child: const StaffProfileView(isOwner: false)),
       textScale: textScale,
       size: size,
     );
@@ -69,6 +74,70 @@ void main() {
     }
     expect(find.text('Primary'), findsOneWidget);
     expect(find.text('Blocked'), findsNothing);
+  });
+
+  group('the tabs', () {
+    late MockStaffRepository staff;
+
+    setUp(() {
+      staff = MockStaffRepository();
+      final subjects = MockSubjectsRepository();
+      final institutions = MockInstitutionsRepository();
+      when(subjects.subjects).thenAnswer((_) async => const []);
+      when(institutions.institutions).thenAnswer((_) async => const []);
+      getIt
+        ..registerSingleton<StaffRepository>(staff)
+        ..registerSingleton<SubjectsRepository>(subjects)
+        ..registerSingleton<InstitutionsRepository>(institutions);
+    });
+    tearDown(getIt.reset);
+
+    testWidgets('offer Personal, Access and Settings, on Personal at first', (tester) async {
+      await pump(tester, const StaffProfileLoaded(kavyaProfile));
+      for (final label in ['Personal', 'Access', 'Settings']) {
+        expect(find.text(label), findsOneWidget, reason: label);
+      }
+      expect(find.text('Anil Nair (Father)'), findsOneWidget);
+      expect(find.byKey(const Key('staffAccess.saveSubjects')), findsNothing);
+      expect(find.byKey(const Key('staffSettings.toggle')), findsNothing);
+    });
+
+    testWidgets('tell the bloc which tab was chosen', (tester) async {
+      await pump(tester, const StaffProfileLoaded(kavyaProfile));
+      await tester.tap(find.text('Access'));
+      verify(() => bloc.add(const StaffProfileTabChosen(StaffProfileTab.access))).called(1);
+      await tester.tap(find.text('Settings'));
+      verify(() => bloc.add(const StaffProfileTabChosen(StaffProfileTab.settings))).called(1);
+    });
+
+    testWidgets('show the access of the staff member on Access, and not the personal details', (tester) async {
+      await pump(tester, const StaffProfileLoaded(kavyaProfile, tab: StaffProfileTab.access));
+      await tester.pump();
+      expect(find.byKey(const Key('staffAccess.saveSubjects')), findsOneWidget);
+      expect(find.text('Anil Nair (Father)'), findsNothing);
+    });
+
+    testWidgets('show the Other Institutions list on Access to the Society Owner only', (tester) async {
+      when(() => bloc.state).thenReturn(const StaffProfileLoaded(kavyaProfile, tab: StaffProfileTab.access));
+      await tester.pumpAppScaled(
+        BlocProvider<StaffProfileBloc>.value(value: bloc, child: const StaffProfileView(isOwner: true)),
+        size: const Size(400, 1600),
+      );
+      await tester.pump();
+      expect(find.byKey(const Key('staffAccess.saveInstitutions')), findsOneWidget);
+    });
+
+    testWidgets('keep the Institutions list from the Admin on Access', (tester) async {
+      await pump(tester, const StaffProfileLoaded(kavyaProfile, tab: StaffProfileTab.access));
+      await tester.pump();
+      expect(find.byKey(const Key('staffAccess.saveInstitutions')), findsNothing);
+    });
+
+    testWidgets('show the access to the app on Settings', (tester) async {
+      await pump(tester, const StaffProfileLoaded(kavyaProfile, tab: StaffProfileTab.settings));
+      expect(find.byKey(const Key('staffSettings.toggle')), findsOneWidget);
+      expect(find.text('Anil Nair (Father)'), findsNothing);
+    });
   });
 
   testWidgets('shows only what a bare profile has, with the Blocked badge', (tester) async {
@@ -201,7 +270,8 @@ void main() {
         routes: [
           GoRoute(
             path: '/',
-            builder: (_, _) => BlocProvider<StaffProfileBloc>.value(value: bloc, child: const StaffProfileView()),
+            builder: (_, _) =>
+                BlocProvider<StaffProfileBloc>.value(value: bloc, child: const StaffProfileView(isOwner: false)),
           ),
           GoRoute(
             path: AppRoutes.staffForm,

@@ -307,4 +307,82 @@ void main() {
       );
     });
   });
+
+  group('STF-06 to STF-10', () {
+    Map<String, Object?> access({bool isBlocked = false}) => {
+      ...memberJson(),
+      'isBlocked': isBlocked,
+      'subjectIds': ['u1', 'u2'],
+      'institutionIds': ['i2'],
+    };
+
+    test('read the subjects and the extra Institutions the profile holds, none when it has none', () {
+      final member = StaffModels.member(access());
+      expect(member.subjectIds, ['u1', 'u2']);
+      expect(member.institutionIds, ['i2']);
+      final none = StaffModels.member({...memberJson(), 'subjectIds': <String>[], 'institutionIds': <String>[]});
+      expect(none.subjectIds, isEmpty);
+      expect(none.institutionIds, isEmpty);
+    });
+
+    test('refuse a profile whose lists they cannot read, as with the rest', () {
+      expect(() => StaffModels.member({...memberJson(), 'subjectIds': 'u1'}), throwsA(anything));
+    });
+
+    test('block and unblock with POST and no body, and read the profile they answer with', () async {
+      final (:repository, :adapter) = build(() => okReply(access(isBlocked: true)));
+      expect((await repository.block('f/1')).isBlocked, isTrue);
+      expect(adapter.requests.last.method, 'POST');
+      expect(adapter.requests.last.uri.path, '/v1/staff/f%2F1/block');
+      expect(adapter.requests.last.data, isNull);
+      await repository.unblock('f/1');
+      expect(adapter.requests.last.method, 'POST');
+      expect(adapter.requests.last.uri.path, '/v1/staff/f%2F1/unblock');
+    });
+
+    test('send the whole list of subjects with PUT, an empty list too', () async {
+      final (:repository, :adapter) = build(() => okReply(access()));
+      final member = await repository.setSubjects('f1', ['u1', 'u2']);
+      expect(adapter.requests.single.method, 'PUT');
+      expect(adapter.requests.single.uri.path, '/v1/staff/f1/subjects');
+      expect(bodyOf(adapter.requests.single), {
+        'subjectIds': ['u1', 'u2'],
+      });
+      expect(member.subjectIds, ['u1', 'u2']);
+      await repository.setSubjects('f1', []);
+      expect(bodyOf(adapter.requests.last), {'subjectIds': <String>[]});
+    });
+
+    test('send the whole list of extra Institutions with PUT', () async {
+      final (:repository, :adapter) = build(() => okReply(access()));
+      final member = await repository.setInstitutions('f1', ['i2']);
+      expect(adapter.requests.single.method, 'PUT');
+      expect(adapter.requests.single.uri.path, '/v1/staff/f1/institutions');
+      expect(bodyOf(adapter.requests.single), {
+        'institutionIds': ['i2'],
+      });
+      expect(member.institutionIds, ['i2']);
+    });
+
+    for (final (status, code) in [
+      (409, 'INVALID_STATE'),
+      (409, 'CANNOT_ACT_ON_SELF'),
+      (403, 'FORBIDDEN'),
+      (409, 'SUBJECT_ASSIGNED'),
+      (409, 'ADMIN_ACCESS_HELD'),
+      (422, 'REFERENCE_INACTIVE'),
+    ]) {
+      test('fail with $code as the server said', () async {
+        final (:repository, adapter: _) = build(() => errorReply(status, code));
+        for (final call in [
+          () => repository.block('f1'),
+          () => repository.unblock('f1'),
+          () => repository.setSubjects('f1', ['u1']),
+          () => repository.setInstitutions('f1', ['i2']),
+        ]) {
+          await expectLater(call(), throwsA(isA<ApiFailure>().having((failure) => failure.code, 'code', code)));
+        }
+      });
+    }
+  });
 }

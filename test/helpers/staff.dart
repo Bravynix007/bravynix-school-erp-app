@@ -1,5 +1,6 @@
 import 'package:bravynix_school_erp/core/model/phone.dart';
 import 'package:bravynix_school_erp/features/masters/domain/master_entry.dart';
+import 'package:bravynix_school_erp/features/staff/data/staff_models.dart';
 import 'package:bravynix_school_erp/features/staff/domain/staff_draft.dart';
 import 'package:bravynix_school_erp/features/staff/domain/staff_member.dart';
 import 'package:bravynix_school_erp/features/staff/domain/staff_profile.dart';
@@ -89,6 +90,7 @@ const kavyaMember = StaffMember(
   ],
   isBlocked: false,
   version: 4,
+  subjectIds: ['u1'],
 );
 
 /// The least a profile has: no optional field, empty lists.
@@ -104,6 +106,7 @@ const raviMember = StaffMember(
   emergencyContacts: [],
   isBlocked: true,
   version: 1,
+  subjectIds: ['u1'],
 );
 
 const kavyaProfile = StaffProfile(
@@ -263,3 +266,17 @@ const raviDraft = StaffDraft(
   classCategoryId: 'c1',
   mobile: mobile,
 );
+
+/// Kavya as STF-03 answers with her access: the subjects she can teach, the extra Institutions, and the block.
+StaffMember kavyaWith({
+  List<String> subjectIds = const [],
+  List<String> institutionIds = const [],
+  bool isBlocked = false,
+  int version = 4,
+}) => StaffModels.member({
+  ...memberJson(),
+  'subjectIds': subjectIds,
+  'institutionIds': institutionIds,
+  'isBlocked': isBlocked,
+  'version': version,
+});

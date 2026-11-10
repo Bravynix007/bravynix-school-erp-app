@@ -4,6 +4,7 @@ import 'package:bravynix_school_erp/core/format/formatters.dart';
 import 'package:bravynix_school_erp/core/theme/app_spacing.dart';
 import 'package:bravynix_school_erp/core/widgets/app_card.dart';
 import 'package:bravynix_school_erp/core/widgets/app_icon_button.dart';
+import 'package:bravynix_school_erp/core/widgets/app_segmented_control.dart';
 import 'package:bravynix_school_erp/core/widgets/app_tag.dart';
 import 'package:bravynix_school_erp/core/widgets/app_top_bar.dart';
 import 'package:bravynix_school_erp/core/widgets/key_value_row.dart';
@@ -11,36 +12,49 @@ import 'package:bravynix_school_erp/core/widgets/section_header.dart';
 import 'package:bravynix_school_erp/core/widgets/skeleton.dart';
 import 'package:bravynix_school_erp/core/widgets/state_panel.dart';
 import 'package:bravynix_school_erp/core/widgets/status_chip.dart';
+import 'package:bravynix_school_erp/features/auth/domain/auth_entities.dart';
+import 'package:bravynix_school_erp/features/auth/presentation/session/session_bloc.dart';
 import 'package:bravynix_school_erp/features/masters/domain/masters_repository.dart';
 import 'package:bravynix_school_erp/features/staff/domain/staff_member.dart';
 import 'package:bravynix_school_erp/features/staff/domain/staff_profile.dart';
 import 'package:bravynix_school_erp/features/staff/domain/staff_repository.dart';
 import 'package:bravynix_school_erp/features/staff/presentation/bloc/staff_profile_bloc.dart';
+import 'package:bravynix_school_erp/features/staff/presentation/view/staff_access_tab.dart';
 import 'package:bravynix_school_erp/features/staff/presentation/view/staff_error_text.dart';
 import 'package:bravynix_school_erp/features/staff/presentation/view/staff_form_page.dart';
 import 'package:bravynix_school_erp/features/staff/presentation/view/staff_names.dart';
+import 'package:bravynix_school_erp/features/staff/presentation/view/staff_settings_tab.dart';
 import 'package:bravynix_school_erp/l10n/gen/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
-/// School setup → Teachers / Staff → one staff member (STF-03): the personal information tab of PRD 7.5. The access,
-/// documents and settings tabs arrive with the screens that act on them.
+/// School setup → Teachers / Staff → one staff member (STF-03): the personal information, access and settings tabs of
+/// PRD 7.5. The documents tab arrives with the screen that acts on it.
 class StaffProfilePage extends StatelessWidget {
   const new({required this.id, super.key});
 
   final String id;
 
   @override
-  Widget build(BuildContext context) => BlocProvider(
-    create: (_) =>
-        StaffProfileBloc(getIt<StaffRepository>(), getIt<MastersRepository>(), id)..add(const StaffProfileRequested()),
-    child: const StaffProfileView(),
-  );
+  Widget build(BuildContext context) {
+    final session = context.watch<SessionBloc>().state;
+    return BlocProvider(
+      create: (_) =>
+          StaffProfileBloc(getIt<StaffRepository>(), getIt<MastersRepository>(), id)
+            ..add(const StaffProfileRequested()),
+      child: StaffProfileView(
+        isOwner: session is SessionAuthenticated && session.session.activeContext?.role == RoleCode.societyOwner,
+      ),
+    );
+  }
 }
 
 class StaffProfileView extends StatelessWidget {
-  const new({super.key});
+  const new({required this.isOwner, super.key});
+
+  /// Only the Society Owner changes the extra Institutions.
+  final bool isOwner;
 
   /// A saved change shows here, so the profile is read again when the form closes with true.
   static Future<void> _openEditForm(BuildContext context) async {
@@ -87,7 +101,35 @@ class StaffProfileView extends StatelessWidget {
                   actionLabel: l10n.retry,
                   onAction: () => context.read<StaffProfileBloc>().add(const StaffProfileRequested()),
                 ),
-                StaffProfileLoaded(:final profile) => _Details(profile: profile),
+                StaffProfileLoaded(:final profile, :final tab) => Column(
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(
+                        AppSpacing.screenMargin,
+                        AppSpacing.screenMargin,
+                        AppSpacing.screenMargin,
+                        0,
+                      ),
+                      child: AppSegmentedControl<StaffProfileTab>(
+                        options: StaffProfileTab.values,
+                        labelOf: (tab) => switch (tab) {
+                          StaffProfileTab.personal => l10n.staffTabPersonal,
+                          StaffProfileTab.access => l10n.staffTabAccess,
+                          StaffProfileTab.settings => l10n.staffTabSettings,
+                        },
+                        selected: tab,
+                        onChanged: (tab) => context.read<StaffProfileBloc>().add(StaffProfileTabChosen(tab)),
+                      ),
+                    ),
+                    Expanded(
+                      child: switch (tab) {
+                        StaffProfileTab.personal => _Details(profile: profile),
+                        StaffProfileTab.access => StaffAccessTab(member: profile.member, isOwner: isOwner),
+                        StaffProfileTab.settings => StaffSettingsTab(member: profile.member),
+                      },
+                    ),
+                  ],
+                ),
               },
             ),
           ),
