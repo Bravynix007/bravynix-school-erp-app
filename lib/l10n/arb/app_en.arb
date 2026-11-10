@@ -326,5 +326,22 @@
   "boardOther": "Other",
   "errorForbidden": "You don't have access to this.",
   "errorDueNotFound": "This due could not be found. It may belong to another Society.",
-  "loading": "Loading"
+  "loading": "Loading",
+  "filesAddPhoto": "Add photo",
+  "filesChangePhoto": "Change photo",
+  "filesRemovePhoto": "Remove photo",
+  "filesPhotoSourceTitle": "Add a photo",
+  "filesTakePhoto": "Take a photo",
+  "filesChooseFromGallery": "Choose from gallery",
+  "filesUploadingPhoto": "Uploading photo",
+  "errorFileEmpty": "This file is empty. Choose another one.",
+  "errorFileTooLarge": "This file is larger than 5 MB. Choose a smaller one.",
+  "errorFileTypeNotAllowed": "This kind of file can't be used here. Choose a different one.",
+  "errorFileCheckFailed": "The file is damaged or is not what it says it is. Choose it again.",
+  "errorFileNotArrived": "The file did not arrive. Send it again.",
+  "errorFileRefused": "The file could not be sent. Send it again.",
+  "errorFileSchoolNotFound": "You can't add files for this school.",
+  "errorFilePickCamera": "Couldn't open the camera. Allow it in Settings and try again.",
+  "errorFilePickGallery": "Couldn't open your photos. Allow it in Settings and try again.",
+  "errorFilePickFiles": "Couldn't open your files. Try again."
 }

@@ -16,6 +16,11 @@ import 'package:bravynix_school_erp/features/blocks/domain/blocks_repository.dar
 import 'package:bravynix_school_erp/features/classes/data/classes_repository_impl.dart';
 import 'package:bravynix_school_erp/features/classes/domain/class_catalogue.dart';
 import 'package:bravynix_school_erp/features/classes/domain/classes_repository.dart';
+import 'package:bravynix_school_erp/features/files/data/device_file_picking.dart';
+import 'package:bravynix_school_erp/features/files/data/files_repository_impl.dart';
+import 'package:bravynix_school_erp/features/files/data/object_uploader.dart';
+import 'package:bravynix_school_erp/features/files/domain/file_picking.dart';
+import 'package:bravynix_school_erp/features/files/domain/files_repository.dart';
 import 'package:bravynix_school_erp/features/institutions/data/institutions_repository_impl.dart';
 import 'package:bravynix_school_erp/features/institutions/domain/institutions_repository.dart';
 import 'package:bravynix_school_erp/features/masters/data/masters_repository_impl.dart';
@@ -72,6 +77,13 @@ Future<void> configureDependencies(
     ..registerLazySingleton(() => ClassCatalogue(getIt(), getIt()))
     ..registerLazySingleton<SectionsRepository>(() => SectionsRepositoryImpl(api: getIt()))
     ..registerLazySingleton<SubjectsRepository>(() => SubjectsRepositoryImpl(api: getIt()))
+    ..registerLazySingleton<FilesRepository>(
+      () => FilesRepositoryImpl(
+        api: getIt(),
+        uploader: ObjectUploader(ObjectUploader.createDio(adapter: httpAdapter)),
+      ),
+    )
+    ..registerLazySingleton<FilePicking>(DeviceFilePicking.new)
     ..registerLazySingleton<AuthRepository>(
       () => AuthRepositoryImpl(
         api: getIt(),

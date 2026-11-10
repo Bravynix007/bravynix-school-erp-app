@@ -1812,6 +1812,108 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Loading'**
   String get loading;
+
+  /// No description provided for @filesAddPhoto.
+  ///
+  /// In en, this message translates to:
+  /// **'Add photo'**
+  String get filesAddPhoto;
+
+  /// No description provided for @filesChangePhoto.
+  ///
+  /// In en, this message translates to:
+  /// **'Change photo'**
+  String get filesChangePhoto;
+
+  /// No description provided for @filesRemovePhoto.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove photo'**
+  String get filesRemovePhoto;
+
+  /// No description provided for @filesPhotoSourceTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Add a photo'**
+  String get filesPhotoSourceTitle;
+
+  /// No description provided for @filesTakePhoto.
+  ///
+  /// In en, this message translates to:
+  /// **'Take a photo'**
+  String get filesTakePhoto;
+
+  /// No description provided for @filesChooseFromGallery.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose from gallery'**
+  String get filesChooseFromGallery;
+
+  /// No description provided for @filesUploadingPhoto.
+  ///
+  /// In en, this message translates to:
+  /// **'Uploading photo'**
+  String get filesUploadingPhoto;
+
+  /// No description provided for @errorFileEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'This file is empty. Choose another one.'**
+  String get errorFileEmpty;
+
+  /// No description provided for @errorFileTooLarge.
+  ///
+  /// In en, this message translates to:
+  /// **'This file is larger than 5 MB. Choose a smaller one.'**
+  String get errorFileTooLarge;
+
+  /// No description provided for @errorFileTypeNotAllowed.
+  ///
+  /// In en, this message translates to:
+  /// **'This kind of file can\'t be used here. Choose a different one.'**
+  String get errorFileTypeNotAllowed;
+
+  /// No description provided for @errorFileCheckFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'The file is damaged or is not what it says it is. Choose it again.'**
+  String get errorFileCheckFailed;
+
+  /// No description provided for @errorFileNotArrived.
+  ///
+  /// In en, this message translates to:
+  /// **'The file did not arrive. Send it again.'**
+  String get errorFileNotArrived;
+
+  /// No description provided for @errorFileRefused.
+  ///
+  /// In en, this message translates to:
+  /// **'The file could not be sent. Send it again.'**
+  String get errorFileRefused;
+
+  /// No description provided for @errorFileSchoolNotFound.
+  ///
+  /// In en, this message translates to:
+  /// **'You can\'t add files for this school.'**
+  String get errorFileSchoolNotFound;
+
+  /// No description provided for @errorFilePickCamera.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t open the camera. Allow it in Settings and try again.'**
+  String get errorFilePickCamera;
+
+  /// No description provided for @errorFilePickGallery.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t open your photos. Allow it in Settings and try again.'**
+  String get errorFilePickGallery;
+
+  /// No description provided for @errorFilePickFiles.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t open your files. Try again.'**
+  String get errorFilePickFiles;
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {
