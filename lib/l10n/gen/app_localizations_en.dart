@@ -1000,4 +1000,55 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get loading => 'Loading';
+
+  @override
+  String get filesAddPhoto => 'Add photo';
+
+  @override
+  String get filesChangePhoto => 'Change photo';
+
+  @override
+  String get filesRemovePhoto => 'Remove photo';
+
+  @override
+  String get filesPhotoSourceTitle => 'Add a photo';
+
+  @override
+  String get filesTakePhoto => 'Take a photo';
+
+  @override
+  String get filesChooseFromGallery => 'Choose from gallery';
+
+  @override
+  String get filesUploadingPhoto => 'Uploading photo';
+
+  @override
+  String get errorFileEmpty => 'This file is empty. Choose another one.';
+
+  @override
+  String get errorFileTooLarge => 'This file is larger than 5 MB. Choose a smaller one.';
+
+  @override
+  String get errorFileTypeNotAllowed => 'This kind of file can\'t be used here. Choose a different one.';
+
+  @override
+  String get errorFileCheckFailed => 'The file is damaged or is not what it says it is. Choose it again.';
+
+  @override
+  String get errorFileNotArrived => 'The file did not arrive. Send it again.';
+
+  @override
+  String get errorFileRefused => 'The file could not be sent. Send it again.';
+
+  @override
+  String get errorFileSchoolNotFound => 'You can\'t add files for this school.';
+
+  @override
+  String get errorFilePickCamera => 'Couldn\'t open the camera. Allow it in Settings and try again.';
+
+  @override
+  String get errorFilePickGallery => 'Couldn\'t open your photos. Allow it in Settings and try again.';
+
+  @override
+  String get errorFilePickFiles => 'Couldn\'t open your files. Try again.';
 }
