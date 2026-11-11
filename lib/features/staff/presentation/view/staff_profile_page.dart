@@ -19,15 +19,18 @@ import 'package:bravynix_school_erp/features/staff/domain/staff_member.dart';
 import 'package:bravynix_school_erp/features/staff/domain/staff_profile.dart';
 import 'package:bravynix_school_erp/features/staff/domain/staff_repository.dart';
 import 'package:bravynix_school_erp/features/staff/presentation/bloc/staff_access_bloc.dart';
+import 'package:bravynix_school_erp/features/staff/presentation/bloc/staff_admin_access_bloc.dart';
 import 'package:bravynix_school_erp/features/staff/presentation/bloc/staff_block_bloc.dart';
 import 'package:bravynix_school_erp/features/staff/presentation/bloc/staff_profile_bloc.dart';
 import 'package:bravynix_school_erp/features/staff/presentation/view/staff_access_view.dart';
+import 'package:bravynix_school_erp/features/staff/presentation/view/staff_admin_access_section.dart';
 import 'package:bravynix_school_erp/features/staff/presentation/view/staff_error_text.dart';
 import 'package:bravynix_school_erp/features/staff/presentation/view/staff_form_page.dart';
 import 'package:bravynix_school_erp/features/staff/presentation/view/staff_names.dart';
 import 'package:bravynix_school_erp/features/staff/presentation/view/staff_settings_view.dart';
 import 'package:bravynix_school_erp/features/subjects/domain/subjects_repository.dart';
 import 'package:bravynix_school_erp/l10n/gen/app_localizations.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -116,36 +119,61 @@ class StaffProfileView extends StatelessWidget {
                         canChangeInstitutions: isOwner,
                       )..add(const StaffAccessStarted()),
                     ),
+                    // The Society Owner's alone. It reads when the part is first shown.
+                    if (isOwner)
+                      BlocProvider(
+                        create: (_) => StaffAdminAccessBloc(
+                          getIt<InstitutionsRepository>(),
+                          member: profile.member,
+                        )..add(const StaffAdminAccessStarted()),
+                      ),
                     BlocProvider(create: (_) => StaffBlockBloc(getIt<StaffRepository>(), profile.member)),
                   ],
-                  child: Column(
-                    children: [
-                      Padding(
-                        padding: const EdgeInsets.fromLTRB(
-                          AppSpacing.screenMargin,
-                          AppSpacing.screenMargin,
-                          AppSpacing.screenMargin,
-                          0,
+                  // The Admin part reads again when the extra Institutions are saved, as those are the ones an Admin can
+                  // be made at. It is told here and not made again, so the tab keeps its place and a change on its way.
+                  child: BlocListener<StaffProfileBloc, StaffProfileState>(
+                    listenWhen: (previous, current) =>
+                        isOwner &&
+                        previous is StaffProfileLoaded &&
+                        current is StaffProfileLoaded &&
+                        !listEquals(
+                          previous.profile.member.institutionIds,
+                          current.profile.member.institutionIds,
                         ),
-                        child: AppSegmentedControl<StaffProfileTab>(
-                          options: StaffProfileTab.values,
-                          labelOf: (tab) => switch (tab) {
-                            StaffProfileTab.personal => l10n.staffTabPersonal,
-                            StaffProfileTab.access => l10n.staffTabAccess,
-                            StaffProfileTab.settings => l10n.staffTabSettings,
+                    listener: (context, state) => context.read<StaffAdminAccessBloc>().add(
+                      StaffAdminInstitutionsChanged((state as StaffProfileLoaded).profile.member.institutionIds),
+                    ),
+                    child: Column(
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.fromLTRB(
+                            AppSpacing.screenMargin,
+                            AppSpacing.screenMargin,
+                            AppSpacing.screenMargin,
+                            0,
+                          ),
+                          child: AppSegmentedControl<StaffProfileTab>(
+                            options: StaffProfileTab.values,
+                            labelOf: (tab) => switch (tab) {
+                              StaffProfileTab.personal => l10n.staffTabPersonal,
+                              StaffProfileTab.access => l10n.staffTabAccess,
+                              StaffProfileTab.settings => l10n.staffTabSettings,
+                            },
+                            selected: tab,
+                            onChanged: (tab) => context.read<StaffProfileBloc>().add(StaffProfileTabChosen(tab)),
+                          ),
+                        ),
+                        Expanded(
+                          child: switch (tab) {
+                            StaffProfileTab.personal => _Details(profile: profile),
+                            StaffProfileTab.access => StaffAccessView(
+                              adminAccess: isOwner ? StaffAdminAccessView(memberName: profile.member.fullName) : null,
+                            ),
+                            StaffProfileTab.settings => const StaffSettingsView(),
                           },
-                          selected: tab,
-                          onChanged: (tab) => context.read<StaffProfileBloc>().add(StaffProfileTabChosen(tab)),
                         ),
-                      ),
-                      Expanded(
-                        child: switch (tab) {
-                          StaffProfileTab.personal => _Details(profile: profile),
-                          StaffProfileTab.access => const StaffAccessView(),
-                          StaffProfileTab.settings => const StaffSettingsView(),
-                        },
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                 ),
               },

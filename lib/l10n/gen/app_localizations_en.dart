@@ -1400,5 +1400,70 @@ class AppLocalizationsEn extends AppLocalizations {
   String get errorStaffDuplicate => 'This person already has a staff record in this Society.';
 
   @override
+  String get staffAdminTitle => 'Admin access';
+
+  @override
+  String get staffAdminHelper =>
+      'An Admin runs an Institution: its school setup, staff and students. They are told by email when it is given.';
+
+  @override
+  String get staffAdminEmpty => 'They are not at an Institution that can be given Admin access.';
+
+  @override
+  String get staffAdminIs => 'Admin';
+
+  @override
+  String get staffAdminIsNot => 'Not an Admin here.';
+
+  @override
+  String get staffAdminGrantAction => 'Make Admin';
+
+  @override
+  String get staffAdminRevokeAction => 'Take away Admin access';
+
+  @override
+  String staffAdminGrantTitle(String name, String institution) {
+    return 'Make $name an Admin of $institution?';
+  }
+
+  @override
+  String get staffAdminGrantMessage => 'They can run this Institution. They are told by email.';
+
+  @override
+  String staffAdminRevokeTitle(String name, String institution) {
+    return 'Take away Admin access of $name to $institution?';
+  }
+
+  @override
+  String get staffAdminRevokeMessage =>
+      'They are signed out as Admin of this Society at once. Their staff access stays.';
+
+  @override
+  String staffAdminGranted(String name, String institution) {
+    return '$name is now an Admin of $institution';
+  }
+
+  @override
+  String staffAdminRevoked(String name, String institution) {
+    return '$name is no longer an Admin of $institution';
+  }
+
+  @override
+  String get errorAdminAlready => 'They are already an Admin of this Institution. The screen is up to date now.';
+
+  @override
+  String get errorAdminStaffBlocked => 'They are blocked. Unblock them under Settings before giving Admin access.';
+
+  @override
+  String get errorAdminNotAtInstitution =>
+      'They are not at this Institution. Add it under Other Institutions and save first.';
+
+  @override
+  String get errorAdminNotHeld => 'They no longer hold Admin access here. The screen is up to date now.';
+
+  @override
+  String get errorAdminAccountState => 'Their account cannot hold this role right now.';
+
+  @override
   String get errorRoleConflict => 'This email belongs to a platform account, which can\'t also be staff.';
 }

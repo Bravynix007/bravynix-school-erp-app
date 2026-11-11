@@ -2,9 +2,11 @@ import 'dart:async';
 
 import 'package:bloc_test/bloc_test.dart';
 import 'package:bravynix_school_erp/app/di/injection.dart';
+import 'package:bravynix_school_erp/core/paging/items_page.dart';
 import 'package:bravynix_school_erp/core/widgets/app_button.dart';
 import 'package:bravynix_school_erp/features/auth/domain/auth_entities.dart';
 import 'package:bravynix_school_erp/features/auth/presentation/session/session_bloc.dart';
+import 'package:bravynix_school_erp/features/institutions/domain/institution_admin.dart';
 import 'package:bravynix_school_erp/features/institutions/domain/institutions_repository.dart';
 import 'package:bravynix_school_erp/features/masters/domain/master_entry.dart';
 import 'package:bravynix_school_erp/features/masters/domain/masters_repository.dart';
@@ -38,6 +40,8 @@ void main() {
     final masters = MockMastersRepository();
     when(() => staff.member('f1')).thenAnswer((_) async => kavyaMember);
     when(subjects.subjects).thenAnswer((_) async => const [art, maths]);
+    when(() => institutions.admins(any(), page: any(named: 'page')))
+        .thenAnswer((_) async => const ItemsPage(<InstitutionAdmin>[], page: 1, totalPages: 1));
     when(institutions.institutions).thenAnswer((_) async => [summary(), summary(id: 'i2', name: 'Lake View School')]);
     when(() => masters.entries(MasterType.designations)).thenAnswer((_) async => [designationEntry]);
     when(() => masters.entries(MasterType.classCategories)).thenAnswer((_) async => [lowerPrimary]);
@@ -53,7 +57,7 @@ void main() {
   });
   tearDown(getIt.reset);
 
-  Future<void> pumpAs(WidgetTester tester, RoleCode role) async {
+  Future<void> pumpAs(WidgetTester tester, RoleCode role, {Size size = const Size(400, 1600)}) async {
     final context = AuthContext(role: role, societyId: 's1', societyName: 'North Trust');
     when(() => session.state).thenReturn(
       SessionAuthenticated(AuthSession(person: testPerson, contexts: [context], activeContext: context)),
@@ -63,7 +67,7 @@ void main() {
         value: session,
         child: const StaffProfilePage(id: 'f1'),
       ),
-      size: const Size(400, 1600),
+      size: size,
     );
     await tester.pumpAndSettle();
   }
@@ -78,8 +82,9 @@ void main() {
       await pumpAs(tester, RoleCode.societyOwner);
       await openTab(tester, 'Access');
       expect(find.byKey(const Key('staffAccess.saveInstitutions')), findsOneWidget);
-      expect(find.text('Lake View School'), findsOneWidget);
-      verify(institutions.institutions).called(1);
+      expect(find.text('Lake View School'), findsWidgets);
+      expect(find.text('Admin access'), findsOneWidget);
+      verify(institutions.institutions).called(greaterThan(0));
     });
 
     for (final role in [RoleCode.institutionAdmin, RoleCode.teacherStaff]) {
@@ -88,9 +93,102 @@ void main() {
         await openTab(tester, 'Access');
         expect(find.byKey(const Key('staffAccess.saveSubjects')), findsOneWidget);
         expect(find.byKey(const Key('staffAccess.saveInstitutions')), findsNothing);
+        expect(find.text('Admin access'), findsNothing);
         verifyNever(institutions.institutions);
       });
     }
+  });
+
+  group('the Admin access part', () {
+    Future<void> grantAtHome(WidgetTester tester) async {
+      await tester.ensureVisible(find.byKey(const Key('staffAdmin.toggle.i1')));
+      await tester.tap(find.byKey(const Key('staffAdmin.toggle.i1')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.descendant(of: find.byType(Dialog), matching: find.text('Make Admin')));
+      await tester.pump();
+    }
+
+    testWidgets('reads who is an Admin once, however often the tab is left and opened again', (tester) async {
+      await pumpAs(tester, RoleCode.societyOwner);
+      await openTab(tester, 'Access');
+      await openTab(tester, 'Personal');
+      await openTab(tester, 'Access');
+      await openTab(tester, 'Settings');
+      await openTab(tester, 'Access');
+      verify(() => institutions.admins('i1', page: any(named: 'page'))).called(1);
+    });
+
+    testWidgets('reads who is an Admin once when the tab is scrolled away and back', (tester) async {
+      await pumpAs(tester, RoleCode.societyOwner);
+      await openTab(tester, 'Access');
+      final list = find.byType(Scrollable).last;
+      await tester.drag(list, const Offset(0, -3000));
+      await tester.pumpAndSettle();
+      await tester.drag(list, const Offset(0, 3000));
+      await tester.pumpAndSettle();
+      verify(() => institutions.admins('i1', page: any(named: 'page'))).called(1);
+    });
+
+    testWidgets('keeps a grant on its way when the person goes to another tab and back, and says when it is done', (
+      tester,
+    ) async {
+      final held = Completer<InstitutionAdmin>();
+      when(() => institutions.grantAdmin('i1', 'f1')).thenAnswer((_) => held.future);
+      await pumpAs(tester, RoleCode.societyOwner);
+      await openTab(tester, 'Access');
+      await grantAtHome(tester);
+      await tester.pump(const Duration(milliseconds: 50));
+      await tester.tap(find.text('Personal'));
+      await tester.pump(const Duration(milliseconds: 400));
+      await tester.tap(find.text('Access'));
+      await tester.pump(const Duration(milliseconds: 400));
+      await tester.ensureVisible(find.byKey(const Key('staffAdmin.toggle.i1')));
+      expect(tester.widget<AppButton>(find.byKey(const Key('staffAdmin.toggle.i1'))).loading, isTrue);
+      held.complete(adminOf());
+      await tester.pumpAndSettle();
+      expect(find.byKey(const Key('staffAdmin.isAdmin.i1')), findsOneWidget);
+      expect(find.text('Kavya Nair is now an Admin of Sri Vidya High School'), findsOneWidget);
+    });
+
+    testWidgets('keeps the tab where it was scrolled when the extra Institutions are saved', (tester) async {
+      when(() => staff.setInstitutions('f1', ['i2'])).thenAnswer((_) async => kavyaWith(institutionIds: const ['i2']));
+      await pumpAs(tester, RoleCode.societyOwner, size: const Size(400, 700));
+      await openTab(tester, 'Access');
+      await tester.ensureVisible(find.byKey(const ValueKey('staffAccess.institution.i2')));
+      await tester.tap(find.byKey(const ValueKey('staffAccess.institution.i2')));
+      await tester.pump();
+      final list = tester.state<ScrollableState>(find.byType(Scrollable).last);
+      list.position.jumpTo(list.position.maxScrollExtent / 2);
+      await tester.pump();
+      final before = list.position.pixels;
+      await tester.ensureVisible(find.byKey(const Key('staffAccess.saveInstitutions')));
+      final scrolled = list.position.pixels;
+      await tester.tap(find.byKey(const Key('staffAccess.saveInstitutions')));
+      await tester.pumpAndSettle();
+      expect(before, greaterThan(0));
+      expect(tester.state<ScrollableState>(find.byType(Scrollable).last).position.pixels, scrolled);
+    });
+
+    testWidgets('reads again once their extra Institutions are saved, and not once their subjects are', (tester) async {
+      when(() => staff.setInstitutions('f1', ['i2'])).thenAnswer((_) async => kavyaWith(institutionIds: const ['i2']));
+      when(() => staff.setSubjects('f1', ['u1', 'u2']))
+          .thenAnswer((_) async => kavyaWith(subjectIds: const ['u1', 'u2']));
+      await pumpAs(tester, RoleCode.societyOwner);
+      await openTab(tester, 'Access');
+      await tester.tap(find.byKey(const ValueKey('staffAccess.subject.u2')));
+      await tester.pump();
+      await tester.tap(find.byKey(const Key('staffAccess.saveSubjects')));
+      await tester.pumpAndSettle();
+      verify(() => institutions.admins('i1', page: any(named: 'page'))).called(1);
+      await tester.ensureVisible(find.byKey(const ValueKey('staffAccess.institution.i2')));
+      await tester.tap(find.byKey(const ValueKey('staffAccess.institution.i2')));
+      await tester.pump();
+      await tester.ensureVisible(find.byKey(const Key('staffAccess.saveInstitutions')));
+      await tester.tap(find.byKey(const Key('staffAccess.saveInstitutions')));
+      await tester.pumpAndSettle();
+      verify(() => institutions.admins('i1', page: any(named: 'page'))).called(1);
+      verify(() => institutions.admins('i2', page: any(named: 'page'))).called(1);
+    });
   });
 
   testWidgets('keeps what is ticked and not yet saved when the person goes to another tab and back', (tester) async {

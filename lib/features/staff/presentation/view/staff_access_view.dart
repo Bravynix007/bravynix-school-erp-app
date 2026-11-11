@@ -18,7 +18,10 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 /// the other Institutions they may see (STF-10) and where they are an Admin. Each list is saved on its own, and the
 /// profile behind learns of the answer.
 class StaffAccessView extends StatelessWidget {
-  const new({super.key});
+  const new({this.adminAccess, super.key});
+
+  /// The Admin access part, which only the Society Owner is given; it goes below the lists.
+  final Widget? adminAccess;
 
   @override
   Widget build(BuildContext context) {
@@ -43,16 +46,17 @@ class StaffAccessView extends StatelessWidget {
           actionLabel: l10n.retry,
           onAction: () => context.read<StaffAccessBloc>().add(const StaffAccessStarted()),
         ),
-        StaffAccessReady() => _Lists(state: state),
+        StaffAccessReady() => _Lists(state: state, adminAccess: adminAccess),
       },
     );
   }
 }
 
 class _Lists extends StatelessWidget {
-  const new({required this.state});
+  const new({required this.state, required this.adminAccess});
 
   final StaffAccessReady state;
+  final Widget? adminAccess;
 
   @override
   Widget build(BuildContext context) {
@@ -100,6 +104,7 @@ class _Lists extends StatelessWidget {
                 : null,
           ),
         ],
+        if (adminAccess case final section?) ...[const SizedBox(height: AppSpacing.md), section],
       ],
     );
   }

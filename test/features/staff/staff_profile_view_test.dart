@@ -76,6 +76,16 @@ void main() {
     expect(find.text('Blocked'), findsNothing);
   });
 
+  testWidgets('does not look for the Admin part, which an Admin has not, when their extra Institutions change', (
+    tester,
+  ) async {
+    final changed = StaffProfileLoaded(kavyaProfile.withMember(kavyaWith(institutionIds: const ['i2'])));
+    whenListen(bloc, Stream.value(changed), initialState: const StaffProfileLoaded(kavyaProfile));
+    await pump(tester, const StaffProfileLoaded(kavyaProfile));
+    await tester.pump();
+    expect(tester.takeException(), isNull);
+  });
+
   group('the tabs', () {
     late MockStaffRepository staff;
 
@@ -125,12 +135,14 @@ void main() {
       );
       await tester.pump();
       expect(find.byKey(const Key('staffAccess.saveInstitutions')), findsOneWidget);
+      expect(find.text('Admin access'), findsOneWidget);
     });
 
     testWidgets('keep the Institutions list from the Admin on Access', (tester) async {
       await pump(tester, const StaffProfileLoaded(kavyaProfile, tab: StaffProfileTab.access));
       await tester.pump();
       expect(find.byKey(const Key('staffAccess.saveInstitutions')), findsNothing);
+      expect(find.text('Admin access'), findsNothing);
     });
 
     testWidgets('show the access to the app on Settings', (tester) async {

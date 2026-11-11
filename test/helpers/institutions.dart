@@ -1,5 +1,6 @@
 import 'package:bravynix_school_erp/core/model/phone.dart';
 import 'package:bravynix_school_erp/features/institutions/domain/institution.dart';
+import 'package:bravynix_school_erp/features/institutions/domain/institution_admin.dart';
 import 'package:bravynix_school_erp/features/masters/domain/master_entry.dart';
 
 InstitutionSummary summary({
@@ -86,3 +87,18 @@ const kerala = MasterEntry(id: 's2', name: 'Kerala', parentId: 'k1');
 const bengaluru = MasterEntry(id: 'y1', name: 'Bengaluru', parentId: 's1');
 const mysuru = MasterEntry(id: 'y2', name: 'Mysuru', parentId: 's1');
 const kochi = MasterEntry(id: 'y3', name: 'Kochi', parentId: 's2');
+
+/// An Admin of an Institution, as INS-08 lists them.
+InstitutionAdmin adminOf({String institutionId = 'i1', String staffMemberId = 'f1', String name = 'Kavya Nair'}) =>
+    InstitutionAdmin(institutionId: institutionId, staffMemberId: staffMemberId, displayName: name);
+
+Map<String, Object?> adminJson({
+  String institutionId = 'i1',
+  String staffMemberId = 'f1',
+  String name = 'Kavya Nair',
+}) => {
+  'institutionId': institutionId,
+  'staffMemberId': staffMemberId,
+  'person': {'id': 'p9', 'displayName': name},
+  'grantedAt': '2026-11-01T09:00:00.000Z',
+};

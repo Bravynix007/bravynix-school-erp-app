@@ -1,0 +1,241 @@
+import 'package:bloc/bloc.dart';
+import 'package:bravynix_school_erp/core/network/api_failure.dart';
+import 'package:bravynix_school_erp/features/institutions/domain/institution.dart';
+import 'package:bravynix_school_erp/features/institutions/domain/institutions_repository.dart';
+import 'package:bravynix_school_erp/features/staff/domain/staff_member.dart';
+import 'package:equatable/equatable.dart';
+
+sealed class StaffAdminAccessEvent extends Equatable {
+  const new();
+
+  @override
+  List<Object?> get props => [];
+}
+
+/// Opening the section, and Try again after a failure.
+final class StaffAdminAccessStarted extends StaffAdminAccessEvent {
+  const new();
+}
+
+/// Give the staff member Admin access to the Institution.
+final class StaffAdminGranted extends StaffAdminAccessEvent {
+  const new(this.institutionId);
+
+  final String institutionId;
+
+  @override
+  List<Object?> get props => [institutionId];
+}
+
+/// Take the staff member's Admin access to the Institution away.
+final class StaffAdminRevoked extends StaffAdminAccessEvent {
+  const new(this.institutionId);
+
+  final String institutionId;
+
+  @override
+  List<Object?> get props => [institutionId];
+}
+
+/// The extra Institutions of the staff member changed (STF-10): the ones an Admin can be made at are read again, with
+/// a change on its way left alone.
+final class StaffAdminInstitutionsChanged extends StaffAdminAccessEvent {
+  const new(this.institutionIds);
+
+  final List<String> institutionIds;
+
+  @override
+  List<Object?> get props => [institutionIds];
+}
+
+sealed class StaffAdminAccessState extends Equatable {
+  const new();
+
+  @override
+  List<Object?> get props => [];
+}
+
+class StaffAdminAccessLoading extends StaffAdminAccessState {
+  const new();
+}
+
+class StaffAdminAccessFailed extends StaffAdminAccessState {
+  const new(this.failure);
+
+  final ApiFailure failure;
+
+  @override
+  List<Object?> get props => [failure];
+}
+
+/// A grant or a revoke on an Institution: the one that went through, or the one that was refused, for the screen to say so.
+class StaffAdminChange extends Equatable {
+  const new(this.institutionId, {required this.granted});
+
+  final String institutionId;
+
+  /// True for a grant, false for a revoke.
+  final bool granted;
+
+  @override
+  List<Object?> get props => [institutionId, granted];
+}
+
+/// The Institutions the person can be an Admin of (their own and their extra ones), and at which of them they are one.
+class StaffAdminAccessReady extends StaffAdminAccessState {
+  const new({required this.institutions, required this.adminAt, this.working, this.failure, this.failed, this.done});
+
+  final List<InstitutionSummary> institutions;
+
+  /// The IDs of the Institutions they hold Admin access to.
+  final List<String> adminAt;
+
+  /// The Institution a grant or a revoke is on its way for.
+  final String? working;
+
+  /// The last grant or revoke that was refused, and which it was.
+  final ApiFailure? failure;
+  final StaffAdminChange? failed;
+
+  /// The last grant or revoke that went through.
+  final StaffAdminChange? done;
+
+  StaffAdminAccessReady copyWith({
+    List<InstitutionSummary>? institutions,
+    List<String>? adminAt,
+    String? Function()? working,
+    ApiFailure? Function()? failure,
+    StaffAdminChange? Function()? failed,
+    StaffAdminChange? Function()? done,
+  }) => StaffAdminAccessReady(
+    institutions: institutions ?? this.institutions,
+    adminAt: adminAt ?? this.adminAt,
+    working: working == null ? this.working : working(),
+    failure: failure == null ? this.failure : failure(),
+    failed: failed == null ? this.failed : failed(),
+    done: done == null ? this.done : done(),
+  );
+
+  @override
+  List<Object?> get props => [institutions, adminAt, working, failure, failed, done];
+}
+
+/// Admin access of one staff member (INS-08 to INS-10), for the Society Owner: who is an Admin of which of the
+/// Institutions the person is at.
+class StaffAdminAccessBloc extends Bloc<StaffAdminAccessEvent, StaffAdminAccessState> {
+  new(this._institutions, {required this.member})
+    : _institutionIds = member.institutionIds,
+      super(const StaffAdminAccessLoading()) {
+    on<StaffAdminAccessStarted>(_onStarted);
+    on<StaffAdminInstitutionsChanged>(_onInstitutionsChanged);
+    on<StaffAdminGranted>((event, emit) => _change(event.institutionId, emit, grant: true));
+    on<StaffAdminRevoked>((event, emit) => _change(event.institutionId, emit, grant: false));
+  }
+
+  final InstitutionsRepository _institutions;
+
+  /// The staff member as the section was opened.
+  final StaffMember member;
+
+  /// Their extra Institutions as they are now: [member] is as it was opened.
+  List<String> _institutionIds;
+
+  /// Whether the person holds Admin access to the Institution: the list is read a page at a time until they are in it.
+  Future<bool> _holds(String institutionId) async {
+    for (var page = 1; ; page++) {
+      final admins = await _institutions.admins(institutionId, page: page);
+      if (admins.items.any((admin) => admin.staffMemberId == member.id)) return true;
+      if (!admins.hasMore) return false;
+    }
+  }
+
+  /// The Institutions the person is at and where they are an Admin. The extras may change while it reads, and then it
+  /// reads again.
+  Future<StaffAdminAccessReady> _read() async {
+    while (true) {
+      final extras = _institutionIds;
+      final reached = {member.homeInstitutionId, ...extras};
+      final institutions = [
+        for (final institution in await _institutions.institutions())
+          if (reached.contains(institution.id)) institution,
+      ];
+      final holds = await Future.wait([for (final institution in institutions) _holds(institution.id)]);
+      if (identical(extras, _institutionIds)) {
+        return StaffAdminAccessReady(
+          institutions: institutions,
+          adminAt: [
+            for (var i = 0; i < institutions.length; i++)
+              if (holds[i]) institutions[i].id,
+          ],
+        );
+      }
+    }
+  }
+
+  Future<void> _onStarted(StaffAdminAccessStarted event, Emitter<StaffAdminAccessState> emit) async {
+    emit(const StaffAdminAccessLoading());
+    try {
+      emit(await _read());
+    } on ApiFailure catch (failure) {
+      emit(StaffAdminAccessFailed(failure));
+    }
+  }
+
+  Future<void> _onInstitutionsChanged(StaffAdminInstitutionsChanged event, Emitter<StaffAdminAccessState> emit) async {
+    _institutionIds = event.institutionIds;
+    // Before it is read, or after it failed, the next read takes the new list; a change on its way is left alone.
+    if (state is! StaffAdminAccessReady) return;
+    try {
+      final fresh = await _read();
+      if (state case final StaffAdminAccessReady now) {
+        emit(now.copyWith(institutions: fresh.institutions, adminAt: fresh.adminAt));
+      }
+    } on ApiFailure catch (failure) {
+      emit(StaffAdminAccessFailed(failure));
+    }
+  }
+
+  Future<void> _change(String institutionId, Emitter<StaffAdminAccessState> emit, {required bool grant}) async {
+    if (state case final StaffAdminAccessReady ready when ready.working == null) {
+      emit(ready.copyWith(working: () => institutionId, failure: () => null, failed: () => null, done: () => null));
+      try {
+        if (grant) {
+          await _institutions.grantAdmin(institutionId, member.id);
+        } else {
+          await _institutions.revokeAdmin(institutionId, member.id);
+        }
+        if (state case final StaffAdminAccessReady now) {
+          emit(
+            now.copyWith(
+              adminAt: _with(now.adminAt, institutionId, held: grant),
+              working: () => null,
+              done: () => StaffAdminChange(institutionId, granted: grant),
+            ),
+          );
+        }
+      } on ApiFailure catch (failure) {
+        if (state case final StaffAdminAccessReady now) {
+          emit(
+            now.copyWith(
+              // What the API says is the truth: already an Admin, or not one to take it from.
+              adminAt: switch (failure.code) {
+                'ALREADY_ADMIN' => _with(now.adminAt, institutionId, held: true),
+                'NOT_FOUND' when !grant => _with(now.adminAt, institutionId, held: false),
+                _ => null,
+              },
+              working: () => null,
+              failure: () => failure,
+              failed: () => StaffAdminChange(institutionId, granted: grant),
+            ),
+          );
+        }
+      }
+    }
+  }
+
+  static List<String> _with(List<String> ids, String id, {required bool held}) => [
+    for (final other in ids)
+      if (other != id) other,
+    if (held) id,
+  ];
+}

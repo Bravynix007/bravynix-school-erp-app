@@ -62,6 +62,7 @@ void main() {
     bool owner = true,
     double textScale = 1,
     Size size = const Size(400, 1600),
+    Widget? adminAccess,
   }) {
     when(() => bloc.state).thenReturn(state);
     when(() => bloc.canChangeInstitutions).thenReturn(owner);
@@ -71,7 +72,7 @@ void main() {
           BlocProvider<StaffAccessBloc>.value(value: bloc),
           BlocProvider<StaffProfileBloc>.value(value: profile),
         ],
-        child: const Scaffold(body: StaffAccessView()),
+        child: Scaffold(body: StaffAccessView(adminAccess: adminAccess)),
       ),
       textScale: textScale,
       size: size,
@@ -109,6 +110,19 @@ void main() {
       expect(find.text('Subjects they can teach'), findsOneWidget);
       expect(find.text('Other Institutions'), findsNothing);
       expect(find.byKey(const Key('staffAccess.saveInstitutions')), findsNothing);
+    });
+
+    testWidgets('carry the Admin access part below them when there is one, and nothing else when there is not', (
+      tester,
+    ) async {
+      await pump(tester, ready());
+      expect(find.byKey(const Key('adminAccess')), findsNothing);
+      await pump(tester, ready(), adminAccess: const SizedBox(key: Key('adminAccess'), height: 10));
+      expect(find.byKey(const Key('adminAccess')), findsOneWidget);
+      expect(
+        tester.getTopLeft(find.byKey(const Key('adminAccess'))).dy,
+        greaterThan(tester.getBottomLeft(find.byKey(const Key('staffAccess.saveInstitutions'))).dy),
+      );
     });
 
     testWidgets('say when there is nothing to choose from', (tester) async {

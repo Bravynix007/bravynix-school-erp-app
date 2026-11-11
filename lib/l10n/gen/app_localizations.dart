@@ -2545,6 +2545,114 @@ abstract class AppLocalizations {
   /// **'This person already has a staff record in this Society.'**
   String get errorStaffDuplicate;
 
+  /// No description provided for @staffAdminTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Admin access'**
+  String get staffAdminTitle;
+
+  /// No description provided for @staffAdminHelper.
+  ///
+  /// In en, this message translates to:
+  /// **'An Admin runs an Institution: its school setup, staff and students. They are told by email when it is given.'**
+  String get staffAdminHelper;
+
+  /// No description provided for @staffAdminEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'They are not at an Institution that can be given Admin access.'**
+  String get staffAdminEmpty;
+
+  /// No description provided for @staffAdminIs.
+  ///
+  /// In en, this message translates to:
+  /// **'Admin'**
+  String get staffAdminIs;
+
+  /// No description provided for @staffAdminIsNot.
+  ///
+  /// In en, this message translates to:
+  /// **'Not an Admin here.'**
+  String get staffAdminIsNot;
+
+  /// No description provided for @staffAdminGrantAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Make Admin'**
+  String get staffAdminGrantAction;
+
+  /// No description provided for @staffAdminRevokeAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Take away Admin access'**
+  String get staffAdminRevokeAction;
+
+  /// No description provided for @staffAdminGrantTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Make {name} an Admin of {institution}?'**
+  String staffAdminGrantTitle(String name, String institution);
+
+  /// No description provided for @staffAdminGrantMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'They can run this Institution. They are told by email.'**
+  String get staffAdminGrantMessage;
+
+  /// No description provided for @staffAdminRevokeTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Take away Admin access of {name} to {institution}?'**
+  String staffAdminRevokeTitle(String name, String institution);
+
+  /// No description provided for @staffAdminRevokeMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'They are signed out as Admin of this Society at once. Their staff access stays.'**
+  String get staffAdminRevokeMessage;
+
+  /// No description provided for @staffAdminGranted.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} is now an Admin of {institution}'**
+  String staffAdminGranted(String name, String institution);
+
+  /// No description provided for @staffAdminRevoked.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} is no longer an Admin of {institution}'**
+  String staffAdminRevoked(String name, String institution);
+
+  /// No description provided for @errorAdminAlready.
+  ///
+  /// In en, this message translates to:
+  /// **'They are already an Admin of this Institution. The screen is up to date now.'**
+  String get errorAdminAlready;
+
+  /// No description provided for @errorAdminStaffBlocked.
+  ///
+  /// In en, this message translates to:
+  /// **'They are blocked. Unblock them under Settings before giving Admin access.'**
+  String get errorAdminStaffBlocked;
+
+  /// No description provided for @errorAdminNotAtInstitution.
+  ///
+  /// In en, this message translates to:
+  /// **'They are not at this Institution. Add it under Other Institutions and save first.'**
+  String get errorAdminNotAtInstitution;
+
+  /// No description provided for @errorAdminNotHeld.
+  ///
+  /// In en, this message translates to:
+  /// **'They no longer hold Admin access here. The screen is up to date now.'**
+  String get errorAdminNotHeld;
+
+  /// No description provided for @errorAdminAccountState.
+  ///
+  /// In en, this message translates to:
+  /// **'Their account cannot hold this role right now.'**
+  String get errorAdminAccountState;
+
   /// No description provided for @errorRoleConflict.
   ///
   /// In en, this message translates to:
