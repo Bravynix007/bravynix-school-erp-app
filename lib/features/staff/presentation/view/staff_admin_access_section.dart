@@ -55,7 +55,7 @@ class StaffAdminAccessView extends StatelessWidget {
               child: const ExcludeSemantics(child: SkeletonBox(height: 96, radius: AppRadius.card)),
             ),
             StaffAdminAccessFailed(:final failure) => InlineMessage.error(
-              staffAdminErrorText(l10n, failure, granted: true),
+              staffAdminErrorText(l10n, failure),
               key: const Key('staffAdmin.failed'),
               actionLabel: l10n.retry,
               onAction: () => context.read<StaffAdminAccessBloc>().add(const StaffAdminAccessStarted()),
@@ -133,7 +133,7 @@ class _Institutions extends StatelessWidget {
         if (state.failed case final failed? when failed.institutionId == institution.id && state.failure != null) ...[
           const SizedBox(height: AppSpacing.xs),
           InlineMessage.error(
-            staffAdminErrorText(l10n, state.failure!, granted: failed.granted),
+            staffAdminErrorText(l10n, state.failure!, takeAway: !failed.granted),
             key: Key('staffAdmin.error.${institution.id}'),
           ),
         ],

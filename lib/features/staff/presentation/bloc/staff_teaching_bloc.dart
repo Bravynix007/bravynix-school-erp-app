@@ -64,6 +64,16 @@ final class StaffTeachingEnded extends StaffTeachingEvent {
   List<Object?> get props => [assignmentId];
 }
 
+/// The subjects on the staff member's list were saved: the ones that can be assigned are those.
+final class StaffTeachingSubjectsChanged extends StaffTeachingEvent {
+  const new(this.subjectIds);
+
+  final List<String> subjectIds;
+
+  @override
+  List<Object?> get props => [subjectIds];
+}
+
 sealed class StaffTeachingState extends Equatable {
   const new();
 
@@ -150,6 +160,7 @@ class StaffTeachingReady extends StaffTeachingState {
 
   StaffTeachingReady copyWith({
     String? Function()? yearId,
+    List<Subject>? subjects,
     List<TeachingAssignment>? assignments,
     String? Function()? sectionId,
     String? Function()? subjectId,
@@ -161,7 +172,7 @@ class StaffTeachingReady extends StaffTeachingState {
   }) => StaffTeachingReady(
     years: years,
     sections: sections,
-    subjects: subjects,
+    subjects: subjects ?? this.subjects,
     yearId: yearId == null ? this.yearId : yearId(),
     assignments: assignments ?? this.assignments,
     sectionId: sectionId == null ? this.sectionId : sectionId(),
@@ -202,6 +213,7 @@ class StaffTeachingBloc extends Bloc<StaffTeachingEvent, StaffTeachingState> {
     on<StaffTeachingSubjectChosen>(
       (event, emit) => _ready((ready) => emit(ready.copyWith(subjectId: () => event.subjectId, failure: () => null))),
     );
+    on<StaffTeachingSubjectsChanged>(_onSubjectsChanged);
     on<StaffTeachingAdded>(_onAdded);
     on<StaffTeachingEnded>(_onEnded);
   }
@@ -210,8 +222,19 @@ class StaffTeachingBloc extends Bloc<StaffTeachingEvent, StaffTeachingState> {
   final SectionOptionsSource _options;
   final SubjectsRepository _subjects;
 
-  /// The staff member as the section was opened. A change of their subjects opens it again.
+  /// The staff member as the section was opened.
   final StaffMember member;
+
+  /// The subjects on their list now: those of [member] until a change of them is told.
+  late List<String> _subjectIds = member.subjectIds;
+
+  /// The subjects of the Society, as read; the ones on their list are offered from them.
+  List<Subject> _catalogue = const [];
+
+  List<Subject> get _offered => [
+    for (final subject in _catalogue)
+      if (_subjectIds.contains(subject.id)) subject,
+  ];
 
   void _ready(void Function(StaffTeachingReady ready) work) {
     if (state case final StaffTeachingReady ready) work(ready);
@@ -236,16 +259,13 @@ class StaffTeachingBloc extends Bloc<StaffTeachingEvent, StaffTeachingState> {
     emit(const StaffTeachingLoading());
     try {
       final options = await _options.read(member.homeInstitutionId);
-      final subjects = [
-        for (final subject in await _subjects.subjects())
-          if (member.subjectIds.contains(subject.id)) subject,
-      ];
+      _catalogue = await _subjects.subjects();
       final yearId = options.firstYearId;
       emit(
         StaffTeachingReady(
           years: options.years,
           sections: options.sections,
-          subjects: subjects,
+          subjects: _offered,
           yearId: yearId,
           assignments: yearId == null ? const [] : await _read(yearId),
         ),
@@ -253,6 +273,21 @@ class StaffTeachingBloc extends Bloc<StaffTeachingEvent, StaffTeachingState> {
     } on ApiFailure catch (failure) {
       emit(StaffTeachingFailed(failure));
     }
+  }
+
+  /// The offered subjects follow what was saved; what is in the middle of being chosen stays unless it is no longer offered,
+  /// and an assignment on its way is left alone.
+  void _onSubjectsChanged(StaffTeachingSubjectsChanged event, Emitter<StaffTeachingState> emit) {
+    _subjectIds = event.subjectIds;
+    _ready((ready) {
+      final offered = _offered;
+      emit(
+        ready.copyWith(
+          subjects: offered,
+          subjectId: offered.any((subject) => subject.id == ready.subjectId) ? null : () => null,
+        ),
+      );
+    });
   }
 
   Future<void> _onYearChosen(StaffTeachingYearChosen event, Emitter<StaffTeachingState> emit) async {

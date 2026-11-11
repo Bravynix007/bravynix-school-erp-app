@@ -37,6 +37,17 @@ final class StaffAdminRevoked extends StaffAdminAccessEvent {
   List<Object?> get props => [institutionId];
 }
 
+/// The extra Institutions of the staff member changed (STF-10): the ones an Admin can be made at are read again, with
+/// a change on its way left alone.
+final class StaffAdminInstitutionsChanged extends StaffAdminAccessEvent {
+  const new(this.institutionIds);
+
+  final List<String> institutionIds;
+
+  @override
+  List<Object?> get props => [institutionIds];
+}
+
 sealed class StaffAdminAccessState extends Equatable {
   const new();
 
@@ -90,13 +101,14 @@ class StaffAdminAccessReady extends StaffAdminAccessState {
   final StaffAdminChange? done;
 
   StaffAdminAccessReady copyWith({
+    List<InstitutionSummary>? institutions,
     List<String>? adminAt,
     String? Function()? working,
     ApiFailure? Function()? failure,
     StaffAdminChange? Function()? failed,
     StaffAdminChange? Function()? done,
   }) => StaffAdminAccessReady(
-    institutions: institutions,
+    institutions: institutions ?? this.institutions,
     adminAt: adminAt ?? this.adminAt,
     working: working == null ? this.working : working(),
     failure: failure == null ? this.failure : failure(),
@@ -111,16 +123,22 @@ class StaffAdminAccessReady extends StaffAdminAccessState {
 /// Admin access of one staff member (INS-08 to INS-10), for the Society Owner: who is an Admin of which of the
 /// Institutions the person is at.
 class StaffAdminAccessBloc extends Bloc<StaffAdminAccessEvent, StaffAdminAccessState> {
-  new(this._institutions, {required this.member}) : super(const StaffAdminAccessLoading()) {
+  new(this._institutions, {required this.member})
+    : _institutionIds = member.institutionIds,
+      super(const StaffAdminAccessLoading()) {
     on<StaffAdminAccessStarted>(_onStarted);
+    on<StaffAdminInstitutionsChanged>(_onInstitutionsChanged);
     on<StaffAdminGranted>((event, emit) => _change(event.institutionId, emit, grant: true));
     on<StaffAdminRevoked>((event, emit) => _change(event.institutionId, emit, grant: false));
   }
 
   final InstitutionsRepository _institutions;
 
-  /// The staff member as the section was opened. A change of their extra Institutions opens it again.
+  /// The staff member as the section was opened.
   final StaffMember member;
+
+  /// Their extra Institutions as they are now: [member] is as it was opened.
+  List<String> _institutionIds;
 
   /// Whether the person holds Admin access to the Institution: the list is read a page at a time until they are in it.
   Future<bool> _holds(String institutionId) async {
@@ -131,24 +149,47 @@ class StaffAdminAccessBloc extends Bloc<StaffAdminAccessEvent, StaffAdminAccessS
     }
   }
 
-  Future<void> _onStarted(StaffAdminAccessStarted event, Emitter<StaffAdminAccessState> emit) async {
-    emit(const StaffAdminAccessLoading());
-    try {
-      final reached = {member.homeInstitutionId, ...member.institutionIds};
+  /// The Institutions the person is at and where they are an Admin. The extras may change while it reads, and then it
+  /// reads again.
+  Future<StaffAdminAccessReady> _read() async {
+    while (true) {
+      final extras = _institutionIds;
+      final reached = {member.homeInstitutionId, ...extras};
       final institutions = [
         for (final institution in await _institutions.institutions())
           if (reached.contains(institution.id)) institution,
       ];
       final holds = await Future.wait([for (final institution in institutions) _holds(institution.id)]);
-      emit(
-        StaffAdminAccessReady(
+      if (identical(extras, _institutionIds)) {
+        return StaffAdminAccessReady(
           institutions: institutions,
           adminAt: [
             for (var i = 0; i < institutions.length; i++)
               if (holds[i]) institutions[i].id,
           ],
-        ),
-      );
+        );
+      }
+    }
+  }
+
+  Future<void> _onStarted(StaffAdminAccessStarted event, Emitter<StaffAdminAccessState> emit) async {
+    emit(const StaffAdminAccessLoading());
+    try {
+      emit(await _read());
+    } on ApiFailure catch (failure) {
+      emit(StaffAdminAccessFailed(failure));
+    }
+  }
+
+  Future<void> _onInstitutionsChanged(StaffAdminInstitutionsChanged event, Emitter<StaffAdminAccessState> emit) async {
+    _institutionIds = event.institutionIds;
+    // Before it is read, or after it failed, the next read takes the new list; a change on its way is left alone.
+    if (state is! StaffAdminAccessReady) return;
+    try {
+      final fresh = await _read();
+      if (state case final StaffAdminAccessReady now) {
+        emit(now.copyWith(institutions: fresh.institutions, adminAt: fresh.adminAt));
+      }
     } on ApiFailure catch (failure) {
       emit(StaffAdminAccessFailed(failure));
     }

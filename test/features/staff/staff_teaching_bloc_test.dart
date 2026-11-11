@@ -236,6 +236,64 @@ void main() {
     });
   });
 
+  group('once their subjects are saved', () {
+    test('offers the subjects now on their list, without reading again', () async {
+      final bloc = await opened();
+      bloc.add(const StaffTeachingSubjectsChanged(['u1', 'u2']));
+      await pumpEventQueue();
+      expect(ready(bloc).subjects, [art, maths]);
+      expect(ready(bloc).assignments, [mathsInClass1A]);
+      verify(subjects.subjects).called(1);
+      verify(
+        () => assignments.assignments(
+          'i1',
+          academicYearId: 'y1',
+          staffMemberId: 'f1',
+          page: any(named: 'page'),
+        ),
+      ).called(1);
+    });
+
+    test('keeps the subject being chosen while it is still offered, and drops it when it is not', () async {
+      final bloc = await opened();
+      bloc
+        ..add(const StaffTeachingSubjectChosen('u1'))
+        ..add(const StaffTeachingSubjectsChanged(['u1', 'u2']));
+      await pumpEventQueue();
+      expect(ready(bloc).subjectId, 'u1');
+      bloc.add(const StaffTeachingSubjectsChanged(['u2']));
+      await pumpEventQueue();
+      expect(ready(bloc).subjects, [art]);
+      expect(ready(bloc).subjectId, isNull);
+    });
+
+    test('leaves an assignment on its way alone', () async {
+      final held = Completer<TeachingAssignment>();
+      when(
+        () => assignments.assign(staffMemberId: 'f1', academicYearId: 'y1', sectionId: 'e2', subjectId: 'u1'),
+      ).thenAnswer((_) => held.future);
+      final bloc = await opened();
+      bloc
+        ..add(const StaffTeachingSectionChosen('e2'))
+        ..add(const StaffTeachingSubjectChosen('u1'))
+        ..add(const StaffTeachingAdded());
+      await waitFor(bloc, (state) => state.adding);
+      bloc.add(const StaffTeachingSubjectsChanged(['u1', 'u2']));
+      await pumpEventQueue();
+      expect(ready(bloc).adding, isTrue);
+      held.complete(mathsInClass1Blue);
+      await waitFor(bloc, (state) => !state.adding);
+      expect(ready(bloc).assignments, [mathsInClass1A, mathsInClass1Blue]);
+    });
+
+    test('is not heard before the section is ready, and the subjects are then those of the staff member', () async {
+      final bloc = build()..add(const StaffTeachingSubjectsChanged(['u1', 'u2']));
+      addTearDown(bloc.close);
+      await pumpEventQueue();
+      expect(bloc.state, const StaffTeachingLoading());
+    });
+  });
+
   group('choosing', () {
     test('lets Assign be pressed only once a section and a subject are chosen', () async {
       final bloc = await opened();
