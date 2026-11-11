@@ -202,9 +202,9 @@ void main() {
       tester,
       ready(sectionId: null, assigned: const {}, failure: _failure(409, 'CLASS_TEACHER_TAKEN')),
       textScale: 2,
-      size: const Size(400, 3000),
+      size: const Size(320, 3000),
     );
     expect(tester.takeException(), isNull);
-    expect(clippedParagraphs(tester, unbreakable: 400 - 4 * 16), isEmpty);
+    expect(clippedParagraphs(tester, unbreakable: 320 - 4 * 16), isEmpty);
   });
 }
