@@ -19,4 +19,8 @@ abstract class FilesRepository {
     void Function(double sent)? onProgress,
     CancelToken? cancelToken,
   });
+
+  /// FIL-03: a link to a private file that works for 5 minutes and makes a browser download it. 404 for a file the caller
+  /// may not read, or that is not there.
+  Future<Uri> downloadLink(String fileId);
 }

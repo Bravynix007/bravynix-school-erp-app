@@ -18,9 +18,13 @@ import 'package:bravynix_school_erp/features/blocks/domain/blocks_repository.dar
 import 'package:bravynix_school_erp/features/classes/data/classes_repository_impl.dart';
 import 'package:bravynix_school_erp/features/classes/domain/class_catalogue.dart';
 import 'package:bravynix_school_erp/features/classes/domain/classes_repository.dart';
+import 'package:bravynix_school_erp/features/documents/data/documents_repository_impl.dart';
+import 'package:bravynix_school_erp/features/documents/domain/documents_repository.dart';
 import 'package:bravynix_school_erp/features/files/data/device_file_picking.dart';
 import 'package:bravynix_school_erp/features/files/data/files_repository_impl.dart';
 import 'package:bravynix_school_erp/features/files/data/object_uploader.dart';
+import 'package:bravynix_school_erp/features/files/data/url_file_opening.dart';
+import 'package:bravynix_school_erp/features/files/domain/file_opening.dart';
 import 'package:bravynix_school_erp/features/files/domain/file_picking.dart';
 import 'package:bravynix_school_erp/features/files/domain/files_repository.dart';
 import 'package:bravynix_school_erp/features/institutions/data/institutions_repository_impl.dart';
@@ -92,6 +96,8 @@ Future<void> configureDependencies(
       ),
     )
     ..registerLazySingleton<FilePicking>(DeviceFilePicking.new)
+    ..registerLazySingleton<FileOpening>(UrlFileOpening.new)
+    ..registerLazySingleton<DocumentsRepository>(() => DocumentsRepositoryImpl(api: getIt()))
     ..registerLazySingleton<ScreenProtection>(AndroidScreenProtection.new)
     ..registerLazySingleton<AuthRepository>(
       () => AuthRepositoryImpl(

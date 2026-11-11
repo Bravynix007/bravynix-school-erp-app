@@ -1646,4 +1646,84 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get errorRoleConflict => 'This email belongs to a platform account, which can\'t also be staff.';
+
+  @override
+  String get filesChooseDocument => 'Choose a file';
+
+  @override
+  String get filesChangeDocument => 'Change file';
+
+  @override
+  String get filesRemoveDocument => 'Remove file';
+
+  @override
+  String get filesUploadingDocument => 'Uploading file';
+
+  @override
+  String get filesDocumentHint => 'PDF, JPG, PNG or WebP, up to 5 MB.';
+
+  @override
+  String get staffTabDocuments => 'Documents';
+
+  @override
+  String get staffDocumentsHelper => 'Appointment letters, certificates and other files kept with this record.';
+
+  @override
+  String get staffDocumentsNone => 'No documents yet.';
+
+  @override
+  String get staffDocumentAddTitle => 'Add a document';
+
+  @override
+  String get staffDocumentTitle => 'Title';
+
+  @override
+  String get staffDocumentAttach => 'Add document';
+
+  @override
+  String staffDocumentAdded(String title) {
+    return '$title added';
+  }
+
+  @override
+  String filesNameAndSize(String name, String size) {
+    return '$name · $size';
+  }
+
+  @override
+  String staffDocumentOn(String date) {
+    return 'Added $date';
+  }
+
+  @override
+  String get staffDocumentOpen => 'Open';
+
+  @override
+  String get staffDocumentRemove => 'Remove';
+
+  @override
+  String staffDocumentRemoveTitle(String title) {
+    return 'Remove $title?';
+  }
+
+  @override
+  String get staffDocumentRemoveMessage => 'It leaves this record now. The file itself is deleted after 30 days.';
+
+  @override
+  String staffDocumentRemoved(String title) {
+    return '$title removed';
+  }
+
+  @override
+  String get errorDocumentDuplicate => 'This file is attached already.';
+
+  @override
+  String get errorDocumentInvalid => 'This file cannot be attached. Remove it and choose it again.';
+
+  @override
+  String get errorDocumentNotFound =>
+      'The document, the file or the staff member could not be found. It may have been removed.';
+
+  @override
+  String get errorDocumentOpen => 'This phone could not open the file.';
 }

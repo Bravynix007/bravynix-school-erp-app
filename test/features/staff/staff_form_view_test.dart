@@ -72,7 +72,7 @@ ApiFailure _failure(int status, String code, {List<FieldError> fields = const []
     ApiFailure(statusCode: status, code: code, message: 'server words', fieldErrors: fields);
 
 /// An upload that waits to be released, and notes what it was asked for.
-class _Gate implements FilesRepository {
+class _Gate extends Fake implements FilesRepository {
   late Completer<void> release;
   final List<(FilePurpose, String)> asked = [];
 

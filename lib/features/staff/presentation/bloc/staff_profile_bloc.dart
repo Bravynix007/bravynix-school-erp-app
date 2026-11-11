@@ -20,8 +20,9 @@ final class StaffProfileRequested extends StaffProfileEvent {
   const new();
 }
 
-/// The parts of the profile (PRD 7.5): the personal details, what the person may do in the Society, and the settings.
-enum StaffProfileTab { personal, access, settings }
+/// The parts of the profile (PRD 7.5): the personal details, what the person may do in the Society, their documents, and
+/// the settings.
+enum StaffProfileTab { personal, access, documents, settings }
 
 final class StaffProfileTabChosen extends StaffProfileEvent {
   const new(this.tab);

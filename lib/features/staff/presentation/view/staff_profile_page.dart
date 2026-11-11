@@ -6,6 +6,7 @@ import 'package:bravynix_school_erp/core/theme/app_spacing.dart';
 import 'package:bravynix_school_erp/core/widgets/app_card.dart';
 import 'package:bravynix_school_erp/core/widgets/app_icon_button.dart';
 import 'package:bravynix_school_erp/core/widgets/app_segmented_control.dart';
+import 'package:bravynix_school_erp/core/widgets/app_snackbar.dart';
 import 'package:bravynix_school_erp/core/widgets/app_tag.dart';
 import 'package:bravynix_school_erp/core/widgets/app_top_bar.dart';
 import 'package:bravynix_school_erp/core/widgets/key_value_row.dart';
@@ -16,6 +17,12 @@ import 'package:bravynix_school_erp/core/widgets/status_chip.dart';
 import 'package:bravynix_school_erp/features/academic_years/domain/academic_years_repository.dart';
 import 'package:bravynix_school_erp/features/auth/presentation/session/session_bloc.dart';
 import 'package:bravynix_school_erp/features/classes/domain/classes_repository.dart';
+import 'package:bravynix_school_erp/features/documents/domain/documents_repository.dart';
+import 'package:bravynix_school_erp/features/files/domain/file_opening.dart';
+import 'package:bravynix_school_erp/features/files/domain/file_picking.dart';
+import 'package:bravynix_school_erp/features/files/domain/file_purpose.dart';
+import 'package:bravynix_school_erp/features/files/domain/files_repository.dart';
+import 'package:bravynix_school_erp/features/files/presentation/bloc/file_upload_bloc.dart';
 import 'package:bravynix_school_erp/features/institutions/domain/institutions_repository.dart';
 import 'package:bravynix_school_erp/features/masters/domain/masters_repository.dart';
 import 'package:bravynix_school_erp/features/sections/domain/sections_repository.dart';
@@ -27,12 +34,14 @@ import 'package:bravynix_school_erp/features/staff/presentation/bloc/staff_acces
 import 'package:bravynix_school_erp/features/staff/presentation/bloc/staff_admin_access_bloc.dart';
 import 'package:bravynix_school_erp/features/staff/presentation/bloc/staff_block_bloc.dart';
 import 'package:bravynix_school_erp/features/staff/presentation/bloc/staff_class_teacher_bloc.dart';
+import 'package:bravynix_school_erp/features/staff/presentation/bloc/staff_documents_bloc.dart';
 import 'package:bravynix_school_erp/features/staff/presentation/bloc/staff_identity_bloc.dart';
 import 'package:bravynix_school_erp/features/staff/presentation/bloc/staff_profile_bloc.dart';
 import 'package:bravynix_school_erp/features/staff/presentation/bloc/staff_teaching_bloc.dart';
 import 'package:bravynix_school_erp/features/staff/presentation/view/staff_access_view.dart';
 import 'package:bravynix_school_erp/features/staff/presentation/view/staff_admin_access_section.dart';
 import 'package:bravynix_school_erp/features/staff/presentation/view/staff_class_teacher_section.dart';
+import 'package:bravynix_school_erp/features/staff/presentation/view/staff_documents_view.dart';
 import 'package:bravynix_school_erp/features/staff/presentation/view/staff_error_text.dart';
 import 'package:bravynix_school_erp/features/staff/presentation/view/staff_form_page.dart';
 import 'package:bravynix_school_erp/features/staff/presentation/view/staff_identity_section.dart';
@@ -47,8 +56,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
-/// School setup → Teachers / Staff → one staff member (STF-03): the personal information, access and settings tabs of
-/// PRD 7.5. The documents tab arrives with the screen that acts on it.
+/// School setup → Teachers / Staff → one staff member (STF-03): the personal information, access, documents and
+/// settings tabs of PRD 7.5.
 class StaffProfilePage extends StatelessWidget {
   const new({required this.id, super.key});
 
@@ -169,6 +178,22 @@ class StaffProfileView extends StatelessWidget {
                           member: profile.member,
                         )..add(const StaffAdminAccessStarted()),
                       ),
+                    // The documents tab: the list, and the file on its way up for the document being added.
+                    BlocProvider(
+                      create: (_) => StaffDocumentsBloc(
+                        getIt<DocumentsRepository>(),
+                        getIt<FilesRepository>(),
+                        getIt<FileOpening>(),
+                        staffMemberId: profile.member.id,
+                      ),
+                    ),
+                    BlocProvider(
+                      create: (_) => FileUploadBloc(
+                        getIt<FilesRepository>(),
+                        purpose: FilePurpose.staffDocument,
+                        institutionId: profile.member.homeInstitutionId,
+                      ),
+                    ),
                     BlocProvider(create: (_) => StaffBlockBloc(getIt<StaffRepository>(), profile.member)),
                   ],
                   // The Admin part reads again when the extra Institutions are saved, as those are the ones an Admin can
@@ -189,6 +214,33 @@ class StaffProfileView extends StatelessWidget {
                             StaffAdminInstitutionsChanged((state as StaffProfileLoaded).profile.member.institutionIds),
                           ),
                         ),
+                      // The file that went up is the one the document being added will hold, and once the document is
+                      // added the upload is let go of: joined here, so a file that finishes or a document that is
+                      // added while another tab is shown is not lost.
+                      BlocListener<FileUploadBloc, FileUploadState>(
+                        listenWhen: (previous, current) => current is FileUploadDone || previous is FileUploadDone,
+                        listener: (context, state) => context.read<StaffDocumentsBloc>().add(
+                          StaffDocumentsFileChosen(state is FileUploadDone ? state.uploaded.id : null),
+                        ),
+                      ),
+                      BlocListener<StaffDocumentsBloc, StaffDocumentsState>(
+                        // What went through stays in the state until the next change starts, which clears it.
+                        listenWhen: (previous, current) =>
+                            current is StaffDocumentsReady &&
+                            current.done != null &&
+                            (previous is! StaffDocumentsReady || previous.done != current.done),
+                        listener: (context, state) {
+                          final change = (state as StaffDocumentsReady).done!;
+                          if (!change.removed) context.read<FileUploadBloc>().add(const FileUploadCleared());
+                          AppSnackbar.show(
+                            context,
+                            message: change.removed
+                                ? l10n.staffDocumentRemoved(change.document.title)
+                                : l10n.staffDocumentAdded(change.document.title),
+                            kind: AppSnackbarKind.success,
+                          );
+                        },
+                      ),
                       BlocListener<StaffProfileBloc, StaffProfileState>(
                         listenWhen: (previous, current) =>
                             previous is StaffProfileLoaded &&
@@ -210,9 +262,11 @@ class StaffProfileView extends StatelessWidget {
                           ),
                           child: AppSegmentedControl<StaffProfileTab>(
                             options: StaffProfileTab.values,
+                            scrollable: true,
                             labelOf: (tab) => switch (tab) {
                               StaffProfileTab.personal => l10n.staffTabPersonal,
                               StaffProfileTab.access => l10n.staffTabAccess,
+                              StaffProfileTab.documents => l10n.staffTabDocuments,
                               StaffProfileTab.settings => l10n.staffTabSettings,
                             },
                             selected: tab,
@@ -229,6 +283,7 @@ class StaffProfileView extends StatelessWidget {
                                 if (isOwner) StaffAdminAccessView(memberName: profile.member.fullName),
                               ],
                             ),
+                            StaffProfileTab.documents => StaffDocumentsView(picking: getIt<FilePicking>()),
                             StaffProfileTab.settings => const StaffSettingsView(),
                           },
                         ),

@@ -9,6 +9,13 @@ import 'package:bravynix_school_erp/features/academic_years/domain/academic_year
 import 'package:bravynix_school_erp/features/auth/domain/auth_entities.dart';
 import 'package:bravynix_school_erp/features/auth/presentation/session/session_bloc.dart';
 import 'package:bravynix_school_erp/features/classes/domain/classes_repository.dart';
+import 'package:bravynix_school_erp/features/documents/domain/document.dart';
+import 'package:bravynix_school_erp/features/documents/domain/documents_repository.dart';
+import 'package:bravynix_school_erp/features/files/domain/file_opening.dart';
+import 'package:bravynix_school_erp/features/files/domain/file_picking.dart';
+import 'package:bravynix_school_erp/features/files/domain/file_purpose.dart';
+import 'package:bravynix_school_erp/features/files/domain/files_repository.dart';
+import 'package:bravynix_school_erp/features/files/domain/uploaded_file.dart';
 import 'package:bravynix_school_erp/features/institutions/domain/institution_admin.dart';
 import 'package:bravynix_school_erp/features/institutions/domain/institutions_repository.dart';
 import 'package:bravynix_school_erp/features/masters/domain/master_entry.dart';
@@ -27,6 +34,8 @@ import 'package:mocktail/mocktail.dart';
 
 import '../../helpers/academic_years.dart';
 import '../../helpers/classes.dart';
+import '../../helpers/documents.dart';
+import '../../helpers/files.dart';
 import '../../helpers/institutions.dart';
 import '../../helpers/mocks.dart';
 import '../../helpers/pump_app.dart';
@@ -44,8 +53,16 @@ void main() {
   late MockInstitutionsRepository institutions;
   late MockSectionsRepository sections;
   late MockTeachingAssignmentsRepository teaching;
+  late MockDocumentsRepository documents;
+  late MockFilesRepository files;
+  late MockFileOpening opening;
+  late FakeFilePicking picking;
   late _MockSessionBloc session;
 
+  setUpAll(() {
+    registerFallbackValue(Uri());
+    registerFallbackValue(pdf);
+  });
   setUp(() {
     staff = MockStaffRepository();
     subjects = MockSubjectsRepository();
@@ -55,6 +72,13 @@ void main() {
     final classes = MockClassesRepository();
     sections = MockSectionsRepository();
     teaching = MockTeachingAssignmentsRepository();
+    documents = MockDocumentsRepository();
+    files = MockFilesRepository();
+    opening = MockFileOpening();
+    picking = FakeFilePicking(result: pdf);
+    when(() => documents.staffDocuments('f1')).thenAnswer((_) async => [degreeCertificate]);
+    when(() => files.downloadLink('fl2')).thenAnswer((_) async => Uri.parse('https://store.test/get/token'));
+    when(() => opening.open(any())).thenAnswer((_) async => true);
     when(
       () => teaching.assignments(
         'i1',
@@ -85,6 +109,10 @@ void main() {
       ..registerSingleton<ClassesRepository>(classes)
       ..registerSingleton<SectionsRepository>(sections)
       ..registerSingleton<TeachingAssignmentsRepository>(teaching)
+      ..registerSingleton<DocumentsRepository>(documents)
+      ..registerSingleton<FilesRepository>(files)
+      ..registerSingleton<FileOpening>(opening)
+      ..registerSingleton<FilePicking>(picking)
       ..registerSingleton<ScreenProtection>(RecordingScreenProtection());
     session = _MockSessionBloc();
   });
@@ -106,6 +134,7 @@ void main() {
   }
 
   Future<void> openTab(WidgetTester tester, String label) async {
+    await tester.ensureVisible(find.text(label));
     await tester.tap(find.text(label));
     await tester.pumpAndSettle();
   }
@@ -430,6 +459,219 @@ void main() {
     });
   });
 
+  group('the documents tab', () {
+    testWidgets('lists the documents, reading them once however often the tab is left and opened again', (
+      tester,
+    ) async {
+      await pumpAs(tester, RoleCode.societyOwner);
+      verifyNever(() => documents.staffDocuments(any()));
+      await openTab(tester, 'Documents');
+      expect(find.text('B.Ed certificate'), findsOneWidget);
+      await openTab(tester, 'Personal');
+      await openTab(tester, 'Documents');
+      verify(() => documents.staffDocuments('f1')).called(1);
+    });
+
+    testWidgets('is shown to an Institution Admin as well', (tester) async {
+      await pumpAs(tester, RoleCode.institutionAdmin);
+      await openTab(tester, 'Documents');
+      expect(find.text('B.Ed certificate'), findsOneWidget);
+    });
+
+    testWidgets('keeps a title that is half written when the person goes to another tab and back', (tester) async {
+      await pumpAs(tester, RoleCode.societyOwner);
+      await openTab(tester, 'Documents');
+      await tester.enterText(find.byKey(const Key('staffDocuments.title')), 'Appointm');
+      await openTab(tester, 'Settings');
+      await openTab(tester, 'Documents');
+      expect(find.text('Appointm'), findsOneWidget);
+    });
+
+    testWidgets('adds a document: the file goes up for the home Institution as a staff document, then it is attached', (
+      tester,
+    ) async {
+      when(
+        () => files.upload(
+          any(),
+          purpose: FilePurpose.staffDocument,
+          institutionId: 'i1',
+          onProgress: any(named: 'onProgress'),
+          cancelToken: any(named: 'cancelToken'),
+        ),
+      ).thenAnswer((_) async => uploadedPdf);
+      when(
+        () => documents.attachToStaff('f1', title: 'Appointment letter', fileId: 'f9'),
+      ).thenAnswer((_) async => appointmentLetter);
+      await pumpAs(tester, RoleCode.societyOwner);
+      await openTab(tester, 'Documents');
+      await tester.enterText(find.byKey(const Key('staffDocuments.title')), 'Appointment letter');
+      await tester.ensureVisible(find.byKey(const Key('document.pick')));
+      await tester.tap(find.byKey(const Key('document.pick')));
+      await tester.pumpAndSettle();
+      await tester.ensureVisible(find.byKey(const Key('staffDocuments.attach')));
+      await tester.tap(find.byKey(const Key('staffDocuments.attach')));
+      await tester.pumpAndSettle();
+      verify(() => documents.attachToStaff('f1', title: 'Appointment letter', fileId: 'f9')).called(1);
+      expect(find.text('Appointment letter added'), findsOneWidget);
+      expect(find.byKey(const Key('staffDocuments.open.o1')), findsOneWidget);
+      // The form starts again from nothing.
+      expect(find.byKey(const Key('document.chosen')), findsNothing);
+      expect(find.text('Appointment letter'), findsOneWidget);
+    });
+
+    testWidgets('says a document is added once, and keeps the next title and file when they are chosen', (
+      tester,
+    ) async {
+      when(
+        () => files.upload(
+          any(),
+          purpose: FilePurpose.staffDocument,
+          institutionId: 'i1',
+          onProgress: any(named: 'onProgress'),
+          cancelToken: any(named: 'cancelToken'),
+        ),
+      ).thenAnswer((_) async => uploadedPdf);
+      when(
+        () => documents.attachToStaff('f1', title: 'Appointment letter', fileId: 'f9'),
+      ).thenAnswer((_) async => appointmentLetter);
+      await pumpAs(tester, RoleCode.societyOwner);
+      await openTab(tester, 'Documents');
+      await tester.enterText(find.byKey(const Key('staffDocuments.title')), 'Appointment letter');
+      await tester.ensureVisible(find.byKey(const Key('document.pick')));
+      await tester.tap(find.byKey(const Key('document.pick')));
+      await tester.pumpAndSettle();
+      await tester.ensureVisible(find.byKey(const Key('staffDocuments.attach')));
+      await tester.tap(find.byKey(const Key('staffDocuments.attach')));
+      await tester.pumpAndSettle();
+      expect(find.text('Appointment letter added'), findsOneWidget);
+      tester.state<ScaffoldMessengerState>(find.byType(ScaffoldMessenger)).hideCurrentSnackBar();
+      await tester.pumpAndSettle();
+      await tester.enterText(find.byKey(const Key('staffDocuments.title')), 'Salary slip');
+      await tester.pump(const Duration(milliseconds: 300));
+      expect(find.text('Appointment letter added'), findsNothing);
+      await tester.ensureVisible(find.byKey(const Key('document.pick')));
+      await tester.tap(find.byKey(const Key('document.pick')));
+      await tester.pumpAndSettle();
+      expect(find.byKey(const Key('document.chosen')), findsOneWidget);
+      expect(find.text('Appointment letter added'), findsNothing);
+    });
+
+    testWidgets('keeps a file that finishes going up while another tab is shown, ready to attach', (tester) async {
+      final held = Completer<UploadedFile>();
+      when(
+        () => files.upload(
+          any(),
+          purpose: FilePurpose.staffDocument,
+          institutionId: 'i1',
+          onProgress: any(named: 'onProgress'),
+          cancelToken: any(named: 'cancelToken'),
+        ),
+      ).thenAnswer((_) => held.future);
+      when(
+        () => documents.attachToStaff('f1', title: 'Appointment letter', fileId: 'f9'),
+      ).thenAnswer((_) async => appointmentLetter);
+      await pumpAs(tester, RoleCode.societyOwner);
+      await openTab(tester, 'Documents');
+      await tester.enterText(find.byKey(const Key('staffDocuments.title')), 'Appointment letter');
+      await tester.ensureVisible(find.byKey(const Key('document.pick')));
+      await tester.tap(find.byKey(const Key('document.pick')));
+      await tester.pump(const Duration(milliseconds: 100));
+      await tester.tap(find.text('Personal'));
+      await tester.pump(const Duration(milliseconds: 400));
+      held.complete(uploadedPdf);
+      await tester.pump(const Duration(milliseconds: 100));
+      await openTab(tester, 'Documents');
+      expect(find.text('letter.pdf · 908 B'), findsOneWidget);
+      await tester.ensureVisible(find.byKey(const Key('staffDocuments.attach')));
+      expect(tester.widget<AppButton>(find.byKey(const Key('staffDocuments.attach'))).onPressed, isNotNull);
+      await tester.tap(find.byKey(const Key('staffDocuments.attach')));
+      await tester.pumpAndSettle();
+      verify(() => documents.attachToStaff('f1', title: 'Appointment letter', fileId: 'f9')).called(1);
+    });
+
+    testWidgets('lets go of the upload, and says so, when the document is added while another tab is shown', (
+      tester,
+    ) async {
+      final held = Completer<Document>();
+      when(
+        () => files.upload(
+          any(),
+          purpose: FilePurpose.staffDocument,
+          institutionId: 'i1',
+          onProgress: any(named: 'onProgress'),
+          cancelToken: any(named: 'cancelToken'),
+        ),
+      ).thenAnswer((_) async => uploadedPdf);
+      when(
+        () => documents.attachToStaff('f1', title: 'Appointment letter', fileId: 'f9'),
+      ).thenAnswer((_) => held.future);
+      await pumpAs(tester, RoleCode.societyOwner);
+      await openTab(tester, 'Documents');
+      await tester.enterText(find.byKey(const Key('staffDocuments.title')), 'Appointment letter');
+      await tester.ensureVisible(find.byKey(const Key('document.pick')));
+      await tester.tap(find.byKey(const Key('document.pick')));
+      await tester.pumpAndSettle();
+      await tester.ensureVisible(find.byKey(const Key('staffDocuments.attach')));
+      await tester.tap(find.byKey(const Key('staffDocuments.attach')));
+      await tester.pump(const Duration(milliseconds: 100));
+      await tester.tap(find.text('Personal'));
+      await tester.pump(const Duration(milliseconds: 400));
+      held.complete(appointmentLetter);
+      await tester.pump(const Duration(milliseconds: 100));
+      expect(find.text('Appointment letter added'), findsOneWidget);
+      await openTab(tester, 'Documents');
+      expect(find.byKey(const Key('document.chosen')), findsNothing);
+      expect(find.byKey(const Key('document.remove')), findsNothing);
+      expect(find.byKey(const Key('staffDocuments.open.o1')), findsOneWidget);
+      expect(tester.widget<AppButton>(find.byKey(const Key('staffDocuments.attach'))).onPressed, isNull);
+    });
+
+    testWidgets('does not offer Add document once the file is taken away again', (tester) async {
+      when(
+        () => files.upload(
+          any(),
+          purpose: FilePurpose.staffDocument,
+          institutionId: 'i1',
+          onProgress: any(named: 'onProgress'),
+          cancelToken: any(named: 'cancelToken'),
+        ),
+      ).thenAnswer((_) async => uploadedPdf);
+      await pumpAs(tester, RoleCode.societyOwner);
+      await openTab(tester, 'Documents');
+      await tester.enterText(find.byKey(const Key('staffDocuments.title')), 'Appointment letter');
+      await tester.ensureVisible(find.byKey(const Key('document.pick')));
+      await tester.tap(find.byKey(const Key('document.pick')));
+      await tester.pumpAndSettle();
+      await tester.ensureVisible(find.byKey(const Key('staffDocuments.attach')));
+      expect(tester.widget<AppButton>(find.byKey(const Key('staffDocuments.attach'))).onPressed, isNotNull);
+      await tester.ensureVisible(find.byKey(const Key('document.remove')));
+      await tester.tap(find.byKey(const Key('document.remove')));
+      await tester.pumpAndSettle();
+      expect(tester.widget<AppButton>(find.byKey(const Key('staffDocuments.attach'))).onPressed, isNull);
+    });
+
+    testWidgets('opens the file of a document with the link the server gives', (tester) async {
+      await pumpAs(tester, RoleCode.societyOwner);
+      await openTab(tester, 'Documents');
+      await tester.tap(find.byKey(const Key('staffDocuments.open.o2')));
+      await tester.pumpAndSettle();
+      verify(() => opening.open(Uri.parse('https://store.test/get/token'))).called(1);
+    });
+
+    testWidgets('removes a document after the person confirms', (tester) async {
+      when(() => documents.deactivate('o2')).thenAnswer((_) async {});
+      await pumpAs(tester, RoleCode.societyOwner);
+      await openTab(tester, 'Documents');
+      await tester.tap(find.byKey(const Key('staffDocuments.remove.o2')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.widgetWithText(FilledButton, 'Remove'));
+      await tester.pumpAndSettle();
+      verify(() => documents.deactivate('o2')).called(1);
+      expect(find.text('B.Ed certificate'), findsNothing);
+      expect(find.text('B.Ed certificate removed'), findsOneWidget);
+    });
+  });
+
   testWidgets('keeps what is ticked and not yet saved when the person goes to another tab and back', (tester) async {
     await pumpAs(tester, RoleCode.societyOwner);
     await openTab(tester, 'Access');
@@ -461,6 +703,7 @@ void main() {
     await tester.pump(const Duration(milliseconds: 50));
     await tester.tap(find.text('Personal'));
     await tester.pump(const Duration(milliseconds: 400));
+    await tester.ensureVisible(find.text('Settings'));
     await tester.tap(find.text('Settings'));
     await tester.pump(const Duration(milliseconds: 400));
     expect(tester.widget<AppButton>(find.byKey(const Key('staffSettings.toggle'))).loading, isTrue);

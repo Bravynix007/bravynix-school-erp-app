@@ -43,6 +43,9 @@ abstract final class FileModels {
     );
   }
 
+  /// FIL-03: the address; when it stops working is not kept, as it is used at once.
+  static Uri link(Object? raw) => Uri.parse(jsonObject(raw)['url'] as String);
+
   /// FIL-01: the server takes the name only for purposes that keep it; sending it for all is as the API design says.
   static Map<String, Object?> requestBody(
     ChosenFile file, {

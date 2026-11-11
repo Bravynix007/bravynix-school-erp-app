@@ -36,4 +36,8 @@ class FilesRepositoryImpl implements FilesRepository {
       parse: FileModels.uploaded,
     )).data;
   }
+
+  @override
+  Future<Uri> downloadLink(String fileId) =>
+      _api.data('files/${Uri.encodeComponent(fileId)}/download', parse: FileModels.link);
 }
