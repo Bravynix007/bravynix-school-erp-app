@@ -482,6 +482,7 @@
   "errorAdminAlready": "They are already an Admin of this Institution. The screen is up to date now.",
   "errorAdminStaffBlocked": "They are blocked. Unblock them under Settings before giving Admin access.",
   "errorAdminNotAtInstitution": "They are not at this Institution. Add it under Other Institutions and save first.",
+  "errorAdminNotHeld": "They no longer hold Admin access here. The screen is up to date now.",
   "errorAdminAccountState": "Their account cannot hold this role right now.",
   "staffClassTeacherTitle": "Class teacher",
   "staffClassTeacherHelper": "The section they lead in an academic year. A section has one class teacher, and a teacher leads one section.",

@@ -1,4 +1,3 @@
-import 'package:bravynix_school_erp/app/di/injection.dart';
 import 'package:bravynix_school_erp/core/theme/app_spacing.dart';
 import 'package:bravynix_school_erp/core/widgets/app_button.dart';
 import 'package:bravynix_school_erp/core/widgets/app_card.dart';
@@ -9,39 +8,17 @@ import 'package:bravynix_school_erp/core/widgets/section_header.dart';
 import 'package:bravynix_school_erp/core/widgets/skeleton.dart';
 import 'package:bravynix_school_erp/features/masters/domain/master_entry.dart';
 import 'package:bravynix_school_erp/features/masters/presentation/view/master_dropdown.dart';
-import 'package:bravynix_school_erp/features/staff/domain/staff_member.dart';
-import 'package:bravynix_school_erp/features/staff/presentation/bloc/section_options.dart';
 import 'package:bravynix_school_erp/features/staff/presentation/bloc/staff_teaching_bloc.dart';
 import 'package:bravynix_school_erp/features/staff/presentation/view/staff_error_text.dart';
-import 'package:bravynix_school_erp/features/subjects/domain/subjects_repository.dart';
 import 'package:bravynix_school_erp/features/teaching_assignments/domain/teaching_assignment.dart';
-import 'package:bravynix_school_erp/features/teaching_assignments/domain/teaching_assignments_repository.dart';
 import 'package:bravynix_school_erp/l10n/gen/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 /// The teaching part of the access tab (ASG-01 to ASG-03): the sections and subjects the person teaches in an academic
-/// year, with a way to give them one more from their own subjects, or to end one. It starts again when their subjects
-/// change, as those are the ones that can be assigned.
+/// year, with a way to give them one more from their own subjects, or to end one. Its bloc is provided with the others
+/// above the tabs, so scrolling away or another tab does not read it again or lose a change on its way.
 class StaffTeachingSection extends StatelessWidget {
-  const new({required this.member, super.key});
-
-  final StaffMember member;
-
-  @override
-  Widget build(BuildContext context) => BlocProvider(
-    key: ValueKey(member.subjectIds.join(',')),
-    create: (context) => StaffTeachingBloc(
-      getIt<TeachingAssignmentsRepository>(),
-      context.read<SectionOptionsSource>(),
-      getIt<SubjectsRepository>(),
-      member: member,
-    )..add(const StaffTeachingStarted()),
-    child: const StaffTeachingView(),
-  );
-}
-
-class StaffTeachingView extends StatelessWidget {
   const new({super.key});
 
   @override

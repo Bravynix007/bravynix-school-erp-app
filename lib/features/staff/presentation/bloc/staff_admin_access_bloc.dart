@@ -57,7 +57,7 @@ class StaffAdminAccessFailed extends StaffAdminAccessState {
   List<Object?> get props => [failure];
 }
 
-/// A grant or a revoke that went through, for the screen to say so.
+/// A grant or a revoke on an Institution: the one that went through, or the one that was refused, for the screen to say so.
 class StaffAdminChange extends Equatable {
   const new(this.institutionId, {required this.granted});
 
@@ -72,7 +72,7 @@ class StaffAdminChange extends Equatable {
 
 /// The Institutions the person can be an Admin of (their own and their extra ones), and at which of them they are one.
 class StaffAdminAccessReady extends StaffAdminAccessState {
-  const new({required this.institutions, required this.adminAt, this.working, this.failure, this.failedAt, this.done});
+  const new({required this.institutions, required this.adminAt, this.working, this.failure, this.failed, this.done});
 
   final List<InstitutionSummary> institutions;
 
@@ -82,9 +82,9 @@ class StaffAdminAccessReady extends StaffAdminAccessState {
   /// The Institution a grant or a revoke is on its way for.
   final String? working;
 
-  /// The last grant or revoke that was refused, and the Institution it was for.
+  /// The last grant or revoke that was refused, and which it was.
   final ApiFailure? failure;
-  final String? failedAt;
+  final StaffAdminChange? failed;
 
   /// The last grant or revoke that went through.
   final StaffAdminChange? done;
@@ -93,19 +93,19 @@ class StaffAdminAccessReady extends StaffAdminAccessState {
     List<String>? adminAt,
     String? Function()? working,
     ApiFailure? Function()? failure,
-    String? Function()? failedAt,
+    StaffAdminChange? Function()? failed,
     StaffAdminChange? Function()? done,
   }) => StaffAdminAccessReady(
     institutions: institutions,
     adminAt: adminAt ?? this.adminAt,
     working: working == null ? this.working : working(),
     failure: failure == null ? this.failure : failure(),
-    failedAt: failedAt == null ? this.failedAt : failedAt(),
+    failed: failed == null ? this.failed : failed(),
     done: done == null ? this.done : done(),
   );
 
   @override
-  List<Object?> get props => [institutions, adminAt, working, failure, failedAt, done];
+  List<Object?> get props => [institutions, adminAt, working, failure, failed, done];
 }
 
 /// Admin access of one staff member (INS-08 to INS-10), for the Society Owner: who is an Admin of which of the
@@ -156,7 +156,7 @@ class StaffAdminAccessBloc extends Bloc<StaffAdminAccessEvent, StaffAdminAccessS
 
   Future<void> _change(String institutionId, Emitter<StaffAdminAccessState> emit, {required bool grant}) async {
     if (state case final StaffAdminAccessReady ready when ready.working == null) {
-      emit(ready.copyWith(working: () => institutionId, failure: () => null, failedAt: () => null, done: () => null));
+      emit(ready.copyWith(working: () => institutionId, failure: () => null, failed: () => null, done: () => null));
       try {
         if (grant) {
           await _institutions.grantAdmin(institutionId, member.id);
@@ -184,7 +184,7 @@ class StaffAdminAccessBloc extends Bloc<StaffAdminAccessEvent, StaffAdminAccessS
               },
               working: () => null,
               failure: () => failure,
-              failedAt: () => institutionId,
+              failed: () => StaffAdminChange(institutionId, granted: grant),
             ),
           );
         }
