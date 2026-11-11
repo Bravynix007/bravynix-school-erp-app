@@ -1500,5 +1500,73 @@ class AppLocalizationsEn extends AppLocalizations {
   String get errorStaffBlocked => 'They are blocked. Unblock them under Settings first.';
 
   @override
+  String get staffTeachingTitle => 'Teaching';
+
+  @override
+  String get staffTeachingHelper =>
+      'The subjects they teach in each section of an academic year. Only a subject on their list above can be given to them.';
+
+  @override
+  String get staffTeachingYear => 'Academic year';
+
+  @override
+  String get staffTeachingNoYears => 'Add an academic year under School setup first.';
+
+  @override
+  String get staffTeachingNone => 'They do not teach in any section this year.';
+
+  @override
+  String get staffTeachingNoSubjects => 'Add subjects to their list above and save, then give them a section.';
+
+  @override
+  String get staffTeachingNoSections => 'Add a class with a section under School setup first.';
+
+  @override
+  String get staffTeachingChoose => 'Choose';
+
+  @override
+  String get staffTeachingSection => 'Section';
+
+  @override
+  String get staffTeachingSubject => 'Subject';
+
+  @override
+  String get staffTeachingAssign => 'Assign';
+
+  @override
+  String get staffTeachingEnd => 'End';
+
+  @override
+  String staffTeachingEndTitle(String subject, String section) {
+    return 'End $subject in $section?';
+  }
+
+  @override
+  String get staffTeachingEndMessage => 'They stop teaching it. The record stays as history.';
+
+  @override
+  String get staffTeachingEndAction => 'End assignment';
+
+  @override
+  String staffTeachingAssigned(String subject, String section) {
+    return '$subject in $section assigned';
+  }
+
+  @override
+  String staffTeachingEnded(String subject, String section) {
+    return '$subject in $section ended';
+  }
+
+  @override
+  String get errorTeachingDuplicate => 'They already teach this subject in this section this year.';
+
+  @override
+  String get errorSubjectNotTaught => 'This subject is not on their list. Add it to their subjects and save first.';
+
+  @override
+  String get errorTeachingNotFound =>
+      'The assignment, the section or the subject could not be found. It may have been ended or deactivated.';
+
+  @override
   String get errorRoleConflict => 'This email belongs to a platform account, which can\'t also be staff.';
 }

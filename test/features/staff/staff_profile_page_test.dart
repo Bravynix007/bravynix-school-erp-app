@@ -17,6 +17,8 @@ import 'package:bravynix_school_erp/features/staff/domain/staff_member.dart';
 import 'package:bravynix_school_erp/features/staff/domain/staff_repository.dart';
 import 'package:bravynix_school_erp/features/staff/presentation/view/staff_profile_page.dart';
 import 'package:bravynix_school_erp/features/subjects/domain/subjects_repository.dart';
+import 'package:bravynix_school_erp/features/teaching_assignments/domain/teaching_assignment.dart';
+import 'package:bravynix_school_erp/features/teaching_assignments/domain/teaching_assignments_repository.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -30,6 +32,7 @@ import '../../helpers/pump_app.dart';
 import '../../helpers/sections.dart';
 import '../../helpers/staff.dart';
 import '../../helpers/subjects.dart';
+import '../../helpers/teaching_assignments.dart';
 
 class _MockSessionBloc extends MockBloc<SessionEvent, SessionState> implements SessionBloc;
 
@@ -38,6 +41,7 @@ void main() {
   late MockSubjectsRepository subjects;
   late MockInstitutionsRepository institutions;
   late MockSectionsRepository sections;
+  late MockTeachingAssignmentsRepository teaching;
   late _MockSessionBloc session;
 
   setUp(() {
@@ -48,9 +52,18 @@ void main() {
     final years = MockAcademicYearsRepository();
     final classes = MockClassesRepository();
     sections = MockSectionsRepository();
+    teaching = MockTeachingAssignmentsRepository();
+    when(
+      () => teaching.assignments(
+        'i1',
+        academicYearId: 'y1',
+        staffMemberId: 'f1',
+        page: any(named: 'page'),
+      ),
+    ).thenAnswer((_) async => const ItemsPage([mathsInClass1A], page: 1, totalPages: 1));
     when(() => years.years('i1')).thenAnswer((_) async => [currentYear]);
     when(() => classes.classes('i1')).thenAnswer((_) async => [class1]);
-    when(() => sections.sections('k1')).thenAnswer((_) async => [sectionA]);
+    when(() => sections.sections('k1')).thenAnswer((_) async => [sectionA, sectionB]);
     when(() => staff.member('f1')).thenAnswer((_) async => kavyaMember);
     when(subjects.subjects).thenAnswer((_) async => const [art, maths]);
     when(() => institutions.admins(any(), page: any(named: 'page')))
@@ -68,12 +81,13 @@ void main() {
       ..registerSingleton<MastersRepository>(masters)
       ..registerSingleton<AcademicYearsRepository>(years)
       ..registerSingleton<ClassesRepository>(classes)
-      ..registerSingleton<SectionsRepository>(sections);
+      ..registerSingleton<SectionsRepository>(sections)
+      ..registerSingleton<TeachingAssignmentsRepository>(teaching);
     session = _MockSessionBloc();
   });
   tearDown(getIt.reset);
 
-  Future<void> pumpAs(WidgetTester tester, RoleCode role, {Size size = const Size(400, 1600)}) async {
+  Future<void> pumpAs(WidgetTester tester, RoleCode role, {Size size = const Size(400, 2800)}) async {
     final context = AuthContext(role: role, societyId: 's1', societyName: 'North Trust');
     when(() => session.state).thenReturn(
       SessionAuthenticated(AuthSession(person: testPerson, contexts: [context], activeContext: context)),
@@ -113,6 +127,168 @@ void main() {
         verifyNever(institutions.institutions);
       });
     }
+  });
+
+  group('the teaching section', () {
+    for (final role in [RoleCode.societyOwner, RoleCode.institutionAdmin]) {
+      testWidgets('is shown to a ${role.name}, with what the staff member teaches this year', (tester) async {
+        await pumpAs(tester, role);
+        await openTab(tester, 'Access');
+        expect(find.text('Teaching'), findsOneWidget);
+        expect(find.byKey(const Key('staffTeaching.end.g1')), findsOneWidget);
+        verify(
+          () => teaching.assignments(
+            'i1',
+            academicYearId: 'y1',
+            staffMemberId: 'f1',
+            page: any(named: 'page'),
+          ),
+        ).called(1);
+      });
+    }
+
+    testWidgets('reads what they teach once, however often the tab is left and opened again or scrolled', (
+      tester,
+    ) async {
+      await pumpAs(tester, RoleCode.societyOwner);
+      await openTab(tester, 'Access');
+      await openTab(tester, 'Personal');
+      await openTab(tester, 'Access');
+      final list = find.byType(Scrollable).last;
+      await tester.drag(list, const Offset(0, -3000));
+      await tester.pumpAndSettle();
+      await tester.drag(list, const Offset(0, 3000));
+      await tester.pumpAndSettle();
+      verify(
+        () => teaching.assignments(
+          'i1',
+          academicYearId: 'y1',
+          staffMemberId: 'f1',
+          page: any(named: 'page'),
+        ),
+      ).called(1);
+    });
+
+    testWidgets(
+      'keeps an assignment on its way when the person goes to another tab and back, and says when it is made',
+      (
+        tester,
+      ) async {
+        final held = Completer<TeachingAssignment>();
+        when(
+          () => teaching.assign(staffMemberId: 'f1', academicYearId: 'y1', sectionId: 'e2', subjectId: 'u1'),
+        ).thenAnswer((_) => held.future);
+        await pumpAs(tester, RoleCode.societyOwner);
+        await openTab(tester, 'Access');
+        await tester.ensureVisible(find.byKey(const Key('staffTeaching.section')));
+        await tester.tap(find.byKey(const Key('staffTeaching.section')));
+        await tester.pumpAndSettle();
+        await tester.tap(find.text('Class 1 · Blue').last);
+        await tester.pumpAndSettle();
+        await tester.tap(find.byKey(const Key('staffTeaching.subject')));
+        await tester.pumpAndSettle();
+        await tester.tap(find.text('Mathematics').last);
+        await tester.pumpAndSettle();
+        await tester.tap(find.byKey(const Key('staffTeaching.assign')));
+        await tester.pump(const Duration(milliseconds: 50));
+        await tester.tap(find.text('Personal'));
+        await tester.pump(const Duration(milliseconds: 400));
+        await tester.tap(find.text('Access'));
+        await tester.pump(const Duration(milliseconds: 400));
+        await tester.ensureVisible(find.byKey(const Key('staffTeaching.assign')));
+        expect(tester.widget<AppButton>(find.byKey(const Key('staffTeaching.assign'))).loading, isTrue);
+        held.complete(mathsInClass1Blue);
+        await tester.pumpAndSettle();
+        expect(find.byKey(const Key('staffTeaching.end.g2')), findsOneWidget);
+        expect(find.text('Mathematics in Class 1 · Blue assigned'), findsOneWidget);
+      },
+    );
+
+    testWidgets('gives them a subject in a section, through the API', (tester) async {
+      when(
+        () => teaching.assign(staffMemberId: 'f1', academicYearId: 'y1', sectionId: 'e2', subjectId: 'u1'),
+      ).thenAnswer((_) async => mathsInClass1Blue);
+      await pumpAs(tester, RoleCode.societyOwner);
+      await openTab(tester, 'Access');
+      await tester.ensureVisible(find.byKey(const Key('staffTeaching.section')));
+      await tester.tap(find.byKey(const Key('staffTeaching.section')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Class 1 · Blue').last);
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('staffTeaching.subject')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Mathematics').last);
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('staffTeaching.assign')));
+      await tester.pumpAndSettle();
+      verify(
+        () => teaching.assign(staffMemberId: 'f1', academicYearId: 'y1', sectionId: 'e2', subjectId: 'u1'),
+      ).called(1);
+      expect(find.text('Mathematics in Class 1 · Blue assigned'), findsOneWidget);
+    });
+  });
+
+  group('once their subjects are saved', () {
+    Future<void> saveSubjects(WidgetTester tester) async {
+      await tester.tap(find.byKey(const ValueKey('staffAccess.subject.u2')));
+      await tester.pump();
+      await tester.ensureVisible(find.byKey(const Key('staffAccess.saveSubjects')));
+      await tester.tap(find.byKey(const Key('staffAccess.saveSubjects')));
+    }
+
+    setUp(
+      () =>
+          when(() => staff.setSubjects('f1', ['u1', 'u2']))
+              .thenAnswer((_) async => kavyaWith(subjectIds: const ['u1', 'u2'])),
+    );
+
+    testWidgets('the teaching part offers them, and does not read what they teach again', (tester) async {
+      await pumpAs(tester, RoleCode.societyOwner);
+      await openTab(tester, 'Access');
+      await saveSubjects(tester);
+      await tester.pumpAndSettle();
+      await tester.ensureVisible(find.byKey(const Key('staffTeaching.subject')));
+      await tester.tap(find.byKey(const Key('staffTeaching.subject')));
+      await tester.pumpAndSettle();
+      // Once as the subject ticked on the list above, and once as an option of the assignment.
+      expect(find.text('Art'), findsNWidgets(2));
+      verify(
+        () => teaching.assignments(
+          'i1',
+          academicYearId: 'y1',
+          staffMemberId: 'f1',
+          page: any(named: 'page'),
+        ),
+      ).called(1);
+    });
+
+    testWidgets('an assignment on its way is kept', (tester) async {
+      final held = Completer<TeachingAssignment>();
+      when(
+        () => teaching.assign(staffMemberId: 'f1', academicYearId: 'y1', sectionId: 'e2', subjectId: 'u1'),
+      ).thenAnswer((_) => held.future);
+      await pumpAs(tester, RoleCode.societyOwner);
+      await openTab(tester, 'Access');
+      await tester.ensureVisible(find.byKey(const Key('staffTeaching.section')));
+      await tester.tap(find.byKey(const Key('staffTeaching.section')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Class 1 · Blue').last);
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('staffTeaching.subject')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Mathematics').last);
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('staffTeaching.assign')));
+      await tester.pump(const Duration(milliseconds: 50));
+      await tester.ensureVisible(find.byKey(const ValueKey('staffAccess.subject.u2')));
+      await saveSubjects(tester);
+      await tester.pump(const Duration(milliseconds: 400));
+      await tester.ensureVisible(find.byKey(const Key('staffTeaching.assign')));
+      expect(tester.widget<AppButton>(find.byKey(const Key('staffTeaching.assign'))).loading, isTrue);
+      held.complete(mathsInClass1Blue);
+      await tester.pumpAndSettle();
+      expect(find.byKey(const Key('staffTeaching.end.g2')), findsOneWidget);
+    });
   });
 
   group('the class teacher section', () {
@@ -232,7 +408,8 @@ void main() {
       isTrue,
     );
     expect(tester.widget<AppButton>(find.byKey(const Key('staffAccess.saveSubjects'))).onPressed, isNotNull);
-    verify(subjects.subjects).called(1);
+    // Once for the lists of the tab and once for the teaching part, and not again on the way back.
+    verify(subjects.subjects).called(2);
   });
 
   testWidgets('keeps a block on its way when the person goes to another tab and back, and says when it is done', (

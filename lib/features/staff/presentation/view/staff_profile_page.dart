@@ -21,11 +21,13 @@ import 'package:bravynix_school_erp/features/sections/domain/sections_repository
 import 'package:bravynix_school_erp/features/staff/domain/staff_member.dart';
 import 'package:bravynix_school_erp/features/staff/domain/staff_profile.dart';
 import 'package:bravynix_school_erp/features/staff/domain/staff_repository.dart';
+import 'package:bravynix_school_erp/features/staff/presentation/bloc/section_options.dart';
 import 'package:bravynix_school_erp/features/staff/presentation/bloc/staff_access_bloc.dart';
 import 'package:bravynix_school_erp/features/staff/presentation/bloc/staff_admin_access_bloc.dart';
 import 'package:bravynix_school_erp/features/staff/presentation/bloc/staff_block_bloc.dart';
 import 'package:bravynix_school_erp/features/staff/presentation/bloc/staff_class_teacher_bloc.dart';
 import 'package:bravynix_school_erp/features/staff/presentation/bloc/staff_profile_bloc.dart';
+import 'package:bravynix_school_erp/features/staff/presentation/bloc/staff_teaching_bloc.dart';
 import 'package:bravynix_school_erp/features/staff/presentation/view/staff_access_view.dart';
 import 'package:bravynix_school_erp/features/staff/presentation/view/staff_admin_access_section.dart';
 import 'package:bravynix_school_erp/features/staff/presentation/view/staff_class_teacher_section.dart';
@@ -33,7 +35,9 @@ import 'package:bravynix_school_erp/features/staff/presentation/view/staff_error
 import 'package:bravynix_school_erp/features/staff/presentation/view/staff_form_page.dart';
 import 'package:bravynix_school_erp/features/staff/presentation/view/staff_names.dart';
 import 'package:bravynix_school_erp/features/staff/presentation/view/staff_settings_view.dart';
+import 'package:bravynix_school_erp/features/staff/presentation/view/staff_teaching_section.dart';
 import 'package:bravynix_school_erp/features/subjects/domain/subjects_repository.dart';
+import 'package:bravynix_school_erp/features/teaching_assignments/domain/teaching_assignments_repository.dart';
 import 'package:bravynix_school_erp/l10n/gen/app_localizations.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -124,14 +128,28 @@ class StaffProfileView extends StatelessWidget {
                         canChangeInstitutions: isOwner,
                       )..add(const StaffAccessStarted()),
                     ),
+                    // The class teacher and the teaching parts choose from the same years and sections: read once.
+                    RepositoryProvider(
+                      create: (_) => SectionOptionsSource(
+                        years: getIt<AcademicYearsRepository>(),
+                        classes: getIt<ClassesRepository>(),
+                        sections: getIt<SectionsRepository>(),
+                      ),
+                    ),
                     BlocProvider(
-                      create: (_) => StaffClassTeacherBloc(
+                      create: (context) => StaffClassTeacherBloc(
                         getIt<StaffRepository>(),
-                        getIt<AcademicYearsRepository>(),
-                        getIt<ClassesRepository>(),
-                        getIt<SectionsRepository>(),
+                        context.read<SectionOptionsSource>(),
                         member: profile.member,
                       )..add(const StaffClassTeacherStarted()),
+                    ),
+                    BlocProvider(
+                      create: (context) => StaffTeachingBloc(
+                        getIt<TeachingAssignmentsRepository>(),
+                        context.read<SectionOptionsSource>(),
+                        getIt<SubjectsRepository>(),
+                        member: profile.member,
+                      )..add(const StaffTeachingStarted()),
                     ),
                     // The Society Owner's alone. It reads when the part is first shown.
                     if (isOwner)
@@ -144,19 +162,33 @@ class StaffProfileView extends StatelessWidget {
                     BlocProvider(create: (_) => StaffBlockBloc(getIt<StaffRepository>(), profile.member)),
                   ],
                   // The Admin part reads again when the extra Institutions are saved, as those are the ones an Admin can
-                  // be made at. It is told here and not made again, so the tab keeps its place and a change on its way.
-                  child: BlocListener<StaffProfileBloc, StaffProfileState>(
-                    listenWhen: (previous, current) =>
-                        isOwner &&
-                        previous is StaffProfileLoaded &&
-                        current is StaffProfileLoaded &&
-                        !listEquals(
-                          previous.profile.member.institutionIds,
-                          current.profile.member.institutionIds,
+                  // be made at, and the teaching part offers the subjects as saved. They are told here and not made again,
+                  // so the tab keeps its place and a change on its way.
+                  child: MultiBlocListener(
+                    listeners: [
+                      if (isOwner)
+                        BlocListener<StaffProfileBloc, StaffProfileState>(
+                          listenWhen: (previous, current) =>
+                              previous is StaffProfileLoaded &&
+                              current is StaffProfileLoaded &&
+                              !listEquals(
+                                previous.profile.member.institutionIds,
+                                current.profile.member.institutionIds,
+                              ),
+                          listener: (context, state) => context.read<StaffAdminAccessBloc>().add(
+                            StaffAdminInstitutionsChanged((state as StaffProfileLoaded).profile.member.institutionIds),
+                          ),
                         ),
-                    listener: (context, state) => context.read<StaffAdminAccessBloc>().add(
-                      StaffAdminInstitutionsChanged((state as StaffProfileLoaded).profile.member.institutionIds),
-                    ),
+                      BlocListener<StaffProfileBloc, StaffProfileState>(
+                        listenWhen: (previous, current) =>
+                            previous is StaffProfileLoaded &&
+                            current is StaffProfileLoaded &&
+                            !listEquals(previous.profile.member.subjectIds, current.profile.member.subjectIds),
+                        listener: (context, state) => context.read<StaffTeachingBloc>().add(
+                          StaffTeachingSubjectsChanged((state as StaffProfileLoaded).profile.member.subjectIds),
+                        ),
+                      ),
+                    ],
                     child: Column(
                       children: [
                         Padding(
@@ -183,6 +215,7 @@ class StaffProfileView extends StatelessWidget {
                             StaffProfileTab.access => StaffAccessView(
                               below: [
                                 const StaffClassTeacherSection(),
+                                const StaffTeachingSection(),
                                 if (isOwner) StaffAdminAccessView(memberName: profile.member.fullName),
                               ],
                             ),

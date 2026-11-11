@@ -2,6 +2,7 @@ import 'package:bloc_test/bloc_test.dart';
 import 'package:bravynix_school_erp/app/di/injection.dart';
 import 'package:bravynix_school_erp/app/router/app_routes.dart';
 import 'package:bravynix_school_erp/core/network/api_failure.dart';
+import 'package:bravynix_school_erp/core/paging/items_page.dart';
 import 'package:bravynix_school_erp/core/theme/app_theme.dart';
 import 'package:bravynix_school_erp/features/academic_years/domain/academic_years_repository.dart';
 import 'package:bravynix_school_erp/features/classes/domain/classes_repository.dart';
@@ -15,6 +16,7 @@ import 'package:bravynix_school_erp/features/staff/presentation/view/staff_error
 import 'package:bravynix_school_erp/features/staff/presentation/view/staff_form_page.dart';
 import 'package:bravynix_school_erp/features/staff/presentation/view/staff_profile_page.dart';
 import 'package:bravynix_school_erp/features/subjects/domain/subjects_repository.dart';
+import 'package:bravynix_school_erp/features/teaching_assignments/domain/teaching_assignments_repository.dart';
 import 'package:bravynix_school_erp/l10n/gen/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -32,7 +34,40 @@ class _MockProfileBloc extends MockBloc<StaffProfileEvent, StaffProfileState> im
 void main() {
   late _MockProfileBloc bloc;
   setUpAll(() => registerFallbackValue(const StaffProfileRequested()));
-  setUp(() => bloc = _MockProfileBloc());
+  late MockStaffRepository staff;
+
+  // What the parts of the Access tab read from: the page makes their blocs, and the listeners reach for them, when the
+  // profile is shown.
+  setUp(() {
+    bloc = _MockProfileBloc();
+    staff = MockStaffRepository();
+    final subjects = MockSubjectsRepository();
+    final institutions = MockInstitutionsRepository();
+    when(subjects.subjects).thenAnswer((_) async => const []);
+    final years = MockAcademicYearsRepository();
+    final classes = MockClassesRepository();
+    final teaching = MockTeachingAssignmentsRepository();
+    when(institutions.institutions).thenAnswer((_) async => const []);
+    when(
+      () => teaching.assignments(
+        any(),
+        academicYearId: any(named: 'academicYearId'),
+        staffMemberId: any(named: 'staffMemberId'),
+        page: any(named: 'page'),
+      ),
+    ).thenAnswer((_) async => const ItemsPage([], page: 1, totalPages: 1));
+    when(() => years.years(any())).thenAnswer((_) async => const []);
+    when(() => classes.classes(any())).thenAnswer((_) async => const []);
+    getIt
+      ..registerSingleton<StaffRepository>(staff)
+      ..registerSingleton<SubjectsRepository>(subjects)
+      ..registerSingleton<InstitutionsRepository>(institutions)
+      ..registerSingleton<AcademicYearsRepository>(years)
+      ..registerSingleton<ClassesRepository>(classes)
+      ..registerSingleton<SectionsRepository>(MockSectionsRepository())
+      ..registerSingleton<TeachingAssignmentsRepository>(teaching);
+  });
+  tearDown(getIt.reset);
 
   Future<void> pump(
     WidgetTester tester,
@@ -90,28 +125,6 @@ void main() {
   });
 
   group('the tabs', () {
-    late MockStaffRepository staff;
-
-    setUp(() {
-      staff = MockStaffRepository();
-      final subjects = MockSubjectsRepository();
-      final institutions = MockInstitutionsRepository();
-      when(subjects.subjects).thenAnswer((_) async => const []);
-      final years = MockAcademicYearsRepository();
-      final classes = MockClassesRepository();
-      when(institutions.institutions).thenAnswer((_) async => const []);
-      when(() => years.years(any())).thenAnswer((_) async => const []);
-      when(() => classes.classes(any())).thenAnswer((_) async => const []);
-      getIt
-        ..registerSingleton<StaffRepository>(staff)
-        ..registerSingleton<SubjectsRepository>(subjects)
-        ..registerSingleton<InstitutionsRepository>(institutions)
-        ..registerSingleton<AcademicYearsRepository>(years)
-        ..registerSingleton<ClassesRepository>(classes)
-        ..registerSingleton<SectionsRepository>(MockSectionsRepository());
-    });
-    tearDown(getIt.reset);
-
     testWidgets('offer Personal, Access and Settings, on Personal at first', (tester) async {
       await pump(tester, const StaffProfileLoaded(kavyaProfile));
       for (final label in ['Personal', 'Access', 'Settings']) {

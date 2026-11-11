@@ -43,3 +43,14 @@ String staffClassTeacherErrorText(AppLocalizations l10n, ApiFailure failure) => 
   'NOT_FOUND' => l10n.errorClassTeacherNotFound,
   _ => staffErrorText(l10n, failure),
 };
+
+/// Copy for the codes ASG-02 and ASG-03 add (API design 10.5a): 409 DUPLICATE when they already teach the subject in the
+/// section that year, 422 SUBJECT_NOT_TAUGHT for a subject that is not on their list, 422 STAFF_BLOCKED, 422
+/// REFERENCE_INACTIVE for a year, section or subject that is deactivated, and 404 for an assignment, section or subject
+/// that is not found. The rest reads as for the other staff calls.
+String staffTeachingErrorText(AppLocalizations l10n, ApiFailure failure) => switch (failure.code) {
+  'DUPLICATE' => l10n.errorTeachingDuplicate,
+  'SUBJECT_NOT_TAUGHT' => l10n.errorSubjectNotTaught,
+  'NOT_FOUND' => l10n.errorTeachingNotFound,
+  _ => staffErrorText(l10n, failure),
+};

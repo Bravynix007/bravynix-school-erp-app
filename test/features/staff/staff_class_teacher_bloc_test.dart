@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:bloc_test/bloc_test.dart';
 import 'package:bravynix_school_erp/core/network/api_failure.dart';
 import 'package:bravynix_school_erp/features/staff/domain/staff_member.dart';
+import 'package:bravynix_school_erp/features/staff/presentation/bloc/section_options.dart';
 import 'package:bravynix_school_erp/features/staff/presentation/bloc/staff_class_teacher_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
@@ -40,8 +41,11 @@ void main() {
     when(() => sections.sections('k1')).thenAnswer((_) async => [sectionA, sectionB]);
   });
 
-  StaffClassTeacherBloc build({StaffMember? member}) =>
-      StaffClassTeacherBloc(staff, years, classes, sections, member: member ?? leadsA);
+  StaffClassTeacherBloc build({StaffMember? member}) => StaffClassTeacherBloc(
+    staff,
+    SectionOptionsSource(years: years, classes: classes, sections: sections),
+    member: member ?? leadsA,
+  );
 
   Future<StaffClassTeacherBloc> opened({StaffMember? member}) async {
     final bloc = build(member: member);
