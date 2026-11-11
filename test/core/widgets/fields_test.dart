@@ -8,6 +8,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import '../../helpers/clipped_text.dart';
 import '../../helpers/pump_app.dart';
 
 void main() {
@@ -139,6 +140,13 @@ void main() {
             children: [
               const AppTextField(key: Key('text'), label: 'Name'),
               AppDropdownField<String>(key: const Key('drop'), label: 'Class', items: items, onChanged: (_) {}),
+              AppDropdownField<String>(
+                key: const Key('hint'),
+                label: 'Class',
+                hint: 'Choose',
+                items: items,
+                onChanged: (_) {},
+              ),
               const AppDropdownField<String>(key: Key('off'), label: 'Class', items: items, onChanged: null),
               AppDropdownField<String>(
                 key: const Key('err'),
@@ -154,11 +162,75 @@ void main() {
       double fieldHeight(String key) =>
           tester.getSize(find.descendant(of: find.byKey(Key(key)), matching: find.byType(InputDecorator))).height;
       expect(fieldHeight('drop'), closeTo(fieldHeight('text'), 1));
+      expect(fieldHeight('hint'), closeTo(fieldHeight('text'), 1));
       expect(find.text('Pick a class'), findsOneWidget);
       await tester.tap(find.byKey(const Key('off')), warnIfMissed: false);
       await tester.pumpAndSettle();
       expect(find.text('Section A'), findsNothing);
     });
+    for (final width in [320.0, 360.0]) {
+      testWidgets(
+        'at 200% text on a $width px phone the chosen value, the hint and the open menu wrap and are not cut',
+        (
+          tester,
+        ) async {
+          const long = [
+            DropdownMenuItem(value: 'at', child: Text('Assistant teacher')),
+            DropdownMenuItem(value: '1A', child: Text('Class 1 · Section A')),
+          ];
+          await tester.pumpAppScaled(
+            Scaffold(
+              body: ListView(
+                padding: const EdgeInsets.all(AppSpacing.md),
+                children: [
+                  AppDropdownField<String>(
+                    key: const Key('role'),
+                    label: 'Role',
+                    value: 'at',
+                    items: long,
+                    onChanged: (_) {},
+                  ),
+                  AppDropdownField<String>(
+                    key: const Key('section'),
+                    label: 'Section',
+                    value: '1A',
+                    items: long,
+                    onChanged: (_) {},
+                  ),
+                  AppDropdownField<String>(
+                    key: const Key('hint'),
+                    label: 'Section',
+                    hint: 'Choose a class and section',
+                    items: long,
+                    onChanged: (_) {},
+                  ),
+                ],
+              ),
+            ),
+            textScale: 2,
+            size: Size(width, 900),
+          );
+          // At 320 px "Assistant" alone is wider than the box beside the arrow, so it can only break; it must still not be
+          // cut. At 360 px every word fits.
+          final valueBox = tester.getSize(find.text('Assistant teacher')).width;
+          for (final key in ['role', 'section', 'hint']) {
+            expect(tester.getRect(find.byKey(Key(key))).bottom, lessThan(900), reason: '$key is on screen');
+            expect(
+              clippedParagraphs(tester, within: find.byKey(Key(key)), unbreakable: valueBox),
+              isEmpty,
+              reason: key,
+            );
+          }
+          expect(tester.getSize(find.text('Assistant teacher')).height, greaterThan(tester.textHeight('Role') * 1.5));
+
+          await tester.tap(find.byKey(const Key('section')));
+          await tester.pumpAndSettle();
+          final menu = find.byWidgetPredicate((w) => w.runtimeType.toString().startsWith('_DropdownMenu<'));
+          expect(menu, findsOneWidget);
+          expect(clippedParagraphs(tester, within: menu, unbreakable: valueBox), isEmpty);
+        },
+      );
+    }
   });
 
   group('AppDateField', () {
