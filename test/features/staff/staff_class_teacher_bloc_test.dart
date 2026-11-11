@@ -168,6 +168,24 @@ void main() {
       expect(ready(bloc).changed, isTrue);
     });
 
+    test('clears the last refusal once another year is chosen', () async {
+      when(
+        () => staff.setClassTeacher(
+          any(),
+          academicYearId: any(named: 'academicYearId'),
+          sectionId: any(named: 'sectionId'),
+        ),
+      ).thenThrow(const ApiFailure(statusCode: 409, code: 'CLASS_TEACHER_TAKEN', message: 'x'));
+      final bloc = await opened();
+      bloc
+        ..add(const StaffClassTeacherSectionChosen('e2'))
+        ..add(const StaffClassTeacherSaved());
+      await waitFor(bloc, (state) => state.failure != null);
+      bloc.add(const StaffClassTeacherYearChosen('y0'));
+      await pumpEventQueue();
+      expect(ready(bloc).failure, isNull);
+    });
+
     test('clears the last refusal once something is chosen', () async {
       when(
         () => staff.setClassTeacher(
@@ -188,6 +206,28 @@ void main() {
   });
 
   group('saving', () {
+    test('clears the last refusal when it is sent again, so a success leaves none', () async {
+      var sent = 0;
+      when(
+        () => staff.setClassTeacher(
+          any(),
+          academicYearId: any(named: 'academicYearId'),
+          sectionId: any(named: 'sectionId'),
+        ),
+      ).thenAnswer((_) async {
+        if (sent++ == 0) throw const ApiFailure(statusCode: 409, code: 'CLASS_TEACHER_TAKEN', message: 'x');
+        return const ClassTeacherAssignment(academicYearId: 'y1', sectionId: 'e2');
+      });
+      final bloc = await opened();
+      bloc
+        ..add(const StaffClassTeacherSectionChosen('e2'))
+        ..add(const StaffClassTeacherSaved());
+      await waitFor(bloc, (state) => state.failure != null);
+      bloc.add(const StaffClassTeacherSaved());
+      await waitFor(bloc, (state) => state.failure == null && !state.saving);
+      expect(ready(bloc).assigned, {'y1': 'e2'});
+    });
+
     test('sends the year and the section chosen, and takes the assignment the API answers with', () async {
       when(() => staff.setClassTeacher('f1', academicYearId: 'y1', sectionId: 'e2')).thenAnswer(
         (_) async => const ClassTeacherAssignment(academicYearId: 'y1', sectionId: 'e2'),
