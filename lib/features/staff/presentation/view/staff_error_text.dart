@@ -51,3 +51,14 @@ String staffTeachingErrorText(AppLocalizations l10n, ApiFailure failure) => swit
   'NOT_FOUND' => l10n.errorTeachingNotFound,
   _ => staffErrorText(l10n, failure),
 };
+
+/// Copy for the codes STF-11 and STF-12 add (API design 6.8, 10.9): 422 INVALID_AADHAAR, 409 AADHAAR_EXISTS_IN_SOCIETY
+/// (without saying whose), 404 NOT_SET for a reveal when no number is held, and 429 REVEAL_LIMIT after ten reveals in
+/// a day. The rest reads as for the other staff calls.
+String staffIdentityErrorText(AppLocalizations l10n, ApiFailure failure) => switch (failure.code) {
+  'INVALID_AADHAAR' => l10n.errorAadhaarInvalid,
+  'AADHAAR_EXISTS_IN_SOCIETY' => l10n.errorAadhaarExists,
+  'NOT_SET' => l10n.errorAadhaarNotSet,
+  'REVEAL_LIMIT' => l10n.errorRevealLimit,
+  _ => staffErrorText(l10n, failure),
+};

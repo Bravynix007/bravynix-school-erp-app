@@ -25,12 +25,14 @@ import 'package:bravynix_school_erp/features/staff/presentation/bloc/section_opt
 import 'package:bravynix_school_erp/features/staff/presentation/bloc/staff_access_bloc.dart';
 import 'package:bravynix_school_erp/features/staff/presentation/bloc/staff_block_bloc.dart';
 import 'package:bravynix_school_erp/features/staff/presentation/bloc/staff_class_teacher_bloc.dart';
+import 'package:bravynix_school_erp/features/staff/presentation/bloc/staff_identity_bloc.dart';
 import 'package:bravynix_school_erp/features/staff/presentation/bloc/staff_profile_bloc.dart';
 import 'package:bravynix_school_erp/features/staff/presentation/view/staff_access_view.dart';
 import 'package:bravynix_school_erp/features/staff/presentation/view/staff_admin_access_section.dart';
 import 'package:bravynix_school_erp/features/staff/presentation/view/staff_class_teacher_section.dart';
 import 'package:bravynix_school_erp/features/staff/presentation/view/staff_error_text.dart';
 import 'package:bravynix_school_erp/features/staff/presentation/view/staff_form_page.dart';
+import 'package:bravynix_school_erp/features/staff/presentation/view/staff_identity_section.dart';
 import 'package:bravynix_school_erp/features/staff/presentation/view/staff_names.dart';
 import 'package:bravynix_school_erp/features/staff/presentation/view/staff_settings_view.dart';
 import 'package:bravynix_school_erp/features/staff/presentation/view/staff_teaching_section.dart';
@@ -138,6 +140,13 @@ class StaffProfileView extends StatelessWidget {
                         context.read<SectionOptionsSource>(),
                         member: profile.member,
                       )..add(const StaffClassTeacherStarted()),
+                    ),
+                    BlocProvider(
+                      create: (_) => StaffIdentityBloc(
+                        getIt<StaffRepository>(),
+                        staffMemberId: profile.member.id,
+                        masked: profile.member.aadhaarMasked,
+                      ),
                     ),
                     BlocProvider(create: (_) => StaffBlockBloc(getIt<StaffRepository>(), profile.member)),
                   ],
@@ -252,6 +261,8 @@ class _Details extends StatelessWidget {
             ],
           ),
         ),
+        const SizedBox(height: AppSpacing.md),
+        StaffIdentitySection(memberName: member.fullName),
         if (member.joiningDate != null || member.resignationDate != null || member.employmentType != null) ...[
           const SizedBox(height: AppSpacing.md),
           SectionHeader(title: l10n.staffSectionEmployment),

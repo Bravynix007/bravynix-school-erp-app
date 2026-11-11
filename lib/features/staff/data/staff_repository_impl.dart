@@ -1,5 +1,6 @@
 import 'package:bravynix_school_erp/core/network/api_client.dart';
 import 'package:bravynix_school_erp/core/network/api_envelope.dart';
+import 'package:bravynix_school_erp/core/network/json_shape.dart';
 import 'package:bravynix_school_erp/core/paging/items_page.dart';
 import 'package:bravynix_school_erp/features/staff/data/staff_models.dart';
 import 'package:bravynix_school_erp/features/staff/domain/staff_draft.dart';
@@ -79,4 +80,20 @@ class StaffRepositoryImpl implements StaffRepository {
         body: {'academicYearId': academicYearId, 'sectionId': sectionId},
         parse: (raw) => raw == null ? null : StaffModels.classTeacher(raw),
       );
+
+  @override
+  Future<String?> setAadhaar(String id, String? aadhaar) => _api.data(
+    '${_path(id)}/identity',
+    method: HttpMethod.put,
+    body: {'aadhaar': aadhaar},
+    parse: (raw) => jsonObject(raw)['aadhaarMasked'] as String?,
+  );
+
+  @override
+  Future<String> revealAadhaar(String id, {required String reason}) => _api.data(
+    '${_path(id)}/identity/reveal',
+    method: HttpMethod.post,
+    body: {'field': 'aadhaar', 'reason': reason},
+    parse: (raw) => jsonObject(raw)['value'] as String,
+  );
 }

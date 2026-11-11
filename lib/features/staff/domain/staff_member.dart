@@ -149,8 +149,7 @@ class ClassTeacherAssignment extends Equatable {
   List<Object?> get props => [academicYearId, sectionId];
 }
 
-/// A staff member as the profile shows them (STF-03), without the class teacher, admin access and identity fields that
-/// A3b and A4 add.
+/// A staff member as the profile shows them (STF-03).
 class StaffMember extends Equatable {
   const new({
     required this.id,
@@ -167,6 +166,7 @@ class StaffMember extends Equatable {
     this.subjectIds = const [],
     this.institutionIds = const [],
     this.classTeachers = const [],
+    this.aadhaarMasked,
     this.lastName,
     this.employeeCode,
     this.gender,
@@ -218,6 +218,10 @@ class StaffMember extends Equatable {
   /// The sections they lead as class teacher, one for each academic year (STF-09).
   final List<ClassTeacherAssignment> classTeachers;
 
+  /// The Aadhaar number with all but the last four digits hidden, such as "XXXX XXXX 1234"; null when none is set. The
+  /// API sends it to Owners and Admins only (STF-03).
+  final String? aadhaarMasked;
+
   String get fullName => [firstName, ?lastName].join(' ');
 
   @override
@@ -248,5 +252,6 @@ class StaffMember extends Equatable {
     subjectIds,
     institutionIds,
     classTeachers,
+    aadhaarMasked,
   ];
 }
