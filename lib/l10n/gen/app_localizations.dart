@@ -2713,6 +2713,126 @@ abstract class AppLocalizations {
   /// **'They are blocked. Unblock them under Settings first.'**
   String get errorStaffBlocked;
 
+  /// No description provided for @staffTeachingTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Teaching'**
+  String get staffTeachingTitle;
+
+  /// No description provided for @staffTeachingHelper.
+  ///
+  /// In en, this message translates to:
+  /// **'The subjects they teach in each section of an academic year. Only a subject on their list above can be given to them.'**
+  String get staffTeachingHelper;
+
+  /// No description provided for @staffTeachingYear.
+  ///
+  /// In en, this message translates to:
+  /// **'Academic year'**
+  String get staffTeachingYear;
+
+  /// No description provided for @staffTeachingNoYears.
+  ///
+  /// In en, this message translates to:
+  /// **'Add an academic year under School setup first.'**
+  String get staffTeachingNoYears;
+
+  /// No description provided for @staffTeachingNone.
+  ///
+  /// In en, this message translates to:
+  /// **'They do not teach in any section this year.'**
+  String get staffTeachingNone;
+
+  /// No description provided for @staffTeachingNoSubjects.
+  ///
+  /// In en, this message translates to:
+  /// **'Add subjects to their list above and save, then give them a section.'**
+  String get staffTeachingNoSubjects;
+
+  /// No description provided for @staffTeachingNoSections.
+  ///
+  /// In en, this message translates to:
+  /// **'Add a class with a section under School setup first.'**
+  String get staffTeachingNoSections;
+
+  /// No description provided for @staffTeachingChoose.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose'**
+  String get staffTeachingChoose;
+
+  /// No description provided for @staffTeachingSection.
+  ///
+  /// In en, this message translates to:
+  /// **'Section'**
+  String get staffTeachingSection;
+
+  /// No description provided for @staffTeachingSubject.
+  ///
+  /// In en, this message translates to:
+  /// **'Subject'**
+  String get staffTeachingSubject;
+
+  /// No description provided for @staffTeachingAssign.
+  ///
+  /// In en, this message translates to:
+  /// **'Assign'**
+  String get staffTeachingAssign;
+
+  /// No description provided for @staffTeachingEnd.
+  ///
+  /// In en, this message translates to:
+  /// **'End'**
+  String get staffTeachingEnd;
+
+  /// No description provided for @staffTeachingEndTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'End {subject} in {section}?'**
+  String staffTeachingEndTitle(String subject, String section);
+
+  /// No description provided for @staffTeachingEndMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'They stop teaching it. The record stays as history.'**
+  String get staffTeachingEndMessage;
+
+  /// No description provided for @staffTeachingEndAction.
+  ///
+  /// In en, this message translates to:
+  /// **'End assignment'**
+  String get staffTeachingEndAction;
+
+  /// No description provided for @staffTeachingAssigned.
+  ///
+  /// In en, this message translates to:
+  /// **'{subject} in {section} assigned'**
+  String staffTeachingAssigned(String subject, String section);
+
+  /// No description provided for @staffTeachingEnded.
+  ///
+  /// In en, this message translates to:
+  /// **'{subject} in {section} ended'**
+  String staffTeachingEnded(String subject, String section);
+
+  /// No description provided for @errorTeachingDuplicate.
+  ///
+  /// In en, this message translates to:
+  /// **'They already teach this subject in this section this year.'**
+  String get errorTeachingDuplicate;
+
+  /// No description provided for @errorSubjectNotTaught.
+  ///
+  /// In en, this message translates to:
+  /// **'This subject is not on their list. Add it to their subjects and save first.'**
+  String get errorSubjectNotTaught;
+
+  /// No description provided for @errorTeachingNotFound.
+  ///
+  /// In en, this message translates to:
+  /// **'The assignment, the section or the subject could not be found. It may have been ended or deactivated.'**
+  String get errorTeachingNotFound;
+
   /// No description provided for @errorRoleConflict.
   ///
   /// In en, this message translates to:

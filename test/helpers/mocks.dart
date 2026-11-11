@@ -11,6 +11,7 @@ import 'package:bravynix_school_erp/features/platform_dues/domain/platform_dues_
 import 'package:bravynix_school_erp/features/sections/domain/sections_repository.dart';
 import 'package:bravynix_school_erp/features/staff/domain/staff_repository.dart';
 import 'package:bravynix_school_erp/features/subjects/domain/subjects_repository.dart';
+import 'package:bravynix_school_erp/features/teaching_assignments/domain/teaching_assignments_repository.dart';
 import 'package:mocktail/mocktail.dart';
 
 class MockAcademicYearsRepository extends Mock implements AcademicYearsRepository;
@@ -36,6 +37,8 @@ class MockSectionsRepository extends Mock implements SectionsRepository;
 class MockStaffRepository extends Mock implements StaffRepository;
 
 class MockSubjectsRepository extends Mock implements SubjectsRepository;
+
+class MockTeachingAssignmentsRepository extends Mock implements TeachingAssignmentsRepository;
 
 const testPerson = Person(
   id: 'p1',

@@ -14,6 +14,7 @@ import 'package:bravynix_school_erp/features/sections/domain/sections_repository
 import 'package:bravynix_school_erp/features/staff/domain/staff_repository.dart';
 import 'package:bravynix_school_erp/features/staff/presentation/view/staff_profile_page.dart';
 import 'package:bravynix_school_erp/features/subjects/domain/subjects_repository.dart';
+import 'package:bravynix_school_erp/features/teaching_assignments/domain/teaching_assignments_repository.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -27,6 +28,7 @@ import '../../helpers/pump_app.dart';
 import '../../helpers/sections.dart';
 import '../../helpers/staff.dart';
 import '../../helpers/subjects.dart';
+import '../../helpers/teaching_assignments.dart';
 
 class _MockSessionBloc extends MockBloc<SessionEvent, SessionState> implements SessionBloc;
 
@@ -35,6 +37,7 @@ void main() {
   late MockSubjectsRepository subjects;
   late MockInstitutionsRepository institutions;
   late MockSectionsRepository sections;
+  late MockTeachingAssignmentsRepository teaching;
   late _MockSessionBloc session;
 
   setUp(() {
@@ -45,9 +48,18 @@ void main() {
     final years = MockAcademicYearsRepository();
     final classes = MockClassesRepository();
     sections = MockSectionsRepository();
+    teaching = MockTeachingAssignmentsRepository();
+    when(
+      () => teaching.assignments(
+        'i1',
+        academicYearId: 'y1',
+        staffMemberId: 'f1',
+        page: any(named: 'page'),
+      ),
+    ).thenAnswer((_) async => const ItemsPage([mathsInClass1A], page: 1, totalPages: 1));
     when(() => years.years('i1')).thenAnswer((_) async => [currentYear]);
     when(() => classes.classes('i1')).thenAnswer((_) async => [class1]);
-    when(() => sections.sections('k1')).thenAnswer((_) async => [sectionA]);
+    when(() => sections.sections('k1')).thenAnswer((_) async => [sectionA, sectionB]);
     when(() => staff.member('f1')).thenAnswer((_) async => kavyaMember);
     when(subjects.subjects).thenAnswer((_) async => const [art, maths]);
     when(() => institutions.admins(any(), page: any(named: 'page')))
@@ -65,7 +77,8 @@ void main() {
       ..registerSingleton<MastersRepository>(masters)
       ..registerSingleton<AcademicYearsRepository>(years)
       ..registerSingleton<ClassesRepository>(classes)
-      ..registerSingleton<SectionsRepository>(sections);
+      ..registerSingleton<SectionsRepository>(sections)
+      ..registerSingleton<TeachingAssignmentsRepository>(teaching);
     session = _MockSessionBloc();
   });
   tearDown(getIt.reset);
@@ -80,7 +93,7 @@ void main() {
         value: session,
         child: const StaffProfilePage(id: 'f1'),
       ),
-      size: const Size(400, 1600),
+      size: const Size(400, 2800),
     );
     await tester.pumpAndSettle();
   }
@@ -112,6 +125,70 @@ void main() {
     }
   });
 
+  group('the teaching section', () {
+    for (final role in [RoleCode.societyOwner, RoleCode.institutionAdmin]) {
+      testWidgets('is shown to a ${role.name}, with what the staff member teaches this year', (tester) async {
+        await pumpAs(tester, role);
+        await openTab(tester, 'Access');
+        expect(find.text('Teaching'), findsOneWidget);
+        expect(find.byKey(const Key('staffTeaching.end.g1')), findsOneWidget);
+        verify(
+          () => teaching.assignments(
+            'i1',
+            academicYearId: 'y1',
+            staffMemberId: 'f1',
+            page: any(named: 'page'),
+          ),
+        ).called(1);
+      });
+    }
+
+    testWidgets('gives them a subject in a section, through the API', (tester) async {
+      when(
+        () => teaching.assign(staffMemberId: 'f1', academicYearId: 'y1', sectionId: 'e2', subjectId: 'u1'),
+      ).thenAnswer((_) async => mathsInClass1Blue);
+      await pumpAs(tester, RoleCode.societyOwner);
+      await openTab(tester, 'Access');
+      await tester.ensureVisible(find.byKey(const Key('staffTeaching.section')));
+      await tester.tap(find.byKey(const Key('staffTeaching.section')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Class 1 · Blue').last);
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('staffTeaching.subject')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Mathematics').last);
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('staffTeaching.assign')));
+      await tester.pumpAndSettle();
+      verify(
+        () => teaching.assign(staffMemberId: 'f1', academicYearId: 'y1', sectionId: 'e2', subjectId: 'u1'),
+      ).called(1);
+      expect(find.text('Mathematics in Class 1 · Blue assigned'), findsOneWidget);
+    });
+  });
+
+  testWidgets('reads what they teach again once their subjects are saved, as those are what can be assigned', (
+    tester,
+  ) async {
+    when(() => staff.setSubjects('f1', ['u1', 'u2']))
+        .thenAnswer((_) async => kavyaWith(subjectIds: const ['u1', 'u2']));
+    await pumpAs(tester, RoleCode.societyOwner);
+    await openTab(tester, 'Access');
+    await tester.tap(find.byKey(const ValueKey('staffAccess.subject.u2')));
+    await tester.pump();
+    await tester.ensureVisible(find.byKey(const Key('staffAccess.saveSubjects')));
+    await tester.tap(find.byKey(const Key('staffAccess.saveSubjects')));
+    await tester.pumpAndSettle();
+    verify(
+      () => teaching.assignments(
+        'i1',
+        academicYearId: 'y1',
+        staffMemberId: 'f1',
+        page: any(named: 'page'),
+      ),
+    ).called(2);
+  });
+
   group('the class teacher section', () {
     for (final role in [RoleCode.societyOwner, RoleCode.institutionAdmin]) {
       testWidgets('is shown to a ${role.name}, with the sections of the home Institution', (tester) async {
@@ -137,7 +214,8 @@ void main() {
       isTrue,
     );
     expect(tester.widget<AppButton>(find.byKey(const Key('staffAccess.saveSubjects'))).onPressed, isNotNull);
-    verify(subjects.subjects).called(1);
+    // Once for the lists of the tab, which keeps them; the teaching part reads them again each time the tab opens.
+    verify(subjects.subjects).called(3);
   });
 
   testWidgets('keeps the names on the Personal tab after a block, a lift or a save', (tester) async {

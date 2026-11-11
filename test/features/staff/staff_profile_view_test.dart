@@ -2,6 +2,7 @@ import 'package:bloc_test/bloc_test.dart';
 import 'package:bravynix_school_erp/app/di/injection.dart';
 import 'package:bravynix_school_erp/app/router/app_routes.dart';
 import 'package:bravynix_school_erp/core/network/api_failure.dart';
+import 'package:bravynix_school_erp/core/paging/items_page.dart';
 import 'package:bravynix_school_erp/core/theme/app_theme.dart';
 import 'package:bravynix_school_erp/features/academic_years/domain/academic_years_repository.dart';
 import 'package:bravynix_school_erp/features/classes/domain/classes_repository.dart';
@@ -15,6 +16,7 @@ import 'package:bravynix_school_erp/features/staff/presentation/view/staff_error
 import 'package:bravynix_school_erp/features/staff/presentation/view/staff_form_page.dart';
 import 'package:bravynix_school_erp/features/staff/presentation/view/staff_profile_page.dart';
 import 'package:bravynix_school_erp/features/subjects/domain/subjects_repository.dart';
+import 'package:bravynix_school_erp/features/teaching_assignments/domain/teaching_assignments_repository.dart';
 import 'package:bravynix_school_erp/l10n/gen/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -89,7 +91,16 @@ void main() {
       when(subjects.subjects).thenAnswer((_) async => const []);
       final years = MockAcademicYearsRepository();
       final classes = MockClassesRepository();
+      final teaching = MockTeachingAssignmentsRepository();
       when(institutions.institutions).thenAnswer((_) async => const []);
+      when(
+        () => teaching.assignments(
+          any(),
+          academicYearId: any(named: 'academicYearId'),
+          staffMemberId: any(named: 'staffMemberId'),
+          page: any(named: 'page'),
+        ),
+      ).thenAnswer((_) async => const ItemsPage([], page: 1, totalPages: 1));
       when(() => years.years(any())).thenAnswer((_) async => const []);
       when(() => classes.classes(any())).thenAnswer((_) async => const []);
       getIt
@@ -98,7 +109,8 @@ void main() {
         ..registerSingleton<InstitutionsRepository>(institutions)
         ..registerSingleton<AcademicYearsRepository>(years)
         ..registerSingleton<ClassesRepository>(classes)
-        ..registerSingleton<SectionsRepository>(MockSectionsRepository());
+        ..registerSingleton<SectionsRepository>(MockSectionsRepository())
+        ..registerSingleton<TeachingAssignmentsRepository>(teaching);
     });
     tearDown(getIt.reset);
 

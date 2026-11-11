@@ -1,11 +1,9 @@
 import 'package:bloc/bloc.dart';
 import 'package:bravynix_school_erp/core/network/api_failure.dart';
 import 'package:bravynix_school_erp/features/academic_years/domain/academic_year.dart';
-import 'package:bravynix_school_erp/features/academic_years/domain/academic_years_repository.dart';
-import 'package:bravynix_school_erp/features/classes/domain/classes_repository.dart';
-import 'package:bravynix_school_erp/features/sections/domain/sections_repository.dart';
 import 'package:bravynix_school_erp/features/staff/domain/staff_member.dart';
 import 'package:bravynix_school_erp/features/staff/domain/staff_repository.dart';
+import 'package:bravynix_school_erp/features/staff/presentation/bloc/section_options.dart';
 import 'package:equatable/equatable.dart';
 
 sealed class StaffClassTeacherEvent extends Equatable {
@@ -64,19 +62,6 @@ class StaffClassTeacherFailed extends StaffClassTeacherState {
   List<Object?> get props => [failure];
 }
 
-/// A section the person can lead, with the class it is in, as it is shown to choose from.
-class SectionChoice extends Equatable {
-  const new({required this.id, required this.name});
-
-  final String id;
-
-  /// The class and the section, such as "Class 5 · A".
-  final String name;
-
-  @override
-  List<Object?> get props => [id, name];
-}
-
 /// The academic years and sections to choose from, the section they lead in each year ([assigned], by year), and what
 /// is chosen now for the [yearId], which may differ from what is assigned until it is saved.
 class StaffClassTeacherReady extends StaffClassTeacherState {
@@ -131,8 +116,7 @@ class StaffClassTeacherReady extends StaffClassTeacherState {
 /// The section a staff member leads as class teacher, for each academic year of their home Institution (STF-09). The
 /// section of a year is chosen from the sections of the Institution, and saved on its own.
 class StaffClassTeacherBloc extends Bloc<StaffClassTeacherEvent, StaffClassTeacherState> {
-  new(this._staff, this._years, this._classes, this._sections, {required this.member})
-    : super(const StaffClassTeacherLoading()) {
+  new(this._staff, this._options, {required this.member}) : super(const StaffClassTeacherLoading()) {
     on<StaffClassTeacherStarted>(_onStarted);
     on<StaffClassTeacherYearChosen>(
       (event, emit) => _ready((ready) {
@@ -156,9 +140,7 @@ class StaffClassTeacherBloc extends Bloc<StaffClassTeacherEvent, StaffClassTeach
   }
 
   final StaffRepository _staff;
-  final AcademicYearsRepository _years;
-  final ClassesRepository _classes;
-  final SectionsRepository _sections;
+  final SectionOptionsSource _options;
 
   /// The staff member as the section was opened.
   final StaffMember member;
@@ -170,25 +152,13 @@ class StaffClassTeacherBloc extends Bloc<StaffClassTeacherEvent, StaffClassTeach
   Future<void> _onStarted(StaffClassTeacherStarted event, Emitter<StaffClassTeacherState> emit) async {
     emit(const StaffClassTeacherLoading());
     try {
-      final home = member.homeInstitutionId;
-      final years = await _years.years(home);
-      final classes = await _classes.classes(home);
-      // A class without sections has nothing to read.
-      final withSections = [
-        for (final schoolClass in classes)
-          if (schoolClass.sectionCount > 0) schoolClass,
-      ];
-      final sections = await Future.wait([for (final schoolClass in withSections) _sections.sections(schoolClass.id)]);
+      final options = await _options.read(member.homeInstitutionId);
       final assigned = {for (final item in member.classTeachers) item.academicYearId: item.sectionId};
-      final yearId = years.where((year) => year.isCurrent).firstOrNull?.id ?? years.firstOrNull?.id;
+      final yearId = options.firstYearId;
       emit(
         StaffClassTeacherReady(
-          years: years,
-          sections: [
-            for (final (index, schoolClass) in withSections.indexed)
-              for (final section in sections[index])
-                SectionChoice(id: section.id, name: '${schoolClass.displayName} · ${section.displayName}'),
-          ],
+          years: options.years,
+          sections: options.sections,
           assigned: assigned,
           yearId: yearId,
           sectionId: assigned[yearId],

@@ -21,6 +21,7 @@ import 'package:bravynix_school_erp/features/sections/domain/sections_repository
 import 'package:bravynix_school_erp/features/staff/domain/staff_member.dart';
 import 'package:bravynix_school_erp/features/staff/domain/staff_profile.dart';
 import 'package:bravynix_school_erp/features/staff/domain/staff_repository.dart';
+import 'package:bravynix_school_erp/features/staff/presentation/bloc/section_options.dart';
 import 'package:bravynix_school_erp/features/staff/presentation/bloc/staff_access_bloc.dart';
 import 'package:bravynix_school_erp/features/staff/presentation/bloc/staff_block_bloc.dart';
 import 'package:bravynix_school_erp/features/staff/presentation/bloc/staff_class_teacher_bloc.dart';
@@ -32,6 +33,7 @@ import 'package:bravynix_school_erp/features/staff/presentation/view/staff_error
 import 'package:bravynix_school_erp/features/staff/presentation/view/staff_form_page.dart';
 import 'package:bravynix_school_erp/features/staff/presentation/view/staff_names.dart';
 import 'package:bravynix_school_erp/features/staff/presentation/view/staff_settings_view.dart';
+import 'package:bravynix_school_erp/features/staff/presentation/view/staff_teaching_section.dart';
 import 'package:bravynix_school_erp/features/subjects/domain/subjects_repository.dart';
 import 'package:bravynix_school_erp/l10n/gen/app_localizations.dart';
 import 'package:flutter/material.dart';
@@ -122,12 +124,18 @@ class StaffProfileView extends StatelessWidget {
                         canChangeInstitutions: isOwner,
                       )..add(const StaffAccessStarted()),
                     ),
+                    // The class teacher and the teaching parts choose from the same years and sections: read once.
+                    RepositoryProvider(
+                      create: (_) => SectionOptionsSource(
+                        years: getIt<AcademicYearsRepository>(),
+                        classes: getIt<ClassesRepository>(),
+                        sections: getIt<SectionsRepository>(),
+                      ),
+                    ),
                     BlocProvider(
-                      create: (_) => StaffClassTeacherBloc(
+                      create: (context) => StaffClassTeacherBloc(
                         getIt<StaffRepository>(),
-                        getIt<AcademicYearsRepository>(),
-                        getIt<ClassesRepository>(),
-                        getIt<SectionsRepository>(),
+                        context.read<SectionOptionsSource>(),
                         member: profile.member,
                       )..add(const StaffClassTeacherStarted()),
                     ),
@@ -159,6 +167,7 @@ class StaffProfileView extends StatelessWidget {
                           StaffProfileTab.access => StaffAccessView(
                             below: [
                               const StaffClassTeacherSection(),
+                              StaffTeachingSection(member: profile.member),
                               if (isOwner) StaffAdminAccessSection(member: profile.member),
                             ],
                           ),
