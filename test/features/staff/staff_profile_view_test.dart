@@ -6,6 +6,10 @@ import 'package:bravynix_school_erp/core/paging/items_page.dart';
 import 'package:bravynix_school_erp/core/theme/app_theme.dart';
 import 'package:bravynix_school_erp/features/academic_years/domain/academic_years_repository.dart';
 import 'package:bravynix_school_erp/features/classes/domain/classes_repository.dart';
+import 'package:bravynix_school_erp/features/documents/domain/documents_repository.dart';
+import 'package:bravynix_school_erp/features/files/domain/file_opening.dart';
+import 'package:bravynix_school_erp/features/files/domain/file_picking.dart';
+import 'package:bravynix_school_erp/features/files/domain/files_repository.dart';
 import 'package:bravynix_school_erp/features/institutions/domain/institutions_repository.dart';
 import 'package:bravynix_school_erp/features/sections/domain/sections_repository.dart';
 import 'package:bravynix_school_erp/features/staff/domain/staff_member.dart';
@@ -25,6 +29,8 @@ import 'package:go_router/go_router.dart';
 import 'package:mocktail/mocktail.dart';
 
 import '../../helpers/clipped_text.dart';
+import '../../helpers/documents.dart';
+import '../../helpers/files.dart';
 import '../../helpers/mocks.dart';
 import '../../helpers/pump_app.dart';
 import '../../helpers/staff.dart';
@@ -57,7 +63,13 @@ void main() {
     ).thenAnswer((_) async => const ItemsPage([], page: 1, totalPages: 1));
     when(() => years.years(any())).thenAnswer((_) async => const []);
     when(() => classes.classes(any())).thenAnswer((_) async => const []);
+    final documents = MockDocumentsRepository();
+    when(() => documents.staffDocuments(any())).thenAnswer((_) async => [degreeCertificate]);
     getIt
+      ..registerSingleton<DocumentsRepository>(documents)
+      ..registerSingleton<FilesRepository>(MockFilesRepository())
+      ..registerSingleton<FileOpening>(MockFileOpening())
+      ..registerSingleton<FilePicking>(FakeFilePicking())
       ..registerSingleton<StaffRepository>(staff)
       ..registerSingleton<SubjectsRepository>(subjects)
       ..registerSingleton<InstitutionsRepository>(institutions)
@@ -127,7 +139,7 @@ void main() {
   group('the tabs', () {
     testWidgets('offer Personal, Access and Settings, on Personal at first', (tester) async {
       await pump(tester, const StaffProfileLoaded(kavyaProfile));
-      for (final label in ['Personal', 'Access', 'Settings']) {
+      for (final label in ['Personal', 'Access', 'Documents', 'Settings']) {
         expect(find.text(label), findsOneWidget, reason: label);
       }
       expect(find.text('Anil Nair (Father)'), findsOneWidget);
@@ -141,6 +153,8 @@ void main() {
       verify(() => bloc.add(const StaffProfileTabChosen(StaffProfileTab.access))).called(1);
       await tester.tap(find.text('Settings'));
       verify(() => bloc.add(const StaffProfileTabChosen(StaffProfileTab.settings))).called(1);
+      await tester.tap(find.text('Documents'));
+      verify(() => bloc.add(const StaffProfileTabChosen(StaffProfileTab.documents))).called(1);
     });
 
     testWidgets('show the access of the staff member on Access, and not the personal details', (tester) async {
@@ -148,6 +162,14 @@ void main() {
       await tester.pump();
       expect(find.byKey(const Key('staffAccess.saveSubjects')), findsOneWidget);
       expect(find.text('Anil Nair (Father)'), findsNothing);
+    });
+
+    testWidgets('show the documents of the staff member on Documents', (tester) async {
+      await pump(tester, const StaffProfileLoaded(kavyaProfile, tab: StaffProfileTab.documents));
+      await tester.pump();
+      expect(find.byKey(const Key('staffDocuments.attach')), findsOneWidget);
+      expect(find.text('B.Ed certificate'), findsOneWidget);
+      expect(find.byKey(const Key('staffAccess.saveSubjects')), findsNothing);
     });
 
     testWidgets('show the Other Institutions list on Access to the Society Owner only', (tester) async {
@@ -252,10 +274,14 @@ void main() {
     expect(find.byKey(const Key('staffProfile.forbidden')), findsOneWidget);
   });
 
-  testWidgets('reads whole at a large text scale on a small phone', (tester) async {
-    await pump(tester, const StaffProfileLoaded(kavyaProfile), textScale: 2, size: const Size(320, 4000));
-    expect(tester.takeException(), isNull);
-    expect(clippedParagraphs(tester, unbreakable: 320 - 4 * 16), isEmpty);
+  testWidgets('reads whole at a large text scale on a small phone, with its four tabs', (tester) async {
+    for (final tab in [StaffProfileTab.personal, StaffProfileTab.documents]) {
+      await tester.pumpWidget(const SizedBox());
+      await pump(tester, StaffProfileLoaded(kavyaProfile, tab: tab), textScale: 2, size: const Size(320, 4000));
+      await tester.pump();
+      expect(tester.takeException(), isNull, reason: tab.name);
+      expect(clippedParagraphs(tester, unbreakable: 320 - 4 * 16), isEmpty, reason: tab.name);
+    }
   });
 
   testWidgets('staffErrorText says the caller own record is off limits and a missing one is gone', (tester) async {

@@ -62,6 +62,27 @@ void main() {
     );
   }
 
+  group('FIL-03', () {
+    test('asks for the link of a file and gives back its address, encoding the ID', () async {
+      final (:repository, :adapter) = build(
+        api: (_) async =>
+            okReply({'url': 'http://store.test/v1/get/token?sig=1', 'expiresAt': '2026-11-10T05:05:00.000Z'}),
+      );
+      final link = await repository.downloadLink('f/1');
+      expect(link, Uri.parse('http://store.test/v1/get/token?sig=1'));
+      expect(adapter.requests.single.method, 'GET');
+      expect(adapter.requests.single.uri.path, '/v1/files/f%2F1/download');
+    });
+
+    test('says why when the file cannot be read', () async {
+      final (:repository, adapter: _) = build(api: (_) async => errorReply(404, 'NOT_FOUND'));
+      await expectLater(
+        repository.downloadLink('f1'),
+        throwsA(isA<ApiFailure>().having((failure) => failure.code, 'code', 'NOT_FOUND')),
+      );
+    });
+  });
+
   group('models', () {
     test('read the ticket of FIL-01 and the file of FIL-02, ignoring what they do not show', () {
       final grant = FileModels.grant(grantJson());

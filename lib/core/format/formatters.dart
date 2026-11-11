@@ -27,6 +27,14 @@ abstract final class Formatters {
     return '${_two(ist.day)}-${_two(ist.month)}-${ist.year} ${_two(ist.hour)}:${_two(ist.minute)}';
   }
 
+  /// A file size → `812 B`, `412 KB`, `1.2 MB`: the sizes the server takes, up to 5 MB (API design 15.4).
+  static String fileSize(int bytes) {
+    if (bytes < 1024) return '$bytes B';
+    if (bytes < 1024 * 1024) return '${(bytes / 1024).round()} KB';
+    final tenths = (bytes * 10 / (1024 * 1024)).round();
+    return '${tenths ~/ 10}.${tenths % 10} MB';
+  }
+
   /// Money arrives as an exact decimal string ("124500.00", API design 7.3)
   /// and is formatted without passing through a double.
   static String money(String amount) {

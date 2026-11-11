@@ -22,6 +22,8 @@ final pdf = ChosenFile(
 
 final uploadedPhoto = UploadedFile(id: 'f1', contentType: 'image/png', sizeBytes: photo.sizeBytes);
 
+final uploadedPdf = UploadedFile(id: 'f9', contentType: 'application/pdf', sizeBytes: pdf.sizeBytes);
+
 Map<String, Object?> grantJson({String fileId = 'f1', String url = 'http://store.test/v1/local-storage/token'}) => {
   'fileId': fileId,
   'upload': {

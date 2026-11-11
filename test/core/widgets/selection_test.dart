@@ -73,6 +73,36 @@ void main() {
     }
   });
 
+  testWidgets('the tick is dropped where it would leave no room for the whole word', (tester) async {
+    await tester.pumpAppScaled(
+      const Scaffold(
+        body: ChoiceChipGroup<String>(
+          options: ['Documents', 'Settings'],
+          labelOf: _same,
+          selected: 'Documents',
+          onSelected: _ignore,
+        ),
+      ),
+      textScale: 2,
+      size: const Size(280, 640),
+    );
+    expect(find.byIcon(Icons.check), findsNothing);
+    final word = tester.renderObject<RenderParagraph>(find.text('Documents'));
+    expect(word.size.width, greaterThanOrEqualTo(word.getMinIntrinsicWidth(double.infinity)), reason: 'not broken');
+    await tester.pumpAppScaled(
+      const Scaffold(
+        body: ChoiceChipGroup<String>(
+          options: ['Documents', 'Settings'],
+          labelOf: _same,
+          selected: 'Documents',
+          onSelected: _ignore,
+        ),
+      ),
+      size: const Size(280, 640),
+    );
+    expect(find.byIcon(Icons.check), findsOneWidget);
+  });
+
   testWidgets('one-letter chips (sections, blood groups) are still 48 x 48 touch targets', (tester) async {
     final handle = tester.ensureSemantics();
     await tester.pumpApp(

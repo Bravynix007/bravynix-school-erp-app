@@ -65,3 +65,13 @@ String staffIdentityErrorText(AppLocalizations l10n, ApiFailure failure) => swit
   'REVEAL_LIMIT' => l10n.errorRevealLimit,
   _ => staffErrorText(l10n, failure),
 };
+
+/// Copy for the codes STF-14, STF-15, DOC-03 and FIL-03 add (API design 10.5b): 409 DUPLICATE when the file is attached
+/// already, 400 INVALID_VALUE for a file that is not ready or is for another purpose, and 404 for a staff member that is
+/// deactivated, a document that is gone, or a file that cannot be found. The rest reads as for the other staff calls.
+String staffDocumentErrorText(AppLocalizations l10n, ApiFailure failure) => switch (failure.code) {
+  'DUPLICATE' => l10n.errorDocumentDuplicate,
+  'INVALID_VALUE' => l10n.errorDocumentInvalid,
+  'NOT_FOUND' => l10n.errorDocumentNotFound,
+  _ => staffErrorText(l10n, failure),
+};

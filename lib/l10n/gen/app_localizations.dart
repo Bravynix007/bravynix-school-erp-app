@@ -2994,6 +2994,144 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'This email belongs to a platform account, which can\'t also be staff.'**
   String get errorRoleConflict;
+
+  /// No description provided for @filesChooseDocument.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a file'**
+  String get filesChooseDocument;
+
+  /// No description provided for @filesChangeDocument.
+  ///
+  /// In en, this message translates to:
+  /// **'Change file'**
+  String get filesChangeDocument;
+
+  /// No description provided for @filesRemoveDocument.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove file'**
+  String get filesRemoveDocument;
+
+  /// No description provided for @filesUploadingDocument.
+  ///
+  /// In en, this message translates to:
+  /// **'Uploading file'**
+  String get filesUploadingDocument;
+
+  /// No description provided for @filesDocumentHint.
+  ///
+  /// In en, this message translates to:
+  /// **'PDF, JPG, PNG or WebP, up to 5 MB.'**
+  String get filesDocumentHint;
+
+  /// No description provided for @staffTabDocuments.
+  ///
+  /// In en, this message translates to:
+  /// **'Documents'**
+  String get staffTabDocuments;
+
+  /// No description provided for @staffDocumentsHelper.
+  ///
+  /// In en, this message translates to:
+  /// **'Appointment letters, certificates and other files kept with this record.'**
+  String get staffDocumentsHelper;
+
+  /// No description provided for @staffDocumentsNone.
+  ///
+  /// In en, this message translates to:
+  /// **'No documents yet.'**
+  String get staffDocumentsNone;
+
+  /// No description provided for @staffDocumentAddTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Add a document'**
+  String get staffDocumentAddTitle;
+
+  /// No description provided for @staffDocumentTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Title'**
+  String get staffDocumentTitle;
+
+  /// No description provided for @staffDocumentAttach.
+  ///
+  /// In en, this message translates to:
+  /// **'Add document'**
+  String get staffDocumentAttach;
+
+  /// No description provided for @staffDocumentAdded.
+  ///
+  /// In en, this message translates to:
+  /// **'{title} added'**
+  String staffDocumentAdded(String title);
+
+  /// No description provided for @filesNameAndSize.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} · {size}'**
+  String filesNameAndSize(String name, String size);
+
+  /// No description provided for @staffDocumentOn.
+  ///
+  /// In en, this message translates to:
+  /// **'Added {date}'**
+  String staffDocumentOn(String date);
+
+  /// No description provided for @staffDocumentOpen.
+  ///
+  /// In en, this message translates to:
+  /// **'Open'**
+  String get staffDocumentOpen;
+
+  /// No description provided for @staffDocumentRemove.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove'**
+  String get staffDocumentRemove;
+
+  /// No description provided for @staffDocumentRemoveTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove {title}?'**
+  String staffDocumentRemoveTitle(String title);
+
+  /// No description provided for @staffDocumentRemoveMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'It leaves this record now. The file itself is deleted after 30 days.'**
+  String get staffDocumentRemoveMessage;
+
+  /// No description provided for @staffDocumentRemoved.
+  ///
+  /// In en, this message translates to:
+  /// **'{title} removed'**
+  String staffDocumentRemoved(String title);
+
+  /// No description provided for @errorDocumentDuplicate.
+  ///
+  /// In en, this message translates to:
+  /// **'This file is attached already.'**
+  String get errorDocumentDuplicate;
+
+  /// No description provided for @errorDocumentInvalid.
+  ///
+  /// In en, this message translates to:
+  /// **'This file cannot be attached. Remove it and choose it again.'**
+  String get errorDocumentInvalid;
+
+  /// No description provided for @errorDocumentNotFound.
+  ///
+  /// In en, this message translates to:
+  /// **'The document, the file or the staff member could not be found. It may have been removed.'**
+  String get errorDocumentNotFound;
+
+  /// No description provided for @errorDocumentOpen.
+  ///
+  /// In en, this message translates to:
+  /// **'This phone could not open the file.'**
+  String get errorDocumentOpen;
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {

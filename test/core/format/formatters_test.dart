@@ -11,6 +11,19 @@ void main() {
     });
   });
 
+  group('Formatters.fileSize', () {
+    test('says bytes, then whole kilobytes, then megabytes with one decimal', () {
+      expect(Formatters.fileSize(0), '0 B');
+      expect(Formatters.fileSize(912), '912 B');
+      expect(Formatters.fileSize(1023), '1023 B');
+      expect(Formatters.fileSize(1024), '1 KB');
+      expect(Formatters.fileSize(421888), '412 KB');
+      expect(Formatters.fileSize(1040000), '1016 KB');
+      expect(Formatters.fileSize(1258291), '1.2 MB');
+      expect(Formatters.fileSize(5242880), '5.0 MB');
+    });
+  });
+
   group('Formatters.money', () {
     const cases = {
       '124500.00': '₹1,24,500.00',
