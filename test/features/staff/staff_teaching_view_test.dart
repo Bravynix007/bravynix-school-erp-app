@@ -66,7 +66,7 @@ void main() {
     return tester.pumpAppScaled(
       BlocProvider<StaffTeachingBloc>.value(
         value: bloc,
-        child: const Scaffold(body: SingleChildScrollView(child: StaffTeachingView())),
+        child: const Scaffold(body: SingleChildScrollView(child: StaffTeachingSection())),
       ),
       textScale: textScale,
       size: size,

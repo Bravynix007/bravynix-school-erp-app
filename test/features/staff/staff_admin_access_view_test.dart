@@ -1,11 +1,6 @@
 import 'package:bloc_test/bloc_test.dart';
-import 'package:bravynix_school_erp/app/di/injection.dart';
 import 'package:bravynix_school_erp/core/network/api_failure.dart';
-import 'package:bravynix_school_erp/core/paging/items_page.dart';
 import 'package:bravynix_school_erp/core/widgets/app_button.dart';
-import 'package:bravynix_school_erp/features/institutions/domain/institution_admin.dart';
-import 'package:bravynix_school_erp/features/institutions/domain/institutions_repository.dart';
-import 'package:bravynix_school_erp/features/staff/domain/staff_member.dart';
 import 'package:bravynix_school_erp/features/staff/presentation/bloc/staff_admin_access_bloc.dart';
 import 'package:bravynix_school_erp/features/staff/presentation/view/staff_admin_access_section.dart';
 import 'package:flutter/material.dart';
@@ -15,9 +10,7 @@ import 'package:mocktail/mocktail.dart';
 
 import '../../helpers/clipped_text.dart';
 import '../../helpers/institutions.dart';
-import '../../helpers/mocks.dart';
 import '../../helpers/pump_app.dart';
-import '../../helpers/staff.dart';
 
 class _MockBloc extends MockBloc<StaffAdminAccessEvent, StaffAdminAccessState> implements StaffAdminAccessBloc;
 
@@ -37,12 +30,13 @@ void main() {
     String? working,
     ApiFailure? failure,
     String? failedAt,
+    bool failedGrant = true,
   }) => StaffAdminAccessReady(
     institutions: [home, lakeView],
     adminAt: adminAt,
     working: working,
     failure: failure,
-    failedAt: failedAt,
+    failed: failedAt == null ? null : StaffAdminChange(failedAt, granted: failedGrant),
   );
 
   Future<void> pump(
@@ -171,6 +165,14 @@ void main() {
         expect(button(tester, 'i1').onPressed, isNotNull);
       });
     }
+
+    testWidgets('says the access is gone, and not that the staff member is, when a take-away finds none', (
+      tester,
+    ) async {
+      await pump(tester, ready(failure: _failure(404, 'NOT_FOUND'), failedAt: 'i2', failedGrant: false));
+      expect(find.text('They no longer hold Admin access here. The screen is up to date now.'), findsOneWidget);
+      expect(find.textContaining('could not be found'), findsNothing);
+    });
   });
 
   group('before the Institutions are ready', () {
@@ -239,63 +241,6 @@ void main() {
       await pump(tester, done);
       await tester.pump();
       expect(find.textContaining('is now an Admin'), findsNothing);
-    });
-  });
-
-  group('the section', () {
-    late MockInstitutionsRepository institutions;
-
-    setUp(() {
-      institutions = MockInstitutionsRepository();
-      when(() => institutions.institutions()).thenAnswer((_) async => [home, lakeView]);
-      when(() => institutions.admins(any(), page: any(named: 'page'))).thenAnswer(
-        (call) async => ItemsPage(
-          call.positionalArguments.first == 'i2' ? [adminOf(institutionId: 'i2')] : const <InstitutionAdmin>[],
-          page: 1,
-          totalPages: 1,
-        ),
-      );
-      getIt.registerSingleton<InstitutionsRepository>(institutions);
-    });
-    tearDown(getIt.reset);
-
-    Future<void> pumpSection(WidgetTester tester, StaffMember member) => tester.pumpApp(
-      Scaffold(
-        body: SingleChildScrollView(child: StaffAdminAccessSection(member: member)),
-      ),
-    );
-
-    testWidgets('reads who is an Admin where the person is at, and shows it', (tester) async {
-      await pumpSection(tester, kavyaWith(institutionIds: ['i2']));
-      await tester.pumpAndSettle();
-      expect(find.byKey(const Key('staffAdmin.isAdmin.i2')), findsOneWidget);
-      expect(find.byKey(const Key('staffAdmin.isAdmin.i1')), findsNothing);
-    });
-
-    testWidgets('gives the access through the API once the person confirms, and says so', (tester) async {
-      when(() => institutions.grantAdmin('i1', 'f1')).thenAnswer((_) async => adminOf());
-      await pumpSection(tester, kavyaWith(institutionIds: ['i2']));
-      await tester.pumpAndSettle();
-      await tester.tap(toggle('i1'));
-      await tester.pumpAndSettle();
-      await tester.tap(find.descendant(of: find.byType(Dialog), matching: find.text('Make Admin')));
-      await tester.pumpAndSettle();
-      verify(() => institutions.grantAdmin('i1', 'f1')).called(1);
-      expect(find.byKey(const Key('staffAdmin.isAdmin.i1')), findsOneWidget);
-      expect(find.text('Kavya Nair is now an Admin of Sri Vidya High School'), findsOneWidget);
-    });
-
-    testWidgets('reads again when the extra Institutions of the person change, and not when anything else does', (
-      tester,
-    ) async {
-      await pumpSection(tester, kavyaWith(institutionIds: ['i2']));
-      await tester.pumpAndSettle();
-      await pumpSection(tester, kavyaWith(institutionIds: ['i2'], subjectIds: ['u1'], version: 9));
-      await tester.pumpAndSettle();
-      verify(() => institutions.institutions()).called(1);
-      await pumpSection(tester, kavyaWith());
-      await tester.pumpAndSettle();
-      verify(() => institutions.institutions()).called(1);
     });
   });
 

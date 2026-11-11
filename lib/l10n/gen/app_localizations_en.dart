@@ -1459,6 +1459,9 @@ class AppLocalizationsEn extends AppLocalizations {
       'They are not at this Institution. Add it under Other Institutions and save first.';
 
   @override
+  String get errorAdminNotHeld => 'They no longer hold Admin access here. The screen is up to date now.';
+
+  @override
   String get errorAdminAccountState => 'Their account cannot hold this role right now.';
 
   @override
