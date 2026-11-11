@@ -309,25 +309,30 @@ void main() {
       expect(ready(bloc).canAdd, isFalse);
     });
 
-    test('clears the last refusal once something is chosen', () async {
-      when(
-        () => assignments.assign(
-          staffMemberId: any(named: 'staffMemberId'),
-          academicYearId: any(named: 'academicYearId'),
-          sectionId: any(named: 'sectionId'),
-          subjectId: any(named: 'subjectId'),
-        ),
-      ).thenThrow(failure);
-      final bloc = await opened();
-      bloc
-        ..add(const StaffTeachingSectionChosen('e1'))
-        ..add(const StaffTeachingSubjectChosen('u1'))
-        ..add(const StaffTeachingAdded());
-      await waitFor(bloc, (state) => state.failure != null);
-      bloc.add(const StaffTeachingSubjectChosen(null));
-      await pumpEventQueue();
-      expect(ready(bloc).failure, isNull);
-    });
+    for (final (what, choose) in <(String, StaffTeachingEvent)>[
+      ('a section', const StaffTeachingSectionChosen('e2')),
+      ('a subject', const StaffTeachingSubjectChosen(null)),
+    ]) {
+      test('clears the last refusal once $what is chosen', () async {
+        when(
+          () => assignments.assign(
+            staffMemberId: any(named: 'staffMemberId'),
+            academicYearId: any(named: 'academicYearId'),
+            sectionId: any(named: 'sectionId'),
+            subjectId: any(named: 'subjectId'),
+          ),
+        ).thenThrow(failure);
+        final bloc = await opened();
+        bloc
+          ..add(const StaffTeachingSectionChosen('e1'))
+          ..add(const StaffTeachingSubjectChosen('u1'))
+          ..add(const StaffTeachingAdded());
+        await waitFor(bloc, (state) => state.failure != null);
+        bloc.add(choose);
+        await pumpEventQueue();
+        expect(ready(bloc).failure, isNull);
+      });
+    }
   });
 
   group('assigning', () {
@@ -362,6 +367,45 @@ void main() {
       expect(ready(bloc).subjectId, 'u1');
       expect(ready(bloc).adding, isFalse);
       expect(ready(bloc).assignments, [mathsInClass1A]);
+    });
+
+    test('sends the subject chosen, not the one offered first', () async {
+      makes(mathsInClass1Blue);
+      final bloc = await opened();
+      bloc.add(const StaffTeachingSubjectsChanged(['u1', 'u2']));
+      await waitFor(bloc, (state) => state.subjects.length == 2);
+      expect(ready(bloc).subjects.first, art);
+      bloc
+        ..add(const StaffTeachingSectionChosen('e2'))
+        ..add(const StaffTeachingSubjectChosen('u1'))
+        ..add(const StaffTeachingAdded());
+      await waitFor(bloc, (state) => state.done != null);
+      expect(ready(bloc).done, const StaffTeachingChange(mathsInClass1Blue, ended: false));
+    });
+
+    test('forgets the last refusal as soon as the next assign starts', () async {
+      final held = Completer<TeachingAssignment>();
+      var calls = 0;
+      when(
+        () => assignments.assign(staffMemberId: 'f1', academicYearId: 'y1', sectionId: 'e1', subjectId: 'u1'),
+      ).thenAnswer((_) {
+        calls++;
+        if (calls == 1) {
+          throw failure;
+        }
+        return held.future;
+      });
+      final bloc = await opened();
+      bloc
+        ..add(const StaffTeachingSectionChosen('e1'))
+        ..add(const StaffTeachingSubjectChosen('u1'))
+        ..add(const StaffTeachingAdded());
+      await waitFor(bloc, (state) => state.failure != null);
+      bloc.add(const StaffTeachingAdded());
+      await waitFor(bloc, (state) => state.adding);
+      expect(ready(bloc).failure, isNull);
+      held.complete(mathsInClass1Blue);
+      await waitFor(bloc, (state) => !state.adding);
     });
 
     test('sends nothing when the choice is not complete, or while another is on its way', () async {
