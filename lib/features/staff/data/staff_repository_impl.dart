@@ -70,4 +70,13 @@ class StaffRepositoryImpl implements StaffRepository {
     body: {'institutionIds': institutionIds},
     parse: StaffModels.member,
   );
+
+  @override
+  Future<ClassTeacherAssignment?> setClassTeacher(String id, {required String academicYearId, String? sectionId}) =>
+      _api.data(
+        '${_path(id)}/class-teacher',
+        method: HttpMethod.put,
+        body: {'academicYearId': academicYearId, 'sectionId': sectionId},
+        parse: (raw) => raw == null ? null : StaffModels.classTeacher(raw),
+      );
 }

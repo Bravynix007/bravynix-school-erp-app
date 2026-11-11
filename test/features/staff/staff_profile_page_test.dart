@@ -4,12 +4,15 @@ import 'package:bloc_test/bloc_test.dart';
 import 'package:bravynix_school_erp/app/di/injection.dart';
 import 'package:bravynix_school_erp/core/paging/items_page.dart';
 import 'package:bravynix_school_erp/core/widgets/app_button.dart';
+import 'package:bravynix_school_erp/features/academic_years/domain/academic_years_repository.dart';
 import 'package:bravynix_school_erp/features/auth/domain/auth_entities.dart';
 import 'package:bravynix_school_erp/features/auth/presentation/session/session_bloc.dart';
+import 'package:bravynix_school_erp/features/classes/domain/classes_repository.dart';
 import 'package:bravynix_school_erp/features/institutions/domain/institution_admin.dart';
 import 'package:bravynix_school_erp/features/institutions/domain/institutions_repository.dart';
 import 'package:bravynix_school_erp/features/masters/domain/master_entry.dart';
 import 'package:bravynix_school_erp/features/masters/domain/masters_repository.dart';
+import 'package:bravynix_school_erp/features/sections/domain/sections_repository.dart';
 import 'package:bravynix_school_erp/features/staff/domain/staff_member.dart';
 import 'package:bravynix_school_erp/features/staff/domain/staff_repository.dart';
 import 'package:bravynix_school_erp/features/staff/presentation/view/staff_profile_page.dart';
@@ -19,9 +22,12 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 
+import '../../helpers/academic_years.dart';
+import '../../helpers/classes.dart';
 import '../../helpers/institutions.dart';
 import '../../helpers/mocks.dart';
 import '../../helpers/pump_app.dart';
+import '../../helpers/sections.dart';
 import '../../helpers/staff.dart';
 import '../../helpers/subjects.dart';
 
@@ -31,6 +37,7 @@ void main() {
   late MockStaffRepository staff;
   late MockSubjectsRepository subjects;
   late MockInstitutionsRepository institutions;
+  late MockSectionsRepository sections;
   late _MockSessionBloc session;
 
   setUp(() {
@@ -38,6 +45,12 @@ void main() {
     subjects = MockSubjectsRepository();
     institutions = MockInstitutionsRepository();
     final masters = MockMastersRepository();
+    final years = MockAcademicYearsRepository();
+    final classes = MockClassesRepository();
+    sections = MockSectionsRepository();
+    when(() => years.years('i1')).thenAnswer((_) async => [currentYear]);
+    when(() => classes.classes('i1')).thenAnswer((_) async => [class1]);
+    when(() => sections.sections('k1')).thenAnswer((_) async => [sectionA]);
     when(() => staff.member('f1')).thenAnswer((_) async => kavyaMember);
     when(subjects.subjects).thenAnswer((_) async => const [art, maths]);
     when(() => institutions.admins(any(), page: any(named: 'page')))
@@ -52,7 +65,10 @@ void main() {
       ..registerSingleton<StaffRepository>(staff)
       ..registerSingleton<SubjectsRepository>(subjects)
       ..registerSingleton<InstitutionsRepository>(institutions)
-      ..registerSingleton<MastersRepository>(masters);
+      ..registerSingleton<MastersRepository>(masters)
+      ..registerSingleton<AcademicYearsRepository>(years)
+      ..registerSingleton<ClassesRepository>(classes)
+      ..registerSingleton<SectionsRepository>(sections);
     session = _MockSessionBloc();
   });
   tearDown(getIt.reset);
@@ -95,6 +111,17 @@ void main() {
         expect(find.byKey(const Key('staffAccess.saveInstitutions')), findsNothing);
         expect(find.text('Admin access'), findsNothing);
         verifyNever(institutions.institutions);
+      });
+    }
+  });
+
+  group('the class teacher section', () {
+    for (final role in [RoleCode.societyOwner, RoleCode.institutionAdmin]) {
+      testWidgets('is shown to a ${role.name}, with the sections of the home Institution', (tester) async {
+        await pumpAs(tester, role);
+        await openTab(tester, 'Access');
+        expect(find.byKey(const Key('staffClassTeacher.section')), findsOneWidget);
+        verify(() => sections.sections('k1')).called(1);
       });
     }
   });

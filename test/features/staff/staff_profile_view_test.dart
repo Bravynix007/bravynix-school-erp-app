@@ -3,7 +3,10 @@ import 'package:bravynix_school_erp/app/di/injection.dart';
 import 'package:bravynix_school_erp/app/router/app_routes.dart';
 import 'package:bravynix_school_erp/core/network/api_failure.dart';
 import 'package:bravynix_school_erp/core/theme/app_theme.dart';
+import 'package:bravynix_school_erp/features/academic_years/domain/academic_years_repository.dart';
+import 'package:bravynix_school_erp/features/classes/domain/classes_repository.dart';
 import 'package:bravynix_school_erp/features/institutions/domain/institutions_repository.dart';
+import 'package:bravynix_school_erp/features/sections/domain/sections_repository.dart';
 import 'package:bravynix_school_erp/features/staff/domain/staff_member.dart';
 import 'package:bravynix_school_erp/features/staff/domain/staff_profile.dart';
 import 'package:bravynix_school_erp/features/staff/domain/staff_repository.dart';
@@ -94,11 +97,18 @@ void main() {
       final subjects = MockSubjectsRepository();
       final institutions = MockInstitutionsRepository();
       when(subjects.subjects).thenAnswer((_) async => const []);
+      final years = MockAcademicYearsRepository();
+      final classes = MockClassesRepository();
       when(institutions.institutions).thenAnswer((_) async => const []);
+      when(() => years.years(any())).thenAnswer((_) async => const []);
+      when(() => classes.classes(any())).thenAnswer((_) async => const []);
       getIt
         ..registerSingleton<StaffRepository>(staff)
         ..registerSingleton<SubjectsRepository>(subjects)
-        ..registerSingleton<InstitutionsRepository>(institutions);
+        ..registerSingleton<InstitutionsRepository>(institutions)
+        ..registerSingleton<AcademicYearsRepository>(years)
+        ..registerSingleton<ClassesRepository>(classes)
+        ..registerSingleton<SectionsRepository>(MockSectionsRepository());
     });
     tearDown(getIt.reset);
 

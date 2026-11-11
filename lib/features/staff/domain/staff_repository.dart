@@ -41,4 +41,10 @@ abstract class StaffRepository {
   /// `REFERENCE_INACTIVE` for an Institution that is deactivated, 409 `ADMIN_ACCESS_HELD` for dropping one they
   /// administer.
   Future<StaffMember> setInstitutions(String id, List<String> institutionIds);
+
+  /// STF-09: the section the staff member leads as class teacher in the academic year of their home Institution;
+  /// [sectionId] null ends it. Answers with the assignment, or null after null. 409 `CLASS_TEACHER_TAKEN` when another
+  /// teacher leads the section that year, 422 `STAFF_BLOCKED`, 422 `REFERENCE_INACTIVE` for a year or section that is
+  /// deactivated, 404 for a year or section that is not found.
+  Future<ClassTeacherAssignment?> setClassTeacher(String id, {required String academicYearId, String? sectionId});
 }
