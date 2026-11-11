@@ -80,11 +80,23 @@ class _OptionChip extends StatelessWidget {
   /// The tick and its gap.
   static const double _tick = _tickIcon + AppSpacing.xs;
 
-  /// Once the chip has grown to hold its tick, so that none of it is left out of view.
+  /// Moves the row only as far as it takes for the whole chip to show, once the chip has grown to hold its tick. A
+  /// chip that is already whole leaves the row where it is; one cut off at the start is brought in from the start, any
+  /// other from the end.
   void _showWhole(BuildContext context) {
     final duration = reduceMotion(context) ? Duration.zero : const Duration(milliseconds: 200);
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (context.mounted) Scrollable.ensureVisible(context, duration: duration);
+      if (!context.mounted) return;
+      final viewport = Scrollable.of(context).context.findRenderObject()! as RenderBox;
+      final cutAtStart =
+          (context.findRenderObject()! as RenderBox).localToGlobal(Offset.zero, ancestor: viewport).dx < 0;
+      Scrollable.ensureVisible(
+        context,
+        duration: duration,
+        alignmentPolicy: cutAtStart
+            ? ScrollPositionAlignmentPolicy.keepVisibleAtStart
+            : ScrollPositionAlignmentPolicy.keepVisibleAtEnd,
+      );
     });
   }
 
@@ -125,13 +137,9 @@ class _OptionChip extends StatelessWidget {
                       Icon(Icons.check, size: _tickIcon, color: foreground),
                       const SizedBox(width: AppSpacing.xs),
                     ],
-                    // In a row that scrolls there is no width to share, so the label is left whole.
-                    if (scrollable)
-                      Text(label, style: labelStyle?.copyWith(color: foreground))
-                    else
-                      Flexible(
-                        child: Text(label, style: labelStyle?.copyWith(color: foreground)),
-                      ),
+                    Flexible(
+                      child: Text(label, style: labelStyle?.copyWith(color: foreground)),
+                    ),
                   ],
                 ),
               );

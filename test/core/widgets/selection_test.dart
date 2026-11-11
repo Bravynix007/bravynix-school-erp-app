@@ -105,22 +105,28 @@ void main() {
 
   group('ChoiceChipGroup in a row that scrolls', () {
     const labels = ['Personal', 'Access', 'Documents', 'Settings'];
+    const edge = 360 - AppSpacing.md;
 
-    Future<void> pump(
-      WidgetTester tester, {
-      String selected = 'Personal',
-      double scale = 1,
-      void Function(String)? onTap,
-    }) => tester.pumpAppScaled(
+    /// The chosen chip follows a tap, as it does under a bloc.
+    String? selected;
+
+    setUp(() => selected = null);
+
+    Future<void> pump(WidgetTester tester, {String initial = 'Personal', double scale = 1}) => tester.pumpAppScaled(
       Scaffold(
         body: Padding(
           padding: const EdgeInsets.all(AppSpacing.md),
-          child: ChoiceChipGroup<String>(
-            options: labels,
-            labelOf: _same,
-            selected: selected,
-            onSelected: onTap ?? _ignore,
-            scrollable: true,
+          child: StatefulBuilder(
+            builder: (context, setState) {
+              selected ??= initial;
+              return ChoiceChipGroup<String>(
+                options: labels,
+                labelOf: _same,
+                selected: selected,
+                onSelected: (label) => setState(() => selected = label),
+                scrollable: true,
+              );
+            },
           ),
         ),
       ),
@@ -128,37 +134,95 @@ void main() {
       size: const Size(360, 640),
     );
 
+    Rect chipOf(WidgetTester tester, String label) =>
+        tester.getRect(find.ancestor(of: find.text(label), matching: find.byType(InkWell)).first);
+
+    /// Scrolls the row until [label] ends [gap] short of the edge.
+    Future<void> endNear(WidgetTester tester, String label, double gap) async {
+      final position = tester.state<ScrollableState>(find.byType(Scrollable)).position;
+      position.jumpTo(position.pixels + chipOf(tester, label).right - (edge - gap));
+      await tester.pump();
+    }
+
     testWidgets('keeps every chip on one line and scrolls to the rest, where wrapping would use two', (tester) async {
       await pump(tester);
       expect(find.byType(Wrap), findsNothing);
       final tops = {for (final label in labels) tester.getTopLeft(find.text(label)).dy};
       expect(tops, hasLength(1), reason: 'one row');
-      expect(tester.getTopLeft(find.text('Settings')).dx, greaterThan(360 - AppSpacing.md), reason: 'beyond the edge');
+      expect(tester.getTopLeft(find.text('Settings')).dx, greaterThan(edge), reason: 'beyond the edge');
       await tester.drag(find.byType(SingleChildScrollView), const Offset(-400, 0));
       await tester.pump();
-      expect(tester.getTopLeft(find.text('Settings')).dx, lessThan(360 - AppSpacing.md), reason: 'now in view');
+      expect(tester.getTopLeft(find.text('Settings')).dx, lessThan(edge), reason: 'now in view');
     });
 
-    testWidgets('brings a chip that is tapped fully into view, with its tick', (tester) async {
-      String? picked;
-      await pump(tester, onTap: (label) => picked = label);
-      final chip = find.ancestor(of: find.text('Documents'), matching: find.byType(InkWell)).first;
-      const edge = 360 - AppSpacing.md;
-      await tester.drag(find.byType(SingleChildScrollView), Offset(edge - 40 - tester.getRect(chip).left, 0));
-      await tester.pump();
-      expect(tester.getRect(chip).right, greaterThan(edge), reason: 'cut off at the edge');
-      await tester.tapAt(tester.getRect(chip).topLeft + const Offset(8, 20));
-      expect(picked, 'Documents');
-      await pump(tester, selected: 'Documents');
+    testWidgets('brings a chip into view that its tick pushes past the edge, and one that is cut off', (tester) async {
+      // The tick moves from Settings, to the right of it, so what is left of Documents does not shrink to make room.
+      await pump(tester, initial: 'Settings');
+      await endNear(tester, 'Documents', 10);
+      expect(chipOf(tester, 'Documents').right, lessThan(edge), reason: 'whole before the tick');
+      await tester.tapAt(chipOf(tester, 'Documents').topLeft + const Offset(8, 20));
       await tester.pumpAndSettle();
-      final shown = tester.getRect(find.ancestor(of: find.text('Documents'), matching: find.byType(InkWell)).first);
-      expect(shown.right, lessThanOrEqualTo(360 - AppSpacing.md + 0.5));
-      expect(shown.left, greaterThanOrEqualTo(AppSpacing.md - 0.5));
       expect(find.byIcon(Icons.check), findsOneWidget);
+      expect(chipOf(tester, 'Documents').right, closeTo(edge, 0.5), reason: 'with the tick, moved just far enough');
+      await endNear(tester, 'Settings', -30);
+      expect(chipOf(tester, 'Settings').right, greaterThan(edge), reason: 'cut off at the edge');
+      await tester.tapAt(chipOf(tester, 'Settings').topLeft + const Offset(8, 20));
+      await tester.pumpAndSettle();
+      expect(chipOf(tester, 'Settings').right, closeTo(edge, 0.5));
+      expect(chipOf(tester, 'Settings').left, greaterThanOrEqualTo(AppSpacing.md));
+    });
+
+    testWidgets('brings a chip that is cut off at the start in from the start', (tester) async {
+      await pump(tester, initial: 'Settings');
+      await tester.drag(find.byType(SingleChildScrollView), const Offset(-400, 0));
+      await tester.pumpAndSettle();
+      final position = tester.state<ScrollableState>(find.byType(Scrollable)).position;
+      position.jumpTo(position.pixels + chipOf(tester, 'Access').left + 4);
+      await tester.pump();
+      expect(chipOf(tester, 'Access').left, lessThan(AppSpacing.md), reason: 'cut off at the start');
+      await tester.tapAt(chipOf(tester, 'Access').topRight - const Offset(8, -20));
+      await tester.pumpAndSettle();
+      expect(chipOf(tester, 'Access').left, closeTo(AppSpacing.md, 0.5));
+    });
+
+    testWidgets('leaves the row where it is when the chip tapped is already whole', (tester) async {
+      await pump(tester);
+      final before = chipOf(tester, 'Personal').left;
+      await tester.tap(find.text('Access'));
+      await tester.pumpAndSettle();
+      expect(chipOf(tester, 'Personal').left, before, reason: 'Personal is still where it was');
+      expect(find.byIcon(Icons.check), findsOneWidget);
+      await tester.tap(find.text('Personal'));
+      await tester.pumpAndSettle();
+      expect(chipOf(tester, 'Personal').left, before);
+    });
+
+    testWidgets('moves at once, with no animation, when the person asked for less motion', (tester) async {
+      tester.platformDispatcher.accessibilityFeaturesTestValue = const FakeAccessibilityFeatures(
+        disableAnimations: true,
+      );
+      addTearDown(tester.platformDispatcher.clearAccessibilityFeaturesTestValue);
+      await pump(tester);
+      await endNear(tester, 'Settings', -30);
+      await tester.tapAt(chipOf(tester, 'Settings').topLeft + const Offset(8, 20));
+      await tester.pump();
+      await tester.pump();
+      expect(chipOf(tester, 'Settings').right, closeTo(edge, 0.5), reason: 'in place a frame after the tap');
+    });
+
+    testWidgets('takes its time otherwise', (tester) async {
+      await pump(tester);
+      await endNear(tester, 'Settings', -30);
+      await tester.tapAt(chipOf(tester, 'Settings').topLeft + const Offset(8, 20));
+      await tester.pump();
+      await tester.pump();
+      expect(chipOf(tester, 'Settings').right, greaterThan(edge + 1), reason: 'still on its way');
+      await tester.pumpAndSettle();
+      expect(chipOf(tester, 'Settings').right, closeTo(edge, 0.5));
     });
 
     testWidgets('never breaks a word, even at 300% text', (tester) async {
-      await pump(tester, selected: 'Documents', scale: 3);
+      await pump(tester, initial: 'Documents', scale: 3);
       expect(tester.takeException(), isNull);
       for (final label in labels) {
         final word = tester.renderObject<RenderParagraph>(find.text(label));
