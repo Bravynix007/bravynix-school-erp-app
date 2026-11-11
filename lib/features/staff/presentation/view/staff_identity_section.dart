@@ -59,8 +59,11 @@ class StaffIdentitySection extends StatelessWidget {
         SectionHeader(title: l10n.staffIdentityTitle),
         const SizedBox(height: AppSpacing.xs),
         BlocConsumer<StaffIdentityBloc, StaffIdentityState>(
-          // A save or a clear that went through; a reveal ends in the sheet that shows it.
-          listenWhen: (previous, current) => previous is StaffIdentityWorking && current is StaffIdentityIdle,
+          // A save or a clear that went through; a reveal ends in the sheet that shows it, or in nothing when it was closed.
+          listenWhen: (previous, current) =>
+              previous is StaffIdentityWorking &&
+              previous.action != StaffIdentityAction.reveal &&
+              current is StaffIdentityIdle,
           listener: (context, state) => AppSnackbar.show(
             context,
             message: (state.masked == null) ? l10n.staffAadhaarCleared : l10n.staffAadhaarSaved,
@@ -73,8 +76,9 @@ class StaffIdentitySection extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   KeyValueRow(label: l10n.staffAadhaar, value: state.masked ?? l10n.staffAadhaarNotSet, mono: true),
-                  // A refusal to clear is shown here; the sheets of the other actions say theirs themselves.
-                  if (state case StaffIdentityRefused(:final failure, action: StaffIdentityAction.clear)) ...[
+                  // A refusal to clear is shown here, and so is one whose sheet was closed; the sheets that are open say
+                  // theirs themselves.
+                  if (state case StaffIdentityRefused(:final failure, inSheet: false)) ...[
                     const SizedBox(height: AppSpacing.xs),
                     InlineMessage.error(staffIdentityErrorText(l10n, failure), key: const Key('staffIdentity.error')),
                   ],
@@ -180,7 +184,7 @@ class _SetSheetState extends State<_SetSheet> {
             ),
             const SizedBox(height: AppSpacing.xs),
             Text(l10n.staffAadhaarSetHelper, style: Theme.of(context).textTheme.bodySmall),
-            if (state case StaffIdentityRefused(:final failure, action: StaffIdentityAction.save)) ...[
+            if (state case StaffIdentityRefused(:final failure, action: StaffIdentityAction.save, inSheet: true)) ...[
               const SizedBox(height: AppSpacing.sm),
               InlineMessage.error(staffIdentityErrorText(l10n, failure), key: const Key('staffIdentity.saveError')),
             ],
@@ -264,7 +268,7 @@ class _RevealSheetState extends State<_RevealSheet> {
             ),
             const SizedBox(height: AppSpacing.xs),
             Text(l10n.staffAadhaarReasonHelper, style: text.bodySmall),
-            if (state case StaffIdentityRefused(:final failure, action: StaffIdentityAction.reveal)) ...[
+            if (state case StaffIdentityRefused(:final failure, action: StaffIdentityAction.reveal, inSheet: true)) ...[
               const SizedBox(height: AppSpacing.sm),
               InlineMessage.error(staffIdentityErrorText(l10n, failure), key: const Key('staffIdentity.revealError')),
             ],
