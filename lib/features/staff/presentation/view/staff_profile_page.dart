@@ -30,6 +30,7 @@ import 'package:bravynix_school_erp/features/staff/presentation/view/staff_names
 import 'package:bravynix_school_erp/features/staff/presentation/view/staff_settings_view.dart';
 import 'package:bravynix_school_erp/features/subjects/domain/subjects_repository.dart';
 import 'package:bravynix_school_erp/l10n/gen/app_localizations.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -118,11 +119,30 @@ class StaffProfileView extends StatelessWidget {
                         canChangeInstitutions: isOwner,
                       )..add(const StaffAccessStarted()),
                     ),
+                    // The Society Owner's alone. It reads when the part is first shown.
+                    if (isOwner)
+                      BlocProvider(
+                        create: (_) => StaffAdminAccessBloc(
+                          getIt<InstitutionsRepository>(),
+                          member: profile.member,
+                        )..add(const StaffAdminAccessStarted()),
+                      ),
                     BlocProvider(create: (_) => StaffBlockBloc(getIt<StaffRepository>(), profile.member)),
                   ],
-                  child: _AdminAccessScope(
-                    isOwner: isOwner,
-                    member: profile.member,
+                  // The Admin part reads again when the extra Institutions are saved, as those are the ones an Admin can
+                  // be made at. It is told here and not made again, so the tab keeps its place and a change on its way.
+                  child: BlocListener<StaffProfileBloc, StaffProfileState>(
+                    listenWhen: (previous, current) =>
+                        isOwner &&
+                        previous is StaffProfileLoaded &&
+                        current is StaffProfileLoaded &&
+                        !listEquals(
+                          previous.profile.member.institutionIds,
+                          current.profile.member.institutionIds,
+                        ),
+                    listener: (context, state) => context.read<StaffAdminAccessBloc>().add(
+                      StaffAdminInstitutionsChanged((state as StaffProfileLoaded).profile.member.institutionIds),
+                    ),
                     child: Column(
                       children: [
                         Padding(
@@ -163,28 +183,6 @@ class StaffProfileView extends StatelessWidget {
       ),
     );
   }
-}
-
-/// The Admin access bloc, for the Society Owner, above the tabs with the others (so scrolling away or another tab does not
-/// lose a change on its way). It starts again when the extra Institutions of the staff member change, as those are the
-/// ones an Admin can be made at. It reads when the part is first shown.
-class _AdminAccessScope extends StatelessWidget {
-  const new({required this.isOwner, required this.member, required this.child});
-
-  final bool isOwner;
-  final StaffMember member;
-  final Widget child;
-
-  @override
-  Widget build(BuildContext context) => isOwner
-      ? BlocProvider(
-          key: ValueKey(member.institutionIds.join(',')),
-          create: (_) =>
-              StaffAdminAccessBloc(getIt<InstitutionsRepository>(), member: member)
-                ..add(const StaffAdminAccessStarted()),
-          child: child,
-        )
-      : child;
 }
 
 class _Details extends StatelessWidget {

@@ -24,9 +24,9 @@ String staffErrorText(AppLocalizations l10n, ApiFailure failure) => switch (fail
 /// STAFF_NOT_AT_INSTITUTION for an Institution that is neither their home nor one of their extra ones, 409 ALREADY_ADMIN,
 /// and 409 INVALID_STATE for an account that cannot hold a role. A 404 on a take-away (INS-10) means there was no access
 /// to take away; on a grant it means the staff member is gone. The rest reads as for the other staff calls.
-String staffAdminErrorText(AppLocalizations l10n, ApiFailure failure, {required bool granted}) =>
+String staffAdminErrorText(AppLocalizations l10n, ApiFailure failure, {bool takeAway = false}) =>
     switch (failure.code) {
-      'NOT_FOUND' when !granted => l10n.errorAdminNotHeld,
+      'NOT_FOUND' when takeAway => l10n.errorAdminNotHeld,
       'ALREADY_ADMIN' => l10n.errorAdminAlready,
       'STAFF_BLOCKED' => l10n.errorAdminStaffBlocked,
       'STAFF_NOT_AT_INSTITUTION' => l10n.errorAdminNotAtInstitution,
