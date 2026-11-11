@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:bloc_test/bloc_test.dart';
 import 'package:bravynix_school_erp/core/network/api_failure.dart';
 import 'package:bravynix_school_erp/core/widgets/app_button.dart';
@@ -247,6 +249,24 @@ void main() {
       await pump(tester, ready(ending: 'g1'));
       await tester.pump();
       expect(find.text('Mathematics in Class 1 · Section A ended'), findsOneWidget);
+    });
+
+    testWidgets('says it once, and not again when something else is chosen afterwards', (tester) async {
+      final done = ready().copyWith(done: () => const StaffTeachingChange(mathsInClass1Blue, ended: false));
+      final states = StreamController<StaffTeachingState>();
+      addTearDown(states.close);
+      whenListen(bloc, states.stream, initialState: ready(adding: true));
+      await pump(tester, ready(adding: true));
+      states.add(done);
+      await tester.pump();
+      expect(find.text('Mathematics in Class 1 · Blue assigned'), findsOneWidget);
+      tester.state<ScaffoldMessengerState>(find.byType(ScaffoldMessenger)).hideCurrentSnackBar();
+      await tester.pumpAndSettle();
+      expect(find.text('Mathematics in Class 1 · Blue assigned'), findsNothing);
+      states.add(done.copyWith(sectionId: () => 'e1'));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 300));
+      expect(find.text('Mathematics in Class 1 · Blue assigned'), findsNothing);
     });
 
     testWidgets('says nothing of a refusal', (tester) async {

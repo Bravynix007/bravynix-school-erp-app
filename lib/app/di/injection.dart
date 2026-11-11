@@ -1,5 +1,7 @@
 import 'package:bravynix_school_erp/app/config/app_config.dart';
+import 'package:bravynix_school_erp/core/device/android_screen_protection.dart';
 import 'package:bravynix_school_erp/core/device/app_device.dart';
+import 'package:bravynix_school_erp/core/device/screen_protection.dart';
 import 'package:bravynix_school_erp/core/l10n/app_language.dart';
 import 'package:bravynix_school_erp/core/network/api_client.dart';
 import 'package:bravynix_school_erp/core/network/api_events.dart';
@@ -96,6 +98,7 @@ Future<void> configureDependencies(
     ..registerLazySingleton<FilePicking>(DeviceFilePicking.new)
     ..registerLazySingleton<FileOpening>(UrlFileOpening.new)
     ..registerLazySingleton<DocumentsRepository>(() => DocumentsRepositoryImpl(api: getIt()))
+    ..registerLazySingleton<ScreenProtection>(AndroidScreenProtection.new)
     ..registerLazySingleton<AuthRepository>(
       () => AuthRepositoryImpl(
         api: getIt(),

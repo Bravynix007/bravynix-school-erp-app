@@ -1,3 +1,6 @@
+import 'dart:async';
+
+import 'package:bravynix_school_erp/core/device/screen_protection.dart';
 import 'package:bravynix_school_erp/core/model/aadhaar.dart';
 import 'package:bravynix_school_erp/core/theme/app_spacing.dart';
 import 'package:bravynix_school_erp/core/widgets/app_bottom_sheet.dart';
@@ -19,9 +22,12 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 /// The identity part of the personal tab (STF-11, STF-12): the Aadhaar number masked, with a way to set it, clear it,
 /// and show the whole number for a reason.
 class StaffIdentitySection extends StatelessWidget {
-  const new({required this.memberName, super.key});
+  const new({required this.memberName, required this.protection, super.key});
 
   final String memberName;
+
+  /// Keeps the screen out of screenshots while the whole number is shown.
+  final ScreenProtection protection;
 
   Future<void> _clear(BuildContext context) async {
     final l10n = AppLocalizations.of(context);
@@ -93,7 +99,7 @@ class StaffIdentitySection extends StatelessWidget {
                           : () => _open(
                               context,
                               title: l10n.staffAadhaarRevealTitle,
-                              builder: (_) => const _RevealSheet(),
+                              builder: (_) => _RevealSheet(protection: protection),
                             ),
                     ),
                   ],
@@ -204,7 +210,9 @@ class _SetSheetState extends State<_SetSheet> {
 
 /// The reason for seeing the number, and then the number for as long as the sheet is open.
 class _RevealSheet extends StatefulWidget {
-  const new();
+  const new({required this.protection});
+
+  final ScreenProtection protection;
 
   @override
   State<_RevealSheet> createState() => _RevealSheetState();
@@ -215,11 +223,21 @@ class _RevealSheetState extends State<_RevealSheet> {
 
   final _controller = TextEditingController();
   bool _tried = false;
+  bool _protected = false;
 
   @override
   void dispose() {
     _controller.dispose();
+    _protect(on: false);
     super.dispose();
+  }
+
+  /// The screen is kept out of screenshots from the moment the number is asked for, so that it is already so when it
+  /// arrives, until the sheet lets go of it: Done, a swipe, or the profile closing over it.
+  void _protect({required bool on}) {
+    if (on == _protected) return;
+    _protected = on;
+    unawaited(on ? widget.protection.protect() : widget.protection.release());
   }
 
   void _reveal(BuildContext context) {
@@ -232,7 +250,9 @@ class _RevealSheetState extends State<_RevealSheet> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final text = Theme.of(context).textTheme;
-    return BlocBuilder<StaffIdentityBloc, StaffIdentityState>(
+    return BlocConsumer<StaffIdentityBloc, StaffIdentityState>(
+      // Only a reveal is on its way while this sheet is open.
+      listener: (context, state) => _protect(on: state is StaffIdentityRevealed || state is StaffIdentityWorking),
       builder: (context, state) {
         if (state case StaffIdentityRevealed(:final value)) {
           return Column(

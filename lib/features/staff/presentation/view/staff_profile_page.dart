@@ -1,5 +1,6 @@
 import 'package:bravynix_school_erp/app/di/injection.dart';
 import 'package:bravynix_school_erp/app/router/app_routes.dart';
+import 'package:bravynix_school_erp/core/device/screen_protection.dart';
 import 'package:bravynix_school_erp/core/format/formatters.dart';
 import 'package:bravynix_school_erp/core/theme/app_spacing.dart';
 import 'package:bravynix_school_erp/core/widgets/app_card.dart';
@@ -365,7 +366,7 @@ class _Details extends StatelessWidget {
           ),
         ),
         const SizedBox(height: AppSpacing.md),
-        StaffIdentitySection(memberName: member.fullName),
+        StaffIdentitySection(memberName: member.fullName, protection: getIt<ScreenProtection>()),
         if (member.joiningDate != null || member.resignationDate != null || member.employmentType != null) ...[
           const SizedBox(height: AppSpacing.md),
           SectionHeader(title: l10n.staffSectionEmployment),

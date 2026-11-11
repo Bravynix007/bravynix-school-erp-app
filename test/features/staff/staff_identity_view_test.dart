@@ -12,15 +12,20 @@ import 'package:mocktail/mocktail.dart';
 import '../../helpers/clipped_text.dart';
 import '../../helpers/mocks.dart';
 import '../../helpers/pump_app.dart';
+import '../../helpers/screen_protection.dart';
 
 void main() {
   late MockStaffRepository staff;
+  late RecordingScreenProtection protection;
 
   const masked = 'XXXX XXXX 1234';
   const number = '234567890123';
   const reason = 'Checking the records';
 
-  setUp(() => staff = MockStaffRepository());
+  setUp(() {
+    staff = MockStaffRepository();
+    protection = RecordingScreenProtection();
+  });
 
   Future<StaffIdentityBloc> pump(
     WidgetTester tester, {
@@ -33,8 +38,10 @@ void main() {
     await tester.pumpAppScaled(
       BlocProvider.value(
         value: bloc,
-        child: const Scaffold(
-          body: SingleChildScrollView(child: StaffIdentitySection(memberName: 'Kavya Nair')),
+        child: Scaffold(
+          body: SingleChildScrollView(
+            child: StaffIdentitySection(memberName: 'Kavya Nair', protection: protection),
+          ),
         ),
       ),
       textScale: textScale,
@@ -220,6 +227,14 @@ void main() {
       verifyNever(() => staff.revealAadhaar(any(), reason: any(named: 'reason')));
     });
 
+    testWidgets('takes no more than 500 characters of the reason', (tester) async {
+      await pump(tester);
+      await open(tester, 'reveal');
+      await tester.enterText(find.byKey(const Key('staffIdentity.reason')), 'x' * 600);
+      await tester.pump();
+      expect(tester.widget<TextField>(find.byType(TextField)).controller!.text, hasLength(500));
+    });
+
     testWidgets('sends the reason, shows the number in groups with a note, and hides it again once done', (
       tester,
     ) async {
@@ -291,6 +306,78 @@ void main() {
     });
   });
 
+  group('the screen while the whole number is shown', () {
+    Future<void> reveal(WidgetTester tester) async {
+      await open(tester, 'reveal');
+      await tester.enterText(find.byKey(const Key('staffIdentity.reason')), reason);
+      await tester.tap(find.byKey(const Key('staffIdentity.show')));
+      await tester.pumpAndSettle();
+    }
+
+    setUp(() => when(() => staff.revealAadhaar(any(), reason: any(named: 'reason'))).thenAnswer((_) async => number));
+
+    testWidgets('is kept out of screenshots once the number shows, and let go of on Done', (tester) async {
+      await pump(tester);
+      expect(protection.changes, isEmpty);
+      await reveal(tester);
+      expect(find.text('2345 6789 0123'), findsOneWidget);
+      expect(protection.isOn, isTrue);
+      await tester.tap(find.byKey(const Key('staffIdentity.done')));
+      await tester.pumpAndSettle();
+      expect(protection.changes, ['protect', 'release']);
+    });
+
+    testWidgets('is let go of when the sheet is swiped away', (tester) async {
+      await pump(tester);
+      await reveal(tester);
+      await tester.tapAt(const Offset(5, 5));
+      await tester.pumpAndSettle();
+      expect(protection.changes, ['protect', 'release']);
+    });
+
+    testWidgets('is let go of when the profile is left with the sheet open', (tester) async {
+      await pump(tester);
+      await reveal(tester);
+      expect(protection.isOn, isTrue);
+      await tester.pumpWidget(const SizedBox());
+      await tester.pumpAndSettle();
+      expect(protection.isOn, isFalse);
+    });
+
+    testWidgets('is on from the moment the number is asked for, and off again when the sheet closes before it comes', (
+      tester,
+    ) async {
+      final held = Completer<String>();
+      when(() => staff.revealAadhaar(any(), reason: any(named: 'reason'))).thenAnswer((_) => held.future);
+      await pump(tester);
+      await open(tester, 'reveal');
+      await tester.enterText(find.byKey(const Key('staffIdentity.reason')), reason);
+      await tester.tap(find.byKey(const Key('staffIdentity.show')));
+      await tester.pump(const Duration(milliseconds: 100));
+      expect(protection.isOn, isTrue);
+      await tester.tapAt(const Offset(5, 5));
+      await tester.pumpAndSettle();
+      held.complete(number);
+      await tester.pumpAndSettle();
+      expect(protection.changes, ['protect', 'release']);
+    });
+
+    testWidgets('is left alone when the reason is refused, and by the other sheets', (tester) async {
+      when(() => staff.revealAadhaar(any(), reason: any(named: 'reason'))).thenThrow(const ApiFailure.network());
+      await pump(tester);
+      await reveal(tester);
+      expect(find.byKey(const Key('staffIdentity.revealError')), findsOneWidget);
+      expect(protection.changes, ['protect', 'release']);
+      await tester.tapAt(const Offset(5, 5));
+      await tester.pumpAndSettle();
+      protection.changes.clear();
+      await open(tester, 'set');
+      await tester.tapAt(const Offset(5, 5));
+      await tester.pumpAndSettle();
+      expect(protection.changes, isEmpty);
+    });
+  });
+
   group('a sheet closed while its call is on its way', () {
     testWidgets('does not keep the whole number, and the next Show asks for a reason again', (tester) async {
       final held = Completer<String>();
@@ -346,6 +433,9 @@ void main() {
       held.completeError(const ApiFailure(statusCode: 429, code: 'REVEAL_LIMIT', message: 'server words'));
       await tester.pumpAndSettle();
       expect(find.byKey(const Key('staffIdentity.error')), findsOneWidget);
+      expect(find.byKey(const Key('staffIdentity.revealError')), findsNothing);
+      await open(tester, 'reveal');
+      expect(find.byKey(const Key('staffIdentity.reason')), findsOneWidget);
       expect(find.byKey(const Key('staffIdentity.revealError')), findsNothing);
     });
 
