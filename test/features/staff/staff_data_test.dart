@@ -46,6 +46,14 @@ void main() {
       expect(leads, isNot(kavyaWith()));
     });
 
+    test('tell two staff members apart by the Aadhaar number they hold', () {
+      final holds = StaffModels.member({...memberJson(), 'aadhaarMasked': 'XXXX XXXX 1234'});
+      final none = StaffModels.member({...memberJson(), 'aadhaarMasked': null});
+      expect(holds.aadhaarMasked, 'XXXX XXXX 1234');
+      expect(none.aadhaarMasked, isNull);
+      expect(holds, isNot(none));
+    });
+
     test('read a row of the list, with and without the optional fields', () {
       expect(StaffModels.summary(summaryRow()), kavya);
       expect(
@@ -88,6 +96,7 @@ void main() {
         'emergencyContacts': <Object?>[],
         'isBlocked': true,
         'version': 1,
+        'aadhaarMasked': null,
         'person': {'id': 'u1', 'email': 'ravi@example.com'},
         'firstName': 'Ravi',
         'id': 'f2',
@@ -416,9 +425,37 @@ void main() {
       expect(member.institutionIds, ['i2']);
     });
 
+    test('set the Aadhaar number with PUT, and take the masked number the API answers with', () async {
+      final (:repository, :adapter) = build(() => okReply({'aadhaarMasked': 'XXXX XXXX 0123'}));
+      expect(await repository.setAadhaar('f/1', '234567890123'), 'XXXX XXXX 0123');
+      expect(adapter.requests.single.method, 'PUT');
+      expect(adapter.requests.single.uri.path, '/v1/staff/f%2F1/identity');
+      expect(bodyOf(adapter.requests.single), {'aadhaar': '234567890123'});
+    });
+
+    test('clear the Aadhaar number by sending null, and take the null answer as none', () async {
+      final (:repository, :adapter) = build(() => okReply({'aadhaarMasked': null}));
+      expect(await repository.setAadhaar('f1', null), isNull);
+      expect(bodyOf(adapter.requests.single), {'aadhaar': null});
+    });
+
+    test('reveal the Aadhaar number with POST, sending the field and the reason', () async {
+      final (:repository, :adapter) = build(
+        () => okReply({'field': 'aadhaar', 'value': '234567890123', 'revealedAt': '2026-11-11T10:00:00.000Z'}),
+      );
+      expect(await repository.revealAadhaar('f/1', reason: 'Checking the records'), '234567890123');
+      expect(adapter.requests.single.method, 'POST');
+      expect(adapter.requests.single.uri.path, '/v1/staff/f%2F1/identity/reveal');
+      expect(bodyOf(adapter.requests.single), {'field': 'aadhaar', 'reason': 'Checking the records'});
+    });
+
     for (final (status, code) in [
       (409, 'INVALID_STATE'),
       (409, 'CANNOT_ACT_ON_SELF'),
+      (409, 'AADHAAR_EXISTS_IN_SOCIETY'),
+      (422, 'INVALID_AADHAAR'),
+      (404, 'NOT_SET'),
+      (429, 'REVEAL_LIMIT'),
       (403, 'FORBIDDEN'),
       (409, 'SUBJECT_ASSIGNED'),
       (409, 'ADMIN_ACCESS_HELD'),
@@ -431,6 +468,8 @@ void main() {
           () => repository.unblock('f1'),
           () => repository.setSubjects('f1', ['u1']),
           () => repository.setInstitutions('f1', ['i2']),
+          () => repository.setAadhaar('f1', '234567890123'),
+          () => repository.revealAadhaar('f1', reason: 'Checking the records'),
         ]) {
           await expectLater(call(), throwsA(isA<ApiFailure>().having((failure) => failure.code, 'code', code)));
         }

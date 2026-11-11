@@ -1568,5 +1568,82 @@ class AppLocalizationsEn extends AppLocalizations {
       'The assignment, the section or the subject could not be found. It may have been ended or deactivated.';
 
   @override
+  String get staffIdentityTitle => 'Identity';
+
+  @override
+  String get staffAadhaar => 'Aadhaar number';
+
+  @override
+  String get staffAadhaarNotSet => 'Not set';
+
+  @override
+  String get staffAadhaarShow => 'Show full number';
+
+  @override
+  String get staffAadhaarSet => 'Set number';
+
+  @override
+  String get staffAadhaarChange => 'Change number';
+
+  @override
+  String get staffAadhaarClear => 'Clear number';
+
+  @override
+  String get staffAadhaarSetHelper => 'Twelve digits, the first one from 2 to 9. It is kept sealed and shown masked.';
+
+  @override
+  String get staffAadhaarInvalid => 'Check the twelve digits.';
+
+  @override
+  String get staffAadhaarSave => 'Save number';
+
+  @override
+  String get staffAadhaarSaved => 'Aadhaar number saved';
+
+  @override
+  String get staffAadhaarCleared => 'Aadhaar number cleared';
+
+  @override
+  String staffAadhaarClearTitle(String name) {
+    return 'Clear the Aadhaar number of $name?';
+  }
+
+  @override
+  String get staffAadhaarClearMessage => 'The number is removed. You can set it again later.';
+
+  @override
+  String get staffAadhaarRevealTitle => 'Show Aadhaar number';
+
+  @override
+  String get staffAadhaarReason => 'Reason (at least 10 characters)';
+
+  @override
+  String get staffAadhaarReasonHelper => 'It is kept in the audit log with your name.';
+
+  @override
+  String get staffAadhaarReasonShort => 'At least 10 characters.';
+
+  @override
+  String get staffAadhaarRevealAction => 'Show number';
+
+  @override
+  String get staffAadhaarRevealed => 'This is hidden again when you close it.';
+
+  @override
+  String get staffAadhaarDone => 'Done';
+
+  @override
+  String get errorAadhaarInvalid => 'This is not a valid Aadhaar number. Check the twelve digits.';
+
+  @override
+  String get errorAadhaarExists => 'This Aadhaar number is already recorded for someone in this Society.';
+
+  @override
+  String get errorAadhaarNotSet => 'No Aadhaar number is set for them.';
+
+  @override
+  String get errorRevealLimit => 'You have reached today\'s limit of ten reveals. Try again tomorrow.';
+
+  @override
   String get errorRoleConflict => 'This email belongs to a platform account, which can\'t also be staff.';
 }

@@ -80,6 +80,7 @@ abstract final class StaffModels {
       subjectIds: [for (final id in jsonList(json['subjectIds'])) id as String],
       institutionIds: [for (final id in jsonList(json['institutionIds'])) id as String],
       classTeachers: [for (final item in jsonList(json['classTeachers'])) classTeacher(item)],
+      aadhaarMasked: json['aadhaarMasked'] as String?,
     );
   }
 

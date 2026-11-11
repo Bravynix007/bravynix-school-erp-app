@@ -2839,6 +2839,156 @@ abstract class AppLocalizations {
   /// **'The assignment, the section or the subject could not be found. It may have been ended or deactivated.'**
   String get errorTeachingNotFound;
 
+  /// No description provided for @staffIdentityTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Identity'**
+  String get staffIdentityTitle;
+
+  /// No description provided for @staffAadhaar.
+  ///
+  /// In en, this message translates to:
+  /// **'Aadhaar number'**
+  String get staffAadhaar;
+
+  /// No description provided for @staffAadhaarNotSet.
+  ///
+  /// In en, this message translates to:
+  /// **'Not set'**
+  String get staffAadhaarNotSet;
+
+  /// No description provided for @staffAadhaarShow.
+  ///
+  /// In en, this message translates to:
+  /// **'Show full number'**
+  String get staffAadhaarShow;
+
+  /// No description provided for @staffAadhaarSet.
+  ///
+  /// In en, this message translates to:
+  /// **'Set number'**
+  String get staffAadhaarSet;
+
+  /// No description provided for @staffAadhaarChange.
+  ///
+  /// In en, this message translates to:
+  /// **'Change number'**
+  String get staffAadhaarChange;
+
+  /// No description provided for @staffAadhaarClear.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear number'**
+  String get staffAadhaarClear;
+
+  /// No description provided for @staffAadhaarSetHelper.
+  ///
+  /// In en, this message translates to:
+  /// **'Twelve digits, the first one from 2 to 9. It is kept sealed and shown masked.'**
+  String get staffAadhaarSetHelper;
+
+  /// No description provided for @staffAadhaarInvalid.
+  ///
+  /// In en, this message translates to:
+  /// **'Check the twelve digits.'**
+  String get staffAadhaarInvalid;
+
+  /// No description provided for @staffAadhaarSave.
+  ///
+  /// In en, this message translates to:
+  /// **'Save number'**
+  String get staffAadhaarSave;
+
+  /// No description provided for @staffAadhaarSaved.
+  ///
+  /// In en, this message translates to:
+  /// **'Aadhaar number saved'**
+  String get staffAadhaarSaved;
+
+  /// No description provided for @staffAadhaarCleared.
+  ///
+  /// In en, this message translates to:
+  /// **'Aadhaar number cleared'**
+  String get staffAadhaarCleared;
+
+  /// No description provided for @staffAadhaarClearTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear the Aadhaar number of {name}?'**
+  String staffAadhaarClearTitle(String name);
+
+  /// No description provided for @staffAadhaarClearMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'The number is removed. You can set it again later.'**
+  String get staffAadhaarClearMessage;
+
+  /// No description provided for @staffAadhaarRevealTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Show Aadhaar number'**
+  String get staffAadhaarRevealTitle;
+
+  /// No description provided for @staffAadhaarReason.
+  ///
+  /// In en, this message translates to:
+  /// **'Reason (at least 10 characters)'**
+  String get staffAadhaarReason;
+
+  /// No description provided for @staffAadhaarReasonHelper.
+  ///
+  /// In en, this message translates to:
+  /// **'It is kept in the audit log with your name.'**
+  String get staffAadhaarReasonHelper;
+
+  /// No description provided for @staffAadhaarReasonShort.
+  ///
+  /// In en, this message translates to:
+  /// **'At least 10 characters.'**
+  String get staffAadhaarReasonShort;
+
+  /// No description provided for @staffAadhaarRevealAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Show number'**
+  String get staffAadhaarRevealAction;
+
+  /// No description provided for @staffAadhaarRevealed.
+  ///
+  /// In en, this message translates to:
+  /// **'This is hidden again when you close it.'**
+  String get staffAadhaarRevealed;
+
+  /// No description provided for @staffAadhaarDone.
+  ///
+  /// In en, this message translates to:
+  /// **'Done'**
+  String get staffAadhaarDone;
+
+  /// No description provided for @errorAadhaarInvalid.
+  ///
+  /// In en, this message translates to:
+  /// **'This is not a valid Aadhaar number. Check the twelve digits.'**
+  String get errorAadhaarInvalid;
+
+  /// No description provided for @errorAadhaarExists.
+  ///
+  /// In en, this message translates to:
+  /// **'This Aadhaar number is already recorded for someone in this Society.'**
+  String get errorAadhaarExists;
+
+  /// No description provided for @errorAadhaarNotSet.
+  ///
+  /// In en, this message translates to:
+  /// **'No Aadhaar number is set for them.'**
+  String get errorAadhaarNotSet;
+
+  /// No description provided for @errorRevealLimit.
+  ///
+  /// In en, this message translates to:
+  /// **'You have reached today\'s limit of ten reveals. Try again tomorrow.'**
+  String get errorRevealLimit;
+
   /// No description provided for @errorRoleConflict.
   ///
   /// In en, this message translates to:

@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:bloc_test/bloc_test.dart';
 import 'package:bravynix_school_erp/app/di/injection.dart';
+import 'package:bravynix_school_erp/core/device/screen_protection.dart';
 import 'package:bravynix_school_erp/core/paging/items_page.dart';
 import 'package:bravynix_school_erp/core/widgets/app_button.dart';
 import 'package:bravynix_school_erp/features/academic_years/domain/academic_years_repository.dart';
@@ -29,6 +30,7 @@ import '../../helpers/classes.dart';
 import '../../helpers/institutions.dart';
 import '../../helpers/mocks.dart';
 import '../../helpers/pump_app.dart';
+import '../../helpers/screen_protection.dart';
 import '../../helpers/sections.dart';
 import '../../helpers/staff.dart';
 import '../../helpers/subjects.dart';
@@ -82,7 +84,8 @@ void main() {
       ..registerSingleton<AcademicYearsRepository>(years)
       ..registerSingleton<ClassesRepository>(classes)
       ..registerSingleton<SectionsRepository>(sections)
-      ..registerSingleton<TeachingAssignmentsRepository>(teaching);
+      ..registerSingleton<TeachingAssignmentsRepository>(teaching)
+      ..registerSingleton<ScreenProtection>(RecordingScreenProtection());
     session = _MockSessionBloc();
   });
   tearDown(getIt.reset);
@@ -288,6 +291,39 @@ void main() {
       held.complete(mathsInClass1Blue);
       await tester.pumpAndSettle();
       expect(find.byKey(const Key('staffTeaching.end.g2')), findsOneWidget);
+    });
+  });
+
+  group('the identity part', () {
+    for (final role in [RoleCode.societyOwner, RoleCode.institutionAdmin]) {
+      testWidgets('is shown to a ${role.name} on the Personal tab, masked, and shows the whole number for a reason', (
+        tester,
+      ) async {
+        when(() => staff.revealAadhaar('f1', reason: 'Checking the records')).thenAnswer((_) async => '234567890123');
+        await pumpAs(tester, role);
+        await tester.ensureVisible(find.text('XXXX XXXX 1234'));
+        expect(find.text('Identity'), findsOneWidget);
+        await tester.tap(find.byKey(const Key('staffIdentity.reveal')));
+        await tester.pumpAndSettle();
+        await tester.enterText(find.byKey(const Key('staffIdentity.reason')), 'Checking the records');
+        await tester.tap(find.byKey(const Key('staffIdentity.show')));
+        await tester.pumpAndSettle();
+        expect(find.text('2345 6789 0123'), findsOneWidget);
+      });
+    }
+
+    testWidgets('keeps the number it holds when the person goes to another tab and back', (tester) async {
+      when(() => staff.setAadhaar('f1', null)).thenAnswer((_) async => null);
+      await pumpAs(tester, RoleCode.societyOwner);
+      await tester.ensureVisible(find.byKey(const Key('staffIdentity.clear')));
+      await tester.tap(find.byKey(const Key('staffIdentity.clear')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.descendant(of: find.byType(Dialog), matching: find.text('Clear number')));
+      await tester.pumpAndSettle();
+      await openTab(tester, 'Settings');
+      await openTab(tester, 'Personal');
+      await tester.ensureVisible(find.text('Not set'));
+      expect(find.text('Not set'), findsOneWidget);
     });
   });
 

@@ -1,5 +1,6 @@
 import 'package:bravynix_school_erp/app/di/injection.dart';
 import 'package:bravynix_school_erp/app/router/app_routes.dart';
+import 'package:bravynix_school_erp/core/device/screen_protection.dart';
 import 'package:bravynix_school_erp/core/format/formatters.dart';
 import 'package:bravynix_school_erp/core/theme/app_spacing.dart';
 import 'package:bravynix_school_erp/core/widgets/app_card.dart';
@@ -26,6 +27,7 @@ import 'package:bravynix_school_erp/features/staff/presentation/bloc/staff_acces
 import 'package:bravynix_school_erp/features/staff/presentation/bloc/staff_admin_access_bloc.dart';
 import 'package:bravynix_school_erp/features/staff/presentation/bloc/staff_block_bloc.dart';
 import 'package:bravynix_school_erp/features/staff/presentation/bloc/staff_class_teacher_bloc.dart';
+import 'package:bravynix_school_erp/features/staff/presentation/bloc/staff_identity_bloc.dart';
 import 'package:bravynix_school_erp/features/staff/presentation/bloc/staff_profile_bloc.dart';
 import 'package:bravynix_school_erp/features/staff/presentation/bloc/staff_teaching_bloc.dart';
 import 'package:bravynix_school_erp/features/staff/presentation/view/staff_access_view.dart';
@@ -33,6 +35,7 @@ import 'package:bravynix_school_erp/features/staff/presentation/view/staff_admin
 import 'package:bravynix_school_erp/features/staff/presentation/view/staff_class_teacher_section.dart';
 import 'package:bravynix_school_erp/features/staff/presentation/view/staff_error_text.dart';
 import 'package:bravynix_school_erp/features/staff/presentation/view/staff_form_page.dart';
+import 'package:bravynix_school_erp/features/staff/presentation/view/staff_identity_section.dart';
 import 'package:bravynix_school_erp/features/staff/presentation/view/staff_names.dart';
 import 'package:bravynix_school_erp/features/staff/presentation/view/staff_settings_view.dart';
 import 'package:bravynix_school_erp/features/staff/presentation/view/staff_teaching_section.dart';
@@ -142,6 +145,13 @@ class StaffProfileView extends StatelessWidget {
                         context.read<SectionOptionsSource>(),
                         member: profile.member,
                       )..add(const StaffClassTeacherStarted()),
+                    ),
+                    BlocProvider(
+                      create: (_) => StaffIdentityBloc(
+                        getIt<StaffRepository>(),
+                        staffMemberId: profile.member.id,
+                        masked: profile.member.aadhaarMasked,
+                      ),
                     ),
                     BlocProvider(
                       create: (context) => StaffTeachingBloc(
@@ -301,6 +311,8 @@ class _Details extends StatelessWidget {
             ],
           ),
         ),
+        const SizedBox(height: AppSpacing.md),
+        StaffIdentitySection(memberName: member.fullName, protection: getIt<ScreenProtection>()),
         if (member.joiningDate != null || member.resignationDate != null || member.employmentType != null) ...[
           const SizedBox(height: AppSpacing.md),
           SectionHeader(title: l10n.staffSectionEmployment),

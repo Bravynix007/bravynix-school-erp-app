@@ -47,4 +47,13 @@ abstract class StaffRepository {
   /// teacher leads the section that year, 422 `STAFF_BLOCKED`, 422 `REFERENCE_INACTIVE` for a year or section that is
   /// deactivated, 404 for a year or section that is not found.
   Future<ClassTeacherAssignment?> setClassTeacher(String id, {required String academicYearId, String? sectionId});
+
+  /// STF-11: sets the Aadhaar number, or clears it when [aadhaar] is null. Answers with the masked number, or null after
+  /// null; the number itself is never sent back. 422 `INVALID_AADHAAR`, 409 `AADHAAR_EXISTS_IN_SOCIETY` when another
+  /// active record of the Society holds it.
+  Future<String?> setAadhaar(String id, String? aadhaar);
+
+  /// STF-12: the whole Aadhaar number, for a [reason] of 10 to 500 characters that is kept in the audit. 404 `NOT_SET`
+  /// when none is held, 429 `REVEAL_LIMIT` after ten in a day.
+  Future<String> revealAadhaar(String id, {required String reason});
 }

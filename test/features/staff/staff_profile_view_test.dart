@@ -1,6 +1,7 @@
 import 'package:bloc_test/bloc_test.dart';
 import 'package:bravynix_school_erp/app/di/injection.dart';
 import 'package:bravynix_school_erp/app/router/app_routes.dart';
+import 'package:bravynix_school_erp/core/device/screen_protection.dart';
 import 'package:bravynix_school_erp/core/network/api_failure.dart';
 import 'package:bravynix_school_erp/core/paging/items_page.dart';
 import 'package:bravynix_school_erp/core/theme/app_theme.dart';
@@ -27,15 +28,15 @@ import 'package:mocktail/mocktail.dart';
 import '../../helpers/clipped_text.dart';
 import '../../helpers/mocks.dart';
 import '../../helpers/pump_app.dart';
+import '../../helpers/screen_protection.dart';
 import '../../helpers/staff.dart';
 
 class _MockProfileBloc extends MockBloc<StaffProfileEvent, StaffProfileState> implements StaffProfileBloc;
 
 void main() {
   late _MockProfileBloc bloc;
-  setUpAll(() => registerFallbackValue(const StaffProfileRequested()));
   late MockStaffRepository staff;
-
+  setUpAll(() => registerFallbackValue(const StaffProfileRequested()));
   // What the parts of the Access tab read from: the page makes their blocs, and the listeners reach for them, when the
   // profile is shown.
   setUp(() {
@@ -65,7 +66,8 @@ void main() {
       ..registerSingleton<AcademicYearsRepository>(years)
       ..registerSingleton<ClassesRepository>(classes)
       ..registerSingleton<SectionsRepository>(MockSectionsRepository())
-      ..registerSingleton<TeachingAssignmentsRepository>(teaching);
+      ..registerSingleton<TeachingAssignmentsRepository>(teaching)
+      ..registerSingleton<ScreenProtection>(RecordingScreenProtection());
   });
   tearDown(getIt.reset);
 
@@ -73,7 +75,7 @@ void main() {
     WidgetTester tester,
     StaffProfileState state, {
     double textScale = 1,
-    Size size = const Size(400, 1600),
+    Size size = const Size(400, 2400),
   }) {
     when(() => bloc.state).thenReturn(state);
     return tester.pumpAppScaled(
@@ -98,6 +100,7 @@ void main() {
       '+91 9876543210',
       '9876500000',
       '12 Lake Road\nNear the park\nBengaluru, Karnataka, India\n560066',
+      'XXXX XXXX 1234',
       'Full time',
       '01-06-2020',
       '31-03-2026',
@@ -185,6 +188,7 @@ void main() {
     expect(find.text('Employment'), findsNothing);
     expect(find.text('Education'), findsNothing);
     expect(find.text('Emergency contacts'), findsNothing);
+    expect(find.text('Not set'), findsOneWidget);
   });
 
   for (final (type, gender, label) in [
