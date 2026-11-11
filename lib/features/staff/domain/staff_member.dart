@@ -138,6 +138,17 @@ class EmergencyContact extends Equatable {
   List<Object?> get props => [contactName, relation, phone, alternateNumber, isPrimary];
 }
 
+/// The section a teacher leads as class teacher in an academic year (STF-03, STF-09).
+class ClassTeacherAssignment extends Equatable {
+  const new({required this.academicYearId, required this.sectionId});
+
+  final String academicYearId;
+  final String sectionId;
+
+  @override
+  List<Object?> get props => [academicYearId, sectionId];
+}
+
 /// A staff member as the profile shows them (STF-03), without the class teacher, admin access and identity fields that
 /// A3b and A4 add.
 class StaffMember extends Equatable {
@@ -155,6 +166,7 @@ class StaffMember extends Equatable {
     required this.version,
     this.subjectIds = const [],
     this.institutionIds = const [],
+    this.classTeachers = const [],
     this.lastName,
     this.employeeCode,
     this.gender,
@@ -203,6 +215,9 @@ class StaffMember extends Equatable {
   /// The Institutions besides the home one that they may see (STF-10).
   final List<String> institutionIds;
 
+  /// The sections they lead as class teacher, one for each academic year (STF-09).
+  final List<ClassTeacherAssignment> classTeachers;
+
   String get fullName => [firstName, ?lastName].join(' ');
 
   @override
@@ -232,5 +247,6 @@ class StaffMember extends Equatable {
     version,
     subjectIds,
     institutionIds,
+    classTeachers,
   ];
 }

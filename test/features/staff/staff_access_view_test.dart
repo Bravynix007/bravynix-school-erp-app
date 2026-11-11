@@ -62,7 +62,7 @@ void main() {
     bool owner = true,
     double textScale = 1,
     Size size = const Size(400, 1600),
-    Widget? adminAccess,
+    List<Widget> below = const [],
   }) {
     when(() => bloc.state).thenReturn(state);
     when(() => bloc.canChangeInstitutions).thenReturn(owner);
@@ -72,7 +72,7 @@ void main() {
           BlocProvider<StaffAccessBloc>.value(value: bloc),
           BlocProvider<StaffProfileBloc>.value(value: profile),
         ],
-        child: Scaffold(body: StaffAccessView(adminAccess: adminAccess)),
+        child: Scaffold(body: StaffAccessView(below: below)),
       ),
       textScale: textScale,
       size: size,
@@ -112,16 +112,22 @@ void main() {
       expect(find.byKey(const Key('staffAccess.saveInstitutions')), findsNothing);
     });
 
-    testWidgets('carry the Admin access part below them when there is one, and nothing else when there is not', (
-      tester,
-    ) async {
+    testWidgets('carry the parts given below them, in order, and nothing else when there are none', (tester) async {
       await pump(tester, ready());
-      expect(find.byKey(const Key('adminAccess')), findsNothing);
-      await pump(tester, ready(), adminAccess: const SizedBox(key: Key('adminAccess'), height: 10));
-      expect(find.byKey(const Key('adminAccess')), findsOneWidget);
+      expect(find.byKey(const Key('first')), findsNothing);
+      await pump(
+        tester,
+        ready(),
+        below: const [
+          SizedBox(key: Key('first'), height: 10),
+          SizedBox(key: Key('second'), height: 10),
+        ],
+      );
+      final saveInstitutions = tester.getBottomLeft(find.byKey(const Key('staffAccess.saveInstitutions'))).dy;
+      expect(tester.getTopLeft(find.byKey(const Key('first'))).dy, greaterThan(saveInstitutions));
       expect(
-        tester.getTopLeft(find.byKey(const Key('adminAccess'))).dy,
-        greaterThan(tester.getBottomLeft(find.byKey(const Key('staffAccess.saveInstitutions'))).dy),
+        tester.getTopLeft(find.byKey(const Key('second'))).dy,
+        greaterThan(tester.getBottomLeft(find.byKey(const Key('first'))).dy),
       );
     });
 

@@ -1462,5 +1462,40 @@ class AppLocalizationsEn extends AppLocalizations {
   String get errorAdminAccountState => 'Their account cannot hold this role right now.';
 
   @override
+  String get staffClassTeacherTitle => 'Class teacher';
+
+  @override
+  String get staffClassTeacherHelper =>
+      'The section they lead in an academic year. A section has one class teacher, and a teacher leads one section.';
+
+  @override
+  String get staffClassTeacherYear => 'Academic year';
+
+  @override
+  String get staffClassTeacherSection => 'Section';
+
+  @override
+  String get staffClassTeacherNone => 'No section';
+
+  @override
+  String get staffClassTeacherNoYears => 'Add an academic year under School setup first.';
+
+  @override
+  String get staffClassTeacherSave => 'Save class teacher';
+
+  @override
+  String get staffClassTeacherSaved => 'Class teacher saved';
+
+  @override
+  String get errorClassTeacherTaken => 'Another teacher is already the class teacher of this section for this year.';
+
+  @override
+  String get errorClassTeacherNotFound =>
+      'The staff member, the year or the section could not be found. It may have been deactivated.';
+
+  @override
+  String get errorStaffBlocked => 'They are blocked. Unblock them under Settings first.';
+
+  @override
   String get errorRoleConflict => 'This email belongs to a platform account, which can\'t also be staff.';
 }

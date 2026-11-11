@@ -329,6 +329,49 @@ void main() {
       expect(() => StaffModels.member({...memberJson(), 'subjectIds': 'u1'}), throwsA(anything));
     });
 
+    test('read the sections they lead as class teacher, none when they lead none', () {
+      final leads = StaffModels.member({
+        ...memberJson(),
+        'classTeachers': [
+          {'academicYearId': 'y1', 'sectionId': 'e1'},
+        ],
+      });
+      expect(leads.classTeachers, const [ClassTeacherAssignment(academicYearId: 'y1', sectionId: 'e1')]);
+      expect(StaffModels.member(memberJson()).classTeachers, isEmpty);
+    });
+
+    test('refuse a class teacher row they cannot read', () {
+      expect(
+        () => StaffModels.member({
+          ...memberJson(),
+          'classTeachers': [
+            {'academicYearId': 'y1'},
+          ],
+        }),
+        throwsA(anything),
+      );
+    });
+
+    test(
+      'set the class teacher with PUT, sending the year and the section, and read the assignment it answers',
+      () async {
+        final (:repository, :adapter) = build(() => okReply({'academicYearId': 'y1', 'sectionId': 'e1'}));
+        expect(
+          await repository.setClassTeacher('f/1', academicYearId: 'y1', sectionId: 'e1'),
+          const ClassTeacherAssignment(academicYearId: 'y1', sectionId: 'e1'),
+        );
+        expect(adapter.requests.last.method, 'PUT');
+        expect(adapter.requests.last.uri.path, '/v1/staff/f%2F1/class-teacher');
+        expect(bodyOf(adapter.requests.last), {'academicYearId': 'y1', 'sectionId': 'e1'});
+      },
+    );
+
+    test('end the class teacher duty by sending a null section, and take the null answer as none', () async {
+      final (:repository, :adapter) = build(() => okReply(null));
+      expect(await repository.setClassTeacher('f1', academicYearId: 'y1'), isNull);
+      expect(bodyOf(adapter.requests.last), {'academicYearId': 'y1', 'sectionId': null});
+    });
+
     test('block and unblock with POST and no body, and read the profile they answer with', () async {
       final (:repository, :adapter) = build(() => okReply(access(isBlocked: true)));
       expect((await repository.block('f/1')).isBlocked, isTrue);

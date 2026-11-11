@@ -2647,6 +2647,72 @@ abstract class AppLocalizations {
   /// **'Their account cannot hold this role right now.'**
   String get errorAdminAccountState;
 
+  /// No description provided for @staffClassTeacherTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Class teacher'**
+  String get staffClassTeacherTitle;
+
+  /// No description provided for @staffClassTeacherHelper.
+  ///
+  /// In en, this message translates to:
+  /// **'The section they lead in an academic year. A section has one class teacher, and a teacher leads one section.'**
+  String get staffClassTeacherHelper;
+
+  /// No description provided for @staffClassTeacherYear.
+  ///
+  /// In en, this message translates to:
+  /// **'Academic year'**
+  String get staffClassTeacherYear;
+
+  /// No description provided for @staffClassTeacherSection.
+  ///
+  /// In en, this message translates to:
+  /// **'Section'**
+  String get staffClassTeacherSection;
+
+  /// No description provided for @staffClassTeacherNone.
+  ///
+  /// In en, this message translates to:
+  /// **'No section'**
+  String get staffClassTeacherNone;
+
+  /// No description provided for @staffClassTeacherNoYears.
+  ///
+  /// In en, this message translates to:
+  /// **'Add an academic year under School setup first.'**
+  String get staffClassTeacherNoYears;
+
+  /// No description provided for @staffClassTeacherSave.
+  ///
+  /// In en, this message translates to:
+  /// **'Save class teacher'**
+  String get staffClassTeacherSave;
+
+  /// No description provided for @staffClassTeacherSaved.
+  ///
+  /// In en, this message translates to:
+  /// **'Class teacher saved'**
+  String get staffClassTeacherSaved;
+
+  /// No description provided for @errorClassTeacherTaken.
+  ///
+  /// In en, this message translates to:
+  /// **'Another teacher is already the class teacher of this section for this year.'**
+  String get errorClassTeacherTaken;
+
+  /// No description provided for @errorClassTeacherNotFound.
+  ///
+  /// In en, this message translates to:
+  /// **'The staff member, the year or the section could not be found. It may have been deactivated.'**
+  String get errorClassTeacherNotFound;
+
+  /// No description provided for @errorStaffBlocked.
+  ///
+  /// In en, this message translates to:
+  /// **'They are blocked. Unblock them under Settings first.'**
+  String get errorStaffBlocked;
+
   /// No description provided for @errorRoleConflict.
   ///
   /// In en, this message translates to:

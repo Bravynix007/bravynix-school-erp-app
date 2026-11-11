@@ -17,6 +17,7 @@ String staffErrorText(AppLocalizations l10n, ApiFailure failure) => switch (fail
   'INVALID_STATE' => l10n.errorStaffAccessState,
   'SUBJECT_ASSIGNED' => l10n.errorSubjectAssigned,
   'ADMIN_ACCESS_HELD' => l10n.errorAdminAccessHeld,
+  'STAFF_BLOCKED' => l10n.errorStaffBlocked,
   _ => apiErrorText(l10n, failure, notFound: l10n.errorStaffNotFound),
 };
 
@@ -28,5 +29,14 @@ String staffAdminErrorText(AppLocalizations l10n, ApiFailure failure) => switch 
   'STAFF_BLOCKED' => l10n.errorAdminStaffBlocked,
   'STAFF_NOT_AT_INSTITUTION' => l10n.errorAdminNotAtInstitution,
   'INVALID_STATE' => l10n.errorAdminAccountState,
+  _ => staffErrorText(l10n, failure),
+};
+
+/// Copy for the codes STF-09 adds (API design 10.5a): 409 CLASS_TEACHER_TAKEN when another teacher leads the section that
+/// year, 422 STAFF_BLOCKED, 422 REFERENCE_INACTIVE for a year or section that is deactivated, and 404 for a staff member,
+/// year or section that is not found. The rest reads as for the other staff calls.
+String staffClassTeacherErrorText(AppLocalizations l10n, ApiFailure failure) => switch (failure.code) {
+  'CLASS_TEACHER_TAKEN' => l10n.errorClassTeacherTaken,
+  'NOT_FOUND' => l10n.errorClassTeacherNotFound,
   _ => staffErrorText(l10n, failure),
 };

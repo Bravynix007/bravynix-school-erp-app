@@ -271,12 +271,14 @@ const raviDraft = StaffDraft(
 StaffMember kavyaWith({
   List<String> subjectIds = const [],
   List<String> institutionIds = const [],
+  List<Map<String, String>> classTeachers = const [],
   bool isBlocked = false,
   int version = 4,
 }) => StaffModels.member({
   ...memberJson(),
   'subjectIds': subjectIds,
   'institutionIds': institutionIds,
+  'classTeachers': classTeachers,
   'isBlocked': isBlocked,
   'version': version,
 });

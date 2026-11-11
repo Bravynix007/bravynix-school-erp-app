@@ -12,17 +12,22 @@ import 'package:bravynix_school_erp/core/widgets/section_header.dart';
 import 'package:bravynix_school_erp/core/widgets/skeleton.dart';
 import 'package:bravynix_school_erp/core/widgets/state_panel.dart';
 import 'package:bravynix_school_erp/core/widgets/status_chip.dart';
+import 'package:bravynix_school_erp/features/academic_years/domain/academic_years_repository.dart';
 import 'package:bravynix_school_erp/features/auth/presentation/session/session_bloc.dart';
+import 'package:bravynix_school_erp/features/classes/domain/classes_repository.dart';
 import 'package:bravynix_school_erp/features/institutions/domain/institutions_repository.dart';
 import 'package:bravynix_school_erp/features/masters/domain/masters_repository.dart';
+import 'package:bravynix_school_erp/features/sections/domain/sections_repository.dart';
 import 'package:bravynix_school_erp/features/staff/domain/staff_member.dart';
 import 'package:bravynix_school_erp/features/staff/domain/staff_profile.dart';
 import 'package:bravynix_school_erp/features/staff/domain/staff_repository.dart';
 import 'package:bravynix_school_erp/features/staff/presentation/bloc/staff_access_bloc.dart';
 import 'package:bravynix_school_erp/features/staff/presentation/bloc/staff_block_bloc.dart';
+import 'package:bravynix_school_erp/features/staff/presentation/bloc/staff_class_teacher_bloc.dart';
 import 'package:bravynix_school_erp/features/staff/presentation/bloc/staff_profile_bloc.dart';
 import 'package:bravynix_school_erp/features/staff/presentation/view/staff_access_view.dart';
 import 'package:bravynix_school_erp/features/staff/presentation/view/staff_admin_access_section.dart';
+import 'package:bravynix_school_erp/features/staff/presentation/view/staff_class_teacher_section.dart';
 import 'package:bravynix_school_erp/features/staff/presentation/view/staff_error_text.dart';
 import 'package:bravynix_school_erp/features/staff/presentation/view/staff_form_page.dart';
 import 'package:bravynix_school_erp/features/staff/presentation/view/staff_names.dart';
@@ -117,6 +122,15 @@ class StaffProfileView extends StatelessWidget {
                         canChangeInstitutions: isOwner,
                       )..add(const StaffAccessStarted()),
                     ),
+                    BlocProvider(
+                      create: (_) => StaffClassTeacherBloc(
+                        getIt<StaffRepository>(),
+                        getIt<AcademicYearsRepository>(),
+                        getIt<ClassesRepository>(),
+                        getIt<SectionsRepository>(),
+                        member: profile.member,
+                      )..add(const StaffClassTeacherStarted()),
+                    ),
                     BlocProvider(create: (_) => StaffBlockBloc(getIt<StaffRepository>(), profile.member)),
                   ],
                   child: Column(
@@ -143,7 +157,10 @@ class StaffProfileView extends StatelessWidget {
                         child: switch (tab) {
                           StaffProfileTab.personal => _Details(profile: profile),
                           StaffProfileTab.access => StaffAccessView(
-                            adminAccess: isOwner ? StaffAdminAccessSection(member: profile.member) : null,
+                            below: [
+                              const StaffClassTeacherSection(),
+                              if (isOwner) StaffAdminAccessSection(member: profile.member),
+                            ],
                           ),
                           StaffProfileTab.settings => const StaffSettingsView(),
                         },

@@ -483,5 +483,16 @@
   "errorAdminStaffBlocked": "They are blocked. Unblock them under Settings before giving Admin access.",
   "errorAdminNotAtInstitution": "They are not at this Institution. Add it under Other Institutions and save first.",
   "errorAdminAccountState": "Their account cannot hold this role right now.",
+  "staffClassTeacherTitle": "Class teacher",
+  "staffClassTeacherHelper": "The section they lead in an academic year. A section has one class teacher, and a teacher leads one section.",
+  "staffClassTeacherYear": "Academic year",
+  "staffClassTeacherSection": "Section",
+  "staffClassTeacherNone": "No section",
+  "staffClassTeacherNoYears": "Add an academic year under School setup first.",
+  "staffClassTeacherSave": "Save class teacher",
+  "staffClassTeacherSaved": "Class teacher saved",
+  "errorClassTeacherTaken": "Another teacher is already the class teacher of this section for this year.",
+  "errorClassTeacherNotFound": "The staff member, the year or the section could not be found. It may have been deactivated.",
+  "errorStaffBlocked": "They are blocked. Unblock them under Settings first.",
   "errorRoleConflict": "This email belongs to a platform account, which can't also be staff."
 }
