@@ -50,13 +50,17 @@ class AppDropdownField<T> extends StatelessWidget {
             items: items,
             onChanged: onChanged,
             isExpanded: true,
+            // Not dense, and no fixed item height: a dense button is one line tall, so a chosen value that wraps at a
+            // large text size would be cut off. The field takes the height of its tallest entry and the menu rows
+            // their own.
+            isDense: false,
             hint: hint == null ? null : Text(hint!),
             borderRadius: BorderRadius.circular(AppRadius.field),
             style: Theme.of(context).textTheme.bodyMedium,
-            // The dropdown's arrow makes its content 4 px taller than text, so the
-            // padding is trimmed to keep the field level with a text field.
+            // Each entry is at least 48 px tall, as tall as a text field's text and padding, so the field has no
+            // padding above or below to stay level with a text field.
             decoration: fieldDecoration(helper: helper, error: error).copyWith(
-              contentPadding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.xs),
+              contentPadding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
             ),
           ),
         ),
