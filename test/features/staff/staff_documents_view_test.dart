@@ -152,6 +152,12 @@ void main() {
       verify(() => bloc.add(const StaffDocumentsAttached())).called(1);
     });
 
+    testWidgets('takes no more than 150 characters of the title', (tester) async {
+      await pump(tester, ready);
+      await tester.enterText(find.byKey(const Key('staffDocuments.title')), 'x' * 200);
+      verify(() => bloc.add(StaffDocumentsTitleChanged('x' * 150))).called(1);
+    });
+
     testWidgets('tells the bloc the title as it is typed', (tester) async {
       await pump(tester, ready);
       await tester.enterText(find.byKey(const Key('staffDocuments.title')), 'Letter');

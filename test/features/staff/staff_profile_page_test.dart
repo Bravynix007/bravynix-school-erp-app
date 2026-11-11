@@ -518,6 +518,43 @@ void main() {
       expect(find.text('Appointment letter'), findsOneWidget);
     });
 
+    testWidgets('says a document is added once, and keeps the next title and file when they are chosen', (
+      tester,
+    ) async {
+      when(
+        () => files.upload(
+          any(),
+          purpose: FilePurpose.staffDocument,
+          institutionId: 'i1',
+          onProgress: any(named: 'onProgress'),
+          cancelToken: any(named: 'cancelToken'),
+        ),
+      ).thenAnswer((_) async => uploadedPdf);
+      when(
+        () => documents.attachToStaff('f1', title: 'Appointment letter', fileId: 'f9'),
+      ).thenAnswer((_) async => appointmentLetter);
+      await pumpAs(tester, RoleCode.societyOwner);
+      await openTab(tester, 'Documents');
+      await tester.enterText(find.byKey(const Key('staffDocuments.title')), 'Appointment letter');
+      await tester.ensureVisible(find.byKey(const Key('document.pick')));
+      await tester.tap(find.byKey(const Key('document.pick')));
+      await tester.pumpAndSettle();
+      await tester.ensureVisible(find.byKey(const Key('staffDocuments.attach')));
+      await tester.tap(find.byKey(const Key('staffDocuments.attach')));
+      await tester.pumpAndSettle();
+      expect(find.text('Appointment letter added'), findsOneWidget);
+      tester.state<ScaffoldMessengerState>(find.byType(ScaffoldMessenger)).hideCurrentSnackBar();
+      await tester.pumpAndSettle();
+      await tester.enterText(find.byKey(const Key('staffDocuments.title')), 'Salary slip');
+      await tester.pump(const Duration(milliseconds: 300));
+      expect(find.text('Appointment letter added'), findsNothing);
+      await tester.ensureVisible(find.byKey(const Key('document.pick')));
+      await tester.tap(find.byKey(const Key('document.pick')));
+      await tester.pumpAndSettle();
+      expect(find.byKey(const Key('document.chosen')), findsOneWidget);
+      expect(find.text('Appointment letter added'), findsNothing);
+    });
+
     testWidgets('keeps a file that finishes going up while another tab is shown, ready to attach', (tester) async {
       final held = Completer<UploadedFile>();
       when(
