@@ -7,13 +7,15 @@ import 'package:flutter/material.dart';
 /// are measured as drawn: if the tick fits, the chosen segment shows it; if
 /// only the words fit, the tick is dropped (the chosen segment is still
 /// filled); if the words do not fit side by side at the current text size, the
-/// options become wrapping chips instead of breaking words in half.
+/// options become chips instead of breaking words in half: wrapping onto more
+/// lines, or, when [scrollable], in one row that scrolls sideways.
 class AppSegmentedControl<T> extends StatelessWidget {
   const new({
     required this.options,
     required this.labelOf,
     required this.selected,
     required this.onChanged,
+    this.scrollable = false,
     super.key,
   });
 
@@ -21,6 +23,9 @@ class AppSegmentedControl<T> extends StatelessWidget {
   final String Function(T option) labelOf;
   final T selected;
   final ValueChanged<T> onChanged;
+
+  /// Where the words do not fit side by side, keep the options in one row that scrolls sideways.
+  final bool scrollable;
 
   /// Side padding of a segment, with a little to spare.
   static const _padding = 28.0;
@@ -40,7 +45,13 @@ class AppSegmentedControl<T> extends StatelessWidget {
         final fitsPlain = options.length * (widest + _padding) <= constraints.maxWidth;
         final fitsTick = options.length * (widest + _padding + _tick) <= constraints.maxWidth;
         if (!fitsPlain) {
-          return ChoiceChipGroup<T>(options: options, labelOf: labelOf, selected: selected, onSelected: onChanged);
+          return ChoiceChipGroup<T>(
+            options: options,
+            labelOf: labelOf,
+            selected: selected,
+            onSelected: onChanged,
+            scrollable: scrollable,
+          );
         }
         return SegmentedButton<T>(
           segments: [

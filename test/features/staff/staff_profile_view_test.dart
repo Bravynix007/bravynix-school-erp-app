@@ -5,6 +5,7 @@ import 'package:bravynix_school_erp/core/device/screen_protection.dart';
 import 'package:bravynix_school_erp/core/network/api_failure.dart';
 import 'package:bravynix_school_erp/core/paging/items_page.dart';
 import 'package:bravynix_school_erp/core/theme/app_theme.dart';
+import 'package:bravynix_school_erp/core/widgets/app_segmented_control.dart';
 import 'package:bravynix_school_erp/features/academic_years/domain/academic_years_repository.dart';
 import 'package:bravynix_school_erp/features/classes/domain/classes_repository.dart';
 import 'package:bravynix_school_erp/features/documents/domain/documents_repository.dart';
@@ -154,10 +155,28 @@ void main() {
       await pump(tester, const StaffProfileLoaded(kavyaProfile));
       await tester.tap(find.text('Access'));
       verify(() => bloc.add(const StaffProfileTabChosen(StaffProfileTab.access))).called(1);
+      await tester.ensureVisible(find.text('Settings'));
       await tester.tap(find.text('Settings'));
       verify(() => bloc.add(const StaffProfileTabChosen(StaffProfileTab.settings))).called(1);
       await tester.tap(find.text('Documents'));
       verify(() => bloc.add(const StaffProfileTabChosen(StaffProfileTab.documents))).called(1);
+    });
+
+    testWidgets('keep the four tabs in one row that scrolls on a phone, so Settings is not left alone below', (
+      tester,
+    ) async {
+      await pump(tester, const StaffProfileLoaded(kavyaProfile), size: const Size(360, 2400));
+      final tabs = find.byType(AppSegmentedControl<StaffProfileTab>);
+      Finder tab(String label) => find.descendant(of: tabs, matching: find.text(label));
+      expect({
+        for (final label in ['Personal', 'Access', 'Documents', 'Settings']) tester.getTopLeft(tab(label)).dy,
+      }, hasLength(1));
+      expect(find.descendant(of: tabs, matching: find.byType(Wrap)), findsNothing);
+      expect(find.descendant(of: tabs, matching: find.byType(SingleChildScrollView)), findsOneWidget);
+      await tester.ensureVisible(tab('Settings'));
+      await tester.pump();
+      await tester.tap(tab('Settings'));
+      verify(() => bloc.add(const StaffProfileTabChosen(StaffProfileTab.settings))).called(1);
     });
 
     testWidgets('show the access of the staff member on Access, and not the personal details', (tester) async {

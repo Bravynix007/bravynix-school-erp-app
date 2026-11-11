@@ -134,6 +134,7 @@ void main() {
   }
 
   Future<void> openTab(WidgetTester tester, String label) async {
+    await tester.ensureVisible(find.text(label));
     await tester.tap(find.text(label));
     await tester.pumpAndSettle();
   }
@@ -702,6 +703,7 @@ void main() {
     await tester.pump(const Duration(milliseconds: 50));
     await tester.tap(find.text('Personal'));
     await tester.pump(const Duration(milliseconds: 400));
+    await tester.ensureVisible(find.text('Settings'));
     await tester.tap(find.text('Settings'));
     await tester.pump(const Duration(milliseconds: 400));
     expect(tester.widget<AppButton>(find.byKey(const Key('staffSettings.toggle'))).loading, isTrue);

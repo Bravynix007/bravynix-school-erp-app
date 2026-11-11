@@ -103,6 +103,70 @@ void main() {
     expect(find.byIcon(Icons.check), findsOneWidget);
   });
 
+  group('ChoiceChipGroup in a row that scrolls', () {
+    const labels = ['Personal', 'Access', 'Documents', 'Settings'];
+
+    Future<void> pump(
+      WidgetTester tester, {
+      String selected = 'Personal',
+      double scale = 1,
+      void Function(String)? onTap,
+    }) => tester.pumpAppScaled(
+      Scaffold(
+        body: Padding(
+          padding: const EdgeInsets.all(AppSpacing.md),
+          child: ChoiceChipGroup<String>(
+            options: labels,
+            labelOf: _same,
+            selected: selected,
+            onSelected: onTap ?? _ignore,
+            scrollable: true,
+          ),
+        ),
+      ),
+      textScale: scale,
+      size: const Size(360, 640),
+    );
+
+    testWidgets('keeps every chip on one line and scrolls to the rest, where wrapping would use two', (tester) async {
+      await pump(tester);
+      expect(find.byType(Wrap), findsNothing);
+      final tops = {for (final label in labels) tester.getTopLeft(find.text(label)).dy};
+      expect(tops, hasLength(1), reason: 'one row');
+      expect(tester.getTopLeft(find.text('Settings')).dx, greaterThan(360 - AppSpacing.md), reason: 'beyond the edge');
+      await tester.drag(find.byType(SingleChildScrollView), const Offset(-400, 0));
+      await tester.pump();
+      expect(tester.getTopLeft(find.text('Settings')).dx, lessThan(360 - AppSpacing.md), reason: 'now in view');
+    });
+
+    testWidgets('brings a chip that is tapped fully into view, with its tick', (tester) async {
+      String? picked;
+      await pump(tester, onTap: (label) => picked = label);
+      final chip = find.ancestor(of: find.text('Documents'), matching: find.byType(InkWell)).first;
+      const edge = 360 - AppSpacing.md;
+      await tester.drag(find.byType(SingleChildScrollView), Offset(edge - 40 - tester.getRect(chip).left, 0));
+      await tester.pump();
+      expect(tester.getRect(chip).right, greaterThan(edge), reason: 'cut off at the edge');
+      await tester.tapAt(tester.getRect(chip).topLeft + const Offset(8, 20));
+      expect(picked, 'Documents');
+      await pump(tester, selected: 'Documents');
+      await tester.pumpAndSettle();
+      final shown = tester.getRect(find.ancestor(of: find.text('Documents'), matching: find.byType(InkWell)).first);
+      expect(shown.right, lessThanOrEqualTo(360 - AppSpacing.md + 0.5));
+      expect(shown.left, greaterThanOrEqualTo(AppSpacing.md - 0.5));
+      expect(find.byIcon(Icons.check), findsOneWidget);
+    });
+
+    testWidgets('never breaks a word, even at 300% text', (tester) async {
+      await pump(tester, selected: 'Documents', scale: 3);
+      expect(tester.takeException(), isNull);
+      for (final label in labels) {
+        final word = tester.renderObject<RenderParagraph>(find.text(label));
+        expect(word.size.height, lessThan(word.size.width), reason: '"$label" is on one line');
+      }
+    });
+  });
+
   testWidgets('one-letter chips (sections, blood groups) are still 48 x 48 touch targets', (tester) async {
     final handle = tester.ensureSemantics();
     await tester.pumpApp(
@@ -206,6 +270,42 @@ void main() {
       );
       await tester.tap(find.text('Week'));
       expect(picked, 'Week');
+    });
+
+    testWidgets('wraps onto more lines where the words do not fit, or scrolls in one row when asked to', (
+      tester,
+    ) async {
+      const options = ['Personal', 'Access', 'Documents', 'Settings'];
+      for (final scrollable in [false, true]) {
+        await tester.pumpAppScaled(
+          Scaffold(
+            body: AppSegmentedControl<String>(
+              options: options,
+              labelOf: (v) => v,
+              selected: 'Personal',
+              onChanged: (_) {},
+              scrollable: scrollable,
+            ),
+          ),
+          size: const Size(360, 640),
+        );
+        expect(find.byType(SegmentedButton<String>), findsNothing);
+        expect(find.byType(Wrap), scrollable ? findsNothing : findsOneWidget);
+        expect(find.byType(SingleChildScrollView), scrollable ? findsOneWidget : findsNothing);
+      }
+      await tester.pumpAppScaled(
+        Scaffold(
+          body: AppSegmentedControl<String>(
+            options: options,
+            labelOf: (v) => v,
+            selected: 'Personal',
+            onChanged: (_) {},
+            scrollable: true,
+          ),
+        ),
+        size: const Size(900, 640),
+      );
+      expect(find.byType(SegmentedButton<String>), findsOneWidget, reason: 'side by side where the words fit');
     });
 
     testWidgets('keyboard focus marks only the focused segment', (tester) async {

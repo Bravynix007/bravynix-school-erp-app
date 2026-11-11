@@ -262,6 +262,7 @@ class StaffProfileView extends StatelessWidget {
                           ),
                           child: AppSegmentedControl<StaffProfileTab>(
                             options: StaffProfileTab.values,
+                            scrollable: true,
                             labelOf: (tab) => switch (tab) {
                               StaffProfileTab.personal => l10n.staffTabPersonal,
                               StaffProfileTab.access => l10n.staffTabAccess,
