@@ -91,6 +91,7 @@ const kavyaMember = StaffMember(
   isBlocked: false,
   version: 4,
   subjectIds: ['u1'],
+  aadhaarMasked: 'XXXX XXXX 1234',
 );
 
 /// The least a profile has: no optional field, empty lists.

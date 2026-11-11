@@ -1589,10 +1589,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get staffAadhaarClear => 'Clear number';
 
   @override
-  String get staffAadhaarSetHelper => 'Twelve digits. It is kept sealed and shown with all but the last four hidden.';
+  String get staffAadhaarSetHelper => 'Twelve digits, the first one from 2 to 9. It is kept sealed and shown masked.';
 
   @override
-  String get staffAadhaarInvalid => 'Enter twelve digits, the first one from 2 to 9.';
+  String get staffAadhaarInvalid => 'Check the twelve digits.';
 
   @override
   String get staffAadhaarSave => 'Save number';
@@ -1615,13 +1615,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get staffAadhaarRevealTitle => 'Show Aadhaar number';
 
   @override
-  String get staffAadhaarReason => 'Reason';
+  String get staffAadhaarReason => 'Reason (at least 10 characters)';
 
   @override
-  String get staffAadhaarReasonHelper => 'At least 10 characters. It is kept in the audit log with your name.';
+  String get staffAadhaarReasonHelper => 'It is kept in the audit log with your name.';
 
   @override
-  String get staffAadhaarReasonShort => 'Give a reason of at least 10 characters.';
+  String get staffAadhaarReasonShort => 'At least 10 characters.';
 
   @override
   String get staffAadhaarRevealAction => 'Show number';

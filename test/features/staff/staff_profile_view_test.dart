@@ -33,14 +33,21 @@ class _MockProfileBloc extends MockBloc<StaffProfileEvent, StaffProfileState> im
 
 void main() {
   late _MockProfileBloc bloc;
+  late MockStaffRepository staff;
   setUpAll(() => registerFallbackValue(const StaffProfileRequested()));
-  setUp(() => bloc = _MockProfileBloc());
+  setUp(() {
+    bloc = _MockProfileBloc();
+    // The Personal tab reads the Aadhaar number through the repository when the person acts on it.
+    staff = MockStaffRepository();
+    getIt.registerSingleton<StaffRepository>(staff);
+  });
+  tearDown(getIt.reset);
 
   Future<void> pump(
     WidgetTester tester,
     StaffProfileState state, {
     double textScale = 1,
-    Size size = const Size(400, 1600),
+    Size size = const Size(400, 2400),
   }) {
     when(() => bloc.state).thenReturn(state);
     return tester.pumpAppScaled(
@@ -65,6 +72,7 @@ void main() {
       '+91 9876543210',
       '9876500000',
       '12 Lake Road\nNear the park\nBengaluru, Karnataka, India\n560066',
+      'XXXX XXXX 1234',
       'Full time',
       '01-06-2020',
       '31-03-2026',
@@ -82,10 +90,7 @@ void main() {
   });
 
   group('the tabs', () {
-    late MockStaffRepository staff;
-
     setUp(() {
-      staff = MockStaffRepository();
       final subjects = MockSubjectsRepository();
       final institutions = MockInstitutionsRepository();
       when(subjects.subjects).thenAnswer((_) async => const []);
@@ -104,7 +109,6 @@ void main() {
       when(() => years.years(any())).thenAnswer((_) async => const []);
       when(() => classes.classes(any())).thenAnswer((_) async => const []);
       getIt
-        ..registerSingleton<StaffRepository>(staff)
         ..registerSingleton<SubjectsRepository>(subjects)
         ..registerSingleton<InstitutionsRepository>(institutions)
         ..registerSingleton<AcademicYearsRepository>(years)
@@ -112,8 +116,6 @@ void main() {
         ..registerSingleton<SectionsRepository>(MockSectionsRepository())
         ..registerSingleton<TeachingAssignmentsRepository>(teaching);
     });
-    tearDown(getIt.reset);
-
     testWidgets('offer Personal, Access and Settings, on Personal at first', (tester) async {
       await pump(tester, const StaffProfileLoaded(kavyaProfile));
       for (final label in ['Personal', 'Access', 'Settings']) {
@@ -174,6 +176,7 @@ void main() {
     expect(find.text('Employment'), findsNothing);
     expect(find.text('Education'), findsNothing);
     expect(find.text('Emergency contacts'), findsNothing);
+    expect(find.text('Not set'), findsOneWidget);
   });
 
   for (final (type, gender, label) in [

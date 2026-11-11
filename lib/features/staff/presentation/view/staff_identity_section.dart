@@ -59,10 +59,8 @@ class StaffIdentitySection extends StatelessWidget {
         SectionHeader(title: l10n.staffIdentityTitle),
         const SizedBox(height: AppSpacing.xs),
         BlocConsumer<StaffIdentityBloc, StaffIdentityState>(
-          listenWhen: (previous, current) =>
-              previous is StaffIdentityWorking &&
-              current is StaffIdentityIdle &&
-              previous.action != StaffIdentityAction.reveal,
+          // A save or a clear that went through; a reveal ends in the sheet that shows it.
+          listenWhen: (previous, current) => previous is StaffIdentityWorking && current is StaffIdentityIdle,
           listener: (context, state) => AppSnackbar.show(
             context,
             message: (state.masked == null) ? l10n.staffAadhaarCleared : l10n.staffAadhaarSaved,
@@ -169,7 +167,6 @@ class _SetSheetState extends State<_SetSheet> {
               label: l10n.staffAadhaar,
               controller: _controller,
               mono: true,
-              helper: l10n.staffAadhaarSetHelper,
               error: _tried && _digits == null ? l10n.staffAadhaarInvalid : null,
               keyboardType: TextInputType.number,
               inputFormatters: [
@@ -181,6 +178,8 @@ class _SetSheetState extends State<_SetSheet> {
                 if (_tried) setState(() => _tried = false);
               },
             ),
+            const SizedBox(height: AppSpacing.xs),
+            Text(l10n.staffAadhaarSetHelper, style: Theme.of(context).textTheme.bodySmall),
             if (state case StaffIdentityRefused(:final failure, action: StaffIdentityAction.save)) ...[
               const SizedBox(height: AppSpacing.sm),
               InlineMessage.error(staffIdentityErrorText(l10n, failure), key: const Key('staffIdentity.saveError')),
@@ -255,7 +254,6 @@ class _RevealSheetState extends State<_RevealSheet> {
               key: const Key('staffIdentity.reason'),
               label: l10n.staffAadhaarReason,
               controller: _controller,
-              helper: l10n.staffAadhaarReasonHelper,
               error: _tried && _controller.text.trim().length < _minReason ? l10n.staffAadhaarReasonShort : null,
               maxLines: 3,
               inputFormatters: [LengthLimitingTextInputFormatter(500)],
@@ -264,6 +262,8 @@ class _RevealSheetState extends State<_RevealSheet> {
                 if (_tried) setState(() => _tried = false);
               },
             ),
+            const SizedBox(height: AppSpacing.xs),
+            Text(l10n.staffAadhaarReasonHelper, style: text.bodySmall),
             if (state case StaffIdentityRefused(:final failure, action: StaffIdentityAction.reveal)) ...[
               const SizedBox(height: AppSpacing.sm),
               InlineMessage.error(staffIdentityErrorText(l10n, failure), key: const Key('staffIdentity.revealError')),

@@ -250,6 +250,39 @@ void main() {
     ).called(2);
   });
 
+  group('the identity part', () {
+    for (final role in [RoleCode.societyOwner, RoleCode.institutionAdmin]) {
+      testWidgets('is shown to a ${role.name} on the Personal tab, masked, and shows the whole number for a reason', (
+        tester,
+      ) async {
+        when(() => staff.revealAadhaar('f1', reason: 'Checking the records')).thenAnswer((_) async => '234567890123');
+        await pumpAs(tester, role);
+        await tester.ensureVisible(find.text('XXXX XXXX 1234'));
+        expect(find.text('Identity'), findsOneWidget);
+        await tester.tap(find.byKey(const Key('staffIdentity.reveal')));
+        await tester.pumpAndSettle();
+        await tester.enterText(find.byKey(const Key('staffIdentity.reason')), 'Checking the records');
+        await tester.tap(find.byKey(const Key('staffIdentity.show')));
+        await tester.pumpAndSettle();
+        expect(find.text('2345 6789 0123'), findsOneWidget);
+      });
+    }
+
+    testWidgets('keeps the number it holds when the person goes to another tab and back', (tester) async {
+      when(() => staff.setAadhaar('f1', null)).thenAnswer((_) async => null);
+      await pumpAs(tester, RoleCode.societyOwner);
+      await tester.ensureVisible(find.byKey(const Key('staffIdentity.clear')));
+      await tester.tap(find.byKey(const Key('staffIdentity.clear')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.descendant(of: find.byType(Dialog), matching: find.text('Clear number')));
+      await tester.pumpAndSettle();
+      await openTab(tester, 'Settings');
+      await openTab(tester, 'Personal');
+      await tester.ensureVisible(find.text('Not set'));
+      expect(find.text('Not set'), findsOneWidget);
+    });
+  });
+
   group('the class teacher section', () {
     for (final role in [RoleCode.societyOwner, RoleCode.institutionAdmin]) {
       testWidgets('is shown to a ${role.name}, with the sections of the home Institution', (tester) async {

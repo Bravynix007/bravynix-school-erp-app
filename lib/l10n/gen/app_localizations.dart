@@ -2884,13 +2884,13 @@ abstract class AppLocalizations {
   /// No description provided for @staffAadhaarSetHelper.
   ///
   /// In en, this message translates to:
-  /// **'Twelve digits. It is kept sealed and shown with all but the last four hidden.'**
+  /// **'Twelve digits, the first one from 2 to 9. It is kept sealed and shown masked.'**
   String get staffAadhaarSetHelper;
 
   /// No description provided for @staffAadhaarInvalid.
   ///
   /// In en, this message translates to:
-  /// **'Enter twelve digits, the first one from 2 to 9.'**
+  /// **'Check the twelve digits.'**
   String get staffAadhaarInvalid;
 
   /// No description provided for @staffAadhaarSave.
@@ -2932,19 +2932,19 @@ abstract class AppLocalizations {
   /// No description provided for @staffAadhaarReason.
   ///
   /// In en, this message translates to:
-  /// **'Reason'**
+  /// **'Reason (at least 10 characters)'**
   String get staffAadhaarReason;
 
   /// No description provided for @staffAadhaarReasonHelper.
   ///
   /// In en, this message translates to:
-  /// **'At least 10 characters. It is kept in the audit log with your name.'**
+  /// **'It is kept in the audit log with your name.'**
   String get staffAadhaarReasonHelper;
 
   /// No description provided for @staffAadhaarReasonShort.
   ///
   /// In en, this message translates to:
-  /// **'Give a reason of at least 10 characters.'**
+  /// **'At least 10 characters.'**
   String get staffAadhaarReasonShort;
 
   /// No description provided for @staffAadhaarRevealAction.
