@@ -13,6 +13,7 @@ import 'package:bravynix_school_erp/features/institutions/domain/institutions_re
 import 'package:bravynix_school_erp/features/masters/domain/master_entry.dart';
 import 'package:bravynix_school_erp/features/masters/domain/masters_repository.dart';
 import 'package:bravynix_school_erp/features/sections/domain/sections_repository.dart';
+import 'package:bravynix_school_erp/features/staff/domain/staff_member.dart';
 import 'package:bravynix_school_erp/features/staff/domain/staff_repository.dart';
 import 'package:bravynix_school_erp/features/staff/presentation/view/staff_profile_page.dart';
 import 'package:bravynix_school_erp/features/subjects/domain/subjects_repository.dart';
@@ -349,6 +350,28 @@ void main() {
     expect(tester.widget<AppButton>(find.byKey(const Key('staffAccess.saveSubjects'))).onPressed, isNotNull);
     // Once for the lists of the tab and once for the teaching part, and not again on the way back.
     verify(subjects.subjects).called(2);
+  });
+
+  testWidgets('keeps a block on its way when the person goes to another tab and back, and says when it is done', (
+    tester,
+  ) async {
+    final held = Completer<StaffMember>();
+    when(() => staff.block('f1')).thenAnswer((_) => held.future);
+    await pumpAs(tester, RoleCode.societyOwner);
+    await openTab(tester, 'Settings');
+    await tester.tap(find.byKey(const Key('staffSettings.toggle')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.descendant(of: find.byType(Dialog), matching: find.text('Block access')));
+    await tester.pump(const Duration(milliseconds: 50));
+    await tester.tap(find.text('Personal'));
+    await tester.pump(const Duration(milliseconds: 400));
+    await tester.tap(find.text('Settings'));
+    await tester.pump(const Duration(milliseconds: 400));
+    expect(tester.widget<AppButton>(find.byKey(const Key('staffSettings.toggle'))).loading, isTrue);
+    held.complete(kavyaWith(isBlocked: true, version: 5));
+    await tester.pumpAndSettle();
+    expect(find.text('Blocked'), findsOneWidget);
+    expect(find.text('Kavya Nair blocked'), findsOneWidget);
   });
 
   testWidgets('keeps the names on the Personal tab after a block, a lift or a save', (tester) async {
