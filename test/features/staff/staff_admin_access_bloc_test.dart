@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:bloc_test/bloc_test.dart';
 import 'package:bravynix_school_erp/core/network/api_failure.dart';
 import 'package:bravynix_school_erp/core/paging/items_page.dart';
+import 'package:bravynix_school_erp/features/institutions/domain/institution.dart';
 import 'package:bravynix_school_erp/features/institutions/domain/institution_admin.dart';
 import 'package:bravynix_school_erp/features/staff/presentation/bloc/staff_admin_access_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -215,6 +216,71 @@ void main() {
       await bloc.stream.firstWhere((state) => state is StaffAdminAccessReady && state.done != null);
       expect(ready(bloc).failure, isNull);
       expect(ready(bloc).failed, isNull);
+    });
+  });
+
+  group('when their extra Institutions change', () {
+    test('reads again with the new list, and shows who is an Admin there', () async {
+      when(() => institutions.admins('i3', page: any(named: 'page')))
+          .thenAnswer((_) async => only([adminOf(institutionId: 'i3')]));
+      final bloc = await opened();
+      expect(ready(bloc).institutions, [home, lakeView]);
+      bloc.add(const StaffAdminInstitutionsChanged(['i2', 'i3']));
+      await bloc.stream.firstWhere((state) => state is StaffAdminAccessReady && state.institutions.length == 3);
+      expect(ready(bloc).institutions, [home, lakeView, hillTop]);
+      expect(ready(bloc).adminAt, ['i3']);
+    });
+
+    test('leaves out an Institution that was dropped, with where they were an Admin', () async {
+      when(() => institutions.admins('i2', page: any(named: 'page')))
+          .thenAnswer((_) async => only([adminOf(institutionId: 'i2')]));
+      final bloc = await opened();
+      expect(ready(bloc).adminAt, ['i2']);
+      bloc.add(const StaffAdminInstitutionsChanged([]));
+      await bloc.stream.firstWhere((state) => state is StaffAdminAccessReady && state.institutions.length == 1);
+      expect(ready(bloc).adminAt, isEmpty);
+    });
+
+    test('leaves a change on its way, and what it says, as it is', () async {
+      final held = Completer<InstitutionAdmin>();
+      when(() => institutions.grantAdmin('i1', 'f1')).thenAnswer((_) => held.future);
+      final bloc = await opened();
+      bloc.add(const StaffAdminGranted('i1'));
+      await bloc.stream.firstWhere((state) => state is StaffAdminAccessReady && state.working == 'i1');
+      bloc.add(const StaffAdminInstitutionsChanged(['i2', 'i3']));
+      await bloc.stream.firstWhere((state) => state is StaffAdminAccessReady && state.institutions.length == 3);
+      expect(ready(bloc).working, 'i1');
+      held.complete(adminOf());
+      await bloc.stream.firstWhere((state) => state is StaffAdminAccessReady && state.done != null);
+      expect(ready(bloc).adminAt, ['i1']);
+      expect(ready(bloc).done, const StaffAdminChange('i1', granted: true));
+    });
+
+    test('takes the new list at the first read when it changed before that read finished', () async {
+      final held = Completer<List<InstitutionSummary>>();
+      var calls = 0;
+      when(() => institutions.institutions()).thenAnswer((_) {
+        calls++;
+        return calls == 1 ? held.future : Future.value([home, lakeView, hillTop]);
+      });
+      final bloc = build();
+      addTearDown(bloc.close);
+      bloc.add(const StaffAdminAccessStarted());
+      await bloc.stream.firstWhere((state) => state is StaffAdminAccessLoading);
+      bloc.add(const StaffAdminInstitutionsChanged(['i2', 'i3']));
+      await pumpEventQueue();
+      held.complete([home, lakeView, hillTop]);
+      await bloc.stream.firstWhere((state) => state is StaffAdminAccessReady);
+      expect(ready(bloc).institutions, [home, lakeView, hillTop]);
+      // The read that was on its way, and one more with the new list: the change itself reads nothing.
+      expect(calls, 2);
+    });
+
+    test('says why when the new list cannot be read', () async {
+      final bloc = await opened();
+      when(() => institutions.institutions()).thenThrow(const ApiFailure.network());
+      bloc.add(const StaffAdminInstitutionsChanged(['i2', 'i3']));
+      await bloc.stream.firstWhere((state) => state is StaffAdminAccessFailed);
     });
   });
 

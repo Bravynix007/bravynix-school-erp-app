@@ -35,11 +35,36 @@ void main() {
   late _MockProfileBloc bloc;
   late MockStaffRepository staff;
   setUpAll(() => registerFallbackValue(const StaffProfileRequested()));
+  // What the parts of the Access tab read from: the page makes their blocs, and the listeners reach for them, when the
+  // profile is shown.
   setUp(() {
     bloc = _MockProfileBloc();
-    // The Personal tab reads the Aadhaar number through the repository when the person acts on it.
     staff = MockStaffRepository();
-    getIt.registerSingleton<StaffRepository>(staff);
+    final subjects = MockSubjectsRepository();
+    final institutions = MockInstitutionsRepository();
+    when(subjects.subjects).thenAnswer((_) async => const []);
+    final years = MockAcademicYearsRepository();
+    final classes = MockClassesRepository();
+    final teaching = MockTeachingAssignmentsRepository();
+    when(institutions.institutions).thenAnswer((_) async => const []);
+    when(
+      () => teaching.assignments(
+        any(),
+        academicYearId: any(named: 'academicYearId'),
+        staffMemberId: any(named: 'staffMemberId'),
+        page: any(named: 'page'),
+      ),
+    ).thenAnswer((_) async => const ItemsPage([], page: 1, totalPages: 1));
+    when(() => years.years(any())).thenAnswer((_) async => const []);
+    when(() => classes.classes(any())).thenAnswer((_) async => const []);
+    getIt
+      ..registerSingleton<StaffRepository>(staff)
+      ..registerSingleton<SubjectsRepository>(subjects)
+      ..registerSingleton<InstitutionsRepository>(institutions)
+      ..registerSingleton<AcademicYearsRepository>(years)
+      ..registerSingleton<ClassesRepository>(classes)
+      ..registerSingleton<SectionsRepository>(MockSectionsRepository())
+      ..registerSingleton<TeachingAssignmentsRepository>(teaching);
   });
   tearDown(getIt.reset);
 
@@ -89,33 +114,17 @@ void main() {
     expect(find.text('Blocked'), findsNothing);
   });
 
+  testWidgets('does not look for the Admin part, which an Admin has not, when their extra Institutions change', (
+    tester,
+  ) async {
+    final changed = StaffProfileLoaded(kavyaProfile.withMember(kavyaWith(institutionIds: const ['i2'])));
+    whenListen(bloc, Stream.value(changed), initialState: const StaffProfileLoaded(kavyaProfile));
+    await pump(tester, const StaffProfileLoaded(kavyaProfile));
+    await tester.pump();
+    expect(tester.takeException(), isNull);
+  });
+
   group('the tabs', () {
-    setUp(() {
-      final subjects = MockSubjectsRepository();
-      final institutions = MockInstitutionsRepository();
-      when(subjects.subjects).thenAnswer((_) async => const []);
-      final years = MockAcademicYearsRepository();
-      final classes = MockClassesRepository();
-      final teaching = MockTeachingAssignmentsRepository();
-      when(institutions.institutions).thenAnswer((_) async => const []);
-      when(
-        () => teaching.assignments(
-          any(),
-          academicYearId: any(named: 'academicYearId'),
-          staffMemberId: any(named: 'staffMemberId'),
-          page: any(named: 'page'),
-        ),
-      ).thenAnswer((_) async => const ItemsPage([], page: 1, totalPages: 1));
-      when(() => years.years(any())).thenAnswer((_) async => const []);
-      when(() => classes.classes(any())).thenAnswer((_) async => const []);
-      getIt
-        ..registerSingleton<SubjectsRepository>(subjects)
-        ..registerSingleton<InstitutionsRepository>(institutions)
-        ..registerSingleton<AcademicYearsRepository>(years)
-        ..registerSingleton<ClassesRepository>(classes)
-        ..registerSingleton<SectionsRepository>(MockSectionsRepository())
-        ..registerSingleton<TeachingAssignmentsRepository>(teaching);
-    });
     testWidgets('offer Personal, Access and Settings, on Personal at first', (tester) async {
       await pump(tester, const StaffProfileLoaded(kavyaProfile));
       for (final label in ['Personal', 'Access', 'Settings']) {
