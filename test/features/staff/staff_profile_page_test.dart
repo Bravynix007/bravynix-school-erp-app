@@ -73,7 +73,7 @@ void main() {
   });
   tearDown(getIt.reset);
 
-  Future<void> pumpAs(WidgetTester tester, RoleCode role) async {
+  Future<void> pumpAs(WidgetTester tester, RoleCode role, {Size size = const Size(400, 1600)}) async {
     final context = AuthContext(role: role, societyId: 's1', societyName: 'North Trust');
     when(() => session.state).thenReturn(
       SessionAuthenticated(AuthSession(person: testPerson, contexts: [context], activeContext: context)),
@@ -83,7 +83,7 @@ void main() {
         value: session,
         child: const StaffProfilePage(id: 'f1'),
       ),
-      size: const Size(400, 1600),
+      size: size,
     );
     await tester.pumpAndSettle();
   }
@@ -175,6 +175,25 @@ void main() {
       await tester.pumpAndSettle();
       expect(find.byKey(const Key('staffAdmin.isAdmin.i1')), findsOneWidget);
       expect(find.text('Kavya Nair is now an Admin of Sri Vidya High School'), findsOneWidget);
+    });
+
+    testWidgets('keeps the tab where it was scrolled when the extra Institutions are saved', (tester) async {
+      when(() => staff.setInstitutions('f1', ['i2'])).thenAnswer((_) async => kavyaWith(institutionIds: const ['i2']));
+      await pumpAs(tester, RoleCode.societyOwner, size: const Size(400, 700));
+      await openTab(tester, 'Access');
+      await tester.ensureVisible(find.byKey(const ValueKey('staffAccess.institution.i2')));
+      await tester.tap(find.byKey(const ValueKey('staffAccess.institution.i2')));
+      await tester.pump();
+      final list = tester.state<ScrollableState>(find.byType(Scrollable).last);
+      list.position.jumpTo(list.position.maxScrollExtent / 2);
+      await tester.pump();
+      final before = list.position.pixels;
+      await tester.ensureVisible(find.byKey(const Key('staffAccess.saveInstitutions')));
+      final scrolled = list.position.pixels;
+      await tester.tap(find.byKey(const Key('staffAccess.saveInstitutions')));
+      await tester.pumpAndSettle();
+      expect(before, greaterThan(0));
+      expect(tester.state<ScrollableState>(find.byType(Scrollable).last).position.pixels, scrolled);
     });
 
     testWidgets('reads again once their extra Institutions are saved, and not once their subjects are', (tester) async {
