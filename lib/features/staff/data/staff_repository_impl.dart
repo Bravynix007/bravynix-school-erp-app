@@ -46,4 +46,28 @@ class StaffRepositoryImpl implements StaffRepository {
 
   @override
   Future<void> deactivate(String id) => _api.data(_path(id), method: HttpMethod.delete, parse: (_) {});
+
+  @override
+  Future<StaffMember> block(String id) =>
+      _api.data('${_path(id)}/block', method: HttpMethod.post, parse: StaffModels.member);
+
+  @override
+  Future<StaffMember> unblock(String id) =>
+      _api.data('${_path(id)}/unblock', method: HttpMethod.post, parse: StaffModels.member);
+
+  @override
+  Future<StaffMember> setSubjects(String id, List<String> subjectIds) => _api.data(
+    '${_path(id)}/subjects',
+    method: HttpMethod.put,
+    body: {'subjectIds': subjectIds},
+    parse: StaffModels.member,
+  );
+
+  @override
+  Future<StaffMember> setInstitutions(String id, List<String> institutionIds) => _api.data(
+    '${_path(id)}/institutions',
+    method: HttpMethod.put,
+    body: {'institutionIds': institutionIds},
+    parse: StaffModels.member,
+  );
 }

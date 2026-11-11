@@ -7,7 +7,6 @@ import 'package:bravynix_school_erp/core/widgets/app_icon_button.dart';
 import 'package:bravynix_school_erp/core/widgets/app_top_bar.dart';
 import 'package:bravynix_school_erp/core/widgets/skeleton.dart';
 import 'package:bravynix_school_erp/core/widgets/state_panel.dart';
-import 'package:bravynix_school_erp/features/auth/domain/auth_entities.dart';
 import 'package:bravynix_school_erp/features/auth/presentation/role/view/role_error_text.dart';
 import 'package:bravynix_school_erp/features/auth/presentation/session/session_bloc.dart';
 import 'package:bravynix_school_erp/features/institutions/domain/institution.dart';
@@ -26,8 +25,7 @@ class InstitutionsPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final session = context.watch<SessionBloc>().state;
-    final isOwner = session is SessionAuthenticated && session.session.activeContext?.role == RoleCode.societyOwner;
+    final isOwner = context.watch<SessionBloc>().state.isSocietyOwner;
     return BlocProvider(
       create: (_) => InstitutionsBloc(getIt<InstitutionsRepository>())..add(const InstitutionsRequested()),
       child: InstitutionsView(canAdd: isOwner),

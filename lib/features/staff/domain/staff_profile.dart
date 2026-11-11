@@ -19,6 +19,16 @@ class StaffProfile extends Equatable {
   final String? stateName;
   final String? cityName;
 
+  /// The same profile with [member] replaced: the names stand for fields the access actions do not change.
+  StaffProfile withMember(StaffMember member) => StaffProfile(
+    member,
+    categoryName: categoryName,
+    designationName: designationName,
+    countryName: countryName,
+    stateName: stateName,
+    cityName: cityName,
+  );
+
   @override
   List<Object?> get props => [member, designationName, categoryName, countryName, stateName, cityName];
 }

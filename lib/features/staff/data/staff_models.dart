@@ -77,6 +77,8 @@ abstract final class StaffModels {
       emergencyContacts: [for (final item in jsonList(json['emergencyContacts'])) _contact(item)],
       isBlocked: json['isBlocked'] as bool,
       version: (json['version'] as num).toInt(),
+      subjectIds: [for (final id in jsonList(json['subjectIds'])) id as String],
+      institutionIds: [for (final id in jsonList(json['institutionIds'])) id as String],
     );
   }
 

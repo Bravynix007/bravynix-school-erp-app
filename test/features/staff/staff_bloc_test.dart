@@ -4,6 +4,7 @@ import 'package:bravynix_school_erp/core/network/api_failure.dart';
 import 'package:bravynix_school_erp/core/paging/items_page.dart';
 import 'package:bravynix_school_erp/features/masters/domain/master_entry.dart';
 import 'package:bravynix_school_erp/features/staff/domain/staff_member.dart';
+import 'package:bravynix_school_erp/features/staff/domain/staff_profile.dart';
 import 'package:bravynix_school_erp/features/staff/presentation/bloc/staff_bloc.dart';
 import 'package:bravynix_school_erp/features/staff/presentation/bloc/staff_profile_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -164,6 +165,62 @@ void main() {
         verifyNever(() => masters.entries(MasterType.states, parentId: any(named: 'parentId')));
         verifyNever(() => masters.entries(MasterType.cities, parentId: any(named: 'parentId')));
       },
+    );
+
+    blocTest<StaffProfileBloc, StaffProfileState>(
+      'moves between the tabs, and a read again keeps the one the person was on',
+      setUp: () => when(() => staff.member('f1')).thenAnswer((_) async => kavyaMember),
+      build: () => build('f1'),
+      act: (bloc) async {
+        bloc.add(const StaffProfileRequested());
+        await bloc.stream.firstWhere((state) => state is StaffProfileLoaded);
+        bloc
+          ..add(const StaffProfileTabChosen(StaffProfileTab.access))
+          ..add(const StaffProfileRequested());
+      },
+      skip: 2,
+      expect: () => [
+        const StaffProfileLoaded(kavyaProfile, tab: StaffProfileTab.access),
+        const StaffProfileLoading(),
+        const StaffProfileLoaded(kavyaProfile, tab: StaffProfileTab.access),
+      ],
+    );
+
+    blocTest<StaffProfileBloc, StaffProfileState>(
+      'takes the member an action answered with, and keeps the names and the tab',
+      setUp: () => when(() => staff.member('f1')).thenAnswer((_) async => kavyaMember),
+      build: () => build('f1'),
+      act: (bloc) async {
+        bloc.add(const StaffProfileRequested());
+        await bloc.stream.firstWhere((state) => state is StaffProfileLoaded);
+        bloc
+          ..add(const StaffProfileTabChosen(StaffProfileTab.settings))
+          ..add(const StaffProfileMemberChanged(raviMember));
+      },
+      skip: 2,
+      expect: () => [
+        const StaffProfileLoaded(kavyaProfile, tab: StaffProfileTab.settings),
+        const StaffProfileLoaded(
+          StaffProfile(
+            raviMember,
+            designationName: 'Mathematics Teacher',
+            categoryName: 'Lower Primary',
+            countryName: 'India',
+            stateName: 'Karnataka',
+            cityName: 'Bengaluru',
+          ),
+          tab: StaffProfileTab.settings,
+        ),
+      ],
+    );
+
+    blocTest<StaffProfileBloc, StaffProfileState>(
+      'ignores a tab or a member that arrives before the profile is read',
+      build: () => build('f1'),
+      act: (bloc) => bloc
+        ..add(const StaffProfileTabChosen(StaffProfileTab.access))
+        ..add(const StaffProfileMemberChanged(raviMember)),
+      expect: () => <StaffProfileState>[],
     );
 
     blocTest<StaffProfileBloc, StaffProfileState>(

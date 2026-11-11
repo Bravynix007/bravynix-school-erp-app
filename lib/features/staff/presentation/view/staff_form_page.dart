@@ -1,4 +1,5 @@
 import 'package:bravynix_school_erp/app/di/injection.dart';
+import 'package:bravynix_school_erp/core/model/phone.dart';
 import 'package:bravynix_school_erp/core/theme/app_spacing.dart';
 import 'package:bravynix_school_erp/core/widgets/app_button.dart';
 import 'package:bravynix_school_erp/core/widgets/app_card.dart';
@@ -175,7 +176,7 @@ class _FormBodyState extends State<_FormBody> {
     _firstName = TextEditingController(text: existing?.firstName);
     _lastName = TextEditingController(text: existing?.lastName);
     _email = TextEditingController(text: existing?.email);
-    _mobileCode = TextEditingController(text: existing == null ? indiaDialCode : existing.mobile.countryCode);
+    _mobileCode = TextEditingController(text: existing == null ? Phone.indiaDialCode : existing.mobile.countryCode);
     _mobileNumber = TextEditingController(text: existing?.mobile.number);
     _alternate = TextEditingController(text: existing?.alternateNumber);
     _nationality = TextEditingController(text: existing?.nationality);

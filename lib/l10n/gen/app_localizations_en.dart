@@ -1300,6 +1300,100 @@ class AppLocalizationsEn extends AppLocalizations {
   String get staffUploadingWait => 'Wait for the photo to finish sending.';
 
   @override
+  String get staffTabPersonal => 'Personal';
+
+  @override
+  String get staffTabAccess => 'Access';
+
+  @override
+  String get staffTabSettings => 'Settings';
+
+  @override
+  String get staffAccessSubjects => 'Subjects they can teach';
+
+  @override
+  String get staffAccessSubjectsHelper => 'Only these can be assigned to them in a section.';
+
+  @override
+  String get staffAccessSubjectsEmpty => 'No subjects yet. Add them under School setup, Subjects.';
+
+  @override
+  String get staffAccessInstitutions => 'Other Institutions';
+
+  @override
+  String get staffAccessInstitutionsHelper =>
+      'They can see these Institutions besides their own. They only view there.';
+
+  @override
+  String get staffAccessInstitutionsEmpty => 'There is no other Institution in this Society.';
+
+  @override
+  String get staffAccessSaveSubjects => 'Save subjects';
+
+  @override
+  String get staffAccessSaveInstitutions => 'Save Institutions';
+
+  @override
+  String get staffAccessSaved => 'Access saved';
+
+  @override
+  String get staffSettingsAccess => 'Access to the app';
+
+  @override
+  String get staffSettingsActive => 'They can use the app as staff.';
+
+  @override
+  String get staffSettingsBlockedMessage =>
+      'They are blocked. They cannot use the app as staff or Admin of this Society.';
+
+  @override
+  String get staffBlockAction => 'Block access';
+
+  @override
+  String get staffUnblockAction => 'Unblock access';
+
+  @override
+  String staffBlockTitle(String name) {
+    return 'Block $name?';
+  }
+
+  @override
+  String get staffBlockMessage =>
+      'They are signed out at once and cannot use the app as staff or Admin of this Society until you unblock them. Their record is kept.';
+
+  @override
+  String staffUnblockTitle(String name) {
+    return 'Unblock $name?';
+  }
+
+  @override
+  String get staffUnblockMessage => 'They can use the app as staff again.';
+
+  @override
+  String staffBlockDone(String name) {
+    return '$name blocked';
+  }
+
+  @override
+  String staffUnblockDone(String name) {
+    return '$name unblocked';
+  }
+
+  @override
+  String get errorStaffAccessState => 'Their access is already as you asked. The screen is up to date now.';
+
+  @override
+  String get errorStaffBlockForbidden => 'Only the Society Owner can change the access of an Institution Admin.';
+
+  @override
+  String get errorSubjectAssigned =>
+      'They are assigned to teach one of the subjects you removed. End that assignment first.';
+
+  @override
+  String get errorAdminAccessHeld =>
+      'They are an Institution Admin at one of the Institutions you removed. Take that Admin Access away first.';
+
+  @override
   String get errorEmployeeIdTaken => 'Another staff member of this Institution has this Employee ID.';
 
   @override

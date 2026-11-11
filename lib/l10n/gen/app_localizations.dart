@@ -2371,6 +2371,168 @@ abstract class AppLocalizations {
   /// **'Wait for the photo to finish sending.'**
   String get staffUploadingWait;
 
+  /// No description provided for @staffTabPersonal.
+  ///
+  /// In en, this message translates to:
+  /// **'Personal'**
+  String get staffTabPersonal;
+
+  /// No description provided for @staffTabAccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Access'**
+  String get staffTabAccess;
+
+  /// No description provided for @staffTabSettings.
+  ///
+  /// In en, this message translates to:
+  /// **'Settings'**
+  String get staffTabSettings;
+
+  /// No description provided for @staffAccessSubjects.
+  ///
+  /// In en, this message translates to:
+  /// **'Subjects they can teach'**
+  String get staffAccessSubjects;
+
+  /// No description provided for @staffAccessSubjectsHelper.
+  ///
+  /// In en, this message translates to:
+  /// **'Only these can be assigned to them in a section.'**
+  String get staffAccessSubjectsHelper;
+
+  /// No description provided for @staffAccessSubjectsEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No subjects yet. Add them under School setup, Subjects.'**
+  String get staffAccessSubjectsEmpty;
+
+  /// No description provided for @staffAccessInstitutions.
+  ///
+  /// In en, this message translates to:
+  /// **'Other Institutions'**
+  String get staffAccessInstitutions;
+
+  /// No description provided for @staffAccessInstitutionsHelper.
+  ///
+  /// In en, this message translates to:
+  /// **'They can see these Institutions besides their own. They only view there.'**
+  String get staffAccessInstitutionsHelper;
+
+  /// No description provided for @staffAccessInstitutionsEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'There is no other Institution in this Society.'**
+  String get staffAccessInstitutionsEmpty;
+
+  /// No description provided for @staffAccessSaveSubjects.
+  ///
+  /// In en, this message translates to:
+  /// **'Save subjects'**
+  String get staffAccessSaveSubjects;
+
+  /// No description provided for @staffAccessSaveInstitutions.
+  ///
+  /// In en, this message translates to:
+  /// **'Save Institutions'**
+  String get staffAccessSaveInstitutions;
+
+  /// No description provided for @staffAccessSaved.
+  ///
+  /// In en, this message translates to:
+  /// **'Access saved'**
+  String get staffAccessSaved;
+
+  /// No description provided for @staffSettingsAccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Access to the app'**
+  String get staffSettingsAccess;
+
+  /// No description provided for @staffSettingsActive.
+  ///
+  /// In en, this message translates to:
+  /// **'They can use the app as staff.'**
+  String get staffSettingsActive;
+
+  /// No description provided for @staffSettingsBlockedMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'They are blocked. They cannot use the app as staff or Admin of this Society.'**
+  String get staffSettingsBlockedMessage;
+
+  /// No description provided for @staffBlockAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Block access'**
+  String get staffBlockAction;
+
+  /// No description provided for @staffUnblockAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Unblock access'**
+  String get staffUnblockAction;
+
+  /// No description provided for @staffBlockTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Block {name}?'**
+  String staffBlockTitle(String name);
+
+  /// No description provided for @staffBlockMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'They are signed out at once and cannot use the app as staff or Admin of this Society until you unblock them. Their record is kept.'**
+  String get staffBlockMessage;
+
+  /// No description provided for @staffUnblockTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Unblock {name}?'**
+  String staffUnblockTitle(String name);
+
+  /// No description provided for @staffUnblockMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'They can use the app as staff again.'**
+  String get staffUnblockMessage;
+
+  /// No description provided for @staffBlockDone.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} blocked'**
+  String staffBlockDone(String name);
+
+  /// No description provided for @staffUnblockDone.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} unblocked'**
+  String staffUnblockDone(String name);
+
+  /// No description provided for @errorStaffAccessState.
+  ///
+  /// In en, this message translates to:
+  /// **'Their access is already as you asked. The screen is up to date now.'**
+  String get errorStaffAccessState;
+
+  /// No description provided for @errorStaffBlockForbidden.
+  ///
+  /// In en, this message translates to:
+  /// **'Only the Society Owner can change the access of an Institution Admin.'**
+  String get errorStaffBlockForbidden;
+
+  /// No description provided for @errorSubjectAssigned.
+  ///
+  /// In en, this message translates to:
+  /// **'They are assigned to teach one of the subjects you removed. End that assignment first.'**
+  String get errorSubjectAssigned;
+
+  /// No description provided for @errorAdminAccessHeld.
+  ///
+  /// In en, this message translates to:
+  /// **'They are an Institution Admin at one of the Institutions you removed. Take that Admin Access away first.'**
+  String get errorAdminAccessHeld;
+
   /// No description provided for @errorEmployeeIdTaken.
   ///
   /// In en, this message translates to:

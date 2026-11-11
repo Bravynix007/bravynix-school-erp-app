@@ -23,4 +23,22 @@ abstract class StaffRepository {
 
   /// STF-05: deactivates the staff member. 409 CANNOT_ACT_ON_SELF for the caller's own record.
   Future<void> deactivate(String id);
+
+  /// STF-06: blocks the staff member's access in this Society and ends their sessions as Admin or Teacher / Staff. An
+  /// answer with the profile as it is now. 409 `INVALID_STATE` when already blocked, 409 `CANNOT_ACT_ON_SELF`, 403
+  /// when an Institution Admin blocks a fellow Admin (only the Society Owner may).
+  Future<StaffMember> block(String id);
+
+  /// STF-07: lifts the block, with the same answer and errors as [block] (409 `INVALID_STATE` when not blocked).
+  Future<StaffMember> unblock(String id);
+
+  /// STF-08: the whole list of subjects they can teach (at most 50; an empty list clears it). 422 `REFERENCE_INACTIVE`
+  /// for a subject that is deactivated and new to them, 409 `SUBJECT_ASSIGNED` for dropping one they are assigned to
+  /// teach.
+  Future<StaffMember> setSubjects(String id, List<String> subjectIds);
+
+  /// STF-10: Society Owner only. The whole list of extra Institutions (at most 50; an empty list clears it). 422
+  /// `REFERENCE_INACTIVE` for an Institution that is deactivated, 409 `ADMIN_ACCESS_HELD` for dropping one they
+  /// administer.
+  Future<StaffMember> setInstitutions(String id, List<String> institutionIds);
 }
