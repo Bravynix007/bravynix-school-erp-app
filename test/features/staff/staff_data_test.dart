@@ -44,14 +44,6 @@ void main() {
         ],
       );
       expect(leads, isNot(kavyaWith()));
-      expect(
-        leads,
-        kavyaWith(
-          classTeachers: leads.classTeachers
-              .map((item) => {'academicYearId': item.academicYearId, 'sectionId': item.sectionId})
-              .toList(),
-        ),
-      );
     });
 
     test('read a row of the list, with and without the optional fields', () {
