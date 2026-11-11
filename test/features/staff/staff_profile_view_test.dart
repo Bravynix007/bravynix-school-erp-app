@@ -1,6 +1,7 @@
 import 'package:bloc_test/bloc_test.dart';
 import 'package:bravynix_school_erp/app/di/injection.dart';
 import 'package:bravynix_school_erp/app/router/app_routes.dart';
+import 'package:bravynix_school_erp/core/device/screen_protection.dart';
 import 'package:bravynix_school_erp/core/network/api_failure.dart';
 import 'package:bravynix_school_erp/core/paging/items_page.dart';
 import 'package:bravynix_school_erp/core/theme/app_theme.dart';
@@ -27,6 +28,7 @@ import 'package:mocktail/mocktail.dart';
 import '../../helpers/clipped_text.dart';
 import '../../helpers/mocks.dart';
 import '../../helpers/pump_app.dart';
+import '../../helpers/screen_protection.dart';
 import '../../helpers/staff.dart';
 
 class _MockProfileBloc extends MockBloc<StaffProfileEvent, StaffProfileState> implements StaffProfileBloc;
@@ -64,7 +66,8 @@ void main() {
       ..registerSingleton<AcademicYearsRepository>(years)
       ..registerSingleton<ClassesRepository>(classes)
       ..registerSingleton<SectionsRepository>(MockSectionsRepository())
-      ..registerSingleton<TeachingAssignmentsRepository>(teaching);
+      ..registerSingleton<TeachingAssignmentsRepository>(teaching)
+      ..registerSingleton<ScreenProtection>(RecordingScreenProtection());
   });
   tearDown(getIt.reset);
 

@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:bloc_test/bloc_test.dart';
 import 'package:bravynix_school_erp/app/di/injection.dart';
+import 'package:bravynix_school_erp/core/device/screen_protection.dart';
 import 'package:bravynix_school_erp/core/paging/items_page.dart';
 import 'package:bravynix_school_erp/core/widgets/app_button.dart';
 import 'package:bravynix_school_erp/features/academic_years/domain/academic_years_repository.dart';
@@ -29,6 +30,7 @@ import '../../helpers/classes.dart';
 import '../../helpers/institutions.dart';
 import '../../helpers/mocks.dart';
 import '../../helpers/pump_app.dart';
+import '../../helpers/screen_protection.dart';
 import '../../helpers/sections.dart';
 import '../../helpers/staff.dart';
 import '../../helpers/subjects.dart';
@@ -82,7 +84,8 @@ void main() {
       ..registerSingleton<AcademicYearsRepository>(years)
       ..registerSingleton<ClassesRepository>(classes)
       ..registerSingleton<SectionsRepository>(sections)
-      ..registerSingleton<TeachingAssignmentsRepository>(teaching);
+      ..registerSingleton<TeachingAssignmentsRepository>(teaching)
+      ..registerSingleton<ScreenProtection>(RecordingScreenProtection());
     session = _MockSessionBloc();
   });
   tearDown(getIt.reset);

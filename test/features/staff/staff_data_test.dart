@@ -46,6 +46,14 @@ void main() {
       expect(leads, isNot(kavyaWith()));
     });
 
+    test('tell two staff members apart by the Aadhaar number they hold', () {
+      final holds = StaffModels.member({...memberJson(), 'aadhaarMasked': 'XXXX XXXX 1234'});
+      final none = StaffModels.member({...memberJson(), 'aadhaarMasked': null});
+      expect(holds.aadhaarMasked, 'XXXX XXXX 1234');
+      expect(none.aadhaarMasked, isNull);
+      expect(holds, isNot(none));
+    });
+
     test('read a row of the list, with and without the optional fields', () {
       expect(StaffModels.summary(summaryRow()), kavya);
       expect(
