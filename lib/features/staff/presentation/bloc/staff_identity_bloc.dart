@@ -66,13 +66,17 @@ class StaffIdentityWorking extends StaffIdentityState {
 }
 
 class StaffIdentityRefused extends StaffIdentityState {
-  const new(super.masked, this.action, this.failure);
+  const new(super.masked, this.action, this.failure, {required this.inSheet});
 
   final StaffIdentityAction action;
   final ApiFailure failure;
 
+  /// True when the sheet of the action is open and says the refusal itself; false when there is none, as for a clear,
+  /// or it was closed while the call was on its way, so the card says it.
+  final bool inSheet;
+
   @override
-  List<Object?> get props => [masked, action, failure];
+  List<Object?> get props => [masked, action, failure, inSheet];
 }
 
 /// The whole number, for as long as the sheet that shows it is open.
@@ -92,9 +96,7 @@ class StaffIdentityBloc extends Bloc<StaffIdentityEvent, StaffIdentityState> {
     on<StaffAadhaarSaved>((event, emit) => _set(event.aadhaar, StaffIdentityAction.save, emit));
     on<StaffAadhaarCleared>((event, emit) => _set(null, StaffIdentityAction.clear, emit));
     on<StaffAadhaarRevealed>(_onRevealed);
-    on<StaffIdentityHidden>((event, emit) {
-      if (state is StaffIdentityRevealed || state is StaffIdentityRefused) emit(StaffIdentityIdle(state.masked));
-    });
+    on<StaffIdentityHidden>(_onHidden);
   }
 
   final StaffRepository _staff;
@@ -102,24 +104,43 @@ class StaffIdentityBloc extends Bloc<StaffIdentityEvent, StaffIdentityState> {
 
   bool get _free => state is! StaffIdentityWorking;
 
+  /// The sheet of the action that is on its way was closed: what comes back is not kept for it.
+  bool _closed = false;
+
+  void _onHidden(StaffIdentityHidden event, Emitter<StaffIdentityState> emit) {
+    if (state is StaffIdentityWorking) {
+      _closed = true;
+    } else if (state is StaffIdentityRevealed || state is StaffIdentityRefused) {
+      emit(StaffIdentityIdle(state.masked));
+    }
+  }
+
+  /// A refusal is said in the sheet unless there is none open: a clear has none.
+  StaffIdentityRefused _refused(String? masked, StaffIdentityAction action, ApiFailure failure) =>
+      StaffIdentityRefused(masked, action, failure, inSheet: !_closed && action != StaffIdentityAction.clear);
+
   Future<void> _set(String? aadhaar, StaffIdentityAction action, Emitter<StaffIdentityState> emit) async {
     if (!_free) return;
+    _closed = false;
     emit(StaffIdentityWorking(state.masked, action));
     try {
       emit(StaffIdentityIdle(await _staff.setAadhaar(staffMemberId, aadhaar)));
     } on ApiFailure catch (failure) {
-      emit(StaffIdentityRefused(state.masked, action, failure));
+      emit(_refused(state.masked, action, failure));
     }
   }
 
   Future<void> _onRevealed(StaffAadhaarRevealed event, Emitter<StaffIdentityState> emit) async {
     if (!_free) return;
+    _closed = false;
     emit(StaffIdentityWorking(state.masked, StaffIdentityAction.reveal));
     try {
-      emit(StaffIdentityRevealed(state.masked, await _staff.revealAadhaar(staffMemberId, reason: event.reason)));
+      final value = await _staff.revealAadhaar(staffMemberId, reason: event.reason);
+      // The number is held only while it is shown: with the sheet gone, it is let go of.
+      emit(_closed ? StaffIdentityIdle(state.masked) : StaffIdentityRevealed(state.masked, value));
     } on ApiFailure catch (failure) {
       emit(
-        StaffIdentityRefused(
+        _refused(
           // No number is held: the screen was out of date.
           failure.code == 'NOT_SET' ? null : state.masked,
           StaffIdentityAction.reveal,

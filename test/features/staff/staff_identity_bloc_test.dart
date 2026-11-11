@@ -38,7 +38,7 @@ void main() {
       act: (bloc) => bloc.add(const StaffAadhaarSaved(number)),
       expect: () => [
         const StaffIdentityWorking(masked, StaffIdentityAction.save),
-        const StaffIdentityRefused(masked, StaffIdentityAction.save, invalid),
+        const StaffIdentityRefused(masked, StaffIdentityAction.save, invalid, inSheet: true),
       ],
     );
 
@@ -73,7 +73,7 @@ void main() {
       act: (bloc) => bloc.add(const StaffAadhaarCleared()),
       expect: () => [
         const StaffIdentityWorking(masked, StaffIdentityAction.clear),
-        const StaffIdentityRefused(masked, StaffIdentityAction.clear, ApiFailure.network()),
+        const StaffIdentityRefused(masked, StaffIdentityAction.clear, ApiFailure.network(), inSheet: false),
       ],
     );
   });
@@ -109,6 +109,7 @@ void main() {
           masked,
           StaffIdentityAction.reveal,
           ApiFailure(statusCode: 429, code: 'REVEAL_LIMIT', message: 'x'),
+          inSheet: true,
         ),
       ],
     );
@@ -126,9 +127,94 @@ void main() {
           null,
           StaffIdentityAction.reveal,
           ApiFailure(statusCode: 404, code: 'NOT_SET', message: 'x'),
+          inSheet: true,
         ),
       ],
     );
+  });
+
+  group('a sheet closed while its call is on its way', () {
+    test('does not keep the whole number that comes back, and has nothing to show when asked again', () async {
+      final held = Completer<String>();
+      when(() => staff.revealAadhaar(any(), reason: any(named: 'reason'))).thenAnswer((_) => held.future);
+      final bloc = build();
+      addTearDown(bloc.close);
+      final states = <StaffIdentityState>[];
+      bloc.stream.listen(states.add);
+      bloc.add(const StaffAadhaarRevealed('Checking the records'));
+      await bloc.stream.firstWhere((state) => state is StaffIdentityWorking);
+      bloc.add(const StaffIdentityHidden());
+      await pumpEventQueue();
+      held.complete(number);
+      await pumpEventQueue();
+      expect(bloc.state, const StaffIdentityIdle(masked));
+      expect(states.whereType<StaffIdentityRevealed>(), isEmpty);
+    });
+
+    test('forgets that it was closed once the next call starts, so that sheet gets its number', () async {
+      final held = Completer<String>();
+      when(() => staff.revealAadhaar('f1', reason: 'First reason here')).thenAnswer((_) => held.future);
+      when(() => staff.revealAadhaar('f1', reason: 'Checking the records')).thenAnswer((_) async => number);
+      final bloc = build();
+      addTearDown(bloc.close);
+      bloc.add(const StaffAadhaarRevealed('First reason here'));
+      await bloc.stream.firstWhere((state) => state is StaffIdentityWorking);
+      bloc.add(const StaffIdentityHidden());
+      await pumpEventQueue();
+      held.complete(number);
+      await pumpEventQueue();
+      bloc.add(const StaffAadhaarRevealed('Checking the records'));
+      await bloc.stream.firstWhere((state) => state is StaffIdentityRevealed);
+      expect(bloc.state, const StaffIdentityRevealed(masked, number));
+    });
+
+    test('says a refusal on the card, as there is no sheet to say it', () async {
+      final held = Completer<String?>();
+      when(() => staff.setAadhaar(any(), any())).thenAnswer((_) => held.future);
+      final bloc = build();
+      addTearDown(bloc.close);
+      bloc.add(const StaffAadhaarSaved(number));
+      await bloc.stream.firstWhere((state) => state is StaffIdentityWorking);
+      bloc.add(const StaffIdentityHidden());
+      await pumpEventQueue();
+      held.completeError(invalid);
+      await bloc.stream.firstWhere((state) => state is StaffIdentityRefused);
+      expect(bloc.state, const StaffIdentityRefused(masked, StaffIdentityAction.save, invalid, inSheet: false));
+    });
+
+    test('is forgotten once the next save starts, so a refusal there is said in its sheet', () async {
+      final held = Completer<String?>();
+      var sent = 0;
+      when(() => staff.setAadhaar(any(), any())).thenAnswer((_) {
+        if (sent++ == 0) return held.future;
+        throw invalid;
+      });
+      final bloc = build();
+      addTearDown(bloc.close);
+      bloc.add(const StaffAadhaarSaved(number));
+      await bloc.stream.firstWhere((state) => state is StaffIdentityWorking);
+      bloc.add(const StaffIdentityHidden());
+      await pumpEventQueue();
+      held.complete(masked);
+      await pumpEventQueue();
+      bloc.add(const StaffAadhaarSaved(number));
+      await bloc.stream.firstWhere((state) => state is StaffIdentityRefused);
+      expect(bloc.state, const StaffIdentityRefused(masked, StaffIdentityAction.save, invalid, inSheet: true));
+    });
+
+    test('keeps a masked number that went through, as the card shows it', () async {
+      final held = Completer<String?>();
+      when(() => staff.setAadhaar(any(), any())).thenAnswer((_) => held.future);
+      final bloc = build();
+      addTearDown(bloc.close);
+      bloc.add(const StaffAadhaarSaved(number));
+      await bloc.stream.firstWhere((state) => state is StaffIdentityWorking);
+      bloc.add(const StaffIdentityHidden());
+      await pumpEventQueue();
+      held.complete('XXXX XXXX 0123');
+      await pumpEventQueue();
+      expect(bloc.state, const StaffIdentityIdle('XXXX XXXX 0123'));
+    });
   });
 
   group('hiding', () {

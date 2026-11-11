@@ -291,6 +291,81 @@ void main() {
     });
   });
 
+  group('a sheet closed while its call is on its way', () {
+    testWidgets('does not keep the whole number, and the next Show asks for a reason again', (tester) async {
+      final held = Completer<String>();
+      when(() => staff.revealAadhaar(any(), reason: any(named: 'reason'))).thenAnswer((_) => held.future);
+      final bloc = await pump(tester);
+      await open(tester, 'reveal');
+      await tester.enterText(find.byKey(const Key('staffIdentity.reason')), reason);
+      await tester.tap(find.byKey(const Key('staffIdentity.show')));
+      await tester.pump(const Duration(milliseconds: 100));
+      await tester.tapAt(const Offset(5, 5));
+      await tester.pumpAndSettle();
+      held.complete(number);
+      await tester.pumpAndSettle();
+      expect(bloc.state, const StaffIdentityIdle(masked));
+      expect(find.text('Aadhaar number saved'), findsNothing);
+      await open(tester, 'reveal');
+      expect(find.byKey(const Key('staffIdentity.reason')), findsOneWidget);
+      expect(find.text('2345 6789 0123'), findsNothing);
+      verify(() => staff.revealAadhaar(any(), reason: any(named: 'reason'))).called(1);
+    });
+
+    testWidgets('says a refusal of a save on the card, and the next Set sheet opens clean', (tester) async {
+      final held = Completer<String?>();
+      when(() => staff.setAadhaar(any(), any())).thenAnswer((_) => held.future);
+      await pump(tester, held: null);
+      await open(tester, 'set');
+      await tester.enterText(find.byKey(const Key('staffIdentity.aadhaar')), number);
+      await tester.tap(find.byKey(const Key('staffIdentity.save')));
+      await tester.pump(const Duration(milliseconds: 100));
+      await tester.tapAt(const Offset(5, 5));
+      await tester.pumpAndSettle();
+      held.completeError(
+        const ApiFailure(statusCode: 409, code: 'AADHAAR_EXISTS_IN_SOCIETY', message: 'server words'),
+      );
+      await tester.pumpAndSettle();
+      expect(find.byKey(const Key('staffIdentity.error')), findsOneWidget);
+      expect(find.text('This Aadhaar number is already recorded for someone in this Society.'), findsOneWidget);
+      await open(tester, 'set');
+      expect(find.byKey(const Key('staffIdentity.saveError')), findsNothing);
+      expect(find.text(number), findsNothing);
+    });
+
+    testWidgets('says a refusal of a reveal on the card too', (tester) async {
+      final held = Completer<String>();
+      when(() => staff.revealAadhaar(any(), reason: any(named: 'reason'))).thenAnswer((_) => held.future);
+      await pump(tester);
+      await open(tester, 'reveal');
+      await tester.enterText(find.byKey(const Key('staffIdentity.reason')), reason);
+      await tester.tap(find.byKey(const Key('staffIdentity.show')));
+      await tester.pump(const Duration(milliseconds: 100));
+      await tester.tapAt(const Offset(5, 5));
+      await tester.pumpAndSettle();
+      held.completeError(const ApiFailure(statusCode: 429, code: 'REVEAL_LIMIT', message: 'server words'));
+      await tester.pumpAndSettle();
+      expect(find.byKey(const Key('staffIdentity.error')), findsOneWidget);
+      expect(find.byKey(const Key('staffIdentity.revealError')), findsNothing);
+    });
+
+    testWidgets('says a save that went through after the sheet closed', (tester) async {
+      final held = Completer<String?>();
+      when(() => staff.setAadhaar(any(), any())).thenAnswer((_) => held.future);
+      await pump(tester, held: null);
+      await open(tester, 'set');
+      await tester.enterText(find.byKey(const Key('staffIdentity.aadhaar')), number);
+      await tester.tap(find.byKey(const Key('staffIdentity.save')));
+      await tester.pump(const Duration(milliseconds: 100));
+      await tester.tapAt(const Offset(5, 5));
+      await tester.pumpAndSettle();
+      held.complete(masked);
+      await tester.pumpAndSettle();
+      expect(find.text('Aadhaar number saved'), findsOneWidget);
+      expect(find.text(masked), findsOneWidget);
+    });
+  });
+
   testWidgets('reads whole at a large text scale on a small phone, with the sheet open', (tester) async {
     await pump(tester, textScale: 2, size: const Size(320, 3000));
     await open(tester, 'reveal');
