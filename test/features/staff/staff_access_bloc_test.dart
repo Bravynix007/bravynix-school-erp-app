@@ -253,6 +253,22 @@ void main() {
       held.complete(kavyaWith(subjectIds: ['u1'], institutionIds: ['i2', 'i3']));
     });
 
+    test('lets a subject be ticked while the Institutions are on their way', () async {
+      final held = Completer<StaffMember>();
+      when(() => staff.setInstitutions(any(), any())).thenAnswer((_) => held.future);
+      final bloc = await opened();
+      bloc
+        ..add(const StaffInstitutionToggled('i3'))
+        ..add(const StaffAccessSaved(StaffAccessPart.institutions));
+      await bloc.stream.firstWhere((state) => state is StaffAccessReady && state.saving != null);
+      bloc.add(const StaffSubjectToggled('u2'));
+      await pumpEventQueue();
+      expect(ready(bloc).subjectIds, ['u1', 'u2']);
+      held.complete(kavyaWith(subjectIds: ['u1'], institutionIds: ['i2', 'i3']));
+      await bloc.stream.firstWhere((state) => state is StaffAccessReady && state.saving == null);
+      expect(ready(bloc).subjectIds, ['u1', 'u2']);
+    });
+
     test('sends nothing for a list that was not changed', () async {
       final bloc = await opened();
       bloc.add(const StaffAccessSaved(StaffAccessPart.subjects));
