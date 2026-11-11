@@ -23,31 +23,22 @@ class _MockUploadBloc extends MockBloc<FileUploadEvent, FileUploadState> impleme
 
 void main() {
   late _MockUploadBloc bloc;
-  late List<String?> changes;
   setUpAll(() => registerFallbackValue(FileUploadStarted(pdf)));
-  setUp(() {
-    bloc = _MockUploadBloc();
-    changes = [];
-  });
+  setUp(() => bloc = _MockUploadBloc());
 
   Future<void> pump(
     WidgetTester tester,
     FileUploadState state, {
     FilePicking? picking,
-    Stream<FileUploadState>? later,
     double textScale = 1,
   }) {
-    if (later == null) {
-      when(() => bloc.state).thenReturn(state);
-    } else {
-      whenListen(bloc, later, initialState: state);
-    }
+    when(() => bloc.state).thenReturn(state);
     return tester.pumpAppScaled(
       Scaffold(
         body: SingleChildScrollView(
           child: BlocProvider<FileUploadBloc>.value(
             value: bloc,
-            child: DocumentUploadField(picking: picking ?? FakeFilePicking(), onChanged: changes.add),
+            child: DocumentUploadField(picking: picking ?? FakeFilePicking()),
           ),
         ),
       ),
@@ -163,23 +154,6 @@ void main() {
     await tester.pump();
     verifyNever(() => bloc.add(any()));
     expect(tester.takeException(), isNull);
-  });
-
-  testWidgets('tells the form the file ID when the file is sent, and null when it is replaced or removed', (
-    tester,
-  ) async {
-    await pump(
-      tester,
-      const FileUploadIdle(),
-      later: Stream.fromIterable([
-        FileUploadSending(pdf),
-        FileUploadDone(pdf, uploadedPdf),
-        FileUploadSending(pdf),
-        const FileUploadIdle(),
-      ]),
-    );
-    await tester.pump();
-    expect(changes, ['f9', null]);
   });
 
   testWidgets('fits at the largest text size on a narrow phone', (tester) async {

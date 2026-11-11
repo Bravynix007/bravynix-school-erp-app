@@ -5,6 +5,7 @@ import 'package:bravynix_school_erp/core/theme/app_spacing.dart';
 import 'package:bravynix_school_erp/core/widgets/app_card.dart';
 import 'package:bravynix_school_erp/core/widgets/app_icon_button.dart';
 import 'package:bravynix_school_erp/core/widgets/app_segmented_control.dart';
+import 'package:bravynix_school_erp/core/widgets/app_snackbar.dart';
 import 'package:bravynix_school_erp/core/widgets/app_tag.dart';
 import 'package:bravynix_school_erp/core/widgets/app_top_bar.dart';
 import 'package:bravynix_school_erp/core/widgets/key_value_row.dart';
@@ -183,7 +184,7 @@ class StaffProfileView extends StatelessWidget {
                         getIt<FilesRepository>(),
                         getIt<FileOpening>(),
                         staffMemberId: profile.member.id,
-                      )..add(const StaffDocumentsStarted()),
+                      ),
                     ),
                     BlocProvider(
                       create: (_) => FileUploadBloc(
@@ -212,6 +213,33 @@ class StaffProfileView extends StatelessWidget {
                             StaffAdminInstitutionsChanged((state as StaffProfileLoaded).profile.member.institutionIds),
                           ),
                         ),
+                      // The file that went up is the one the document being added will hold, and once the document is
+                      // added the upload is let go of: joined here, so a file that finishes or a document that is
+                      // added while another tab is shown is not lost.
+                      BlocListener<FileUploadBloc, FileUploadState>(
+                        listenWhen: (previous, current) => current is FileUploadDone || previous is FileUploadDone,
+                        listener: (context, state) => context.read<StaffDocumentsBloc>().add(
+                          StaffDocumentsFileChosen(state is FileUploadDone ? state.uploaded.id : null),
+                        ),
+                      ),
+                      BlocListener<StaffDocumentsBloc, StaffDocumentsState>(
+                        // What went through stays in the state until the next change starts, which clears it.
+                        listenWhen: (previous, current) =>
+                            current is StaffDocumentsReady &&
+                            current.done != null &&
+                            (previous is! StaffDocumentsReady || previous.done != current.done),
+                        listener: (context, state) {
+                          final change = (state as StaffDocumentsReady).done!;
+                          if (!change.removed) context.read<FileUploadBloc>().add(const FileUploadCleared());
+                          AppSnackbar.show(
+                            context,
+                            message: change.removed
+                                ? l10n.staffDocumentRemoved(change.document.title)
+                                : l10n.staffDocumentAdded(change.document.title),
+                            kind: AppSnackbarKind.success,
+                          );
+                        },
+                      ),
                       BlocListener<StaffProfileBloc, StaffProfileState>(
                         listenWhen: (previous, current) =>
                             previous is StaffProfileLoaded &&

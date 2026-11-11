@@ -3,14 +3,12 @@ import 'package:bravynix_school_erp/core/theme/app_spacing.dart';
 import 'package:bravynix_school_erp/core/widgets/app_button.dart';
 import 'package:bravynix_school_erp/core/widgets/app_card.dart';
 import 'package:bravynix_school_erp/core/widgets/app_dialog.dart';
-import 'package:bravynix_school_erp/core/widgets/app_snackbar.dart';
 import 'package:bravynix_school_erp/core/widgets/app_text_field.dart';
 import 'package:bravynix_school_erp/core/widgets/inline_message.dart';
 import 'package:bravynix_school_erp/core/widgets/section_header.dart';
 import 'package:bravynix_school_erp/core/widgets/skeleton.dart';
 import 'package:bravynix_school_erp/features/documents/domain/document.dart';
 import 'package:bravynix_school_erp/features/files/domain/file_picking.dart';
-import 'package:bravynix_school_erp/features/files/presentation/bloc/file_upload_bloc.dart';
 import 'package:bravynix_school_erp/features/files/presentation/view/document_upload_field.dart';
 import 'package:bravynix_school_erp/features/staff/presentation/bloc/staff_documents_bloc.dart';
 import 'package:bravynix_school_erp/features/staff/presentation/view/staff_error_text.dart';
@@ -19,12 +17,24 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 /// The documents tab of the staff profile (PRD 7.5): the files kept with the record (STF-14), a way to add one (STF-15),
-/// to take one off (DOC-03) and to open its file (FIL-03). Its blocs are provided with the others above the tabs, so
-/// another tab does not lose a file that is on its way up or a title that is half written.
-class StaffDocumentsView extends StatelessWidget {
+/// to take one off (DOC-03) and to open its file (FIL-03). Its blocs are provided above the tabs, and what joins them
+/// is there too (the profile page), so another tab does not lose a file that is on its way up, a title that is half
+/// written, or the word that a document was added. Showing the tab is what reads the list, the first time.
+class StaffDocumentsView extends StatefulWidget {
   const new({required this.picking, super.key});
 
   final FilePicking picking;
+
+  @override
+  State<StaffDocumentsView> createState() => _StaffDocumentsViewState();
+}
+
+class _StaffDocumentsViewState extends State<StaffDocumentsView> {
+  @override
+  void initState() {
+    super.initState();
+    context.read<StaffDocumentsBloc>().add(const StaffDocumentsStarted());
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -34,24 +44,7 @@ class StaffDocumentsView extends StatelessWidget {
       children: [
         Text(l10n.staffDocumentsHelper, style: Theme.of(context).textTheme.bodySmall),
         const SizedBox(height: AppSpacing.sm),
-        BlocConsumer<StaffDocumentsBloc, StaffDocumentsState>(
-          // What went through stays in the state until the next change starts, which clears it.
-          listenWhen: (previous, current) =>
-              current is StaffDocumentsReady &&
-              current.done != null &&
-              (previous is! StaffDocumentsReady || previous.done != current.done),
-          listener: (context, state) {
-            final change = (state as StaffDocumentsReady).done!;
-            // The file that went up with the document is let go of, so the next one starts from nothing.
-            if (!change.removed) context.read<FileUploadBloc>().add(const FileUploadCleared());
-            AppSnackbar.show(
-              context,
-              message: change.removed
-                  ? l10n.staffDocumentRemoved(change.document.title)
-                  : l10n.staffDocumentAdded(change.document.title),
-              kind: AppSnackbarKind.success,
-            );
-          },
+        BlocBuilder<StaffDocumentsBloc, StaffDocumentsState>(
           builder: (context, state) => switch (state) {
             // A box and not SkeletonCards, which is a list of its own: this part sits inside the one of the tab.
             StaffDocumentsLoading() => Semantics(
@@ -65,7 +58,7 @@ class StaffDocumentsView extends StatelessWidget {
               actionLabel: l10n.retry,
               onAction: () => context.read<StaffDocumentsBloc>().add(const StaffDocumentsStarted()),
             ),
-            StaffDocumentsReady() => _Ready(state: state, picking: picking),
+            StaffDocumentsReady() => _Ready(state: state, picking: widget.picking),
           },
         ),
       ],
@@ -216,7 +209,6 @@ class _AddState extends State<_Add> {
           const SizedBox(height: AppSpacing.sm),
           DocumentUploadField(
             picking: widget.picking,
-            onChanged: (fileId) => bloc.add(StaffDocumentsFileChosen(fileId)),
           ),
           const SizedBox(height: AppSpacing.sm),
           AppButton(

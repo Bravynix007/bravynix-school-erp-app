@@ -86,6 +86,37 @@ void main() {
     );
   });
 
+  group('being shown again', () {
+    test('does not read again once the documents are read, or while they are being read', () async {
+      final held = Completer<List<Document>>();
+      when(() => documents.staffDocuments('f1')).thenAnswer((_) => held.future);
+      final bloc = build();
+      addTearDown(bloc.close);
+      bloc
+        ..add(const StaffDocumentsStarted())
+        ..add(const StaffDocumentsStarted());
+      await pumpEventQueue();
+      held.complete([degreeCertificate]);
+      await bloc.stream.firstWhere((state) => state is StaffDocumentsReady);
+      bloc.add(const StaffDocumentsStarted());
+      await pumpEventQueue();
+      verify(() => documents.staffDocuments('f1')).called(1);
+      expect(ready(bloc).documents, [degreeCertificate]);
+    });
+
+    test('reads again after a failure, which Try again asks for', () async {
+      when(() => documents.staffDocuments('f1')).thenThrow(const ApiFailure.network());
+      final bloc = build();
+      addTearDown(bloc.close);
+      bloc.add(const StaffDocumentsStarted());
+      await bloc.stream.firstWhere((state) => state is StaffDocumentsFailed);
+      when(() => documents.staffDocuments('f1')).thenAnswer((_) async => [degreeCertificate]);
+      bloc.add(const StaffDocumentsStarted());
+      await bloc.stream.firstWhere((state) => state is StaffDocumentsReady);
+      verify(() => documents.staffDocuments('f1')).called(2);
+    });
+  });
+
   group('the document being added', () {
     test('can be attached once it has a title that is not blank and a file that was uploaded', () async {
       final bloc = await opened();

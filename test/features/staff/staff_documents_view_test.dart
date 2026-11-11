@@ -152,20 +152,10 @@ void main() {
       verify(() => bloc.add(const StaffDocumentsAttached())).called(1);
     });
 
-    testWidgets('tells the bloc the title as it is typed, and the file once it is uploaded or taken away', (
-      tester,
-    ) async {
-      whenListen(
-        upload,
-        Stream.fromIterable([FileUploadDone(pdf, uploadedPdf), const FileUploadIdle()]),
-        initialState: const FileUploadIdle(),
-      );
+    testWidgets('tells the bloc the title as it is typed', (tester) async {
       await pump(tester, ready);
       await tester.enterText(find.byKey(const Key('staffDocuments.title')), 'Letter');
       verify(() => bloc.add(const StaffDocumentsTitleChanged('Letter'))).called(1);
-      await tester.pump();
-      verify(() => bloc.add(const StaffDocumentsFileChosen('f9'))).called(1);
-      verify(() => bloc.add(const StaffDocumentsFileChosen(null))).called(1);
     });
 
     testWidgets('starts the title from the one the bloc kept, which another tab may have left half written', (
@@ -181,38 +171,11 @@ void main() {
       expect(tester.widget<TextField>(find.byType(TextField)).enabled, isFalse);
     });
 
-    testWidgets('empties the title and the upload once the document is added, and says so', (tester) async {
+    testWidgets('empties the title once the document is added', (tester) async {
       const adding = StaffDocumentsReady(documents: [], title: 'Appointment letter', fileId: 'fl1', attaching: true);
-      await pump(
-        tester,
-        adding,
-        later: Stream.value(
-          StaffDocumentsReady(
-            documents: [appointmentLetter],
-            done: StaffDocumentChange(appointmentLetter, removed: false),
-          ),
-        ),
-      );
+      await pump(tester, adding, later: Stream.value(StaffDocumentsReady(documents: [appointmentLetter])));
       await tester.pump();
-      expect(find.text('Appointment letter added'), findsOneWidget);
       expect(tester.widget<TextField>(find.byType(TextField)).controller?.text, isEmpty);
-      verify(() => upload.add(const FileUploadCleared())).called(1);
-    });
-
-    testWidgets('says a removal is done, and leaves the upload alone', (tester) async {
-      await pump(
-        tester,
-        ready,
-        later: Stream.value(
-          StaffDocumentsReady(
-            documents: [degreeCertificate],
-            done: StaffDocumentChange(appointmentLetter, removed: true),
-          ),
-        ),
-      );
-      await tester.pump();
-      expect(find.text('Appointment letter removed'), findsOneWidget);
-      verifyNever(() => upload.add(any()));
     });
   });
 
@@ -242,6 +205,11 @@ void main() {
   });
 
   group('before the list is ready', () {
+    testWidgets('asks the bloc to read the list when it is shown', (tester) async {
+      await pump(tester, const StaffDocumentsLoading());
+      verify(() => bloc.add(const StaffDocumentsStarted())).called(1);
+    });
+
     testWidgets('shows a placeholder while it loads', (tester) async {
       await pump(tester, const StaffDocumentsLoading());
       expect(find.bySemanticsLabel('Loading'), findsOneWidget);
@@ -251,6 +219,7 @@ void main() {
     testWidgets('says why it could not be read, and starts again on Try again', (tester) async {
       await pump(tester, const StaffDocumentsFailed(ApiFailure.network()));
       expect(find.byKey(const Key('staffDocuments.failed')), findsOneWidget);
+      clearInteractions(bloc);
       await tester.tap(find.text('Try again'));
       verify(() => bloc.add(const StaffDocumentsStarted())).called(1);
     });

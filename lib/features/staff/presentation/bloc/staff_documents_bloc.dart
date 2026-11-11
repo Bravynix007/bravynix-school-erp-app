@@ -13,7 +13,8 @@ sealed class StaffDocumentsEvent extends Equatable {
   List<Object?> get props => [];
 }
 
-/// Opening the tab, and Try again after a failure.
+/// The tab is shown, and Try again after a failure. The documents are read the first time and after a failure; shown
+/// again later, it does nothing.
 final class StaffDocumentsStarted extends StaffDocumentsEvent {
   const new();
 }
@@ -186,12 +187,18 @@ class StaffDocumentsBloc extends Bloc<StaffDocumentsEvent, StaffDocumentsState> 
     if (state case final StaffDocumentsReady ready) work(ready);
   }
 
+  bool _reading = false;
+
   Future<void> _onStarted(StaffDocumentsStarted event, Emitter<StaffDocumentsState> emit) async {
+    if (_reading || state is StaffDocumentsReady) return;
+    _reading = true;
     emit(const StaffDocumentsLoading());
     try {
       emit(StaffDocumentsReady(documents: await _documents.staffDocuments(staffMemberId)));
     } on ApiFailure catch (failure) {
       emit(StaffDocumentsFailed(failure));
+    } finally {
+      _reading = false;
     }
   }
 

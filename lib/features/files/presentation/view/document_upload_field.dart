@@ -11,13 +11,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 /// Picks a PDF or a picture from the phone's files and sends it, with progress, an error that says what to do, and a way
-/// to send it again. The form reads the file's ID from [onChanged]: the ID once the server has checked the file, and
-/// null when the person removes it. The [FileUploadBloc] comes from the context, so the screen owns the upload.
+/// to send it again. The [FileUploadBloc] comes from the context, so the screen owns the upload, and tells its form of
+/// the file's ID once the server has checked it: this field only shows and asks.
 class DocumentUploadField extends StatefulWidget {
-  const new({required this.picking, required this.onChanged, super.key});
+  const new({required this.picking, super.key});
 
   final FilePicking picking;
-  final ValueChanged<String?> onChanged;
 
   @override
   State<DocumentUploadField> createState() => _DocumentUploadFieldState();
@@ -44,9 +43,7 @@ class _DocumentUploadFieldState extends State<DocumentUploadField> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final text = Theme.of(context).textTheme;
-    return BlocConsumer<FileUploadBloc, FileUploadState>(
-      listenWhen: (before, now) => now is FileUploadDone || before is FileUploadDone,
-      listener: (context, state) => widget.onChanged(state is FileUploadDone ? state.uploaded.id : null),
+    return BlocBuilder<FileUploadBloc, FileUploadState>(
       builder: (context, state) {
         final bloc = context.read<FileUploadBloc>();
         final sending = state is FileUploadSending;
