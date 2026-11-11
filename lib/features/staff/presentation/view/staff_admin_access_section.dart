@@ -1,4 +1,3 @@
-import 'package:bravynix_school_erp/app/di/injection.dart';
 import 'package:bravynix_school_erp/core/theme/app_spacing.dart';
 import 'package:bravynix_school_erp/core/widgets/app_button.dart';
 import 'package:bravynix_school_erp/core/widgets/app_card.dart';
@@ -9,8 +8,6 @@ import 'package:bravynix_school_erp/core/widgets/section_header.dart';
 import 'package:bravynix_school_erp/core/widgets/skeleton.dart';
 import 'package:bravynix_school_erp/core/widgets/status_chip.dart';
 import 'package:bravynix_school_erp/features/institutions/domain/institution.dart';
-import 'package:bravynix_school_erp/features/institutions/domain/institutions_repository.dart';
-import 'package:bravynix_school_erp/features/staff/domain/staff_member.dart';
 import 'package:bravynix_school_erp/features/staff/presentation/bloc/staff_admin_access_bloc.dart';
 import 'package:bravynix_school_erp/features/staff/presentation/view/staff_error_text.dart';
 import 'package:bravynix_school_erp/l10n/gen/app_localizations.dart';
@@ -18,22 +15,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 /// The Admin access part of the access tab, for the Society Owner (INS-08 to INS-10): at which of the Institutions the
-/// person is at they are an Admin, and a way to make them one or to take that away. It starts again when their extra
-/// Institutions change, as those are the ones an Admin can be made at.
-class StaffAdminAccessSection extends StatelessWidget {
-  const new({required this.member, super.key});
-
-  final StaffMember member;
-
-  @override
-  Widget build(BuildContext context) => BlocProvider(
-    key: ValueKey(member.institutionIds.join(',')),
-    create: (_) =>
-        StaffAdminAccessBloc(getIt<InstitutionsRepository>(), member: member)..add(const StaffAdminAccessStarted()),
-    child: StaffAdminAccessView(memberName: member.fullName),
-  );
-}
-
+/// person is at they are an Admin, and a way to make them one or to take that away. Its bloc is provided with the
+/// others above the tabs, so scrolling away or another tab does not lose a change on its way.
 class StaffAdminAccessView extends StatelessWidget {
   const new({required this.memberName, super.key});
 
@@ -72,7 +55,7 @@ class StaffAdminAccessView extends StatelessWidget {
               child: const ExcludeSemantics(child: SkeletonBox(height: 96, radius: AppRadius.card)),
             ),
             StaffAdminAccessFailed(:final failure) => InlineMessage.error(
-              staffAdminErrorText(l10n, failure),
+              staffAdminErrorText(l10n, failure, granted: true),
               key: const Key('staffAdmin.failed'),
               actionLabel: l10n.retry,
               onAction: () => context.read<StaffAdminAccessBloc>().add(const StaffAdminAccessStarted()),
@@ -147,10 +130,10 @@ class _Institutions extends StatelessWidget {
                 )
               : Text(l10n.staffAdminIsNot, style: text.bodySmall),
         ),
-        if (state.failedAt == institution.id && state.failure != null) ...[
+        if (state.failed case final failed? when failed.institutionId == institution.id && state.failure != null) ...[
           const SizedBox(height: AppSpacing.xs),
           InlineMessage.error(
-            staffAdminErrorText(l10n, state.failure!),
+            staffAdminErrorText(l10n, state.failure!, granted: failed.granted),
             key: Key('staffAdmin.error.${institution.id}'),
           ),
         ],

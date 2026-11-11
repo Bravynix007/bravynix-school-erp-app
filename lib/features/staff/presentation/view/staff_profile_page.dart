@@ -22,6 +22,7 @@ import 'package:bravynix_school_erp/features/staff/domain/staff_member.dart';
 import 'package:bravynix_school_erp/features/staff/domain/staff_profile.dart';
 import 'package:bravynix_school_erp/features/staff/domain/staff_repository.dart';
 import 'package:bravynix_school_erp/features/staff/presentation/bloc/staff_access_bloc.dart';
+import 'package:bravynix_school_erp/features/staff/presentation/bloc/staff_admin_access_bloc.dart';
 import 'package:bravynix_school_erp/features/staff/presentation/bloc/staff_block_bloc.dart';
 import 'package:bravynix_school_erp/features/staff/presentation/bloc/staff_class_teacher_bloc.dart';
 import 'package:bravynix_school_erp/features/staff/presentation/bloc/staff_profile_bloc.dart';
@@ -133,39 +134,43 @@ class StaffProfileView extends StatelessWidget {
                     ),
                     BlocProvider(create: (_) => StaffBlockBloc(getIt<StaffRepository>(), profile.member)),
                   ],
-                  child: Column(
-                    children: [
-                      Padding(
-                        padding: const EdgeInsets.fromLTRB(
-                          AppSpacing.screenMargin,
-                          AppSpacing.screenMargin,
-                          AppSpacing.screenMargin,
-                          0,
-                        ),
-                        child: AppSegmentedControl<StaffProfileTab>(
-                          options: StaffProfileTab.values,
-                          labelOf: (tab) => switch (tab) {
-                            StaffProfileTab.personal => l10n.staffTabPersonal,
-                            StaffProfileTab.access => l10n.staffTabAccess,
-                            StaffProfileTab.settings => l10n.staffTabSettings,
-                          },
-                          selected: tab,
-                          onChanged: (tab) => context.read<StaffProfileBloc>().add(StaffProfileTabChosen(tab)),
-                        ),
-                      ),
-                      Expanded(
-                        child: switch (tab) {
-                          StaffProfileTab.personal => _Details(profile: profile),
-                          StaffProfileTab.access => StaffAccessView(
-                            below: [
-                              const StaffClassTeacherSection(),
-                              if (isOwner) StaffAdminAccessSection(member: profile.member),
-                            ],
+                  child: _AdminAccessScope(
+                    isOwner: isOwner,
+                    member: profile.member,
+                    child: Column(
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.fromLTRB(
+                            AppSpacing.screenMargin,
+                            AppSpacing.screenMargin,
+                            AppSpacing.screenMargin,
+                            0,
                           ),
-                          StaffProfileTab.settings => const StaffSettingsView(),
-                        },
-                      ),
-                    ],
+                          child: AppSegmentedControl<StaffProfileTab>(
+                            options: StaffProfileTab.values,
+                            labelOf: (tab) => switch (tab) {
+                              StaffProfileTab.personal => l10n.staffTabPersonal,
+                              StaffProfileTab.access => l10n.staffTabAccess,
+                              StaffProfileTab.settings => l10n.staffTabSettings,
+                            },
+                            selected: tab,
+                            onChanged: (tab) => context.read<StaffProfileBloc>().add(StaffProfileTabChosen(tab)),
+                          ),
+                        ),
+                        Expanded(
+                          child: switch (tab) {
+                            StaffProfileTab.personal => _Details(profile: profile),
+                            StaffProfileTab.access => StaffAccessView(
+                              below: [
+                                const StaffClassTeacherSection(),
+                                if (isOwner) StaffAdminAccessView(memberName: profile.member.fullName),
+                              ],
+                            ),
+                            StaffProfileTab.settings => const StaffSettingsView(),
+                          },
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               },
@@ -175,6 +180,28 @@ class StaffProfileView extends StatelessWidget {
       ),
     );
   }
+}
+
+/// The Admin access bloc, for the Society Owner, above the tabs with the others (so scrolling away or another tab does not
+/// lose a change on its way). It starts again when the extra Institutions of the staff member change, as those are the
+/// ones an Admin can be made at. It reads when the part is first shown.
+class _AdminAccessScope extends StatelessWidget {
+  const new({required this.isOwner, required this.member, required this.child});
+
+  final bool isOwner;
+  final StaffMember member;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) => isOwner
+      ? BlocProvider(
+          key: ValueKey(member.institutionIds.join(',')),
+          create: (_) =>
+              StaffAdminAccessBloc(getIt<InstitutionsRepository>(), member: member)
+                ..add(const StaffAdminAccessStarted()),
+          child: child,
+        )
+      : child;
 }
 
 class _Details extends StatelessWidget {

@@ -178,7 +178,7 @@ void main() {
         bloc.add(const StaffAdminGranted('i2'));
         await bloc.stream.firstWhere((state) => state is StaffAdminAccessReady && state.failure != null);
         expect(ready(bloc).failure, failure);
-        expect(ready(bloc).failedAt, 'i2');
+        expect(ready(bloc).failed, const StaffAdminChange('i2', granted: true));
         expect(ready(bloc).adminAt, isEmpty);
         expect(ready(bloc).working, isNull);
         expect(ready(bloc).done, isNull);
@@ -194,6 +194,17 @@ void main() {
       expect(ready(bloc).adminAt, ['i2']);
     });
 
+    test('forgets the last success when the next change is sent, so it is not said again', () async {
+      when(() => institutions.grantAdmin('i1', any())).thenAnswer((_) async => adminOf());
+      when(() => institutions.grantAdmin('i2', any())).thenThrow(const ApiFailure.network());
+      final bloc = await opened();
+      bloc.add(const StaffAdminGranted('i1'));
+      await bloc.stream.firstWhere((state) => state is StaffAdminAccessReady && state.done != null);
+      bloc.add(const StaffAdminGranted('i2'));
+      await bloc.stream.firstWhere((state) => state is StaffAdminAccessReady && state.failure != null);
+      expect(ready(bloc).done, isNull);
+    });
+
     test('forgets the last refusal and the last success when the next one is sent', () async {
       when(() => institutions.grantAdmin('i2', any())).thenThrow(const ApiFailure.network());
       when(() => institutions.grantAdmin('i1', any())).thenAnswer((_) async => adminOf());
@@ -203,7 +214,7 @@ void main() {
       bloc.add(const StaffAdminGranted('i1'));
       await bloc.stream.firstWhere((state) => state is StaffAdminAccessReady && state.done != null);
       expect(ready(bloc).failure, isNull);
-      expect(ready(bloc).failedAt, isNull);
+      expect(ready(bloc).failed, isNull);
     });
   });
 
@@ -231,7 +242,7 @@ void main() {
       bloc.add(const StaffAdminRevoked('i2'));
       await bloc.stream.firstWhere((state) => state is StaffAdminAccessReady && state.failure != null);
       expect(ready(bloc).adminAt, ['i2']);
-      expect(ready(bloc).failedAt, 'i2');
+      expect(ready(bloc).failed, const StaffAdminChange('i2', granted: false));
     });
 
     test('shows them as not an Admin when the API says there is no access to take away', () async {

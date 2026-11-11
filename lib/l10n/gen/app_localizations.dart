@@ -2641,6 +2641,12 @@ abstract class AppLocalizations {
   /// **'They are not at this Institution. Add it under Other Institutions and save first.'**
   String get errorAdminNotAtInstitution;
 
+  /// No description provided for @errorAdminNotHeld.
+  ///
+  /// In en, this message translates to:
+  /// **'They no longer hold Admin access here. The screen is up to date now.'**
+  String get errorAdminNotHeld;
+
   /// No description provided for @errorAdminAccountState.
   ///
   /// In en, this message translates to:
