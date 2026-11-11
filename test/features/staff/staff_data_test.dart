@@ -37,6 +37,15 @@ void main() {
   };
 
   group('models', () {
+    test('tell two staff members apart by the section they lead', () {
+      final leads = kavyaWith(
+        classTeachers: [
+          {'academicYearId': 'y1', 'sectionId': 'e1'},
+        ],
+      );
+      expect(leads, isNot(kavyaWith()));
+    });
+
     test('read a row of the list, with and without the optional fields', () {
       expect(StaffModels.summary(summaryRow()), kavya);
       expect(
