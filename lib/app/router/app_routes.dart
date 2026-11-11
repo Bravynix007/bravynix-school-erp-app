@@ -53,9 +53,12 @@ abstract final class AppRoutes {
   static const classSections = '/school-setup/classes/sections';
   static const sectionForm = '/school-setup/classes/sections/form';
 
-  /// Teachers / Staff of the chosen Institution (STF-01), and one staff member's profile (STF-03). The `:id` pattern is
-  /// for the router; [staffMember] builds the location of one staff member.
+  /// Teachers / Staff of the chosen Institution (STF-01), one staff member's profile (STF-03) and the form that adds or
+  /// edits one (STF-02, STF-04), which takes the Institution or the staff member as the route's `extra`. The `:id`
+  /// pattern is for the router and comes after the form's own location; [staffMember] builds the location of one staff
+  /// member.
   static const staff = '/school-setup/staff';
+  static const staffForm = '/school-setup/staff/form';
   static const staffMemberPattern = '/school-setup/staff/:id';
   static String staffMember(String id) => '$staff/${Uri.encodeComponent(id)}';
 

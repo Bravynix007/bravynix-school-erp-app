@@ -1,5 +1,6 @@
 import 'package:bravynix_school_erp/core/model/phone.dart';
 import 'package:bravynix_school_erp/features/masters/domain/master_entry.dart';
+import 'package:bravynix_school_erp/features/staff/domain/staff_draft.dart';
 import 'package:bravynix_school_erp/features/staff/domain/staff_member.dart';
 import 'package:bravynix_school_erp/features/staff/domain/staff_profile.dart';
 
@@ -203,3 +204,62 @@ Map<String, Object?> memberJson() => {
   'version': 4,
   'createdAt': '2026-11-01T10:00:00.000Z',
 };
+
+/// What the form sends for [kavyaMember]: every field set, one education, two contacts, and a new photo.
+const kavyaDraft = StaffDraft(
+  email: 'kavya.nair@example.com',
+  firstName: 'Kavya',
+  lastName: 'Nair',
+  employeeCode: 'T-014',
+  gender: Gender.female,
+  dateOfBirth: '1990-04-17',
+  bloodGroup: 'O+',
+  nationality: 'Indian',
+  photoFileId: 'p2',
+  designationId: 'd1',
+  classCategoryId: 'c1',
+  mobile: mobile,
+  alternateNumber: '9876500000',
+  address: StaffAddress(
+    line1: '12 Lake Road',
+    line2: 'Near the park',
+    countryId: 'k1',
+    stateId: 's1',
+    cityId: 'y1',
+    pincode: '560066',
+  ),
+  joiningDate: '2020-06-01',
+  resignationDate: '2026-03-31',
+  employmentType: EmploymentType.fullTime,
+  educations: [
+    Education(
+      degree: 'B.Ed',
+      qualification: 'Education',
+      specialization: 'Mathematics',
+      institutionName: 'Mysore University',
+      yearOfPassing: 2014,
+    ),
+  ],
+  emergencyContacts: [
+    EmergencyContact(
+      contactName: 'Anil Nair',
+      relation: 'Father',
+      phone: Phone(countryCode: '91', number: '9876511111'),
+      alternateNumber: '9876522222',
+      isPrimary: true,
+    ),
+    EmergencyContact(
+      contactName: 'Mini Nair',
+      phone: Phone(countryCode: '91', number: '9876533333'),
+      isPrimary: false,
+    ),
+  ],
+);
+
+/// The least the form sends: the three required fields and the login.
+const raviDraft = StaffDraft(
+  email: 'ravi@example.com',
+  firstName: 'Ravi',
+  classCategoryId: 'c1',
+  mobile: mobile,
+);

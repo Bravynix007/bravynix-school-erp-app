@@ -54,8 +54,8 @@ void main() {
     );
   }
 
-  DropdownButtonFormField<String> dropdown(WidgetTester tester, String key) => tester.widget(
-    find.descendant(of: find.byKey(Key(key)), matching: find.byType(DropdownButtonFormField<String>)),
+  DropdownButtonFormField<String?> dropdown(WidgetTester tester, String key) => tester.widget(
+    find.descendant(of: find.byKey(Key(key)), matching: find.byType(DropdownButtonFormField<String?>)),
   );
 
   Future<void> choose(WidgetTester tester, String key, String option) async {
@@ -101,7 +101,9 @@ void main() {
     expect(dropdown(tester, 'place.city').onChanged, isNull);
   });
 
-  testWidgets('keeps a place held although its entry is not listed now, shown as empty', (tester) async {
+  testWidgets('keeps a place held although its entry is not listed now, and says it is no longer offered', (
+    tester,
+  ) async {
     await pump(
       tester,
       const PlaceReady(
@@ -113,6 +115,33 @@ void main() {
     expect(tester.takeException(), isNull);
     expect(find.text('Karnataka'), findsNothing);
     expect(find.text('India'), findsOneWidget);
+    expect(
+      find.descendant(of: find.byKey(const Key('place.state')), matching: find.text('No longer offered (kept)')),
+      findsOneWidget,
+    );
+    expect(dropdown(tester, 'place.state').initialValue, 's1');
+  });
+
+  testWidgets('says a held country and city are no longer offered too, and offers the listed ones to replace them', (
+    tester,
+  ) async {
+    await pump(
+      tester,
+      const PlaceReady(
+        countries: [],
+        states: [karnataka],
+        cities: [mysuru],
+        choice: PlaceChoice(countryId: 'k9', stateId: 's1', cityId: 'y9'),
+      ),
+    );
+    expect(find.text('No longer offered (kept)'), findsNWidgets(2));
+    await choose(tester, 'place.city', 'Mysuru');
+    verify(() => bloc.add(const PlaceCityChosen('y2'))).called(1);
+  });
+
+  testWidgets('shows a place nothing is held for as empty, not as no longer offered', (tester) async {
+    await pump(tester, const PlaceReady(countries: [india], states: [karnataka]));
+    expect(find.text('No longer offered (kept)'), findsNothing);
   });
 
   testWidgets('says what the API said under the country, the state and the city', (tester) async {

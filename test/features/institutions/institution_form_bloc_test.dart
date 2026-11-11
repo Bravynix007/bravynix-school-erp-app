@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:bloc_test/bloc_test.dart';
 import 'package:bravynix_school_erp/core/model/phone.dart';
 import 'package:bravynix_school_erp/core/network/api_failure.dart';
@@ -298,5 +300,32 @@ void main() {
       verify: (_) => verify(() => institutions.update(any(), any(), any())).called(1),
       expect: () => anything,
     );
+
+    test('keeps a choice made while the save was on its way, when the save is refused', () async {
+      final held = Completer<Institution>();
+      when(() => institutions.update(any(), any(), any())).thenAnswer((_) => held.future);
+      final bloc = build(id: 'i1');
+      addTearDown(bloc.close);
+      when(() => institutions.institution('i1')).thenAnswer((_) async => institution);
+      bloc.add(const InstitutionFormStarted());
+      await bloc.stream.firstWhere((state) => state is InstitutionFormReady);
+      bloc.add(const InstitutionFormSubmitted(_texts, _place));
+      await bloc.stream.firstWhere((state) => state is InstitutionFormReady && state.saving);
+      bloc
+        ..add(const InstitutionBoardChosen(Board.icse))
+        ..add(const InstitutionCategoryToggled('c1'));
+      await pumpEventQueue();
+      held.completeError(const ApiFailure(statusCode: 409, code: 'DUPLICATE', message: 'x'));
+      final after = await bloc.stream.firstWhere((state) => state is InstitutionFormReady && !state.saving);
+      expect((after as InstitutionFormReady).board, Board.icse);
+      expect(after.categoryIds, ['c2']);
+      expect(after.failure?.code, 'DUPLICATE');
+      when(() => institutions.update(any(), any(), any())).thenAnswer((_) async => institution);
+      bloc.add(const InstitutionFormSubmitted(_texts, _place));
+      await bloc.stream.firstWhere((state) => state is InstitutionFormSaved);
+      final draft = verify(() => institutions.update('i1', any(), captureAny())).captured.last as InstitutionDraft;
+      expect(draft.board, Board.icse);
+      expect(draft.classesOffered, ['c2']);
+    });
   });
 }

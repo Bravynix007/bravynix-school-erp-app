@@ -841,11 +841,11 @@ abstract class AppLocalizations {
   /// **'Contact'**
   String get institutionContact;
 
-  /// No description provided for @institutionAddress.
+  /// No description provided for @addressSection.
   ///
   /// In en, this message translates to:
   /// **'Address'**
-  String get institutionAddress;
+  String get addressSection;
 
   /// No description provided for @institutionPhone.
   ///
@@ -955,23 +955,23 @@ abstract class AppLocalizations {
   /// **'Not set'**
   String get institutionBoardNone;
 
-  /// No description provided for @institutionAddressLine1.
+  /// No description provided for @addressLine1.
   ///
   /// In en, this message translates to:
   /// **'Address line 1'**
-  String get institutionAddressLine1;
+  String get addressLine1;
 
-  /// No description provided for @institutionAddressLine2.
+  /// No description provided for @addressLine2.
   ///
   /// In en, this message translates to:
   /// **'Address line 2'**
-  String get institutionAddressLine2;
+  String get addressLine2;
 
-  /// No description provided for @institutionPincode.
+  /// No description provided for @addressPincode.
   ///
   /// In en, this message translates to:
   /// **'Pincode'**
-  String get institutionPincode;
+  String get addressPincode;
 
   /// No description provided for @placeCountry.
   ///
@@ -991,17 +991,17 @@ abstract class AppLocalizations {
   /// **'City'**
   String get placeCity;
 
-  /// No description provided for @institutionCountryCode.
+  /// No description provided for @phoneCountryCode.
   ///
   /// In en, this message translates to:
   /// **'Country code'**
-  String get institutionCountryCode;
+  String get phoneCountryCode;
 
-  /// No description provided for @institutionPhoneNumber.
+  /// No description provided for @phoneNumber.
   ///
   /// In en, this message translates to:
   /// **'Phone number'**
-  String get institutionPhoneNumber;
+  String get phoneNumber;
 
   /// No description provided for @institutionNoCategories.
   ///
@@ -2172,6 +2172,222 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{name} ({relation})'**
   String staffContactRelation(String name, String relation);
+
+  /// No description provided for @staffAddTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Add staff'**
+  String get staffAddTitle;
+
+  /// No description provided for @staffEditTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit staff'**
+  String get staffEditTitle;
+
+  /// No description provided for @staffSave.
+  ///
+  /// In en, this message translates to:
+  /// **'Save'**
+  String get staffSave;
+
+  /// No description provided for @staffSaved.
+  ///
+  /// In en, this message translates to:
+  /// **'Staff saved'**
+  String get staffSaved;
+
+  /// No description provided for @staffFormPhoto.
+  ///
+  /// In en, this message translates to:
+  /// **'Photo'**
+  String get staffFormPhoto;
+
+  /// No description provided for @staffPhotoKept.
+  ///
+  /// In en, this message translates to:
+  /// **'A photo is saved. Choose another to replace it.'**
+  String get staffPhotoKept;
+
+  /// No description provided for @staffPhotoLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Staff photo'**
+  String get staffPhotoLabel;
+
+  /// No description provided for @staffFormPersonal.
+  ///
+  /// In en, this message translates to:
+  /// **'Personal details'**
+  String get staffFormPersonal;
+
+  /// No description provided for @staffFirstName.
+  ///
+  /// In en, this message translates to:
+  /// **'First name'**
+  String get staffFirstName;
+
+  /// No description provided for @staffLastName.
+  ///
+  /// In en, this message translates to:
+  /// **'Last name'**
+  String get staffLastName;
+
+  /// No description provided for @staffEmailAddHelper.
+  ///
+  /// In en, this message translates to:
+  /// **'They sign in with a code sent to this email.'**
+  String get staffEmailAddHelper;
+
+  /// No description provided for @staffEmailEditHelper.
+  ///
+  /// In en, this message translates to:
+  /// **'The login email can\'t be changed here.'**
+  String get staffEmailEditHelper;
+
+  /// No description provided for @staffFormAddress.
+  ///
+  /// In en, this message translates to:
+  /// **'Address'**
+  String get staffFormAddress;
+
+  /// No description provided for @staffFormEducation.
+  ///
+  /// In en, this message translates to:
+  /// **'Education'**
+  String get staffFormEducation;
+
+  /// No description provided for @staffFormEmergency.
+  ///
+  /// In en, this message translates to:
+  /// **'Emergency contacts'**
+  String get staffFormEmergency;
+
+  /// No description provided for @choiceNone.
+  ///
+  /// In en, this message translates to:
+  /// **'Not set'**
+  String get choiceNone;
+
+  /// No description provided for @masterEntryKept.
+  ///
+  /// In en, this message translates to:
+  /// **'No longer offered (kept)'**
+  String get masterEntryKept;
+
+  /// No description provided for @chooseDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a date'**
+  String get chooseDate;
+
+  /// No description provided for @clearDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear {label}'**
+  String clearDate(String label);
+
+  /// No description provided for @staffEducationRow.
+  ///
+  /// In en, this message translates to:
+  /// **'Education {number}'**
+  String staffEducationRow(int number);
+
+  /// No description provided for @staffEducationDegree.
+  ///
+  /// In en, this message translates to:
+  /// **'Degree'**
+  String get staffEducationDegree;
+
+  /// No description provided for @staffEducationQualification.
+  ///
+  /// In en, this message translates to:
+  /// **'Qualification'**
+  String get staffEducationQualification;
+
+  /// No description provided for @staffEducationSpecialization.
+  ///
+  /// In en, this message translates to:
+  /// **'Specialization'**
+  String get staffEducationSpecialization;
+
+  /// No description provided for @staffEducationSchool.
+  ///
+  /// In en, this message translates to:
+  /// **'School or college'**
+  String get staffEducationSchool;
+
+  /// No description provided for @staffEducationYear.
+  ///
+  /// In en, this message translates to:
+  /// **'Year of passing'**
+  String get staffEducationYear;
+
+  /// No description provided for @staffAddEducation.
+  ///
+  /// In en, this message translates to:
+  /// **'Add education'**
+  String get staffAddEducation;
+
+  /// No description provided for @staffRemoveEducation.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove education {number}'**
+  String staffRemoveEducation(int number);
+
+  /// No description provided for @staffContactRow.
+  ///
+  /// In en, this message translates to:
+  /// **'Contact {number}'**
+  String staffContactRow(int number);
+
+  /// No description provided for @staffContactName.
+  ///
+  /// In en, this message translates to:
+  /// **'Name'**
+  String get staffContactName;
+
+  /// No description provided for @staffContactRelationLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Relation'**
+  String get staffContactRelationLabel;
+
+  /// No description provided for @staffAddContact.
+  ///
+  /// In en, this message translates to:
+  /// **'Add emergency contact'**
+  String get staffAddContact;
+
+  /// No description provided for @staffRemoveContact.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove contact {number}'**
+  String staffRemoveContact(int number);
+
+  /// No description provided for @staffUploadingWait.
+  ///
+  /// In en, this message translates to:
+  /// **'Wait for the photo to finish sending.'**
+  String get staffUploadingWait;
+
+  /// No description provided for @errorEmployeeIdTaken.
+  ///
+  /// In en, this message translates to:
+  /// **'Another staff member of this Institution has this Employee ID.'**
+  String get errorEmployeeIdTaken;
+
+  /// No description provided for @errorStaffDuplicate.
+  ///
+  /// In en, this message translates to:
+  /// **'This person already has a staff record in this Society.'**
+  String get errorStaffDuplicate;
+
+  /// No description provided for @errorRoleConflict.
+  ///
+  /// In en, this message translates to:
+  /// **'This email belongs to a platform account, which can\'t also be staff.'**
+  String get errorRoleConflict;
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {

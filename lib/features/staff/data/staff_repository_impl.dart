@@ -2,6 +2,7 @@ import 'package:bravynix_school_erp/core/network/api_client.dart';
 import 'package:bravynix_school_erp/core/network/api_envelope.dart';
 import 'package:bravynix_school_erp/core/paging/items_page.dart';
 import 'package:bravynix_school_erp/features/staff/data/staff_models.dart';
+import 'package:bravynix_school_erp/features/staff/domain/staff_draft.dart';
 import 'package:bravynix_school_erp/features/staff/domain/staff_member.dart';
 import 'package:bravynix_school_erp/features/staff/domain/staff_repository.dart';
 
@@ -26,6 +27,22 @@ class StaffRepositoryImpl implements StaffRepository {
 
   @override
   Future<StaffMember> member(String id) => _api.data(_path(id), parse: StaffModels.member);
+
+  @override
+  Future<StaffMember> create(String institutionId, StaffDraft draft) => _api.data(
+    'staff',
+    method: HttpMethod.post,
+    body: StaffModels.createBody(institutionId, draft),
+    parse: StaffModels.member,
+  );
+
+  @override
+  Future<StaffMember> update(String id, int version, StaffDraft draft) => _api.data(
+    _path(id),
+    method: HttpMethod.patch,
+    body: StaffModels.updateBody(draft, version),
+    parse: StaffModels.member,
+  );
 
   @override
   Future<void> deactivate(String id) => _api.data(_path(id), method: HttpMethod.delete, parse: (_) {});

@@ -166,7 +166,7 @@ class _Details extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              KeyValueRow(label: l10n.institutionAddress, value: address),
+              KeyValueRow(label: l10n.addressSection, value: address),
               if (institution.email case final email?) KeyValueRow(label: l10n.profileEmail, value: email),
               if (institution.phone case final phone?) KeyValueRow(label: l10n.institutionPhone, value: phone.display),
               if (institution.telephone case final telephone?)
