@@ -482,6 +482,7 @@
   "errorAdminAlready": "They are already an Admin of this Institution. The screen is up to date now.",
   "errorAdminStaffBlocked": "They are blocked. Unblock them under Settings before giving Admin access.",
   "errorAdminNotAtInstitution": "They are not at this Institution. Add it under Other Institutions and save first.",
+  "errorAdminNotHeld": "They no longer hold Admin access here. The screen is up to date now.",
   "errorAdminAccountState": "Their account cannot hold this role right now.",
   "errorRoleConflict": "This email belongs to a platform account, which can't also be staff."
 }
