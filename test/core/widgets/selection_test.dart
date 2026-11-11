@@ -48,6 +48,8 @@ void main() {
     );
     await tester.tap(find.text('Term 2'));
     expect(picked, 'Term 2');
+    await tester.pump();
+    expect(tester.takeException(), isNull, reason: 'a wrapping group is not in a scroll view, and asks none to move');
     handle.dispose();
   });
 
@@ -149,6 +151,12 @@ void main() {
       expect(find.byType(Wrap), findsNothing);
       final tops = {for (final label in labels) tester.getTopLeft(find.text(label)).dy};
       expect(tops, hasLength(1), reason: 'one row');
+      expect(
+        tester.getTopLeft(find.ancestor(of: find.text('Access'), matching: find.byType(InkWell)).first).dx -
+            tester.getRect(find.ancestor(of: find.text('Personal'), matching: find.byType(InkWell)).first).right,
+        AppSpacing.xs,
+        reason: 'the chips do not touch',
+      );
       expect(tester.getTopLeft(find.text('Settings')).dx, greaterThan(edge), reason: 'beyond the edge');
       await tester.drag(find.byType(SingleChildScrollView), const Offset(-400, 0));
       await tester.pump();
