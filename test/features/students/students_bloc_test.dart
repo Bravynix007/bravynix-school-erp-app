@@ -303,6 +303,49 @@ void main() {
     );
 
     blocTest<StudentFiltersBloc, StudentFiltersState>(
+      'keeps the class and the section when a year is chosen after them',
+      build: build,
+      act: (bloc) async {
+        bloc.add(const StudentFiltersStarted());
+        await bloc.stream.firstWhere((state) => state is StudentFiltersReady);
+        bloc
+          ..add(const StudentFiltersClassChosen('k1'))
+          ..add(const StudentFiltersSectionChosen('e1'))
+          ..add(const StudentFiltersYearChosen('y1'));
+      },
+      skip: 4,
+      expect: () => [
+        isA<StudentFiltersReady>().having(
+          (s) => s.filter,
+          'filter',
+          const StudentFilter(academicYearId: 'y1', classId: 'k1', sectionId: 'e1'),
+        ),
+      ],
+    );
+
+    blocTest<StudentFiltersBloc, StudentFiltersState>(
+      'keeps the section when the class it is in is chosen again',
+      build: build,
+      act: (bloc) async {
+        bloc.add(const StudentFiltersStarted());
+        await bloc.stream.firstWhere((state) => state is StudentFiltersReady);
+        bloc
+          ..add(const StudentFiltersSectionChosen('e1'))
+          ..add(const StudentFiltersClassChosen('k1'));
+      },
+      skip: 2,
+      // Choosing the class again changes nothing, so there is no second state.
+      expect: () => [
+        isA<StudentFiltersReady>().having(
+          (s) => s.filter,
+          'filter',
+          const StudentFilter(classId: 'k1', sectionId: 'e1'),
+        ),
+      ],
+      verify: (bloc) => expect((bloc.state as StudentFiltersReady).filter.sectionId, 'e1'),
+    );
+
+    blocTest<StudentFiltersBloc, StudentFiltersState>(
       'a section chosen with no class also chooses its class, and Any section keeps the class',
       build: build,
       act: (bloc) async {
