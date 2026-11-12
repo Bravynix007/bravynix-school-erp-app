@@ -305,4 +305,36 @@ void main() {
       expect([for (final relation in GuardianRelation.values) relation.code], [1, 2, 3, 4, 5, 6]);
     });
   });
+
+  group('STU-08', () {
+    test('sends only what changes, to the placement of the student, and answers the warnings', () async {
+      final (:repository, :adapter) = build(
+        () => okReply(
+          studentRow(),
+          meta: {
+            'warnings': ['SECTION_OVER_CAPACITY'],
+          },
+        ),
+      );
+      final warnings = await repository.move('p1', sectionId: 'e2');
+      expect(warnings, ['SECTION_OVER_CAPACITY']);
+      final request = adapter.requests.single;
+      expect([request.method, request.uri.path], ['PATCH', '/v1/students/p1/placement']);
+      expect(bodyOf(request), {'sectionId': 'e2'});
+    });
+
+    test('sends the roll number and the day when they are set, and answers no warnings when there are none', () async {
+      final (:repository, :adapter) = build(() => okReply(studentRow()));
+      expect(await repository.move('p1', rollNumber: '15', effectiveDate: '2026-07-01'), isEmpty);
+      expect(bodyOf(adapter.requests.single), {'rollNumber': '15', 'effectiveDate': '2026-07-01'});
+    });
+
+    test('throws the failure the API gives', () async {
+      final (:repository, adapter: _) = build(() => errorReply(409, 'ROLL_NUMBER_TAKEN'));
+      await expectLater(
+        repository.move('p1', rollNumber: '15'),
+        throwsA(isA<ApiFailure>().having((f) => f.code, 'code', 'ROLL_NUMBER_TAKEN')),
+      );
+    });
+  });
 }

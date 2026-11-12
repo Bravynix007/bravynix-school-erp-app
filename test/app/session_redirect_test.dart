@@ -9,10 +9,12 @@ import 'package:bravynix_school_erp/features/sections/presentation/view/section_
 import 'package:bravynix_school_erp/features/sections/presentation/view/sections_page.dart';
 import 'package:bravynix_school_erp/features/staff/presentation/view/staff_form_page.dart';
 import 'package:bravynix_school_erp/features/students/presentation/view/student_form_page.dart';
+import 'package:bravynix_school_erp/features/students/presentation/view/student_move_page.dart';
 import 'package:bravynix_school_erp/features/subjects/presentation/view/subject_form_page.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import '../helpers/classes.dart';
+import '../helpers/students.dart';
 import '../helpers/subjects.dart';
 
 void main() {
@@ -112,5 +114,11 @@ void main() {
     expect(studentFormRedirect(const StudentFormArgs('i1')), isNull);
     expect(studentFormRedirect(null), AppRoutes.students);
     expect(studentFormRedirect('i1'), AppRoutes.students);
+  });
+
+  test('the move form opens only with the student the list passes, else back to the list', () {
+    expect(studentMoveRedirect(const StudentMoveArgs(ashaEntry)), isNull);
+    expect(studentMoveRedirect(null), AppRoutes.students);
+    expect(studentMoveRedirect('p1'), AppRoutes.students);
   });
 }

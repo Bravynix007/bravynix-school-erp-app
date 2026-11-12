@@ -8,6 +8,7 @@ import 'package:bravynix_school_erp/features/students/domain/student.dart';
 import 'package:bravynix_school_erp/features/students/presentation/bloc/student_filters_bloc.dart';
 import 'package:bravynix_school_erp/features/students/presentation/bloc/students_bloc.dart';
 import 'package:bravynix_school_erp/features/students/presentation/view/student_form_page.dart';
+import 'package:bravynix_school_erp/features/students/presentation/view/student_move_page.dart';
 import 'package:bravynix_school_erp/features/students/presentation/view/students_page.dart';
 import 'package:bravynix_school_erp/l10n/gen/app_localizations.dart';
 import 'package:flutter/material.dart';
@@ -379,6 +380,100 @@ void main() {
     testWidgets('waits while a deactivation goes', (tester) async {
       await pump(tester, const _Loaded([ashaEntry], busyId: 'p1'));
       expect(tester.widget<ButtonStyleButton>(button('students.add')).onPressed, isNull);
+    });
+  });
+
+  group('Move', () {
+    /// The list on a router that has the move form's location, which closes with [result] (null: backed out).
+    Future<List<StudentMoveArgs>> pumpWithForm(WidgetTester tester, {required bool? result}) async {
+      when(() => bloc.state).thenReturn(const _Loaded([ashaEntry, balaEntry]));
+      when(() => bloc.institutionId).thenReturn('i1');
+      final opened = <StudentMoveArgs>[];
+      final router = GoRouter(
+        routes: [
+          GoRoute(
+            path: '/',
+            builder: (_, _) => Scaffold(
+              body: MultiBlocProvider(
+                providers: [
+                  BlocProvider<StudentsBloc>.value(value: bloc),
+                  BlocProvider<StudentFiltersBloc>.value(value: filters),
+                ],
+                child: const StudentsView(),
+              ),
+            ),
+          ),
+          GoRoute(
+            path: AppRoutes.studentMove,
+            builder: (context, routeState) {
+              opened.add(routeState.extra! as StudentMoveArgs);
+              return Scaffold(
+                body: TextButton(onPressed: () => context.pop(result), child: const Text('close form')),
+              );
+            },
+          ),
+        ],
+      );
+      addTearDown(router.dispose);
+      await tester.pumpWidget(
+        MaterialApp.router(
+          theme: AppTheme.light(),
+          routerConfig: router,
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+        ),
+      );
+      return opened;
+    }
+
+    testWidgets('opens the form for the student of the card, and reads the list again once it was saved', (
+      tester,
+    ) async {
+      final opened = await pumpWithForm(tester, result: true);
+      await tester.tap(find.byKey(const ValueKey('students.move.p1')));
+      await tester.pumpAndSettle();
+      expect(opened.single.entry, ashaEntry);
+      await tester.tap(find.text('close form'));
+      await tester.pumpAndSettle();
+      verify(() => bloc.add(const PagedListRequested())).called(1);
+    });
+
+    testWidgets('leaves the list alone when the form closed without saving', (tester) async {
+      await pumpWithForm(tester, result: null);
+      await tester.tap(find.byKey(const ValueKey('students.move.p1')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('close form'));
+      await tester.pumpAndSettle();
+      verifyNever(() => bloc.add(const PagedListRequested()));
+    });
+
+    testWidgets('is offered on every card', (tester) async {
+      await pump(tester, const _Loaded([ashaEntry, balaEntry]));
+      expect(find.text('Move'), findsNWidgets(2));
+    });
+
+    testWidgets('is not offered while a year is chosen, since a row then shows where the student sat in it', (
+      tester,
+    ) async {
+      when(() => filters.state).thenReturn(
+        const StudentFiltersReady(studentOptions, filter: StudentFilter(academicYearId: 'y0')),
+      );
+      await pump(tester, const _Loaded([ashaEntry]));
+      expect(find.text('Move'), findsNothing);
+      expect(find.text('Deactivate'), findsOneWidget);
+    });
+
+    testWidgets('is offered with a class chosen, since the row still shows the placement they hold', (tester) async {
+      when(() => filters.state).thenReturn(
+        const StudentFiltersReady(studentOptions, filter: StudentFilter(classId: 'c1')),
+      );
+      await pump(tester, const _Loaded([ashaEntry]));
+      expect(find.text('Move'), findsOneWidget);
+    });
+
+    testWidgets('waits while a deactivation goes', (tester) async {
+      await pump(tester, const _Loaded([ashaEntry, balaEntry], busyId: 'p2'));
+      expect(tester.widget<ButtonStyleButton>(button('students.move.p1')).onPressed, isNull);
     });
   });
 
