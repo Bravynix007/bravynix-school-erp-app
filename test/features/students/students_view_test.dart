@@ -1,14 +1,19 @@
 import 'package:bloc_test/bloc_test.dart';
+import 'package:bravynix_school_erp/app/router/app_routes.dart';
 import 'package:bravynix_school_erp/core/bloc/paged_list_bloc.dart';
 import 'package:bravynix_school_erp/core/network/api_failure.dart';
+import 'package:bravynix_school_erp/core/theme/app_theme.dart';
 import 'package:bravynix_school_erp/core/widgets/app_icon_button.dart';
 import 'package:bravynix_school_erp/features/students/domain/student.dart';
 import 'package:bravynix_school_erp/features/students/presentation/bloc/student_filters_bloc.dart';
 import 'package:bravynix_school_erp/features/students/presentation/bloc/students_bloc.dart';
+import 'package:bravynix_school_erp/features/students/presentation/view/student_form_page.dart';
 import 'package:bravynix_school_erp/features/students/presentation/view/students_page.dart';
+import 'package:bravynix_school_erp/l10n/gen/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:go_router/go_router.dart';
 import 'package:mocktail/mocktail.dart';
 
 import '../../helpers/clipped_text.dart';
@@ -293,6 +298,87 @@ void main() {
       expect(find.byKey(const Key('students.moreFailed')), findsOneWidget);
       await tester.tap(find.text('Try again'));
       verify(() => bloc.add(const PagedListMoreRequested())).called(1);
+    });
+  });
+
+  group('Add student', () {
+    /// The list on a router that has the form's location, which closes with [result] (null: backed out).
+    Future<List<StudentFormArgs>> pumpWithForm(
+      WidgetTester tester,
+      PagedListState<StudentListEntry> state, {
+      required bool? result,
+    }) async {
+      when(() => bloc.state).thenReturn(state);
+      when(() => bloc.institutionId).thenReturn('i1');
+      final opened = <StudentFormArgs>[];
+      final router = GoRouter(
+        routes: [
+          GoRoute(
+            path: '/',
+            builder: (_, _) => Scaffold(
+              body: MultiBlocProvider(
+                providers: [
+                  BlocProvider<StudentsBloc>.value(value: bloc),
+                  BlocProvider<StudentFiltersBloc>.value(value: filters),
+                ],
+                child: const StudentsView(),
+              ),
+            ),
+          ),
+          GoRoute(
+            path: AppRoutes.studentForm,
+            builder: (context, routeState) {
+              opened.add(routeState.extra! as StudentFormArgs);
+              return Scaffold(
+                body: TextButton(onPressed: () => context.pop(result), child: const Text('close form')),
+              );
+            },
+          ),
+        ],
+      );
+      addTearDown(router.dispose);
+      await tester.pumpWidget(
+        MaterialApp.router(
+          theme: AppTheme.light(),
+          routerConfig: router,
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+        ),
+      );
+      return opened;
+    }
+
+    testWidgets('opens the form for this Institution, and reads the list again once a student was saved', (
+      tester,
+    ) async {
+      final opened = await pumpWithForm(tester, const _Loaded([ashaEntry]), result: true);
+      await tester.tap(find.byKey(const Key('students.add')));
+      await tester.pumpAndSettle();
+      expect(opened.single.institutionId, 'i1');
+      await tester.tap(find.text('close form'));
+      await tester.pumpAndSettle();
+      verify(() => bloc.add(const PagedListRequested())).called(1);
+    });
+
+    testWidgets('leaves the list alone when the form closed without saving', (tester) async {
+      await pumpWithForm(tester, const _Loaded([ashaEntry]), result: null);
+      await tester.tap(find.byKey(const Key('students.add')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('close form'));
+      await tester.pumpAndSettle();
+      verifyNever(() => bloc.add(const PagedListRequested()));
+    });
+
+    testWidgets('is offered on an empty list as well', (tester) async {
+      final opened = await pumpWithForm(tester, const _Loaded([]), result: true);
+      await tester.tap(find.text('Add student'));
+      await tester.pumpAndSettle();
+      expect(opened.single.institutionId, 'i1');
+    });
+
+    testWidgets('waits while a deactivation goes', (tester) async {
+      await pump(tester, const _Loaded([ashaEntry], busyId: 'p1'));
+      expect(tester.widget<ButtonStyleButton>(button('students.add')).onPressed, isNull);
     });
   });
 

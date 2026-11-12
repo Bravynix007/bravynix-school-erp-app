@@ -1,5 +1,4 @@
 import 'package:bravynix_school_erp/app/di/injection.dart';
-import 'package:bravynix_school_erp/core/model/gender.dart';
 import 'package:bravynix_school_erp/core/model/phone.dart';
 import 'package:bravynix_school_erp/core/theme/app_spacing.dart';
 import 'package:bravynix_school_erp/core/widgets/app_button.dart';
@@ -24,7 +23,7 @@ import 'package:bravynix_school_erp/features/masters/domain/masters_repository.d
 import 'package:bravynix_school_erp/features/masters/domain/place_choice.dart';
 import 'package:bravynix_school_erp/features/masters/presentation/bloc/place_bloc.dart';
 import 'package:bravynix_school_erp/features/masters/presentation/view/master_dropdown.dart';
-import 'package:bravynix_school_erp/features/masters/presentation/view/place_fields.dart';
+import 'package:bravynix_school_erp/features/people/presentation/view/person_form_fields.dart';
 import 'package:bravynix_school_erp/features/staff/domain/staff_member.dart';
 import 'package:bravynix_school_erp/features/staff/domain/staff_repository.dart';
 import 'package:bravynix_school_erp/features/staff/presentation/bloc/staff_form_bloc.dart';
@@ -283,7 +282,6 @@ class _FormBodyState extends State<_FormBody> {
     final uploading = context.select<FileUploadBloc, bool>((bloc) => bloc.state is FileUploadSending);
     // A save that failed on fields of this form is shown under them; any other failure is said above.
     final banner = failure != null && !failure.namesOnly(_fieldsShown(state)) ? staffErrorText(l10n, failure) : null;
-    final today = DateTime.now();
     return StaleCopyGuard(
       // The staff member was deactivated meanwhile, so the screen behind reads again.
       stale: failure?.code == 'NOT_FOUND',
@@ -343,69 +341,19 @@ class _FormBodyState extends State<_FormBody> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
-                        AppTextField(
-                          key: const Key('staffForm.firstName'),
-                          label: l10n.personFirstName,
-                          controller: _firstName,
-                          required: true,
-                          requiredLabel: l10n.fieldRequired,
-                          error: error('firstName'),
-                          textInputAction: TextInputAction.next,
-                        ),
-                        const SizedBox(height: AppSpacing.sm),
-                        AppTextField(
-                          key: const Key('staffForm.lastName'),
-                          label: l10n.personLastName,
-                          controller: _lastName,
-                          error: error('lastName'),
-                          textInputAction: TextInputAction.next,
-                        ),
-                        const SizedBox(height: AppSpacing.sm),
-                        AppDropdownField<Gender?>(
-                          key: const Key('staffForm.gender'),
-                          label: l10n.personGender,
-                          value: state.gender,
-                          error: error('gender'),
-                          items: [
-                            DropdownMenuItem<Gender?>(child: Text(l10n.choiceNone)),
-                            for (final gender in Gender.values)
-                              DropdownMenuItem<Gender?>(value: gender, child: Text(genderName(l10n, gender))),
-                          ],
-                          onChanged: (gender) => bloc.add(StaffGenderChosen(gender)),
-                        ),
-                        const SizedBox(height: AppSpacing.sm),
-                        OptionalDateField(
-                          key: const Key('staffForm.dateOfBirth'),
-                          label: l10n.personDateOfBirth,
-                          day: state.dateOfBirth,
-                          hint: l10n.chooseDate,
-                          clearLabel: l10n.clearDate(l10n.personDateOfBirth),
-                          firstDay: DateTime(1900),
-                          lastDay: today.subtract(const Duration(days: 1)),
-                          initialDay: DateTime(today.year - 30),
-                          error: error('dateOfBirth'),
-                          onChanged: (day) => bloc.add(StaffBirthDateChosen(day)),
-                        ),
-                        const SizedBox(height: AppSpacing.sm),
-                        AppDropdownField<String?>(
-                          key: const Key('staffForm.bloodGroup'),
-                          label: l10n.personBloodGroup,
-                          value: state.bloodGroup,
-                          error: error('bloodGroup'),
-                          items: [
-                            DropdownMenuItem<String?>(child: Text(l10n.choiceNone)),
-                            for (final group in bloodGroups)
-                              DropdownMenuItem<String?>(value: group, child: Text(group)),
-                          ],
-                          onChanged: (group) => bloc.add(StaffBloodGroupChosen(group)),
-                        ),
-                        const SizedBox(height: AppSpacing.sm),
-                        AppTextField(
-                          key: const Key('staffForm.nationality'),
-                          label: l10n.personNationality,
-                          controller: _nationality,
-                          error: error('nationality'),
-                          textInputAction: TextInputAction.next,
+                        PersonalFields(
+                          keyPrefix: 'staffForm',
+                          firstName: _firstName,
+                          lastName: _lastName,
+                          nationality: _nationality,
+                          gender: state.gender,
+                          bloodGroup: state.bloodGroup,
+                          dateOfBirth: state.dateOfBirth,
+                          usualAge: 30,
+                          errorOf: error,
+                          onGenderChosen: (gender) => bloc.add(StaffGenderChosen(gender)),
+                          onBloodGroupChosen: (group) => bloc.add(StaffBloodGroupChosen(group)),
+                          onBirthDateChosen: (day) => bloc.add(StaffBirthDateChosen(day)),
                         ),
                       ],
                     ),
@@ -431,36 +379,12 @@ class _FormBodyState extends State<_FormBody> {
                           textInputAction: TextInputAction.next,
                         ),
                         const SizedBox(height: AppSpacing.sm),
-                        AppTextField(
-                          key: const Key('staffForm.mobileCode'),
-                          label: l10n.phoneCountryCode,
-                          controller: _mobileCode,
-                          mono: true,
-                          keyboardType: TextInputType.number,
-                          error: error('mobile.countryCode'),
-                          textInputAction: TextInputAction.next,
-                        ),
-                        const SizedBox(height: AppSpacing.sm),
-                        AppTextField(
-                          key: const Key('staffForm.mobileNumber'),
-                          label: l10n.personMobile,
-                          controller: _mobileNumber,
-                          mono: true,
-                          required: true,
-                          requiredLabel: l10n.fieldRequired,
-                          keyboardType: TextInputType.phone,
-                          error: error('mobile.number') ?? error('mobile'),
-                          textInputAction: TextInputAction.next,
-                        ),
-                        const SizedBox(height: AppSpacing.sm),
-                        AppTextField(
-                          key: const Key('staffForm.alternate'),
-                          label: l10n.personAlternateNumber,
-                          controller: _alternate,
-                          mono: true,
-                          keyboardType: TextInputType.phone,
-                          error: error('alternateNumber'),
-                          textInputAction: TextInputAction.done,
+                        PhoneFields(
+                          keyPrefix: 'staffForm',
+                          countryCode: _mobileCode,
+                          number: _mobileNumber,
+                          alternate: _alternate,
+                          errorOf: error,
                         ),
                       ],
                     ),
@@ -472,37 +396,12 @@ class _FormBodyState extends State<_FormBody> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
-                        AppTextField(
-                          key: const Key('staffForm.line1'),
-                          label: l10n.addressLine1,
-                          controller: _line1,
-                          error: error('address.line1'),
-                          textInputAction: TextInputAction.next,
-                        ),
-                        const SizedBox(height: AppSpacing.sm),
-                        AppTextField(
-                          key: const Key('staffForm.line2'),
-                          label: l10n.addressLine2,
-                          controller: _line2,
-                          error: error('address.line2'),
-                          textInputAction: TextInputAction.next,
-                        ),
-                        const SizedBox(height: AppSpacing.sm),
-                        PlaceFields(
+                        AddressFields(
                           keyPrefix: 'staffForm',
-                          countryError: error('address.countryId'),
-                          stateError: error('address.stateId'),
-                          cityError: error('address.cityId'),
-                        ),
-                        const SizedBox(height: AppSpacing.sm),
-                        AppTextField(
-                          key: const Key('staffForm.pincode'),
-                          label: l10n.addressPincode,
-                          controller: _pincode,
-                          mono: true,
-                          keyboardType: TextInputType.number,
-                          error: error('address.pincode'),
-                          textInputAction: TextInputAction.done,
+                          line1: _line1,
+                          line2: _line2,
+                          pincode: _pincode,
+                          errorOf: error,
                         ),
                       ],
                     ),

@@ -98,3 +98,30 @@ enum LeavingReason {
 
   final int code;
 }
+
+/// A student that was just added (STU-02): who it is, as the screen says it. The profile has the rest.
+class Student extends Equatable {
+  const new({required this.id, required this.institutionId, required this.firstName, this.lastName});
+
+  final String id;
+  final String institutionId;
+  final String firstName;
+  final String? lastName;
+
+  String get fullName => [firstName, ?lastName].join(' ');
+
+  @override
+  List<Object?> get props => [id, institutionId, firstName, lastName];
+}
+
+/// A student that was added, and the second looks the server asked for: `SECTION_OVER_CAPACITY` when the
+/// section is over its capacity, `AADHAAR_EXISTS_IN_SOCIETY` when another Institution of the Society holds the number.
+class StudentSaved extends Equatable {
+  const new(this.student, {this.warnings = const []});
+
+  final Student student;
+  final List<String> warnings;
+
+  @override
+  List<Object?> get props => [student, warnings];
+}

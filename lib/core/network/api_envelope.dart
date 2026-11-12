@@ -52,6 +52,7 @@ class ApiEnvelope<T> {
     required this.data,
     required this.requestId,
     this.meta,
+    this.warnings = const [],
   });
 
   final int statusCode;
@@ -60,6 +61,9 @@ class ApiEnvelope<T> {
   final T data;
   final PageInfo? meta;
   final String requestId;
+
+  /// The codes in `meta.warnings` of a write that went through but needs a second look, such as `SECTION_OVER_CAPACITY`.
+  final List<String> warnings;
 
   static bool isEnvelope(Object? body) =>
       body is Map<String, dynamic> &&
@@ -75,7 +79,13 @@ class ApiEnvelope<T> {
     data: parse(body['data']),
     meta: PageInfo.fromJson(body['meta']),
     requestId: body['requestId'] as String? ?? '',
+    warnings: _warnings(body['meta']),
   );
+
+  static List<String> _warnings(Object? meta) => [
+    if (meta is Map<String, dynamic>)
+      if (meta['warnings'] case final List<dynamic> codes) ...codes.whereType<String>(),
+  ];
 
   /// Turns an error envelope into an [ApiFailure]; anything else is unexpected.
   /// It never throws: a gateway page or a half-formed body (`code: null`)

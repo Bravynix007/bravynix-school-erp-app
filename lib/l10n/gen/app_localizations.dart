@@ -3300,6 +3300,294 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'This student could not be found. They may have been deactivated.'**
   String get errorStudentNotFound;
+
+  /// No description provided for @studentsAddTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Add student'**
+  String get studentsAddTitle;
+
+  /// No description provided for @studentPhotoLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Student photo'**
+  String get studentPhotoLabel;
+
+  /// No description provided for @studentFormAdmission.
+  ///
+  /// In en, this message translates to:
+  /// **'Admission'**
+  String get studentFormAdmission;
+
+  /// No description provided for @studentAdmissionNo.
+  ///
+  /// In en, this message translates to:
+  /// **'Admission ID'**
+  String get studentAdmissionNo;
+
+  /// No description provided for @studentAdmissionDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Admission date'**
+  String get studentAdmissionDate;
+
+  /// No description provided for @studentAdmissionDateHelper.
+  ///
+  /// In en, this message translates to:
+  /// **'The day the class placement starts. Today when left empty.'**
+  String get studentAdmissionDateHelper;
+
+  /// No description provided for @studentContactEmail.
+  ///
+  /// In en, this message translates to:
+  /// **'Student\'s email'**
+  String get studentContactEmail;
+
+  /// No description provided for @studentContactEmailHelper.
+  ///
+  /// In en, this message translates to:
+  /// **'Not a login. Guardians sign in with their own email.'**
+  String get studentContactEmailHelper;
+
+  /// No description provided for @studentFormPlacement.
+  ///
+  /// In en, this message translates to:
+  /// **'Class and section'**
+  String get studentFormPlacement;
+
+  /// No description provided for @studentYear.
+  ///
+  /// In en, this message translates to:
+  /// **'Academic year'**
+  String get studentYear;
+
+  /// No description provided for @studentClass.
+  ///
+  /// In en, this message translates to:
+  /// **'Class'**
+  String get studentClass;
+
+  /// No description provided for @studentSection.
+  ///
+  /// In en, this message translates to:
+  /// **'Section'**
+  String get studentSection;
+
+  /// No description provided for @studentRollNumber.
+  ///
+  /// In en, this message translates to:
+  /// **'Roll number'**
+  String get studentRollNumber;
+
+  /// No description provided for @studentFormGuardians.
+  ///
+  /// In en, this message translates to:
+  /// **'Parents and guardians'**
+  String get studentFormGuardians;
+
+  /// No description provided for @studentFormGuardiansHelper.
+  ///
+  /// In en, this message translates to:
+  /// **'Add one to five. Exactly one is the primary guardian.'**
+  String get studentFormGuardiansHelper;
+
+  /// No description provided for @studentGuardianRow.
+  ///
+  /// In en, this message translates to:
+  /// **'Guardian {number}'**
+  String studentGuardianRow(int number);
+
+  /// No description provided for @studentRemoveGuardian.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove guardian {number}'**
+  String studentRemoveGuardian(int number);
+
+  /// No description provided for @studentGuardianRelation.
+  ///
+  /// In en, this message translates to:
+  /// **'Relation'**
+  String get studentGuardianRelation;
+
+  /// No description provided for @relationFather.
+  ///
+  /// In en, this message translates to:
+  /// **'Father'**
+  String get relationFather;
+
+  /// No description provided for @relationMother.
+  ///
+  /// In en, this message translates to:
+  /// **'Mother'**
+  String get relationMother;
+
+  /// No description provided for @relationGuardian.
+  ///
+  /// In en, this message translates to:
+  /// **'Guardian'**
+  String get relationGuardian;
+
+  /// No description provided for @relationGrandparent.
+  ///
+  /// In en, this message translates to:
+  /// **'Grandparent'**
+  String get relationGrandparent;
+
+  /// No description provided for @relationSibling.
+  ///
+  /// In en, this message translates to:
+  /// **'Sibling'**
+  String get relationSibling;
+
+  /// No description provided for @relationOther.
+  ///
+  /// In en, this message translates to:
+  /// **'Other'**
+  String get relationOther;
+
+  /// No description provided for @studentGuardianEmail.
+  ///
+  /// In en, this message translates to:
+  /// **'Email'**
+  String get studentGuardianEmail;
+
+  /// No description provided for @studentGuardianEmailHelper.
+  ///
+  /// In en, this message translates to:
+  /// **'Their login. A parent who already has an account is linked by this email.'**
+  String get studentGuardianEmailHelper;
+
+  /// No description provided for @studentGuardianOccupation.
+  ///
+  /// In en, this message translates to:
+  /// **'Occupation'**
+  String get studentGuardianOccupation;
+
+  /// No description provided for @studentGuardianPrimary.
+  ///
+  /// In en, this message translates to:
+  /// **'Primary guardian'**
+  String get studentGuardianPrimary;
+
+  /// No description provided for @studentGuardianEmergency.
+  ///
+  /// In en, this message translates to:
+  /// **'Emergency contact'**
+  String get studentGuardianEmergency;
+
+  /// No description provided for @studentAddGuardian.
+  ///
+  /// In en, this message translates to:
+  /// **'Add guardian'**
+  String get studentAddGuardian;
+
+  /// No description provided for @studentFormIdentity.
+  ///
+  /// In en, this message translates to:
+  /// **'Identity'**
+  String get studentFormIdentity;
+
+  /// No description provided for @studentAadhaar.
+  ///
+  /// In en, this message translates to:
+  /// **'Aadhaar number'**
+  String get studentAadhaar;
+
+  /// No description provided for @studentAadhaarHelper.
+  ///
+  /// In en, this message translates to:
+  /// **'Optional. Twelve digits, kept encrypted.'**
+  String get studentAadhaarHelper;
+
+  /// No description provided for @studentBirthCertificate.
+  ///
+  /// In en, this message translates to:
+  /// **'Birth certificate number'**
+  String get studentBirthCertificate;
+
+  /// No description provided for @studentAdded.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} added'**
+  String studentAdded(String name);
+
+  /// No description provided for @studentWarnOverCapacity.
+  ///
+  /// In en, this message translates to:
+  /// **'The section is now over its capacity.'**
+  String get studentWarnOverCapacity;
+
+  /// No description provided for @studentWarnAadhaarElsewhere.
+  ///
+  /// In en, this message translates to:
+  /// **'Another Institution of the Society holds this Aadhaar number.'**
+  String get studentWarnAadhaarElsewhere;
+
+  /// No description provided for @studentFormNoPlacesTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Set up a class first'**
+  String get studentFormNoPlacesTitle;
+
+  /// No description provided for @studentFormNoPlacesMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Add an academic year, a class and a section before adding students.'**
+  String get studentFormNoPlacesMessage;
+
+  /// No description provided for @errorStudentFormNotFound.
+  ///
+  /// In en, this message translates to:
+  /// **'The Institution, year, class, section or photo could not be found. It may have been deactivated.'**
+  String get errorStudentFormNotFound;
+
+  /// No description provided for @errorAdmissionNoTaken.
+  ///
+  /// In en, this message translates to:
+  /// **'Another student of this Institution has this Admission ID.'**
+  String get errorAdmissionNoTaken;
+
+  /// No description provided for @errorRollNumberTaken.
+  ///
+  /// In en, this message translates to:
+  /// **'Another student in this section has this roll number.'**
+  String get errorRollNumberTaken;
+
+  /// No description provided for @errorAadhaarDuplicateInInstitution.
+  ///
+  /// In en, this message translates to:
+  /// **'A student of this Institution already has this Aadhaar number.'**
+  String get errorAadhaarDuplicateInInstitution;
+
+  /// No description provided for @errorSectionNotInClass.
+  ///
+  /// In en, this message translates to:
+  /// **'This section is not in the class chosen.'**
+  String get errorSectionNotInClass;
+
+  /// No description provided for @errorStudentYearNotActive.
+  ///
+  /// In en, this message translates to:
+  /// **'This academic year is not active.'**
+  String get errorStudentYearNotActive;
+
+  /// No description provided for @errorInactiveSection.
+  ///
+  /// In en, this message translates to:
+  /// **'This section is deactivated.'**
+  String get errorInactiveSection;
+
+  /// No description provided for @errorPrimaryGuardianRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose exactly one primary guardian.'**
+  String get errorPrimaryGuardianRequired;
+
+  /// No description provided for @errorGuardianRoleConflict.
+  ///
+  /// In en, this message translates to:
+  /// **'A guardian\'s email belongs to a platform account, which can\'t also be a parent.'**
+  String get errorGuardianRoleConflict;
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {

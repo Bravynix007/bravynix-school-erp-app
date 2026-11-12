@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:bravynix_school_erp/app/di/injection.dart';
+import 'package:bravynix_school_erp/app/router/app_routes.dart';
 import 'package:bravynix_school_erp/core/bloc/paged_list_bloc.dart';
 import 'package:bravynix_school_erp/core/theme/app_spacing.dart';
 import 'package:bravynix_school_erp/core/widgets/app_button.dart';
@@ -25,6 +26,7 @@ import 'package:bravynix_school_erp/features/students/presentation/bloc/student_
 import 'package:bravynix_school_erp/features/students/presentation/bloc/students_bloc.dart';
 import 'package:bravynix_school_erp/features/students/presentation/view/student_error_text.dart';
 import 'package:bravynix_school_erp/features/students/presentation/view/student_filter_sheet.dart';
+import 'package:bravynix_school_erp/features/students/presentation/view/student_form_page.dart';
 import 'package:bravynix_school_erp/features/students/presentation/view/student_leaving_sheet.dart';
 import 'package:bravynix_school_erp/l10n/gen/app_localizations.dart';
 import 'package:flutter/material.dart';
@@ -80,6 +82,14 @@ class StudentsPage extends StatelessWidget {
       ),
     );
   }
+}
+
+/// Opens the form that adds a student to this Institution; one saved joins the list, so it is read again when the form
+/// closes with true.
+Future<void> _openAddForm(BuildContext context) async {
+  final bloc = context.read<StudentsBloc>();
+  final saved = await context.push<bool>(AppRoutes.studentForm, extra: StudentFormArgs(bloc.institutionId));
+  if (saved ?? false) bloc.add(const PagedListRequested());
 }
 
 /// The students of one Institution, under the switcher: a search box, the year, class and section filters, and the
@@ -215,7 +225,12 @@ class _Empty extends StatelessWidget {
         message: l10n.studentsNoFilterMatchMessage,
       );
     }
-    return StatePanel.empty(title: l10n.studentsEmptyTitle, message: l10n.studentsEmptyMessage);
+    return StatePanel.empty(
+      title: l10n.studentsEmptyTitle,
+      message: l10n.studentsEmptyMessage,
+      actionLabel: l10n.studentsAddTitle,
+      onAction: () => _openAddForm(context),
+    );
   }
 }
 
@@ -303,6 +318,14 @@ class _StudentList extends StatelessWidget {
           InlineMessage.error(studentErrorText(l10n, failure), key: const Key('students.actionFailed')),
           const SizedBox(height: AppSpacing.sm),
         ],
+        AppButton(
+          key: const Key('students.add'),
+          label: l10n.studentsAddTitle,
+          icon: Icons.add,
+          variant: AppButtonVariant.secondary,
+          onPressed: state.busyId == null ? () => _openAddForm(context) : null,
+        ),
+        const SizedBox(height: AppSpacing.sm),
         for (final entry in state.items) ...[
           _StudentCard(entry: entry, busy: state.busyId == entry.summary.id, locked: state.busyId != null),
           const SizedBox(height: AppSpacing.xs),
