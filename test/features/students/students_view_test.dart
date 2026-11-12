@@ -150,6 +150,22 @@ void main() {
       expect(find.byKey(const Key('studentFilter.any')), findsNothing);
     });
 
+    testWidgets('can be cleared while the list is idle', (tester) async {
+      when(() => filters.state).thenReturn(
+        const StudentFiltersReady(studentOptions, filter: StudentFilter(classId: 'c1')),
+      );
+      await pump(tester, const _Loaded([ashaEntry]));
+      expect(find.text('Clear filters'), findsOneWidget);
+    });
+
+    testWidgets('cannot be cleared while a deactivation goes, so they never disagree with the list', (tester) async {
+      when(() => filters.state).thenReturn(
+        const StudentFiltersReady(studentOptions, filter: StudentFilter(classId: 'c1')),
+      );
+      await pump(tester, const _Loaded([ashaEntry], busyId: 'p1'));
+      expect(find.text('Clear filters'), findsNothing);
+    });
+
     testWidgets('are left out until the options are read', (tester) async {
       when(() => filters.state).thenReturn(const StudentFiltersLoading());
       await pump(tester, const _Loaded([ashaEntry]));
