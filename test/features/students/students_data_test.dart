@@ -108,6 +108,12 @@ void main() {
       expect(request.uri.queryParameters, {'reason': '2'});
     });
 
+    test('encodes the ID in the path', () async {
+      final (:repository, :adapter) = build(() => okReply({'id': 'a/b', 'status': 0}));
+      await repository.deactivate('a/b', LeavingReason.left);
+      expect(adapter.requests.single.uri.path, '/v1/students/a%2Fb');
+    });
+
     test('sends the code of each reason', () {
       expect([for (final reason in LeavingReason.values) reason.code], [1, 2, 3]);
     });
