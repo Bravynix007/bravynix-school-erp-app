@@ -323,12 +323,27 @@ void main() {
     expect(find.bySemanticsLabel('Loading'), findsOneWidget);
   });
 
-  testWidgets('says why it failed, and loads the list and the filters again on Try again', (tester) async {
-    await pump(tester, const PagedListFailed<StudentListEntry>(ApiFailure.network()));
-    expect(find.byKey(const Key('students.failed')), findsOneWidget);
-    await tester.tap(find.text('Try again'));
-    verify(() => bloc.add(const PagedListRequested())).called(1);
-    verify(() => filters.add(const StudentFiltersStarted())).called(1);
+  group('Try again', () {
+    testWidgets('says why it failed, and loads the list again, leaving the filters that are chosen as they are', (
+      tester,
+    ) async {
+      when(() => filters.state).thenReturn(
+        const StudentFiltersReady(studentOptions, filter: StudentFilter(classId: 'c2')),
+      );
+      await pump(tester, const PagedListFailed<StudentListEntry>(ApiFailure.network()));
+      expect(find.byKey(const Key('students.failed')), findsOneWidget);
+      await tester.tap(find.text('Try again'));
+      verify(() => bloc.add(const PagedListRequested())).called(1);
+      verifyNever(() => filters.add(any()));
+    });
+
+    testWidgets('also reads the filters again when they failed', (tester) async {
+      when(() => filters.state).thenReturn(const StudentFiltersFailed(ApiFailure.network()));
+      await pump(tester, const PagedListFailed<StudentListEntry>(ApiFailure.network()));
+      await tester.tap(find.text('Try again'));
+      verify(() => bloc.add(const PagedListRequested())).called(1);
+      verify(() => filters.add(const StudentFiltersStarted())).called(1);
+    });
   });
 
   testWidgets('says a role that may not see students has no access', (tester) async {
