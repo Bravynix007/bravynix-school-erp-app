@@ -88,7 +88,7 @@ class PagedListLoaded<T> extends PagedListState<T> {
 /// search is ignored while a change is going (the screen locks its search box meanwhile).
 abstract class PagedListBloc<T> extends Bloc<PagedListEvent, PagedListState<T>> {
   new() : super(PagedListLoading<T>()) {
-    on<PagedListRequested>((event, emit) => _reload(emit));
+    on<PagedListRequested>((event, emit) => reload(emit));
     on<PagedListSearched>(_onSearched);
     on<PagedListMoreRequested>(_onMore);
   }
@@ -110,7 +110,9 @@ abstract class PagedListBloc<T> extends Bloc<PagedListEvent, PagedListState<T>> 
     changed: changed,
   );
 
-  Future<void> _reload(Emitter<PagedListState<T>> emit) async {
+  /// Reads the first page again, for what the list shows now: a subclass whose list has more than a search to change
+  /// (a filter) sets it and calls this.
+  Future<void> reload(Emitter<PagedListState<T>> emit) async {
     final round = ++_round;
     emit(PagedListLoading<T>());
     try {
@@ -131,7 +133,7 @@ abstract class PagedListBloc<T> extends Bloc<PagedListEvent, PagedListState<T>> 
       return;
     }
     _query = text;
-    await _reload(emit);
+    await reload(emit);
   }
 
   Future<void> _onMore(PagedListMoreRequested event, Emitter<PagedListState<T>> emit) async {

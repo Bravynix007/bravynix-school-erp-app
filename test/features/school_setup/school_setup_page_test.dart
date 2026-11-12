@@ -124,6 +124,32 @@ void main() {
     expect(find.text('staff screen'), findsOneWidget);
   });
 
+  testWidgets('opens the Students', (tester) async {
+    // Tall enough to show the last tile without scrolling.
+    tester.view
+      ..physicalSize = const Size(800, 1200)
+      ..devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    final router = GoRouter(
+      routes: [
+        GoRoute(path: '/', builder: (_, _) => const SchoolSetupPage()),
+        GoRoute(path: AppRoutes.students, builder: (_, _) => const Text('students screen')),
+      ],
+    );
+    addTearDown(router.dispose);
+    await tester.pumpWidget(
+      MaterialApp.router(
+        theme: AppTheme.light(),
+        routerConfig: router,
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+      ),
+    );
+    await tester.tap(find.byKey(const Key('schoolSetup.students')));
+    await tester.pumpAndSettle();
+    expect(find.text('students screen'), findsOneWidget);
+  });
+
   testWidgets('is usable at a large text scale on a small phone', (tester) async {
     await tester.pumpAppScaled(const SchoolSetupPage(), textScale: 2);
     expect(tester.takeException(), isNull);

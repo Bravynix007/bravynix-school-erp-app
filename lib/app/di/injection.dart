@@ -37,6 +37,8 @@ import 'package:bravynix_school_erp/features/sections/data/sections_repository_i
 import 'package:bravynix_school_erp/features/sections/domain/sections_repository.dart';
 import 'package:bravynix_school_erp/features/staff/data/staff_repository_impl.dart';
 import 'package:bravynix_school_erp/features/staff/domain/staff_repository.dart';
+import 'package:bravynix_school_erp/features/students/data/students_repository_impl.dart';
+import 'package:bravynix_school_erp/features/students/domain/students_repository.dart';
 import 'package:bravynix_school_erp/features/subjects/data/subjects_repository_impl.dart';
 import 'package:bravynix_school_erp/features/subjects/domain/subjects_repository.dart';
 import 'package:bravynix_school_erp/features/teaching_assignments/data/teaching_assignments_repository_impl.dart';
@@ -87,6 +89,7 @@ Future<void> configureDependencies(
     ..registerLazySingleton(() => ClassCatalogue(getIt(), getIt()))
     ..registerLazySingleton<SectionsRepository>(() => SectionsRepositoryImpl(api: getIt()))
     ..registerLazySingleton<StaffRepository>(() => StaffRepositoryImpl(api: getIt()))
+    ..registerLazySingleton<StudentsRepository>(() => StudentsRepositoryImpl(api: getIt()))
     ..registerLazySingleton<SubjectsRepository>(() => SubjectsRepositoryImpl(api: getIt()))
     ..registerLazySingleton<TeachingAssignmentsRepository>(() => TeachingAssignmentsRepositoryImpl(api: getIt()))
     ..registerLazySingleton<FilesRepository>(

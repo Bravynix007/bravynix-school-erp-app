@@ -1,7 +1,7 @@
 import 'package:bloc_test/bloc_test.dart';
 import 'package:bravynix_school_erp/core/network/api_failure.dart';
 import 'package:bravynix_school_erp/core/widgets/app_button.dart';
-import 'package:bravynix_school_erp/features/staff/presentation/bloc/section_options.dart';
+import 'package:bravynix_school_erp/features/sections/domain/section_options.dart';
 import 'package:bravynix_school_erp/features/staff/presentation/bloc/staff_class_teacher_bloc.dart';
 import 'package:bravynix_school_erp/features/staff/presentation/view/staff_class_teacher_section.dart';
 import 'package:flutter/material.dart';
@@ -24,8 +24,8 @@ void main() {
   setUp(() => bloc = _MockBloc());
 
   const sections = [
-    SectionChoice(id: 'e1', name: 'Class 1 · Section A'),
-    SectionChoice(id: 'e2', name: 'Class 1 · Blue'),
+    SectionChoice(id: 'e1', name: 'Class 1 · Section A', classId: 'k1'),
+    SectionChoice(id: 'e2', name: 'Class 1 · Blue', classId: 'k1'),
   ];
 
   StaffClassTeacherReady ready({

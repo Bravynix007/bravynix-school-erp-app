@@ -3132,6 +3132,174 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'This phone could not open the file.'**
   String get errorDocumentOpen;
+
+  /// No description provided for @studentsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Students'**
+  String get studentsTitle;
+
+  /// No description provided for @studentsDetail.
+  ///
+  /// In en, this message translates to:
+  /// **'The students of each Institution'**
+  String get studentsDetail;
+
+  /// No description provided for @studentsSearchHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Search name or ID'**
+  String get studentsSearchHint;
+
+  /// No description provided for @studentsSearchClear.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear search'**
+  String get studentsSearchClear;
+
+  /// No description provided for @studentsEmptyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'No students yet'**
+  String get studentsEmptyTitle;
+
+  /// No description provided for @studentsEmptyMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Students added to this Institution appear here.'**
+  String get studentsEmptyMessage;
+
+  /// No description provided for @studentsNoMatchTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'No students match \"{query}\"'**
+  String studentsNoMatchTitle(String query);
+
+  /// No description provided for @studentsNoMatchMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Check the spelling, or search by Admission ID or roll number.'**
+  String get studentsNoMatchMessage;
+
+  /// No description provided for @studentsNoFilterMatchTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'No students in this selection'**
+  String get studentsNoFilterMatchTitle;
+
+  /// No description provided for @studentsNoFilterMatchMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Try another year, class or section, or clear the filters.'**
+  String get studentsNoFilterMatchMessage;
+
+  /// No description provided for @studentsLoadMore.
+  ///
+  /// In en, this message translates to:
+  /// **'Load more'**
+  String get studentsLoadMore;
+
+  /// No description provided for @studentsBlocked.
+  ///
+  /// In en, this message translates to:
+  /// **'Blocked'**
+  String get studentsBlocked;
+
+  /// No description provided for @studentsRoll.
+  ///
+  /// In en, this message translates to:
+  /// **'Roll {roll}'**
+  String studentsRoll(String roll);
+
+  /// No description provided for @studentsAdmissionId.
+  ///
+  /// In en, this message translates to:
+  /// **'ID {id}'**
+  String studentsAdmissionId(String id);
+
+  /// No description provided for @studentsFilterYear.
+  ///
+  /// In en, this message translates to:
+  /// **'Year'**
+  String get studentsFilterYear;
+
+  /// No description provided for @studentsFilterClass.
+  ///
+  /// In en, this message translates to:
+  /// **'Class'**
+  String get studentsFilterClass;
+
+  /// No description provided for @studentsFilterSection.
+  ///
+  /// In en, this message translates to:
+  /// **'Section'**
+  String get studentsFilterSection;
+
+  /// No description provided for @studentsFilterAny.
+  ///
+  /// In en, this message translates to:
+  /// **'Any'**
+  String get studentsFilterAny;
+
+  /// No description provided for @studentsFiltersClear.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear filters'**
+  String get studentsFiltersClear;
+
+  /// No description provided for @studentsFilterHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Opens choices'**
+  String get studentsFilterHint;
+
+  /// No description provided for @studentsDeactivate.
+  ///
+  /// In en, this message translates to:
+  /// **'Deactivate'**
+  String get studentsDeactivate;
+
+  /// No description provided for @studentsDeactivateTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Deactivate {name}?'**
+  String studentsDeactivateTitle(String name);
+
+  /// No description provided for @studentsDeactivateMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Their guardians lose access to this child, and their class placement ends today. Nothing is deleted. Why are you deactivating?'**
+  String get studentsDeactivateMessage;
+
+  /// No description provided for @studentsReasonLeft.
+  ///
+  /// In en, this message translates to:
+  /// **'Left the Institution'**
+  String get studentsReasonLeft;
+
+  /// No description provided for @studentsReasonMistake.
+  ///
+  /// In en, this message translates to:
+  /// **'Added by mistake'**
+  String get studentsReasonMistake;
+
+  /// No description provided for @studentsReasonOther.
+  ///
+  /// In en, this message translates to:
+  /// **'Another reason'**
+  String get studentsReasonOther;
+
+  /// No description provided for @studentsDeactivated.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} deactivated'**
+  String studentsDeactivated(String name);
+
+  /// No description provided for @errorStudentNotFound.
+  ///
+  /// In en, this message translates to:
+  /// **'This student could not be found. They may have been deactivated.'**
+  String get errorStudentNotFound;
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {

@@ -1,5 +1,5 @@
 import 'package:bravynix_school_erp/core/network/api_failure.dart';
-import 'package:bravynix_school_erp/features/staff/presentation/bloc/section_options.dart';
+import 'package:bravynix_school_erp/features/sections/domain/section_options.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 
@@ -28,9 +28,10 @@ void main() {
     final options = await source.read('i1');
     expect(options.years, [earlierYear, currentYear]);
     expect(options.sections, const [
-      SectionChoice(id: 'e1', name: 'Class 1 · Section A'),
-      SectionChoice(id: 'e2', name: 'Class 1 · Blue'),
+      SectionChoice(id: 'e1', name: 'Class 1 · Section A', classId: 'k1'),
+      SectionChoice(id: 'e2', name: 'Class 1 · Blue', classId: 'k1'),
     ]);
+    expect(options.classes, const [ClassChoice(id: 'k1', name: 'Class 1')]);
     verifyNever(() => sections.sections('k9'));
   });
 
@@ -49,7 +50,9 @@ void main() {
     when(() => sections.sections('k1')).thenThrow(const ApiFailure.network());
     await expectLater(source.read('i1'), throwsA(isA<ApiFailure>()));
     when(() => sections.sections('k1')).thenAnswer((_) async => [sectionA]);
-    expect((await source.read('i1')).sections, const [SectionChoice(id: 'e1', name: 'Class 1 · Section A')]);
+    expect((await source.read('i1')).sections, const [
+      SectionChoice(id: 'e1', name: 'Class 1 · Section A', classId: 'k1'),
+    ]);
   });
 
   group('the year to look at first', () {

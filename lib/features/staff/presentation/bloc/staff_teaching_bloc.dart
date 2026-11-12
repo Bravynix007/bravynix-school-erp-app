@@ -1,8 +1,8 @@
 import 'package:bloc/bloc.dart';
 import 'package:bravynix_school_erp/core/network/api_failure.dart';
 import 'package:bravynix_school_erp/features/academic_years/domain/academic_year.dart';
+import 'package:bravynix_school_erp/features/sections/domain/section_options.dart';
 import 'package:bravynix_school_erp/features/staff/domain/staff_member.dart';
-import 'package:bravynix_school_erp/features/staff/presentation/bloc/section_options.dart';
 import 'package:bravynix_school_erp/features/subjects/domain/subject.dart';
 import 'package:bravynix_school_erp/features/subjects/domain/subjects_repository.dart';
 import 'package:bravynix_school_erp/features/teaching_assignments/domain/teaching_assignment.dart';

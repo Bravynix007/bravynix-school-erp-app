@@ -1726,4 +1726,99 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get errorDocumentOpen => 'This phone could not open the file.';
+
+  @override
+  String get studentsTitle => 'Students';
+
+  @override
+  String get studentsDetail => 'The students of each Institution';
+
+  @override
+  String get studentsSearchHint => 'Search name or ID';
+
+  @override
+  String get studentsSearchClear => 'Clear search';
+
+  @override
+  String get studentsEmptyTitle => 'No students yet';
+
+  @override
+  String get studentsEmptyMessage => 'Students added to this Institution appear here.';
+
+  @override
+  String studentsNoMatchTitle(String query) {
+    return 'No students match \"$query\"';
+  }
+
+  @override
+  String get studentsNoMatchMessage => 'Check the spelling, or search by Admission ID or roll number.';
+
+  @override
+  String get studentsNoFilterMatchTitle => 'No students in this selection';
+
+  @override
+  String get studentsNoFilterMatchMessage => 'Try another year, class or section, or clear the filters.';
+
+  @override
+  String get studentsLoadMore => 'Load more';
+
+  @override
+  String get studentsBlocked => 'Blocked';
+
+  @override
+  String studentsRoll(String roll) {
+    return 'Roll $roll';
+  }
+
+  @override
+  String studentsAdmissionId(String id) {
+    return 'ID $id';
+  }
+
+  @override
+  String get studentsFilterYear => 'Year';
+
+  @override
+  String get studentsFilterClass => 'Class';
+
+  @override
+  String get studentsFilterSection => 'Section';
+
+  @override
+  String get studentsFilterAny => 'Any';
+
+  @override
+  String get studentsFiltersClear => 'Clear filters';
+
+  @override
+  String get studentsFilterHint => 'Opens choices';
+
+  @override
+  String get studentsDeactivate => 'Deactivate';
+
+  @override
+  String studentsDeactivateTitle(String name) {
+    return 'Deactivate $name?';
+  }
+
+  @override
+  String get studentsDeactivateMessage =>
+      'Their guardians lose access to this child, and their class placement ends today. Nothing is deleted. Why are you deactivating?';
+
+  @override
+  String get studentsReasonLeft => 'Left the Institution';
+
+  @override
+  String get studentsReasonMistake => 'Added by mistake';
+
+  @override
+  String get studentsReasonOther => 'Another reason';
+
+  @override
+  String studentsDeactivated(String name) {
+    return '$name deactivated';
+  }
+
+  @override
+  String get errorStudentNotFound => 'This student could not be found. They may have been deactivated.';
 }

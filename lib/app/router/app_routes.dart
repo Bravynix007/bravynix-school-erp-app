@@ -62,6 +62,9 @@ abstract final class AppRoutes {
   static const staffMemberPattern = '/school-setup/staff/:id';
   static String staffMember(String id) => '$staff/${Uri.encodeComponent(id)}';
 
+  /// Students of the chosen Institution (STU-01).
+  static const students = '/school-setup/students';
+
   /// The component gallery, registered in debug and profile builds only.
   static const gallery = '/gallery';
 
