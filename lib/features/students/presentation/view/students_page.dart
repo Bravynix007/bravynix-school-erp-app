@@ -7,12 +7,9 @@ import 'package:bravynix_school_erp/core/theme/app_spacing.dart';
 import 'package:bravynix_school_erp/core/widgets/app_button.dart';
 import 'package:bravynix_school_erp/core/widgets/app_card.dart';
 import 'package:bravynix_school_erp/core/widgets/app_filter_bar.dart';
-import 'package:bravynix_school_erp/core/widgets/app_search_field.dart';
-import 'package:bravynix_school_erp/core/widgets/app_snackbar.dart';
 import 'package:bravynix_school_erp/core/widgets/app_top_bar.dart';
-import 'package:bravynix_school_erp/core/widgets/inline_message.dart';
+import 'package:bravynix_school_erp/core/widgets/paged_list_view.dart';
 import 'package:bravynix_school_erp/core/widgets/person_list_tile.dart';
-import 'package:bravynix_school_erp/core/widgets/skeleton.dart';
 import 'package:bravynix_school_erp/core/widgets/state_panel.dart';
 import 'package:bravynix_school_erp/core/widgets/status_chip.dart';
 import 'package:bravynix_school_erp/features/academic_years/domain/academic_years_repository.dart';
@@ -94,105 +91,48 @@ Future<void> _openAddForm(BuildContext context) async {
 
 /// The students of one Institution, under the switcher: a search box, the year, class and section filters, and the
 /// pages read so far.
-class StudentsView extends StatefulWidget {
+class StudentsView extends StatelessWidget {
   const new({super.key});
-
-  @override
-  State<StudentsView> createState() => _StudentsViewState();
-}
-
-class _StudentsViewState extends State<StudentsView> {
-  static const _maxSearch = 100;
-
-  final _search = TextEditingController();
-
-  @override
-  void dispose() {
-    _search.dispose();
-    super.dispose();
-  }
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final bloc = context.read<StudentsBloc>();
-    final idle = context.select<StudentsBloc, bool>(
-      (bloc) => switch (bloc.state) {
-        PagedListLoaded<StudentListEntry>(:final busyId) => busyId == null,
-        _ => true,
-      },
-    );
     return BlocListener<StudentFiltersBloc, StudentFiltersState>(
       listenWhen: (previous, current) =>
           current is StudentFiltersReady && (previous is! StudentFiltersReady || previous.filter != current.filter),
       listener: (context, state) {
         if (state is StudentFiltersReady) bloc.add(StudentsFiltered(state.filter));
       },
-      child: Column(
-        children: [
-          Padding(
-            padding: const EdgeInsets.fromLTRB(AppSpacing.screenMargin, AppSpacing.sm, AppSpacing.screenMargin, 0),
-            // The search waits while a deactivation goes, so its outcome is not lost to a new list.
-            child: AppSearchField(
-              key: const Key('students.search'),
-              controller: _search,
-              hint: l10n.studentsSearchHint,
-              clearTooltip: l10n.studentsSearchClear,
-              enabled: idle,
-              // STU-01 takes 2 to 100 letters (API design 13.1); a pasted line is cut instead of refused.
-              maxLength: _maxSearch,
-              // The search is sent on the keyboard's search key, and cleared as soon as the box is emptied.
-              onSubmitted: (text) => bloc.add(PagedListSearched(text)),
-              onChanged: (text) {
-                if (text.isEmpty) bloc.add(const PagedListSearched(''));
-              },
-            ),
+      child: PagedListView<StudentListEntry>(
+        bloc: bloc,
+        keyPrefix: 'students',
+        searchHint: l10n.studentsSearchHint,
+        searchClearTooltip: l10n.studentsSearchClear,
+        loadMoreLabel: l10n.studentsLoadMore,
+        errorText: (failure) => studentErrorText(l10n, failure),
+        onRetry: () {
+          bloc.add(const PagedListRequested());
+          // The filters read the same options, so they try again with the list when they failed; a chosen filter stays.
+          final filters = context.read<StudentFiltersBloc>();
+          if (filters.state is StudentFiltersFailed) filters.add(const StudentFiltersStarted());
+        },
+        belowSearch: (context, {required idle}) => _Filters(enabled: idle),
+        empty: (context, query) => _Empty(query: query),
+        leading: (context, {required idle}) => [
+          AppButton(
+            key: const Key('students.add'),
+            label: l10n.studentsAddTitle,
+            icon: Icons.add,
+            variant: AppButtonVariant.secondary,
+            onPressed: idle ? () => _openAddForm(context) : null,
           ),
-          Padding(
-            padding: const EdgeInsets.fromLTRB(AppSpacing.screenMargin, AppSpacing.xs, AppSpacing.screenMargin, 0),
-            child: _Filters(enabled: idle),
-          ),
-          Expanded(
-            child: BlocConsumer<StudentsBloc, PagedListState<StudentListEntry>>(
-              listenWhen: (previous, current) =>
-                  current is PagedListLoaded<StudentListEntry> && current.changed != null,
-              listener: (context, state) {
-                if (state is PagedListLoaded<StudentListEntry>) {
-                  AppSnackbar.show(
-                    context,
-                    message: l10n.studentsDeactivated(state.changed!.summary.fullName),
-                    kind: AppSnackbarKind.success,
-                  );
-                }
-              },
-              builder: (context, state) => switch (state) {
-                PagedListLoading<StudentListEntry>() => SkeletonCards(
-                  semanticLabel: l10n.loading,
-                  heights: const [96, 96],
-                ),
-                PagedListFailed<StudentListEntry>(:final failure) when failure.code == 'FORBIDDEN' =>
-                  StatePanel.forbidden(
-                    key: const Key('students.forbidden'),
-                    title: studentErrorText(l10n, failure),
-                  ),
-                PagedListFailed<StudentListEntry>(:final failure) => StatePanel.error(
-                  key: const Key('students.failed'),
-                  title: studentErrorText(l10n, failure),
-                  actionLabel: l10n.retry,
-                  onAction: () {
-                    bloc.add(const PagedListRequested());
-                    // The filters read the same options, so they try again with the list.
-                    context.read<StudentFiltersBloc>().add(const StudentFiltersStarted());
-                  },
-                ),
-                PagedListLoaded<StudentListEntry>(:final items, :final query) when items.isEmpty => _Empty(
-                  query: query,
-                ),
-                PagedListLoaded<StudentListEntry>() => _StudentList(state: state),
-              },
-            ),
-          ),
+          const SizedBox(height: AppSpacing.sm),
         ],
+        idOf: (entry) => entry.summary.id,
+        itemBuilder: (context, entry, {required busy, required locked}) =>
+            _StudentCard(entry: entry, busy: busy, locked: locked),
+        changedMessage: (entry) => l10n.studentsDeactivated(entry.summary.fullName),
       ),
     );
   }
@@ -298,51 +238,6 @@ class _Filters extends StatelessWidget {
           ],
         );
       },
-    );
-  }
-}
-
-class _StudentList extends StatelessWidget {
-  const new({required this.state});
-
-  final PagedListLoaded<StudentListEntry> state;
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
-    final bloc = context.read<StudentsBloc>();
-    return ListView(
-      padding: const EdgeInsets.all(AppSpacing.screenMargin),
-      children: [
-        if (state.actionFailure case final failure?) ...[
-          InlineMessage.error(studentErrorText(l10n, failure), key: const Key('students.actionFailed')),
-          const SizedBox(height: AppSpacing.sm),
-        ],
-        AppButton(
-          key: const Key('students.add'),
-          label: l10n.studentsAddTitle,
-          icon: Icons.add,
-          variant: AppButtonVariant.secondary,
-          onPressed: state.busyId == null ? () => _openAddForm(context) : null,
-        ),
-        const SizedBox(height: AppSpacing.sm),
-        for (final entry in state.items) ...[
-          _StudentCard(entry: entry, busy: state.busyId == entry.summary.id, locked: state.busyId != null),
-          const SizedBox(height: AppSpacing.xs),
-        ],
-        if (state.moreFailure case final failure?) ...[
-          InlineMessage.error(studentErrorText(l10n, failure), key: const Key('students.moreFailed')),
-          const SizedBox(height: AppSpacing.xs),
-        ],
-        if (state.hasMore)
-          AppButton(
-            key: const Key('students.more'),
-            label: state.moreFailure == null ? l10n.studentsLoadMore : l10n.retry,
-            variant: AppButtonVariant.secondary,
-            loading: state.loadingMore,
-            onPressed: state.busyId == null ? () => bloc.add(const PagedListMoreRequested()) : null,
-          ),
-      ],
     );
   }
 }
