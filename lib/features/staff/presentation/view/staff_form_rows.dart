@@ -245,7 +245,7 @@ class _ContactRowState extends State<ContactRow> {
           const SizedBox(height: AppSpacing.sm),
           AppTextField(
             key: Key('staffForm.contact.$id.alternate'),
-            label: l10n.staffAlternateNumber,
+            label: l10n.personAlternateNumber,
             controller: _alternate,
             mono: true,
             keyboardType: TextInputType.phone,

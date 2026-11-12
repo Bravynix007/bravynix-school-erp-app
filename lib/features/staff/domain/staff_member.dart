@@ -1,26 +1,7 @@
+import 'package:bravynix_school_erp/core/model/address.dart';
+import 'package:bravynix_school_erp/core/model/gender.dart';
 import 'package:bravynix_school_erp/core/model/phone.dart';
 import 'package:equatable/equatable.dart';
-
-/// The blood groups a record can hold (DDD 9.5).
-const bloodGroups = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'];
-
-/// PRD 11.2: 1 Male, 2 Female, 3 Other.
-enum Gender {
-  male(1),
-  female(2),
-  other(3);
-
-  new(this.code);
-
-  final int code;
-
-  static Gender? fromCode(Object? code) {
-    for (final gender in values) {
-      if (gender.code == code) return gender;
-    }
-    return null;
-  }
-}
 
 /// PRD 11.4: 1 Full time, 2 Part time, 3 Visiting, 4 Contract.
 enum EmploymentType {
@@ -84,24 +65,6 @@ class StaffListEntry extends Equatable {
 
   @override
   List<Object?> get props => [summary, designationName, categoryName];
-}
-
-/// Where a staff member lives. The place is given by master IDs, which the screen turns into names.
-class StaffAddress extends Equatable {
-  const new({this.line1, this.line2, this.countryId, this.stateId, this.cityId, this.pincode});
-
-  final String? line1;
-  final String? line2;
-  final String? countryId;
-  final String? stateId;
-  final String? cityId;
-  final String? pincode;
-
-  bool get isEmpty =>
-      line1 == null && line2 == null && countryId == null && stateId == null && cityId == null && pincode == null;
-
-  @override
-  List<Object?> get props => [line1, line2, countryId, stateId, cityId, pincode];
 }
 
 /// One entry of the education list (PRD 7.5).
@@ -200,7 +163,7 @@ class StaffMember extends Equatable {
   final String classCategoryId;
   final Phone mobile;
   final String? alternateNumber;
-  final StaffAddress address;
+  final Address address;
   final String? joiningDate;
   final String? resignationDate;
   final EmploymentType? employmentType;

@@ -1,6 +1,8 @@
 import 'dart:async';
 
 import 'package:bloc_test/bloc_test.dart';
+import 'package:bravynix_school_erp/core/model/address.dart';
+import 'package:bravynix_school_erp/core/model/gender.dart';
 import 'package:bravynix_school_erp/core/model/phone.dart';
 import 'package:bravynix_school_erp/core/network/api_failure.dart';
 import 'package:bravynix_school_erp/features/masters/domain/master_entry.dart';
@@ -188,7 +190,7 @@ void main() {
             classCategoryId: 'c1',
             mobile: mobile,
             alternateNumber: '9876500000',
-            address: StaffAddress(
+            address: Address(
               line1: '3 Hill Street',
               countryId: 'k1',
               stateId: 's1',

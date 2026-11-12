@@ -2,6 +2,7 @@ import 'package:bravynix_school_erp/app/di/injection.dart';
 import 'package:bravynix_school_erp/app/router/app_routes.dart';
 import 'package:bravynix_school_erp/core/device/screen_protection.dart';
 import 'package:bravynix_school_erp/core/format/formatters.dart';
+import 'package:bravynix_school_erp/core/model/gender.dart';
 import 'package:bravynix_school_erp/core/theme/app_spacing.dart';
 import 'package:bravynix_school_erp/core/widgets/app_card.dart';
 import 'package:bravynix_school_erp/core/widgets/app_icon_button.dart';
@@ -342,26 +343,26 @@ class _Details extends StatelessWidget {
                 KeyValueRow(label: l10n.staffDesignation, value: designation),
               if (profile.categoryName case final category?) KeyValueRow(label: l10n.staffCategory, value: category),
               if (member.gender case final gender?)
-                KeyValueRow(label: l10n.staffGender, value: genderName(l10n, gender)),
+                KeyValueRow(label: l10n.personGender, value: genderName(l10n, gender)),
               if (member.dateOfBirth case final day?)
-                KeyValueRow(label: l10n.staffDateOfBirth, value: Formatters.schoolDate(day)),
-              if (member.bloodGroup case final group?) KeyValueRow(label: l10n.staffBloodGroup, value: group),
+                KeyValueRow(label: l10n.personDateOfBirth, value: Formatters.schoolDate(day)),
+              if (member.bloodGroup case final group?) KeyValueRow(label: l10n.personBloodGroup, value: group),
               if (member.nationality case final nationality?)
-                KeyValueRow(label: l10n.staffNationality, value: nationality),
+                KeyValueRow(label: l10n.personNationality, value: nationality),
             ],
           ),
         ),
         const SizedBox(height: AppSpacing.md),
-        SectionHeader(title: l10n.staffSectionContact),
+        SectionHeader(title: l10n.personFormContact),
         const SizedBox(height: AppSpacing.xs),
         AppCard(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               KeyValueRow(label: l10n.profileEmail, value: member.email),
-              KeyValueRow(label: l10n.staffMobile, value: member.mobile.display),
+              KeyValueRow(label: l10n.personMobile, value: member.mobile.display),
               if (member.alternateNumber case final number?)
-                KeyValueRow(label: l10n.staffAlternateNumber, value: number),
+                KeyValueRow(label: l10n.personAlternateNumber, value: number),
               if (addressText.isNotEmpty) KeyValueRow(label: l10n.staffAddress, value: addressText),
             ],
           ),

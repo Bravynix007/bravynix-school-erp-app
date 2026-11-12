@@ -1,4 +1,5 @@
 import 'package:bravynix_school_erp/app/di/injection.dart';
+import 'package:bravynix_school_erp/core/model/gender.dart';
 import 'package:bravynix_school_erp/core/model/phone.dart';
 import 'package:bravynix_school_erp/core/theme/app_spacing.dart';
 import 'package:bravynix_school_erp/core/widgets/app_button.dart';
@@ -305,7 +306,7 @@ class _FormBodyState extends State<_FormBody> {
                     ),
                     const SizedBox(height: AppSpacing.sm),
                   ],
-                  SectionHeader(title: l10n.staffFormPhoto),
+                  SectionHeader(title: l10n.personFormPhoto),
                   const SizedBox(height: AppSpacing.xs),
                   AppCard(
                     child: Column(
@@ -319,7 +320,7 @@ class _FormBodyState extends State<_FormBody> {
                         if (uploading) ...[
                           const SizedBox(height: AppSpacing.xs),
                           Text(
-                            l10n.staffUploadingWait,
+                            l10n.personUploadingWait,
                             key: const Key('staffForm.uploadingWait'),
                             style: Theme.of(context).textTheme.bodySmall,
                           ),
@@ -327,7 +328,7 @@ class _FormBodyState extends State<_FormBody> {
                         if (state.isEdit && state.existing!.photoFileId != null && state.photoFileId == null) ...[
                           const SizedBox(height: AppSpacing.xs),
                           Text(
-                            l10n.staffPhotoKept,
+                            l10n.personPhotoKept,
                             key: const Key('staffForm.photoKept'),
                             style: Theme.of(context).textTheme.bodySmall,
                           ),
@@ -336,7 +337,7 @@ class _FormBodyState extends State<_FormBody> {
                     ),
                   ),
                   const SizedBox(height: AppSpacing.md),
-                  SectionHeader(title: l10n.staffFormPersonal),
+                  SectionHeader(title: l10n.personFormPersonal),
                   const SizedBox(height: AppSpacing.xs),
                   AppCard(
                     child: Column(
@@ -344,7 +345,7 @@ class _FormBodyState extends State<_FormBody> {
                       children: [
                         AppTextField(
                           key: const Key('staffForm.firstName'),
-                          label: l10n.staffFirstName,
+                          label: l10n.personFirstName,
                           controller: _firstName,
                           required: true,
                           requiredLabel: l10n.fieldRequired,
@@ -354,7 +355,7 @@ class _FormBodyState extends State<_FormBody> {
                         const SizedBox(height: AppSpacing.sm),
                         AppTextField(
                           key: const Key('staffForm.lastName'),
-                          label: l10n.staffLastName,
+                          label: l10n.personLastName,
                           controller: _lastName,
                           error: error('lastName'),
                           textInputAction: TextInputAction.next,
@@ -362,7 +363,7 @@ class _FormBodyState extends State<_FormBody> {
                         const SizedBox(height: AppSpacing.sm),
                         AppDropdownField<Gender?>(
                           key: const Key('staffForm.gender'),
-                          label: l10n.staffGender,
+                          label: l10n.personGender,
                           value: state.gender,
                           error: error('gender'),
                           items: [
@@ -375,10 +376,10 @@ class _FormBodyState extends State<_FormBody> {
                         const SizedBox(height: AppSpacing.sm),
                         OptionalDateField(
                           key: const Key('staffForm.dateOfBirth'),
-                          label: l10n.staffDateOfBirth,
+                          label: l10n.personDateOfBirth,
                           day: state.dateOfBirth,
                           hint: l10n.chooseDate,
-                          clearLabel: l10n.clearDate(l10n.staffDateOfBirth),
+                          clearLabel: l10n.clearDate(l10n.personDateOfBirth),
                           firstDay: DateTime(1900),
                           lastDay: today.subtract(const Duration(days: 1)),
                           initialDay: DateTime(today.year - 30),
@@ -388,7 +389,7 @@ class _FormBodyState extends State<_FormBody> {
                         const SizedBox(height: AppSpacing.sm),
                         AppDropdownField<String?>(
                           key: const Key('staffForm.bloodGroup'),
-                          label: l10n.staffBloodGroup,
+                          label: l10n.personBloodGroup,
                           value: state.bloodGroup,
                           error: error('bloodGroup'),
                           items: [
@@ -401,7 +402,7 @@ class _FormBodyState extends State<_FormBody> {
                         const SizedBox(height: AppSpacing.sm),
                         AppTextField(
                           key: const Key('staffForm.nationality'),
-                          label: l10n.staffNationality,
+                          label: l10n.personNationality,
                           controller: _nationality,
                           error: error('nationality'),
                           textInputAction: TextInputAction.next,
@@ -410,7 +411,7 @@ class _FormBodyState extends State<_FormBody> {
                     ),
                   ),
                   const SizedBox(height: AppSpacing.md),
-                  SectionHeader(title: l10n.staffSectionContact),
+                  SectionHeader(title: l10n.personFormContact),
                   const SizedBox(height: AppSpacing.xs),
                   AppCard(
                     child: Column(
@@ -442,7 +443,7 @@ class _FormBodyState extends State<_FormBody> {
                         const SizedBox(height: AppSpacing.sm),
                         AppTextField(
                           key: const Key('staffForm.mobileNumber'),
-                          label: l10n.staffMobile,
+                          label: l10n.personMobile,
                           controller: _mobileNumber,
                           mono: true,
                           required: true,
@@ -454,7 +455,7 @@ class _FormBodyState extends State<_FormBody> {
                         const SizedBox(height: AppSpacing.sm),
                         AppTextField(
                           key: const Key('staffForm.alternate'),
-                          label: l10n.staffAlternateNumber,
+                          label: l10n.personAlternateNumber,
                           controller: _alternate,
                           mono: true,
                           keyboardType: TextInputType.phone,
@@ -465,7 +466,7 @@ class _FormBodyState extends State<_FormBody> {
                     ),
                   ),
                   const SizedBox(height: AppSpacing.md),
-                  SectionHeader(title: l10n.staffFormAddress),
+                  SectionHeader(title: l10n.personFormAddress),
                   const SizedBox(height: AppSpacing.xs),
                   AppCard(
                     child: Column(
@@ -627,7 +628,7 @@ class _FormBodyState extends State<_FormBody> {
           ],
         ),
         bottomNavigationBar: StickyBottomActions(
-          primaryLabel: l10n.staffSave,
+          primaryLabel: l10n.formSave,
           primaryLoading: state.saving,
           // The place is sent with the rest, so Save waits until it is read (an edit would otherwise drop it), and
           // until a photo that is on its way has its ID.

@@ -2017,11 +2017,11 @@ abstract class AppLocalizations {
   /// **'Teacher profile'**
   String get staffProfileTitle;
 
-  /// No description provided for @staffSectionContact.
+  /// No description provided for @personFormContact.
   ///
   /// In en, this message translates to:
   /// **'Contact'**
-  String get staffSectionContact;
+  String get personFormContact;
 
   /// No description provided for @staffSectionEmployment.
   ///
@@ -2059,11 +2059,11 @@ abstract class AppLocalizations {
   /// **'Category'**
   String get staffCategory;
 
-  /// No description provided for @staffGender.
+  /// No description provided for @personGender.
   ///
   /// In en, this message translates to:
   /// **'Gender'**
-  String get staffGender;
+  String get personGender;
 
   /// No description provided for @genderMale.
   ///
@@ -2083,35 +2083,35 @@ abstract class AppLocalizations {
   /// **'Other'**
   String get genderOther;
 
-  /// No description provided for @staffDateOfBirth.
+  /// No description provided for @personDateOfBirth.
   ///
   /// In en, this message translates to:
   /// **'Date of birth'**
-  String get staffDateOfBirth;
+  String get personDateOfBirth;
 
-  /// No description provided for @staffBloodGroup.
+  /// No description provided for @personBloodGroup.
   ///
   /// In en, this message translates to:
   /// **'Blood group'**
-  String get staffBloodGroup;
+  String get personBloodGroup;
 
-  /// No description provided for @staffNationality.
+  /// No description provided for @personNationality.
   ///
   /// In en, this message translates to:
   /// **'Nationality'**
-  String get staffNationality;
+  String get personNationality;
 
-  /// No description provided for @staffMobile.
+  /// No description provided for @personMobile.
   ///
   /// In en, this message translates to:
   /// **'Mobile'**
-  String get staffMobile;
+  String get personMobile;
 
-  /// No description provided for @staffAlternateNumber.
+  /// No description provided for @personAlternateNumber.
   ///
   /// In en, this message translates to:
   /// **'Alternate number'**
-  String get staffAlternateNumber;
+  String get personAlternateNumber;
 
   /// No description provided for @staffAddress.
   ///
@@ -2185,11 +2185,11 @@ abstract class AppLocalizations {
   /// **'Edit staff'**
   String get staffEditTitle;
 
-  /// No description provided for @staffSave.
+  /// No description provided for @formSave.
   ///
   /// In en, this message translates to:
   /// **'Save'**
-  String get staffSave;
+  String get formSave;
 
   /// No description provided for @staffSaved.
   ///
@@ -2197,17 +2197,17 @@ abstract class AppLocalizations {
   /// **'Staff saved'**
   String get staffSaved;
 
-  /// No description provided for @staffFormPhoto.
+  /// No description provided for @personFormPhoto.
   ///
   /// In en, this message translates to:
   /// **'Photo'**
-  String get staffFormPhoto;
+  String get personFormPhoto;
 
-  /// No description provided for @staffPhotoKept.
+  /// No description provided for @personPhotoKept.
   ///
   /// In en, this message translates to:
   /// **'A photo is saved. Choose another to replace it.'**
-  String get staffPhotoKept;
+  String get personPhotoKept;
 
   /// No description provided for @staffPhotoLabel.
   ///
@@ -2215,23 +2215,23 @@ abstract class AppLocalizations {
   /// **'Staff photo'**
   String get staffPhotoLabel;
 
-  /// No description provided for @staffFormPersonal.
+  /// No description provided for @personFormPersonal.
   ///
   /// In en, this message translates to:
   /// **'Personal details'**
-  String get staffFormPersonal;
+  String get personFormPersonal;
 
-  /// No description provided for @staffFirstName.
+  /// No description provided for @personFirstName.
   ///
   /// In en, this message translates to:
   /// **'First name'**
-  String get staffFirstName;
+  String get personFirstName;
 
-  /// No description provided for @staffLastName.
+  /// No description provided for @personLastName.
   ///
   /// In en, this message translates to:
   /// **'Last name'**
-  String get staffLastName;
+  String get personLastName;
 
   /// No description provided for @staffEmailAddHelper.
   ///
@@ -2245,11 +2245,11 @@ abstract class AppLocalizations {
   /// **'The login email can\'t be changed here.'**
   String get staffEmailEditHelper;
 
-  /// No description provided for @staffFormAddress.
+  /// No description provided for @personFormAddress.
   ///
   /// In en, this message translates to:
   /// **'Address'**
-  String get staffFormAddress;
+  String get personFormAddress;
 
   /// No description provided for @staffFormEducation.
   ///
@@ -2365,11 +2365,11 @@ abstract class AppLocalizations {
   /// **'Remove contact {number}'**
   String staffRemoveContact(int number);
 
-  /// No description provided for @staffUploadingWait.
+  /// No description provided for @personUploadingWait.
   ///
   /// In en, this message translates to:
   /// **'Wait for the photo to finish sending.'**
-  String get staffUploadingWait;
+  String get personUploadingWait;
 
   /// No description provided for @staffTabPersonal.
   ///

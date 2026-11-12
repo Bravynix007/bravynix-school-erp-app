@@ -1111,7 +1111,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get staffProfileTitle => 'Teacher profile';
 
   @override
-  String get staffSectionContact => 'Contact';
+  String get personFormContact => 'Contact';
 
   @override
   String get staffSectionEmployment => 'Employment';
@@ -1132,7 +1132,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get staffCategory => 'Category';
 
   @override
-  String get staffGender => 'Gender';
+  String get personGender => 'Gender';
 
   @override
   String get genderMale => 'Male';
@@ -1144,19 +1144,19 @@ class AppLocalizationsEn extends AppLocalizations {
   String get genderOther => 'Other';
 
   @override
-  String get staffDateOfBirth => 'Date of birth';
+  String get personDateOfBirth => 'Date of birth';
 
   @override
-  String get staffBloodGroup => 'Blood group';
+  String get personBloodGroup => 'Blood group';
 
   @override
-  String get staffNationality => 'Nationality';
+  String get personNationality => 'Nationality';
 
   @override
-  String get staffMobile => 'Mobile';
+  String get personMobile => 'Mobile';
 
   @override
-  String get staffAlternateNumber => 'Alternate number';
+  String get personAlternateNumber => 'Alternate number';
 
   @override
   String get staffAddress => 'Address';
@@ -1197,28 +1197,28 @@ class AppLocalizationsEn extends AppLocalizations {
   String get staffEditTitle => 'Edit staff';
 
   @override
-  String get staffSave => 'Save';
+  String get formSave => 'Save';
 
   @override
   String get staffSaved => 'Staff saved';
 
   @override
-  String get staffFormPhoto => 'Photo';
+  String get personFormPhoto => 'Photo';
 
   @override
-  String get staffPhotoKept => 'A photo is saved. Choose another to replace it.';
+  String get personPhotoKept => 'A photo is saved. Choose another to replace it.';
 
   @override
   String get staffPhotoLabel => 'Staff photo';
 
   @override
-  String get staffFormPersonal => 'Personal details';
+  String get personFormPersonal => 'Personal details';
 
   @override
-  String get staffFirstName => 'First name';
+  String get personFirstName => 'First name';
 
   @override
-  String get staffLastName => 'Last name';
+  String get personLastName => 'Last name';
 
   @override
   String get staffEmailAddHelper => 'They sign in with a code sent to this email.';
@@ -1227,7 +1227,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get staffEmailEditHelper => 'The login email can\'t be changed here.';
 
   @override
-  String get staffFormAddress => 'Address';
+  String get personFormAddress => 'Address';
 
   @override
   String get staffFormEducation => 'Education';
@@ -1297,7 +1297,7 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get staffUploadingWait => 'Wait for the photo to finish sending.';
+  String get personUploadingWait => 'Wait for the photo to finish sending.';
 
   @override
   String get staffTabPersonal => 'Personal';

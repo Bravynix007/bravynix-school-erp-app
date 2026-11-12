@@ -1,4 +1,6 @@
 import 'package:bloc/bloc.dart';
+import 'package:bravynix_school_erp/core/model/address.dart';
+import 'package:bravynix_school_erp/core/model/gender.dart';
 import 'package:bravynix_school_erp/core/model/phone.dart';
 import 'package:bravynix_school_erp/core/network/api_failure.dart';
 import 'package:bravynix_school_erp/features/masters/domain/master_entry.dart';
@@ -662,7 +664,7 @@ class StaffFormBloc extends Bloc<StaffFormEvent, StaffFormState> {
     classCategoryId: ready.categoryId ?? '',
     mobile: Phone.typed(texts.mobileCountryCode, texts.mobileNumber) ?? const Phone(countryCode: '', number: ''),
     alternateNumber: _digits(texts.alternateNumber),
-    address: StaffAddress(
+    address: Address(
       line1: _text(texts.addressLine1),
       line2: _text(texts.addressLine2),
       countryId: place.countryId,
