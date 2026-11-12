@@ -3588,6 +3588,42 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'A guardian\'s email belongs to a platform account, which can\'t also be a parent.'**
   String get errorGuardianRoleConflict;
+
+  /// No description provided for @studentMoveTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Move student'**
+  String get studentMoveTitle;
+
+  /// No description provided for @studentMoveSince.
+  ///
+  /// In en, this message translates to:
+  /// **'since {date}'**
+  String studentMoveSince(String date);
+
+  /// No description provided for @studentMoveFrom.
+  ///
+  /// In en, this message translates to:
+  /// **'From'**
+  String get studentMoveFrom;
+
+  /// No description provided for @studentMoveFromHelper.
+  ///
+  /// In en, this message translates to:
+  /// **'The first day in the new section or with the new roll number. Today when left empty.'**
+  String get studentMoveFromHelper;
+
+  /// No description provided for @studentMoved.
+  ///
+  /// In en, this message translates to:
+  /// **'{name}\'s placement was changed.'**
+  String studentMoved(String name);
+
+  /// No description provided for @studentsMove.
+  ///
+  /// In en, this message translates to:
+  /// **'Move'**
+  String get studentsMove;
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {

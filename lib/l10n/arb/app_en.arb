@@ -656,5 +656,13 @@
   "errorStudentYearNotActive": "This academic year is not active.",
   "errorInactiveSection": "This section is deactivated.",
   "errorPrimaryGuardianRequired": "Choose exactly one primary guardian.",
-  "errorGuardianRoleConflict": "A guardian's email belongs to a platform account, which can't also be a parent."
+  "errorGuardianRoleConflict": "A guardian's email belongs to a platform account, which can't also be a parent.",
+  "studentMoveTitle": "Move student",
+  "studentMoveSince": "since {date}",
+  "@studentMoveSince": { "placeholders": { "date": { "type": "String" } } },
+  "studentMoveFrom": "From",
+  "studentMoveFromHelper": "The first day in the new section or with the new roll number. Today when left empty.",
+  "studentMoved": "{name}'s placement was changed.",
+  "@studentMoved": { "placeholders": { "name": { "type": "String" } } },
+  "studentsMove": "Move"
 }

@@ -32,6 +32,7 @@ import 'package:bravynix_school_erp/features/students/domain/students_repository
 import 'package:bravynix_school_erp/features/students/presentation/bloc/student_form_bloc.dart';
 import 'package:bravynix_school_erp/features/students/presentation/view/student_error_text.dart';
 import 'package:bravynix_school_erp/features/students/presentation/view/student_guardian_row.dart';
+import 'package:bravynix_school_erp/features/students/presentation/view/student_warnings.dart';
 import 'package:bravynix_school_erp/l10n/gen/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -46,15 +47,8 @@ class StudentFormArgs {
 }
 
 /// What the snackbar says once a student is added: the name, and a line for each second look the server asked for.
-String studentAddedMessage(AppLocalizations l10n, StudentSaved saved) => [
-  l10n.studentAdded(saved.student.fullName),
-  for (final warning in saved.warnings)
-    switch (warning) {
-      'SECTION_OVER_CAPACITY' => l10n.studentWarnOverCapacity,
-      'AADHAAR_EXISTS_IN_SOCIETY' => l10n.studentWarnAadhaarElsewhere,
-      _ => null,
-    },
-].nonNulls.join(' ');
+String studentAddedMessage(AppLocalizations l10n, StudentSaved saved) =>
+    [l10n.studentAdded(saved.student.fullName), ...studentWarningLines(l10n, saved.warnings)].join(' ');
 
 /// School setup → Students → Add student (STU-02). Closes with `true` once saved, so the list reads again.
 class StudentFormPage extends StatelessWidget {

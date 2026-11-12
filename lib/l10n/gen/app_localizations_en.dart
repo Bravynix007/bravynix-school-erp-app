@@ -1973,4 +1973,27 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get errorGuardianRoleConflict =>
       'A guardian\'s email belongs to a platform account, which can\'t also be a parent.';
+
+  @override
+  String get studentMoveTitle => 'Move student';
+
+  @override
+  String studentMoveSince(String date) {
+    return 'since $date';
+  }
+
+  @override
+  String get studentMoveFrom => 'From';
+
+  @override
+  String get studentMoveFromHelper =>
+      'The first day in the new section or with the new roll number. Today when left empty.';
+
+  @override
+  String studentMoved(String name) {
+    return '$name\'s placement was changed.';
+  }
+
+  @override
+  String get studentsMove => 'Move';
 }

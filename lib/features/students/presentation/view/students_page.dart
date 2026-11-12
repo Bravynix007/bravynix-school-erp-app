@@ -28,6 +28,7 @@ import 'package:bravynix_school_erp/features/students/presentation/view/student_
 import 'package:bravynix_school_erp/features/students/presentation/view/student_filter_sheet.dart';
 import 'package:bravynix_school_erp/features/students/presentation/view/student_form_page.dart';
 import 'package:bravynix_school_erp/features/students/presentation/view/student_leaving_sheet.dart';
+import 'package:bravynix_school_erp/features/students/presentation/view/student_move_page.dart';
 import 'package:bravynix_school_erp/l10n/gen/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -89,6 +90,13 @@ class StudentsPage extends StatelessWidget {
 Future<void> _openAddForm(BuildContext context) async {
   final bloc = context.read<StudentsBloc>();
   final saved = await context.push<bool>(AppRoutes.studentForm, extra: StudentFormArgs(bloc.institutionId));
+  if (saved ?? false) bloc.add(const PagedListRequested());
+}
+
+/// Opens the form that moves a student; a change joins the list, so it is read again when the form closes with true.
+Future<void> _openMoveForm(BuildContext context, StudentListEntry entry) async {
+  final bloc = context.read<StudentsBloc>();
+  final saved = await context.push<bool>(AppRoutes.studentMove, extra: StudentMoveArgs(entry));
   if (saved ?? false) bloc.add(const PagedListRequested());
 }
 
@@ -311,6 +319,14 @@ class _StudentList extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final bloc = context.read<StudentsBloc>();
+    // With a year chosen a row shows where the student sat then, which a move would not change: only the placement
+    // they hold now can be moved.
+    final inYear = context.select<StudentFiltersBloc, bool>(
+      (filters) => switch (filters.state) {
+        StudentFiltersReady(:final filter) => filter.academicYearId != null,
+        _ => false,
+      },
+    );
     return ListView(
       padding: const EdgeInsets.all(AppSpacing.screenMargin),
       children: [
@@ -327,7 +343,12 @@ class _StudentList extends StatelessWidget {
         ),
         const SizedBox(height: AppSpacing.sm),
         for (final entry in state.items) ...[
-          _StudentCard(entry: entry, busy: state.busyId == entry.summary.id, locked: state.busyId != null),
+          _StudentCard(
+            entry: entry,
+            busy: state.busyId == entry.summary.id,
+            locked: state.busyId != null,
+            canMove: !inYear,
+          ),
           const SizedBox(height: AppSpacing.xs),
         ],
         if (state.moreFailure case final failure?) ...[
@@ -348,7 +369,7 @@ class _StudentList extends StatelessWidget {
 }
 
 class _StudentCard extends StatelessWidget {
-  const new({required this.entry, required this.busy, required this.locked});
+  const new({required this.entry, required this.busy, required this.locked, required this.canMove});
 
   final StudentListEntry entry;
 
@@ -357,6 +378,9 @@ class _StudentCard extends StatelessWidget {
 
   /// A change to any student is on its way, so no card starts another.
   final bool locked;
+
+  /// The row shows the placement the student holds now, which a move changes.
+  final bool canMove;
 
   @override
   Widget build(BuildContext context) {
@@ -377,16 +401,26 @@ class _StudentCard extends StatelessWidget {
             subtitle: detail,
             trailing: summary.isBlocked ? StatusChip(label: l10n.studentsBlocked, tone: StatusTone.error) : null,
           ),
-          Align(
-            alignment: AlignmentDirectional.centerEnd,
-            child: AppButton(
-              key: ValueKey('students.deactivate.${summary.id}'),
-              label: l10n.studentsDeactivate,
-              variant: AppButtonVariant.text,
-              size: AppButtonSize.medium,
-              loading: busy,
-              onPressed: locked ? null : () => _confirmDeactivate(context),
-            ),
+          Wrap(
+            alignment: WrapAlignment.end,
+            children: [
+              if (canMove)
+                AppButton(
+                  key: ValueKey('students.move.${summary.id}'),
+                  label: l10n.studentsMove,
+                  variant: AppButtonVariant.text,
+                  size: AppButtonSize.medium,
+                  onPressed: locked ? null : () => unawaited(_openMoveForm(context, entry)),
+                ),
+              AppButton(
+                key: ValueKey('students.deactivate.${summary.id}'),
+                label: l10n.studentsDeactivate,
+                variant: AppButtonVariant.text,
+                size: AppButtonSize.medium,
+                loading: busy,
+                onPressed: locked ? null : () => _confirmDeactivate(context),
+              ),
+            ],
           ),
         ],
       ),
