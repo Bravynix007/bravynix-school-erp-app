@@ -1998,15 +1998,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get studentMoveFrom => 'From';
 
   @override
-  String get studentMoveClass => 'Class';
-
-  @override
   String get studentMoveCorrectHelper =>
       'The class is corrected for the whole year, as if the student had been in it from the start. To change only from a day, keep the class and choose another section.';
 
   @override
   String get studentMoveFromHelper =>
-      'The first day in the new section or with the new roll number. Today when left empty.';
+      'The first day in the new section or with the new roll number. Today when left empty, or the first day of the placement when that comes later.';
 
   @override
   String studentMoved(String name) {

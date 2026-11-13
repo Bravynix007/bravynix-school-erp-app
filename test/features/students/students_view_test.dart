@@ -487,6 +487,18 @@ void main() {
       expect(find.text('Move'), findsOneWidget);
     });
 
+    testWidgets('is offered while the filters are still loading', (tester) async {
+      when(() => filters.state).thenReturn(const StudentFiltersLoading());
+      await pump(tester, const _Loaded([ashaEntry]));
+      expect(find.text('Move'), findsOneWidget);
+    });
+
+    testWidgets('is offered when the filters could not be read', (tester) async {
+      when(() => filters.state).thenReturn(const StudentFiltersFailed(ApiFailure.network()));
+      await pump(tester, const _Loaded([ashaEntry]));
+      expect(find.text('Move'), findsOneWidget);
+    });
+
     testWidgets('waits while a deactivation goes', (tester) async {
       await pump(tester, const _Loaded([ashaEntry, balaEntry], busyId: 'p2'));
       expect(tester.widget<ButtonStyleButton>(button('students.move.p1')).onPressed, isNull);

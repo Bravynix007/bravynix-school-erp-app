@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:bloc_test/bloc_test.dart';
 import 'package:bravynix_school_erp/core/network/api_failure.dart';
 import 'package:bravynix_school_erp/features/classes/domain/school_class.dart';
@@ -253,7 +255,77 @@ void main() {
       expect(state.failure, isNull);
     });
 
-    test('does not send twice while saving, and changes nothing meanwhile', () async {
+    test('clears the refusal when another section is chosen', () async {
+      when(
+        () => students.move(
+          any(),
+          sectionId: any(named: 'sectionId'),
+          rollNumber: any(named: 'rollNumber'),
+          effectiveDate: any(named: 'effectiveDate'),
+        ),
+      ).thenThrow(_taken);
+      final bloc = await opened();
+      bloc.add(const StudentMoveSubmitted('15'));
+      await bloc.stream.firstWhere((state) => state is StudentMoveReady && state.failure != null);
+      bloc.add(const StudentMoveSectionChosen('e2'));
+      await Future<void>.delayed(Duration.zero);
+      final state = bloc.state as StudentMoveReady;
+      expect([state.sectionId, state.failure], ['e2', null]);
+    });
+
+    test('shows no refusal while a new save is on its way', () async {
+      final answers = [_taken];
+      when(
+        () => students.move(
+          any(),
+          sectionId: any(named: 'sectionId'),
+          rollNumber: any(named: 'rollNumber'),
+          effectiveDate: any(named: 'effectiveDate'),
+        ),
+      ).thenAnswer((_) async {
+        if (answers.isNotEmpty) throw answers.removeAt(0);
+        await Future<void>.delayed(const Duration(milliseconds: 20));
+        return <String>[];
+      });
+      final bloc = await opened();
+      bloc.add(const StudentMoveSubmitted('15'));
+      await bloc.stream.firstWhere((state) => state is StudentMoveReady && state.failure != null);
+      final states = <StudentMoveState>[];
+      final listening = bloc.stream.listen(states.add);
+      bloc.add(const StudentMoveSubmitted('15'));
+      await bloc.stream.firstWhere((state) => state is StudentMoveSaved);
+      await listening.cancel();
+      expect(states.first, isA<StudentMoveReady>().having((s) => (s.saving, s.failure), 'saving', (true, null)));
+    });
+
+    test('keeps what was chosen when the save fails, whatever is chosen meanwhile', () async {
+      final released = Completer<List<String>>();
+      when(
+        () => students.move(
+          any(),
+          sectionId: any(named: 'sectionId'),
+          rollNumber: any(named: 'rollNumber'),
+          effectiveDate: any(named: 'effectiveDate'),
+        ),
+      ).thenAnswer((_) => released.future);
+      final bloc = await opened();
+      bloc
+        ..add(const StudentMoveSectionChosen('e2'))
+        ..add(const StudentMoveDateChosen('2026-07-01'))
+        ..add(const StudentMoveSubmitted('15'));
+      await bloc.stream.firstWhere((state) => state is StudentMoveReady && state.saving);
+      bloc
+        ..add(const StudentMoveSectionChosen('e1'))
+        ..add(const StudentMoveDateChosen('2026-08-01'));
+      await Future<void>.delayed(Duration.zero);
+      released.completeError(_taken);
+      await bloc.stream.firstWhere((state) => state is StudentMoveReady && state.failure != null);
+      final state = bloc.state as StudentMoveReady;
+      expect([state.sectionId, state.effectiveDate, state.saving], ['e2', '2026-07-01', false]);
+      verify(() => students.move('p1', sectionId: 'e2', rollNumber: '15', effectiveDate: '2026-07-01')).called(1);
+    });
+
+    test('does not send twice while saving', () async {
       final released = Future<List<String>>.delayed(const Duration(milliseconds: 20), () => <String>[]);
       when(
         () => students.move(

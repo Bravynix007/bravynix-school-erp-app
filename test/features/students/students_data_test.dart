@@ -335,6 +335,12 @@ void main() {
       expect(bodyOf(adapter.requests.single), {'rollNumber': '15', 'effectiveDate': '2026-07-01'});
     });
 
+    test('encodes the ID in the path', () async {
+      final (:repository, :adapter) = build(() => okReply(studentRow()));
+      await repository.move('a/b', rollNumber: '15');
+      expect(adapter.requests.single.uri.path, '/v1/students/a%2Fb/placement');
+    });
+
     test('throws the failure the API gives', () async {
       final (:repository, adapter: _) = build(() => errorReply(409, 'ROLL_NUMBER_TAKEN'));
       await expectLater(
