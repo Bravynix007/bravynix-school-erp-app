@@ -4,6 +4,7 @@ import 'package:bravynix_school_erp/core/widgets/app_card.dart';
 import 'package:bravynix_school_erp/core/widgets/app_dropdown_field.dart';
 import 'package:bravynix_school_erp/core/widgets/app_switch_tile.dart';
 import 'package:bravynix_school_erp/core/widgets/app_text_field.dart';
+import 'package:bravynix_school_erp/features/people/presentation/view/person_form_fields.dart';
 import 'package:bravynix_school_erp/features/students/domain/student_draft.dart';
 import 'package:bravynix_school_erp/features/students/presentation/bloc/student_form_bloc.dart';
 import 'package:bravynix_school_erp/l10n/gen/app_localizations.dart';
@@ -139,39 +140,16 @@ class _GuardianRowState extends State<GuardianRow> {
             onChanged: (relation) => bloc.add(StudentGuardianRelationChosen(id, relation)),
           ),
           const SizedBox(height: AppSpacing.sm),
-          AppTextField(
-            key: Key('studentForm.guardian.$id.code'),
-            label: l10n.phoneCountryCode,
-            controller: _code,
-            mono: true,
-            keyboardType: TextInputType.number,
-            error: widget.errorOf('phone.countryCode'),
+          PhoneFields(
+            keyPrefix: 'studentForm.guardian.$id',
+            countryCode: _code,
+            number: _number,
+            alternate: _alternate,
+            errorOf: widget.errorOf,
+            phoneField: 'phone',
+            alternateField: 'alternatePhone',
             onChanged: (_) => _changed(),
-            textInputAction: TextInputAction.next,
-          ),
-          const SizedBox(height: AppSpacing.sm),
-          AppTextField(
-            key: Key('studentForm.guardian.$id.number'),
-            label: l10n.personMobile,
-            controller: _number,
-            mono: true,
-            required: true,
-            requiredLabel: l10n.fieldRequired,
-            keyboardType: TextInputType.phone,
-            error: widget.errorOf('phone.number') ?? widget.errorOf('phone'),
-            onChanged: (_) => _changed(),
-            textInputAction: TextInputAction.next,
-          ),
-          const SizedBox(height: AppSpacing.sm),
-          AppTextField(
-            key: Key('studentForm.guardian.$id.alternate'),
-            label: l10n.personAlternateNumber,
-            controller: _alternate,
-            mono: true,
-            keyboardType: TextInputType.phone,
-            error: widget.errorOf('alternatePhone'),
-            onChanged: (_) => _changed(),
-            textInputAction: TextInputAction.next,
+            lastAction: TextInputAction.next,
           ),
           const SizedBox(height: AppSpacing.sm),
           AppTextField(

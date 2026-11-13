@@ -2,6 +2,7 @@ import 'package:bloc/bloc.dart';
 import 'package:bravynix_school_erp/core/model/address.dart';
 import 'package:bravynix_school_erp/core/model/gender.dart';
 import 'package:bravynix_school_erp/core/model/phone.dart';
+import 'package:bravynix_school_erp/core/model/typed_text.dart';
 import 'package:bravynix_school_erp/core/network/api_failure.dart';
 import 'package:bravynix_school_erp/features/masters/domain/master_entry.dart';
 import 'package:bravynix_school_erp/features/masters/domain/masters_repository.dart';
@@ -641,36 +642,29 @@ class StaffFormBloc extends Bloc<StaffFormEvent, StaffFormState> {
     }
   }
 
-  static String? _text(String value) {
-    final trimmed = value.trim();
-    return trimmed.isEmpty ? null : trimmed;
-  }
-
-  static String? _digits(String value) => _text(value.replaceAll(RegExp(r'\s'), ''));
-
   StaffDraft _draft(StaffFormReady ready, StaffTexts texts, PlaceChoice place) => StaffDraft(
     // An edit never sends the email; the draft carries none.
     email: ready.isEdit ? '' : texts.email.trim(),
     firstName: texts.firstName.trim(),
-    lastName: _text(texts.lastName),
-    employeeCode: _text(texts.employeeCode),
+    lastName: TypedText.text(texts.lastName),
+    employeeCode: TypedText.text(texts.employeeCode),
     gender: ready.gender,
     dateOfBirth: ready.dateOfBirth,
     bloodGroup: ready.bloodGroup,
-    nationality: _text(texts.nationality),
+    nationality: TypedText.text(texts.nationality),
     photoFileId: ready.photoFileId,
     designationId: ready.designationId,
     // A category is required; the API names the field when none is chosen.
     classCategoryId: ready.categoryId ?? '',
-    mobile: Phone.typed(texts.mobileCountryCode, texts.mobileNumber) ?? const Phone(countryCode: '', number: ''),
-    alternateNumber: _digits(texts.alternateNumber),
-    address: Address(
-      line1: _text(texts.addressLine1),
-      line2: _text(texts.addressLine2),
+    mobile: Phone.typedOrBlank(texts.mobileCountryCode, texts.mobileNumber),
+    alternateNumber: TypedText.digits(texts.alternateNumber),
+    address: Address.typed(
+      line1: texts.addressLine1,
+      line2: texts.addressLine2,
+      pincode: texts.pincode,
       countryId: place.countryId,
       stateId: place.stateId,
       cityId: place.cityId,
-      pincode: _text(texts.pincode),
     ),
     joiningDate: ready.joiningDate,
     resignationDate: ready.resignationDate,
@@ -679,9 +673,9 @@ class StaffFormBloc extends Bloc<StaffFormEvent, StaffFormState> {
       for (final entry in ready.educations)
         Education(
           degree: entry.texts.degree.trim(),
-          qualification: _text(entry.texts.qualification),
-          specialization: _text(entry.texts.specialization),
-          institutionName: _text(entry.texts.institutionName),
+          qualification: TypedText.text(entry.texts.qualification),
+          specialization: TypedText.text(entry.texts.specialization),
+          institutionName: TypedText.text(entry.texts.institutionName),
           yearOfPassing: int.tryParse(entry.texts.yearOfPassing.trim()),
         ),
     ],
@@ -689,11 +683,9 @@ class StaffFormBloc extends Bloc<StaffFormEvent, StaffFormState> {
       for (final entry in ready.contacts)
         EmergencyContact(
           contactName: entry.texts.contactName.trim(),
-          relation: _text(entry.texts.relation),
-          phone:
-              Phone.typed(entry.texts.countryCode, entry.texts.number) ??
-              Phone(countryCode: entry.texts.countryCode.replaceAll(RegExp(r'[\s+]'), ''), number: ''),
-          alternateNumber: _digits(entry.texts.alternateNumber),
+          relation: TypedText.text(entry.texts.relation),
+          phone: Phone.typedOrBlank(entry.texts.countryCode, entry.texts.number),
+          alternateNumber: TypedText.digits(entry.texts.alternateNumber),
           isPrimary: entry.isPrimary,
         ),
     ],

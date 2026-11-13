@@ -62,8 +62,8 @@ abstract final class AppRoutes {
   static const staffMemberPattern = '/school-setup/staff/:id';
   static String staffMember(String id) => '$staff/${Uri.encodeComponent(id)}';
 
-  /// Students of the chosen Institution (STU-01) and the form that adds one (STU-02), which takes the Institution as the
-  /// route's `extra`.
+  /// Students of the chosen Institution (STU-01) and the form that adds one (STU-02), which takes the Institution as
+  /// the route's `extra`.
   static const students = '/school-setup/students';
   static const studentForm = '/school-setup/students/form';
 

@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:bravynix_school_erp/core/device/screen_protection.dart';
 import 'package:bravynix_school_erp/core/model/aadhaar.dart';
 import 'package:bravynix_school_erp/core/theme/app_spacing.dart';
+import 'package:bravynix_school_erp/core/widgets/aadhaar_input.dart';
 import 'package:bravynix_school_erp/core/widgets/app_bottom_sheet.dart';
 import 'package:bravynix_school_erp/core/widgets/app_button.dart';
 import 'package:bravynix_school_erp/core/widgets/app_card.dart';
@@ -179,10 +180,7 @@ class _SetSheetState extends State<_SetSheet> {
               mono: true,
               error: _tried && _digits == null ? l10n.staffAadhaarInvalid : null,
               keyboardType: TextInputType.number,
-              inputFormatters: [
-                FilteringTextInputFormatter.allow(RegExp('[0-9 -]')),
-                LengthLimitingTextInputFormatter(14),
-              ],
+              inputFormatters: aadhaarInputFormatters(),
               enabled: !working,
               onChanged: (_) {
                 if (_tried) setState(() => _tried = false);

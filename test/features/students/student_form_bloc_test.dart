@@ -322,18 +322,30 @@ void main() {
       expect(captured[4], const IdentityDraft(aadhaarNumber: '234567890123', birthCertificateNumber: 'BC-1'));
     });
 
-    test('sends no identity when none is typed, and ids that are not chosen as empty for the server to name', () async {
-      when(
-        () => students.create(
-          any(),
-          any(),
-          enrolment: any(named: 'enrolment'),
-          guardians: any(named: 'guardians'),
-          identity: any(named: 'identity'),
+    /// Every call of `create` is answered with [_saved]; [delay] makes it take a while.
+    void createdAs({Duration delay = Duration.zero}) =>
+        when(
+          () => students.create(
+            any(),
+            any(),
+            enrolment: any(named: 'enrolment'),
+            guardians: any(named: 'guardians'),
+            identity: any(named: 'identity'),
+          ),
+        ).thenAnswer((_) async {
+          await Future<void>.delayed(delay);
+          return _saved;
+        });
+
+    test('sends no identity when none is typed, and what is optional as it was left', () async {
+      createdAs();
+      final bloc = await filled();
+      bloc.add(
+        const StudentFormSubmitted(
+          StudentTexts(firstName: 'Asha', mobileNumber: '9876501234', rollNumber: '14'),
+          PlaceChoice(),
         ),
-      ).thenAnswer((_) async => _saved);
-      final bloc = await opened();
-      bloc.add(const StudentFormSubmitted(StudentTexts(firstName: 'Asha'), PlaceChoice()));
+      );
       await bloc.stream.firstWhere((state) => state is StudentFormSaved);
       final captured = verify(
         () => students.create(
@@ -344,9 +356,79 @@ void main() {
           identity: captureAny(named: 'identity'),
         ),
       ).captured;
-      expect(captured[2], const EnrolmentDraft(academicYearId: 'y1', classId: '', sectionId: '', rollNumber: ''));
-      expect((captured[3] as List<GuardianDraft>).single.phone, const Phone(countryCode: '91', number: ''));
       expect(captured[4], const IdentityDraft());
+      expect((captured[1] as StudentDraft).address, const Address());
+    });
+
+    test('says what is required and was left empty, under the field, and sends nothing', () async {
+      final bloc = await opened();
+      bloc
+        ..add(const StudentGuardianAdded())
+        ..add(const StudentGuardianEdited(1, GuardianTexts(firstName: ' ', countryCode: '91', number: '9845012345')));
+      await Future<void>.delayed(Duration.zero);
+      bloc.add(const StudentFormSubmitted(StudentTexts(firstName: ' '), PlaceChoice()));
+      await bloc.stream.firstWhere((state) => state is StudentFormReady && state.failure != null);
+      final state = ready(bloc);
+      expect(state.saving, isFalse);
+      expect(state.failedGuardianIds, [0, 1]);
+      expect(state.failure!.fieldErrors.map((error) => [error.field, error.code]), [
+        ['firstName', 'REQUIRED'],
+        ['mobile.number', 'REQUIRED'],
+        ['enrolment.classId', 'REQUIRED'],
+        ['enrolment.sectionId', 'REQUIRED'],
+        ['enrolment.rollNumber', 'REQUIRED'],
+        ['guardians[0].firstName', 'REQUIRED'],
+        ['guardians[0].relation', 'REQUIRED'],
+        ['guardians[0].phone.number', 'REQUIRED'],
+        ['guardians[1].firstName', 'REQUIRED'],
+        ['guardians[1].relation', 'REQUIRED'],
+      ]);
+      verifyZeroInteractions(students);
+    });
+
+    test('asks for the year when none is chosen', () async {
+      final bloc = await filled()
+        ..add(const StudentYearChosen(null));
+      await Future<void>.delayed(Duration.zero);
+      bloc.add(const StudentFormSubmitted(texts, _india));
+      await bloc.stream.firstWhere((state) => state is StudentFormReady && state.failure != null);
+      expect(ready(bloc).failure!.fieldErrors.map((error) => error.field), ['enrolment.academicYearId']);
+    });
+
+    for (final typed in ['1234 5678', '0345 6789 0123']) {
+      test('refuses the Aadhaar number "$typed", and sends nothing', () async {
+        final bloc = await filled();
+        bloc.add(
+          StudentFormSubmitted(
+            StudentTexts(firstName: 'Asha', mobileNumber: '9876501234', rollNumber: '1', aadhaar: typed),
+            _india,
+          ),
+        );
+        await bloc.stream.firstWhere((state) => state is StudentFormReady && state.failure != null);
+        expect(ready(bloc).failure!.fieldErrors.map((error) => [error.field, error.code]), [
+          ['identity.aadhaarNumber', 'INVALID_AADHAAR'],
+        ]);
+        verifyZeroInteractions(students);
+      });
+    }
+
+    test('sends a guardian marked as an emergency contact as one', () async {
+      createdAs();
+      final bloc = await filled()
+        ..add(const StudentGuardianEmergencyChosen(0, isEmergencyContact: true));
+      await Future<void>.delayed(Duration.zero);
+      bloc.add(const StudentFormSubmitted(texts, _india));
+      await bloc.stream.firstWhere((state) => state is StudentFormSaved);
+      final captured = verify(
+        () => students.create(
+          any(),
+          any(),
+          enrolment: any(named: 'enrolment'),
+          guardians: captureAny(named: 'guardians'),
+          identity: any(named: 'identity'),
+        ),
+      ).captured;
+      expect((captured.single as List<GuardianDraft>).single.isEmergencyContact, isTrue);
     });
 
     test('keeps the form and says why a save was refused, with the rows it sent', () async {
@@ -361,6 +443,10 @@ void main() {
       ).thenThrow(_taken);
       final bloc = await filled()
         ..add(const StudentGuardianAdded());
+      await Future<void>.delayed(Duration.zero);
+      bloc
+        ..add(StudentGuardianEdited(1, _texts(first: 'Sita')))
+        ..add(const StudentGuardianRelationChosen(1, GuardianRelation.mother));
       await Future<void>.delayed(Duration.zero);
       bloc.add(const StudentFormSubmitted(texts, _india));
       await bloc.stream.firstWhere((state) => state is StudentFormReady && state.failure != null);
@@ -391,12 +477,48 @@ void main() {
         await Future<void>.delayed(const Duration(milliseconds: 10));
         return _saved;
       });
-      final bloc = await opened();
+      final bloc = await filled();
       bloc
         ..add(const StudentFormSubmitted(texts, _india))
         ..add(const StudentFormSubmitted(texts, _india));
       await bloc.stream.firstWhere((state) => state is StudentFormSaved);
       expect(calls, 1);
     });
+
+    test(
+      'names the rows the save sent when a row is removed while it is out, and keeps what was changed meanwhile',
+      () async {
+        when(
+          () => students.create(
+            any(),
+            any(),
+            enrolment: any(named: 'enrolment'),
+            guardians: any(named: 'guardians'),
+            identity: any(named: 'identity'),
+          ),
+        ).thenAnswer((_) async {
+          await Future<void>.delayed(const Duration(milliseconds: 10));
+          throw _taken;
+        });
+        final bloc = await filled()
+          ..add(const StudentGuardianAdded());
+        await Future<void>.delayed(Duration.zero);
+        bloc
+          ..add(StudentGuardianEdited(1, _texts(first: 'Sita')))
+          ..add(const StudentGuardianRelationChosen(1, GuardianRelation.mother))
+          ..add(const StudentFormSubmitted(texts, _india));
+        await Future<void>.delayed(Duration.zero);
+        bloc
+          ..add(const StudentGuardianRemoved(1))
+          ..add(const StudentClassChosen(null))
+          ..add(const StudentGenderChosen(Gender.other));
+        await bloc.stream.firstWhere((state) => state is StudentFormReady && state.failure != null);
+        final state = ready(bloc);
+        // The API names the rows the save sent, 0 and 1, though row 1 is gone now.
+        expect(state.failedGuardianIds, [0, 1]);
+        expect(state.guardians.map((entry) => entry.id), [0]);
+        expect([state.classId, state.gender], [null, Gender.other]);
+      },
+    );
   });
 }

@@ -4,6 +4,7 @@ import 'package:bravynix_school_erp/core/widgets/app_dropdown_field.dart';
 import 'package:bravynix_school_erp/core/widgets/app_text_field.dart';
 import 'package:bravynix_school_erp/core/widgets/optional_date_field.dart';
 import 'package:bravynix_school_erp/features/masters/presentation/view/place_fields.dart';
+import 'package:bravynix_school_erp/features/people/presentation/view/person_names.dart';
 import 'package:bravynix_school_erp/l10n/gen/app_localizations.dart';
 import 'package:flutter/material.dart';
 
@@ -121,7 +122,8 @@ class PersonalFields extends StatelessWidget {
   }
 }
 
-/// The country code, the mobile number and the alternate number.
+/// The country code, the mobile number and the alternate number. The API names the fields of a person `mobile` and
+/// `alternateNumber`, and those of a guardian `phone` and `alternatePhone`.
 class PhoneFields extends StatelessWidget {
   const new({
     required this.keyPrefix,
@@ -129,6 +131,10 @@ class PhoneFields extends StatelessWidget {
     required this.number,
     required this.alternate,
     required this.errorOf,
+    this.phoneField = 'mobile',
+    this.alternateField = 'alternateNumber',
+    this.onChanged,
+    this.lastAction = TextInputAction.done,
     super.key,
   });
 
@@ -137,6 +143,16 @@ class PhoneFields extends StatelessWidget {
   final TextEditingController number;
   final TextEditingController alternate;
   final String? Function(String field) errorOf;
+
+  /// The API's name for the phone: its `.countryCode` and `.number` are the fields under it.
+  final String phoneField;
+  final String alternateField;
+
+  /// Told when any of the three is typed in, by a form that holds what is typed.
+  final ValueChanged<String>? onChanged;
+
+  /// What the keyboard offers at the end of the alternate number.
+  final TextInputAction lastAction;
 
   @override
   Widget build(BuildContext context) {
@@ -150,7 +166,8 @@ class PhoneFields extends StatelessWidget {
           controller: countryCode,
           mono: true,
           keyboardType: TextInputType.number,
-          error: errorOf('mobile.countryCode'),
+          error: errorOf('$phoneField.countryCode'),
+          onChanged: onChanged,
           textInputAction: TextInputAction.next,
         ),
         const SizedBox(height: AppSpacing.sm),
@@ -162,7 +179,8 @@ class PhoneFields extends StatelessWidget {
           required: true,
           requiredLabel: l10n.fieldRequired,
           keyboardType: TextInputType.phone,
-          error: errorOf('mobile.number') ?? errorOf('mobile'),
+          error: errorOf('$phoneField.number') ?? errorOf(phoneField),
+          onChanged: onChanged,
           textInputAction: TextInputAction.next,
         ),
         const SizedBox(height: AppSpacing.sm),
@@ -172,8 +190,9 @@ class PhoneFields extends StatelessWidget {
           controller: alternate,
           mono: true,
           keyboardType: TextInputType.phone,
-          error: errorOf('alternateNumber'),
-          textInputAction: TextInputAction.done,
+          error: errorOf(alternateField),
+          onChanged: onChanged,
+          textInputAction: lastAction,
         ),
       ],
     );

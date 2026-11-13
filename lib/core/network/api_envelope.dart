@@ -62,7 +62,8 @@ class ApiEnvelope<T> {
   final PageInfo? meta;
   final String requestId;
 
-  /// The codes in `meta.warnings` of a write that went through but needs a second look, such as `SECTION_OVER_CAPACITY`.
+  /// The codes in `meta.warnings` of a write that went through but needs a second look, such as
+  /// `SECTION_OVER_CAPACITY`.
   final List<String> warnings;
 
   static bool isEnvelope(Object? body) =>

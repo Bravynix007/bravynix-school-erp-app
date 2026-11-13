@@ -547,6 +547,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get fieldRequired => 'Required';
 
   @override
+  String get errorFieldRequired => 'This field is required.';
+
+  @override
   String get errorInstitutionDuplicate => 'Another Institution already uses this code.';
 
   @override
