@@ -25,11 +25,11 @@ import 'package:bravynix_school_erp/features/files/domain/files_repository.dart'
 import 'package:bravynix_school_erp/features/files/presentation/bloc/file_upload_bloc.dart';
 import 'package:bravynix_school_erp/features/institutions/domain/institutions_repository.dart';
 import 'package:bravynix_school_erp/features/masters/domain/masters_repository.dart';
+import 'package:bravynix_school_erp/features/sections/domain/section_options.dart';
 import 'package:bravynix_school_erp/features/sections/domain/sections_repository.dart';
 import 'package:bravynix_school_erp/features/staff/domain/staff_member.dart';
 import 'package:bravynix_school_erp/features/staff/domain/staff_profile.dart';
 import 'package:bravynix_school_erp/features/staff/domain/staff_repository.dart';
-import 'package:bravynix_school_erp/features/staff/presentation/bloc/section_options.dart';
 import 'package:bravynix_school_erp/features/staff/presentation/bloc/staff_access_bloc.dart';
 import 'package:bravynix_school_erp/features/staff/presentation/bloc/staff_admin_access_bloc.dart';
 import 'package:bravynix_school_erp/features/staff/presentation/bloc/staff_block_bloc.dart';

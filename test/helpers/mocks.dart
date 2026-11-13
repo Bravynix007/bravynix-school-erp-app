@@ -12,6 +12,7 @@ import 'package:bravynix_school_erp/features/masters/domain/masters_repository.d
 import 'package:bravynix_school_erp/features/platform_dues/domain/platform_dues_repository.dart';
 import 'package:bravynix_school_erp/features/sections/domain/sections_repository.dart';
 import 'package:bravynix_school_erp/features/staff/domain/staff_repository.dart';
+import 'package:bravynix_school_erp/features/students/domain/students_repository.dart';
 import 'package:bravynix_school_erp/features/subjects/domain/subjects_repository.dart';
 import 'package:bravynix_school_erp/features/teaching_assignments/domain/teaching_assignments_repository.dart';
 import 'package:mocktail/mocktail.dart';
@@ -41,6 +42,8 @@ class MockPlatformDuesRepository extends Mock implements PlatformDuesRepository;
 class MockSectionsRepository extends Mock implements SectionsRepository;
 
 class MockStaffRepository extends Mock implements StaffRepository;
+
+class MockStudentsRepository extends Mock implements StudentsRepository;
 
 class MockSubjectsRepository extends Mock implements SubjectsRepository;
 

@@ -5,12 +5,9 @@ import 'package:bravynix_school_erp/core/theme/app_spacing.dart';
 import 'package:bravynix_school_erp/core/widgets/app_button.dart';
 import 'package:bravynix_school_erp/core/widgets/app_card.dart';
 import 'package:bravynix_school_erp/core/widgets/app_dialog.dart';
-import 'package:bravynix_school_erp/core/widgets/app_search_field.dart';
-import 'package:bravynix_school_erp/core/widgets/app_snackbar.dart';
 import 'package:bravynix_school_erp/core/widgets/app_top_bar.dart';
-import 'package:bravynix_school_erp/core/widgets/inline_message.dart';
+import 'package:bravynix_school_erp/core/widgets/paged_list_view.dart';
 import 'package:bravynix_school_erp/core/widgets/person_list_tile.dart';
-import 'package:bravynix_school_erp/core/widgets/skeleton.dart';
 import 'package:bravynix_school_erp/core/widgets/state_panel.dart';
 import 'package:bravynix_school_erp/core/widgets/status_chip.dart';
 import 'package:bravynix_school_erp/features/institutions/presentation/view/institution_scope.dart';
@@ -62,144 +59,47 @@ Future<void> _openAddForm(BuildContext context) async {
 }
 
 /// The staff of one Institution, under the switcher: a search box over the pages read so far.
-class StaffView extends StatefulWidget {
+class StaffView extends StatelessWidget {
   const new({super.key});
 
   @override
-  State<StaffView> createState() => _StaffViewState();
-}
-
-class _StaffViewState extends State<StaffView> {
-  static const _maxSearch = 100;
-
-  final _search = TextEditingController();
-
-  @override
-  void dispose() {
-    _search.dispose();
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final bloc = context.read<StaffBloc>();
-    final idle = context.select<StaffBloc, bool>(
-      (bloc) => switch (bloc.state) {
-        PagedListLoaded<StaffListEntry>(:final busyId) => busyId == null,
-        _ => true,
-      },
-    );
-    return Column(
-      children: [
-        Padding(
-          padding: const EdgeInsets.fromLTRB(AppSpacing.screenMargin, AppSpacing.sm, AppSpacing.screenMargin, 0),
-          // The search waits while a deactivation goes, so its outcome is not lost to a new list.
-          child: AppSearchField(
-            key: const Key('staff.search'),
-            controller: _search,
-            hint: l10n.staffSearchHint,
-            clearTooltip: l10n.staffSearchClear,
-            enabled: idle,
-            // STF-01 takes 2 to 100 letters (API design 13.1); a pasted line is cut instead of refused.
-            maxLength: _maxSearch,
-            // The search is sent on the keyboard's search key, and cleared as soon as the box is emptied.
-            onSubmitted: (text) => bloc.add(PagedListSearched(text)),
-            onChanged: (text) {
-              if (text.isEmpty) bloc.add(const PagedListSearched(''));
-            },
-          ),
-        ),
-        Expanded(
-          child: BlocConsumer<StaffBloc, PagedListState<StaffListEntry>>(
-            listenWhen: (previous, current) => current is PagedListLoaded<StaffListEntry> && current.changed != null,
-            listener: (context, state) {
-              if (state is PagedListLoaded<StaffListEntry>) {
-                AppSnackbar.show(
-                  context,
-                  message: l10n.staffDeactivated(state.changed!.summary.fullName),
-                  kind: AppSnackbarKind.success,
-                );
-              }
-            },
-            builder: (context, state) => switch (state) {
-              PagedListLoading<StaffListEntry>() => SkeletonCards(
-                semanticLabel: l10n.loading,
-                heights: const [96, 96],
-              ),
-              PagedListFailed<StaffListEntry>(:final failure) when failure.code == 'FORBIDDEN' => StatePanel.forbidden(
-                key: const Key('staff.forbidden'),
-                title: staffErrorText(l10n, failure),
-              ),
-              PagedListFailed<StaffListEntry>(:final failure) => StatePanel.error(
-                key: const Key('staff.failed'),
-                title: staffErrorText(l10n, failure),
-                actionLabel: l10n.retry,
-                onAction: () => bloc.add(const PagedListRequested()),
-              ),
-              PagedListLoaded<StaffListEntry>(:final items, :final query) when items.isEmpty =>
-                query.isEmpty
-                    ? StatePanel.empty(
-                        title: l10n.staffEmptyTitle,
-                        message: l10n.staffEmptyMessage,
-                        actionLabel: l10n.staffAddTitle,
-                        onAction: () => _openAddForm(context),
-                      )
-                    : StatePanel.empty(
-                        key: const Key('staff.noMatch'),
-                        title: l10n.staffNoMatchTitle(query),
-                        message: l10n.staffNoMatchMessage,
-                      ),
-              PagedListLoaded<StaffListEntry>() => _StaffList(state: state),
-            },
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-class _StaffList extends StatelessWidget {
-  const new({required this.state});
-
-  final PagedListLoaded<StaffListEntry> state;
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
-    final bloc = context.read<StaffBloc>();
-    return ListView(
-      padding: const EdgeInsets.all(AppSpacing.screenMargin),
-      children: [
-        if (state.actionFailure case final failure?) ...[
-          InlineMessage.error(staffErrorText(l10n, failure), key: const Key('staff.actionFailed')),
-          const SizedBox(height: AppSpacing.sm),
-        ],
+    return PagedListView<StaffListEntry>(
+      bloc: bloc,
+      keyPrefix: 'staff',
+      searchHint: l10n.staffSearchHint,
+      searchClearTooltip: l10n.staffSearchClear,
+      loadMoreLabel: l10n.staffLoadMore,
+      errorText: (failure) => staffErrorText(l10n, failure),
+      onRetry: () => bloc.add(const PagedListRequested()),
+      empty: (context, query) => query.isEmpty
+          ? StatePanel.empty(
+              title: l10n.staffEmptyTitle,
+              message: l10n.staffEmptyMessage,
+              actionLabel: l10n.staffAddTitle,
+              onAction: () => _openAddForm(context),
+            )
+          : StatePanel.empty(
+              key: const Key('staff.noMatch'),
+              title: l10n.staffNoMatchTitle(query),
+              message: l10n.staffNoMatchMessage,
+            ),
+      leading: (context, {required idle}) => [
         AppButton(
           key: const Key('staff.add'),
           label: l10n.staffAddTitle,
           icon: Icons.add,
           variant: AppButtonVariant.secondary,
-          onPressed: state.busyId == null ? () => _openAddForm(context) : null,
+          onPressed: idle ? () => _openAddForm(context) : null,
         ),
         const SizedBox(height: AppSpacing.sm),
-        for (final entry in state.items) ...[
-          _StaffCard(entry: entry, busy: state.busyId == entry.summary.id, locked: state.busyId != null),
-          const SizedBox(height: AppSpacing.xs),
-        ],
-        if (state.moreFailure case final failure?) ...[
-          InlineMessage.error(staffErrorText(l10n, failure), key: const Key('staff.moreFailed')),
-          const SizedBox(height: AppSpacing.xs),
-        ],
-        if (state.hasMore)
-          AppButton(
-            key: const Key('staff.more'),
-            label: state.moreFailure == null ? l10n.staffLoadMore : l10n.retry,
-            variant: AppButtonVariant.secondary,
-            loading: state.loadingMore,
-            onPressed: state.busyId == null ? () => bloc.add(const PagedListMoreRequested()) : null,
-          ),
       ],
+      idOf: (entry) => entry.summary.id,
+      itemBuilder: (context, entry, {required busy, required locked}) =>
+          _StaffCard(entry: entry, busy: busy, locked: locked),
+      changedMessage: (entry) => l10n.staffDeactivated(entry.summary.fullName),
     );
   }
 }
