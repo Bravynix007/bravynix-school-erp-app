@@ -4,6 +4,7 @@ import 'package:bravynix_school_erp/core/paging/items_page.dart';
 import 'package:bravynix_school_erp/features/students/data/student_models.dart';
 import 'package:bravynix_school_erp/features/students/domain/student.dart';
 import 'package:bravynix_school_erp/features/students/domain/student_draft.dart';
+import 'package:bravynix_school_erp/features/students/domain/student_profile.dart';
 import 'package:bravynix_school_erp/features/students/domain/students_repository.dart';
 
 class StudentsRepositoryImpl implements StudentsRepository {
@@ -34,6 +35,10 @@ class StudentsRepositoryImpl implements StudentsRepository {
     final meta = answer.meta;
     return ItemsPage(answer.data, page: page, totalPages: meta is NumberedPage ? meta.totalPages : page);
   }
+
+  @override
+  Future<StudentRecord> student(String id) =>
+      _api.data('students/${Uri.encodeComponent(id)}', parse: StudentModels.record);
 
   @override
   Future<void> deactivate(String id, LeavingReason reason) => _api.data(

@@ -70,6 +70,11 @@ abstract final class AppRoutes {
   /// Moves a student to another section or roll number (STU-08); takes the student as the route's `extra`.
   static const studentMove = '/school-setup/students/move';
 
+  /// One student's profile (STU-03). The `:id` pattern is for the router and comes after the form's and the move's own
+  /// locations; [student] builds the location of one student.
+  static const studentPattern = '/school-setup/students/:id';
+  static String student(String id) => '$students/${Uri.encodeComponent(id)}';
+
   /// The component gallery, registered in debug and profile builds only.
   static const gallery = '/gallery';
 

@@ -669,5 +669,9 @@
   "studentMoveFromHelper": "The first day in the new section or with the new roll number. Today when left empty, or the first day of the placement when that comes later.",
   "studentMoved": "{name}'s placement was changed.",
   "@studentMoved": { "placeholders": { "name": { "type": "String" } } },
+  "studentProfileTitle": "Student",
+  "studentProfileDeactivated": "Deactivated",
+  "studentProfileNotSet": "Not set",
+  "studentProfileNoContact": "No contact details are recorded for the student. Their guardians' are below.",
   "studentsMove": "Move"
 }

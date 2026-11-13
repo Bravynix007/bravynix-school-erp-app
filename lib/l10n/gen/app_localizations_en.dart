@@ -2011,5 +2011,17 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get studentProfileTitle => 'Student';
+
+  @override
+  String get studentProfileDeactivated => 'Deactivated';
+
+  @override
+  String get studentProfileNotSet => 'Not set';
+
+  @override
+  String get studentProfileNoContact => 'No contact details are recorded for the student. Their guardians\' are below.';
+
+  @override
   String get studentsMove => 'Move';
 }

@@ -87,6 +87,13 @@ enum GuardianRelation {
   new(this.code);
 
   final int code;
+
+  static GuardianRelation? fromCode(Object? code) {
+    for (final relation in values) {
+      if (relation.code == code) return relation;
+    }
+    return null;
+  }
 }
 
 /// One parent or guardian of a new student. An email that belongs to a person links that person's login; a new one

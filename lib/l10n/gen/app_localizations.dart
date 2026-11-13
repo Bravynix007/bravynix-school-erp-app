@@ -3649,6 +3649,30 @@ abstract class AppLocalizations {
   /// **'{name}\'s placement was changed.'**
   String studentMoved(String name);
 
+  /// No description provided for @studentProfileTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Student'**
+  String get studentProfileTitle;
+
+  /// No description provided for @studentProfileDeactivated.
+  ///
+  /// In en, this message translates to:
+  /// **'Deactivated'**
+  String get studentProfileDeactivated;
+
+  /// No description provided for @studentProfileNotSet.
+  ///
+  /// In en, this message translates to:
+  /// **'Not set'**
+  String get studentProfileNotSet;
+
+  /// No description provided for @studentProfileNoContact.
+  ///
+  /// In en, this message translates to:
+  /// **'No contact details are recorded for the student. Their guardians\' are below.'**
+  String get studentProfileNoContact;
+
   /// No description provided for @studentsMove.
   ///
   /// In en, this message translates to:
