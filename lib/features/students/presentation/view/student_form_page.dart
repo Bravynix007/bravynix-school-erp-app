@@ -1,11 +1,13 @@
 import 'package:bravynix_school_erp/app/di/injection.dart';
 import 'package:bravynix_school_erp/core/model/phone.dart';
 import 'package:bravynix_school_erp/core/theme/app_spacing.dart';
+import 'package:bravynix_school_erp/core/widgets/aadhaar_input.dart';
 import 'package:bravynix_school_erp/core/widgets/app_button.dart';
 import 'package:bravynix_school_erp/core/widgets/app_card.dart';
 import 'package:bravynix_school_erp/core/widgets/app_snackbar.dart';
 import 'package:bravynix_school_erp/core/widgets/app_text_field.dart';
 import 'package:bravynix_school_erp/core/widgets/app_top_bar.dart';
+import 'package:bravynix_school_erp/core/widgets/field_error_text.dart';
 import 'package:bravynix_school_erp/core/widgets/inline_message.dart';
 import 'package:bravynix_school_erp/core/widgets/optional_date_field.dart';
 import 'package:bravynix_school_erp/core/widgets/section_header.dart';
@@ -35,7 +37,6 @@ import 'package:bravynix_school_erp/features/students/presentation/view/student_
 import 'package:bravynix_school_erp/features/students/presentation/view/student_warnings.dart';
 import 'package:bravynix_school_erp/l10n/gen/app_localizations.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
@@ -276,7 +277,11 @@ class _FormBodyState extends State<_FormBody> {
     final state = widget.state;
     final bloc = context.read<StudentFormBloc>();
     final failure = state.failure;
-    String? error(String field) => failure?.fieldError(field)?.message;
+    String? error(String field) {
+      final problem = failure?.fieldError(field);
+      return problem == null ? null : fieldErrorText(l10n, problem);
+    }
+
     // The API names a row by its place among those the save sent; see StudentFormReady.failedGuardianIds.
     String? rowError(int rowId, String field) {
       final position = state.failedGuardianIds.indexOf(rowId);
@@ -509,11 +514,7 @@ class _FormBodyState extends State<_FormBody> {
                         mono: true,
                         helper: l10n.studentAadhaarHelper,
                         keyboardType: TextInputType.number,
-                        // Twelve digits, which people type with spaces or hyphens between the groups.
-                        inputFormatters: [
-                          FilteringTextInputFormatter.allow(RegExp('[0-9 -]')),
-                          LengthLimitingTextInputFormatter(14),
-                        ],
+                        inputFormatters: aadhaarInputFormatters(),
                         error: error('identity.aadhaarNumber'),
                         textInputAction: TextInputAction.next,
                       ),
@@ -538,7 +539,8 @@ class _FormBodyState extends State<_FormBody> {
       bottomNavigationBar: StickyBottomActions(
         primaryLabel: l10n.formSave,
         primaryLoading: state.saving,
-        // The place is sent with the rest, so Save waits until it is read, and until a photo that is on its way has its ID.
+        // The place is sent with the rest, so Save waits until it is read, and until a photo that is on its way has its
+        // ID.
         onPrimary: state.saving || place == null || uploading ? null : () => _save(place),
         secondaryLabel: l10n.cancel,
         onSecondary: () => Navigator.maybePop(context),

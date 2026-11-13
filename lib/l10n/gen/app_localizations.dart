@@ -1015,6 +1015,12 @@ abstract class AppLocalizations {
   /// **'Required'**
   String get fieldRequired;
 
+  /// No description provided for @errorFieldRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'This field is required.'**
+  String get errorFieldRequired;
+
   /// No description provided for @errorInstitutionDuplicate.
   ///
   /// In en, this message translates to:

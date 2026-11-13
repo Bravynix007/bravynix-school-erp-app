@@ -89,8 +89,8 @@ enum GuardianRelation {
   final int code;
 }
 
-/// One parent or guardian of a new student. An email that belongs to a person links that person's login; a new one makes
-/// a Pending account.
+/// One parent or guardian of a new student. An email that belongs to a person links that person's login; a new one
+/// makes a Pending account.
 class GuardianDraft extends Equatable {
   const new({
     required this.firstName,

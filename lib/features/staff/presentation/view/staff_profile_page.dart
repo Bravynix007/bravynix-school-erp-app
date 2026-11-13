@@ -2,7 +2,6 @@ import 'package:bravynix_school_erp/app/di/injection.dart';
 import 'package:bravynix_school_erp/app/router/app_routes.dart';
 import 'package:bravynix_school_erp/core/device/screen_protection.dart';
 import 'package:bravynix_school_erp/core/format/formatters.dart';
-import 'package:bravynix_school_erp/core/model/gender.dart';
 import 'package:bravynix_school_erp/core/theme/app_spacing.dart';
 import 'package:bravynix_school_erp/core/widgets/app_card.dart';
 import 'package:bravynix_school_erp/core/widgets/app_icon_button.dart';
@@ -26,6 +25,7 @@ import 'package:bravynix_school_erp/features/files/domain/files_repository.dart'
 import 'package:bravynix_school_erp/features/files/presentation/bloc/file_upload_bloc.dart';
 import 'package:bravynix_school_erp/features/institutions/domain/institutions_repository.dart';
 import 'package:bravynix_school_erp/features/masters/domain/masters_repository.dart';
+import 'package:bravynix_school_erp/features/people/presentation/view/person_names.dart';
 import 'package:bravynix_school_erp/features/sections/domain/section_options.dart';
 import 'package:bravynix_school_erp/features/sections/domain/sections_repository.dart';
 import 'package:bravynix_school_erp/features/staff/domain/staff_member.dart';

@@ -178,6 +178,7 @@
   "phoneNumber": "Phone number",
   "institutionNoCategories": "There are no class categories to choose from.",
   "fieldRequired": "Required",
+  "errorFieldRequired": "This field is required.",
   "errorInstitutionDuplicate": "Another Institution already uses this code.",
   "errorVersionConflict": "Someone else changed this. Your changes were not saved.",
   "institutionReload": "Reload",

@@ -213,7 +213,8 @@ void main() {
       verify: (_) {
         final draft = verify(() => staff.create(any(), captureAny())).captured.single as StaffDraft;
         expect(draft.classCategoryId, isEmpty);
-        expect(draft.mobile, const Phone(countryCode: '', number: ''));
+        // The dial code that was typed stays, so the API names only the number.
+        expect(draft.mobile, const Phone(countryCode: '91', number: ''));
       },
     );
 

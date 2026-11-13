@@ -27,6 +27,5 @@ String studentFormErrorText(AppLocalizations l10n, ApiFailure failure) => switch
   'TARGET_CLASS_BELOW_SOURCE' => l10n.errorTargetClassBelowSource,
   'CLASS_UNCHANGED' => l10n.errorClassUnchanged,
   'NO_CURRENT_PLACEMENT' => l10n.errorNoCurrentPlacement,
-  'NOT_FOUND' => l10n.errorStudentFormNotFound,
   _ => apiErrorText(l10n, failure, notFound: l10n.errorStudentFormNotFound),
 };
