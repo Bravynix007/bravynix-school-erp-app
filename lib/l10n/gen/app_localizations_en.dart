@@ -1990,7 +1990,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get studentMoveFromHelper =>
-      'The first day in the new section or with the new roll number. Today when left empty.';
+      'The first day in the new section or with the new roll number. Today when left empty, or the first day of the placement when that comes later.';
 
   @override
   String studentMoved(String name) {

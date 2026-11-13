@@ -1,6 +1,7 @@
 import 'package:bloc/bloc.dart';
 import 'package:bravynix_school_erp/core/network/api_failure.dart';
 import 'package:bravynix_school_erp/features/sections/domain/section_options.dart';
+import 'package:bravynix_school_erp/features/sections/domain/sections_repository.dart';
 import 'package:bravynix_school_erp/features/students/domain/student.dart';
 import 'package:bravynix_school_erp/features/students/domain/students_repository.dart';
 import 'package:equatable/equatable.dart';
@@ -117,7 +118,7 @@ class StudentMoveSaved extends StudentMoveState {
 /// Moves a student to another section of their class, or gives them another roll number, from a day (STU-08). Only
 /// what changed is sent; the class and the year stay, since another class is a promotion.
 class StudentMoveBloc extends Bloc<StudentMoveEvent, StudentMoveState> {
-  new(this._students, this._options, this.student) : super(const StudentMoveLoading()) {
+  new(this._students, this._sections, this.student) : super(const StudentMoveLoading()) {
     on<StudentMoveStarted>(_onStarted);
     on<StudentMoveSectionChosen>(
       (event, emit) => _ready((ready) {
@@ -134,7 +135,7 @@ class StudentMoveBloc extends Bloc<StudentMoveEvent, StudentMoveState> {
   }
 
   final StudentsRepository _students;
-  final SectionOptionsSource _options;
+  final SectionsRepository _sections;
 
   /// The student as the list showed them: where they sit now.
   final StudentSummary student;
@@ -146,12 +147,12 @@ class StudentMoveBloc extends Bloc<StudentMoveEvent, StudentMoveState> {
   Future<void> _onStarted(StudentMoveStarted event, Emitter<StudentMoveState> emit) async {
     emit(const StudentMoveLoading());
     try {
-      final options = await _options.read(student.institutionId);
+      final classId = student.placement.classId;
+      final sections = await _sections.sections(classId);
       emit(
         StudentMoveReady(
           sections: [
-            for (final section in options.sections)
-              if (section.classId == student.placement.classId) section,
+            for (final section in sections) SectionChoice(id: section.id, name: section.displayName, classId: classId),
           ],
           sectionId: student.placement.sectionId,
         ),

@@ -1,13 +1,12 @@
+import 'dart:async';
+
 import 'package:bloc_test/bloc_test.dart';
 import 'package:bravynix_school_erp/core/network/api_failure.dart';
-import 'package:bravynix_school_erp/features/sections/domain/section_options.dart';
 import 'package:bravynix_school_erp/features/students/domain/student.dart';
 import 'package:bravynix_school_erp/features/students/presentation/bloc/student_move_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 
-import '../../helpers/academic_years.dart';
-import '../../helpers/classes.dart';
 import '../../helpers/mocks.dart';
 import '../../helpers/sections.dart';
 
@@ -32,25 +31,15 @@ const _asha = StudentSummary(
 
 void main() {
   late MockStudentsRepository students;
-  late MockAcademicYearsRepository years;
-  late MockClassesRepository classes;
   late MockSectionsRepository sections;
 
   setUp(() {
     students = MockStudentsRepository();
-    years = MockAcademicYearsRepository();
-    classes = MockClassesRepository();
     sections = MockSectionsRepository();
-    when(() => years.years('i1')).thenAnswer((_) async => [currentYear]);
-    when(() => classes.classes('i1')).thenAnswer((_) async => [class1, pucClass]);
     when(() => sections.sections('k1')).thenAnswer((_) async => [sectionA, sectionB]);
   });
 
-  StudentMoveBloc build() => StudentMoveBloc(
-    students,
-    SectionOptionsSource(years: years, classes: classes, sections: sections),
-    _asha,
-  );
+  StudentMoveBloc build() => StudentMoveBloc(students, sections, _asha);
 
   Future<StudentMoveBloc> opened() async {
     final bloc = build()..add(const StudentMoveStarted());
@@ -66,19 +55,27 @@ void main() {
       expect: () => [
         const StudentMoveLoading(),
         isA<StudentMoveReady>()
-            .having((s) => s.sections.map((c) => c.id), 'sections', ['e1', 'e2'])
+            .having((s) => s.sections.map((c) => (c.id, c.name, c.classId)), 'sections', [
+              ('e1', 'Section A', 'k1'),
+              ('e2', 'Blue', 'k1'),
+            ])
             .having((s) => s.sectionId, 'section', 'e1')
             .having((s) => s.effectiveDate, 'day', isNull),
       ],
+      // One read, of the student's class only.
+      verify: (_) {
+        verify(() => sections.sections('k1')).called(1);
+        verifyNoMoreInteractions(sections);
+      },
     );
 
     blocTest<StudentMoveBloc, StudentMoveState>(
       'fails when the sections cannot be read, and reads them again on Try again',
       setUp: () {
         var calls = 0;
-        when(() => years.years('i1')).thenAnswer((_) async {
+        when(() => sections.sections('k1')).thenAnswer((_) async {
           if (calls++ == 0) throw _down;
-          return [currentYear];
+          return [sectionA, sectionB];
         });
       },
       build: build,
@@ -174,7 +171,77 @@ void main() {
       expect(state.failure, isNull);
     });
 
-    test('does not send twice while saving, and changes nothing meanwhile', () async {
+    test('clears the refusal when another section is chosen', () async {
+      when(
+        () => students.move(
+          any(),
+          sectionId: any(named: 'sectionId'),
+          rollNumber: any(named: 'rollNumber'),
+          effectiveDate: any(named: 'effectiveDate'),
+        ),
+      ).thenThrow(_taken);
+      final bloc = await opened();
+      bloc.add(const StudentMoveSubmitted('15'));
+      await bloc.stream.firstWhere((state) => state is StudentMoveReady && state.failure != null);
+      bloc.add(const StudentMoveSectionChosen('e2'));
+      await Future<void>.delayed(Duration.zero);
+      final state = bloc.state as StudentMoveReady;
+      expect([state.sectionId, state.failure], ['e2', null]);
+    });
+
+    test('shows no refusal while a new save is on its way', () async {
+      final answers = [_taken];
+      when(
+        () => students.move(
+          any(),
+          sectionId: any(named: 'sectionId'),
+          rollNumber: any(named: 'rollNumber'),
+          effectiveDate: any(named: 'effectiveDate'),
+        ),
+      ).thenAnswer((_) async {
+        if (answers.isNotEmpty) throw answers.removeAt(0);
+        await Future<void>.delayed(const Duration(milliseconds: 20));
+        return <String>[];
+      });
+      final bloc = await opened();
+      bloc.add(const StudentMoveSubmitted('15'));
+      await bloc.stream.firstWhere((state) => state is StudentMoveReady && state.failure != null);
+      final states = <StudentMoveState>[];
+      final listening = bloc.stream.listen(states.add);
+      bloc.add(const StudentMoveSubmitted('15'));
+      await bloc.stream.firstWhere((state) => state is StudentMoveSaved);
+      await listening.cancel();
+      expect(states.first, isA<StudentMoveReady>().having((s) => (s.saving, s.failure), 'saving', (true, null)));
+    });
+
+    test('keeps what was chosen when the save fails, whatever is chosen meanwhile', () async {
+      final released = Completer<List<String>>();
+      when(
+        () => students.move(
+          any(),
+          sectionId: any(named: 'sectionId'),
+          rollNumber: any(named: 'rollNumber'),
+          effectiveDate: any(named: 'effectiveDate'),
+        ),
+      ).thenAnswer((_) => released.future);
+      final bloc = await opened();
+      bloc
+        ..add(const StudentMoveSectionChosen('e2'))
+        ..add(const StudentMoveDateChosen('2026-07-01'))
+        ..add(const StudentMoveSubmitted('15'));
+      await bloc.stream.firstWhere((state) => state is StudentMoveReady && state.saving);
+      bloc
+        ..add(const StudentMoveSectionChosen('e1'))
+        ..add(const StudentMoveDateChosen('2026-08-01'));
+      await Future<void>.delayed(Duration.zero);
+      released.completeError(_taken);
+      await bloc.stream.firstWhere((state) => state is StudentMoveReady && state.failure != null);
+      final state = bloc.state as StudentMoveReady;
+      expect([state.sectionId, state.effectiveDate, state.saving], ['e2', '2026-07-01', false]);
+      verify(() => students.move('p1', sectionId: 'e2', rollNumber: '15', effectiveDate: '2026-07-01')).called(1);
+    });
+
+    test('does not send twice while saving', () async {
       final released = Future<List<String>>.delayed(const Duration(milliseconds: 20), () => <String>[]);
       when(
         () => students.move(

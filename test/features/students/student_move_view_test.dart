@@ -38,8 +38,8 @@ const _entry = StudentListEntry(_asha, placeName: 'Class 1 · Section A');
 
 const _ready = StudentMoveReady(
   sections: [
-    SectionChoice(id: 'e1', name: 'Class 1 · Section A', classId: 'k1'),
-    SectionChoice(id: 'e2', name: 'Class 1 · Blue', classId: 'k1'),
+    SectionChoice(id: 'e1', name: 'Section A', classId: 'k1'),
+    SectionChoice(id: 'e2', name: 'Blue', classId: 'k1'),
   ],
   sectionId: 'e1',
 );
@@ -90,7 +90,60 @@ void main() {
     expect(find.text('Asha Rao'), findsOneWidget);
     expect(find.text('Class 1 · Section A · Roll 14 · since 01-06-2026'), findsOneWidget);
     expect(tester.widget<TextField>(field('studentMove.rollNumber')).controller!.text, '14');
-    expect(find.text('Class 1 · Section A'), findsWidgets);
+    expect(find.text('Section A'), findsWidgets);
+  });
+
+  group('the day', () {
+    String day(DateTime date) =>
+        '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
+
+    /// The limits of the calendar the From field opens for a placement that began [begunDaysAgo] days ago (a negative
+    /// number: it begins that many days from today).
+    Future<({DateTime first, DateTime last})> limits(WidgetTester tester, int begunDaysAgo) async {
+      final today = DateTime.now();
+      final start = DateTime(today.year, today.month, today.day - begunDaysAgo);
+      final summary = StudentSummary(
+        id: 'p1',
+        institutionId: 'i1',
+        firstName: 'Asha',
+        placement: StudentPlacement(
+          academicYearId: 'y1',
+          classId: 'k1',
+          sectionId: 'e1',
+          rollNumber: '14',
+          startDate: day(start),
+        ),
+        isBlocked: false,
+        version: 1,
+      );
+      when(() => bloc.state).thenReturn(_ready);
+      await tester.pumpAppScaled(
+        BlocProvider<StudentMoveBloc>.value(
+          value: bloc,
+          child: StudentMoveView(entry: StudentListEntry(summary)),
+        ),
+        size: const Size(400, 1200),
+      );
+      await tester.tap(find.byKey(const Key('studentMove.effectiveDate')));
+      await tester.pumpAndSettle();
+      final calendar = tester.widget<CalendarDatePicker>(find.byType(CalendarDatePicker));
+      return (first: calendar.firstDate, last: calendar.lastDate);
+    }
+
+    testWidgets('can be any day from the one the placement began to today', (tester) async {
+      final today = DateTime.now();
+      final (:first, :last) = await limits(tester, 10);
+      expect(first, DateTime(today.year, today.month, today.day - 10));
+      expect(last, DateTime(today.year, today.month, today.day));
+    });
+
+    testWidgets('can only be the first day of a placement that begins later', (tester) async {
+      final today = DateTime.now();
+      final (:first, :last) = await limits(tester, -60);
+      expect(tester.takeException(), isNull);
+      expect(first, DateTime(today.year, today.month, today.day + 60));
+      expect(last, first);
+    });
   });
 
   group('Save', () {
@@ -135,9 +188,9 @@ void main() {
   });
 
   group('choosing', () {
-    testWidgets('tells the bloc the section chosen, from the sections of the class only', (tester) async {
+    testWidgets('tells the bloc the section chosen', (tester) async {
       await pump(tester, _ready);
-      await choose(tester, 'studentMove.section', 'Class 1 · Blue');
+      await choose(tester, 'studentMove.section', 'Blue');
       verify(() => bloc.add(const StudentMoveSectionChosen('e2'))).called(1);
     });
 
@@ -171,6 +224,42 @@ void main() {
       );
       expect(find.text('Not that day'), findsOneWidget);
       expect(find.byKey(const Key('studentMove.error')), findsNothing);
+    });
+
+    testWidgets('shows an error under the section and under the roll number when the API names them', (tester) async {
+      await pump(
+        tester,
+        _ready.copyWith(
+          failure: () => _failure(
+            422,
+            'SECTION_NOT_IN_CLASS',
+            fields: const [
+              FieldError(field: 'sectionId', code: 'SECTION_NOT_IN_CLASS', message: 'Not of this class'),
+              FieldError(field: 'rollNumber', code: 'INVALID_VALUE', message: 'Not a roll number'),
+            ],
+          ),
+        ),
+      );
+      expect(
+        find.descendant(of: find.byKey(const Key('studentMove.section')), matching: find.text('Not of this class')),
+        findsOneWidget,
+      );
+      expect(
+        find.descendant(of: find.byKey(const Key('studentMove.rollNumber')), matching: find.text('Not a roll number')),
+        findsOneWidget,
+      );
+      expect(find.byKey(const Key('studentMove.error')), findsNothing);
+    });
+
+    testWidgets("says the student could not be found, not the form's Institution, class or photo", (tester) async {
+      await pump(tester, _ready.copyWith(failure: () => _failure(404, 'NOT_FOUND')));
+      expect(
+        find.descendant(
+          of: find.byKey(const Key('studentMove.error')),
+          matching: find.text('This student could not be found. They may have been deactivated.'),
+        ),
+        findsOneWidget,
+      );
     });
 
     testWidgets('says a taken roll number above the form', (tester) async {

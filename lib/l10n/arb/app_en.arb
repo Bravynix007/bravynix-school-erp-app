@@ -662,7 +662,7 @@
   "studentMoveSince": "since {date}",
   "@studentMoveSince": { "placeholders": { "date": { "type": "String" } } },
   "studentMoveFrom": "From",
-  "studentMoveFromHelper": "The first day in the new section or with the new roll number. Today when left empty.",
+  "studentMoveFromHelper": "The first day in the new section or with the new roll number. Today when left empty, or the first day of the placement when that comes later.",
   "studentMoved": "{name}'s placement was changed.",
   "@studentMoved": { "placeholders": { "name": { "type": "String" } } },
   "studentsMove": "Move"

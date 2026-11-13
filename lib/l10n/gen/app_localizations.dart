@@ -3616,7 +3616,7 @@ abstract class AppLocalizations {
   /// No description provided for @studentMoveFromHelper.
   ///
   /// In en, this message translates to:
-  /// **'The first day in the new section or with the new roll number. Today when left empty.'**
+  /// **'The first day in the new section or with the new roll number. Today when left empty, or the first day of the placement when that comes later.'**
   String get studentMoveFromHelper;
 
   /// No description provided for @studentMoved.

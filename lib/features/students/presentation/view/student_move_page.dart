@@ -10,16 +10,14 @@ import 'package:bravynix_school_erp/core/widgets/optional_date_field.dart';
 import 'package:bravynix_school_erp/core/widgets/skeleton.dart';
 import 'package:bravynix_school_erp/core/widgets/state_panel.dart';
 import 'package:bravynix_school_erp/core/widgets/sticky_bottom_actions.dart';
-import 'package:bravynix_school_erp/features/academic_years/domain/academic_years_repository.dart';
-import 'package:bravynix_school_erp/features/classes/domain/classes_repository.dart';
 import 'package:bravynix_school_erp/features/masters/domain/master_entry.dart';
 import 'package:bravynix_school_erp/features/masters/presentation/view/master_dropdown.dart';
-import 'package:bravynix_school_erp/features/sections/domain/section_options.dart';
 import 'package:bravynix_school_erp/features/sections/domain/sections_repository.dart';
 import 'package:bravynix_school_erp/features/students/domain/student.dart';
 import 'package:bravynix_school_erp/features/students/domain/students_repository.dart';
 import 'package:bravynix_school_erp/features/students/presentation/bloc/student_move_bloc.dart';
 import 'package:bravynix_school_erp/features/students/presentation/view/student_error_text.dart';
+import 'package:bravynix_school_erp/features/students/presentation/view/student_frame.dart';
 import 'package:bravynix_school_erp/features/students/presentation/view/student_warnings.dart';
 import 'package:bravynix_school_erp/l10n/gen/app_localizations.dart';
 import 'package:flutter/material.dart';
@@ -48,11 +46,7 @@ class StudentMovePage extends StatelessWidget {
   Widget build(BuildContext context) => BlocProvider(
     create: (_) => StudentMoveBloc(
       getIt<StudentsRepository>(),
-      SectionOptionsSource(
-        years: getIt<AcademicYearsRepository>(),
-        classes: getIt<ClassesRepository>(),
-        sections: getIt<SectionsRepository>(),
-      ),
+      getIt<SectionsRepository>(),
       args.entry.summary,
     )..add(const StudentMoveStarted()),
     child: StudentMoveView(entry: args.entry),
@@ -82,13 +76,15 @@ class StudentMoveView extends StatelessWidget {
       child: BlocBuilder<StudentMoveBloc, StudentMoveState>(
         builder: (context, state) => switch (state) {
           StudentMoveReady() => _Form(entry: entry, state: state),
-          StudentMoveFailed(:final failure) when failure.code == 'FORBIDDEN' => _Frame(
+          StudentMoveFailed(:final failure) when failure.code == 'FORBIDDEN' => StudentFrame(
+            title: l10n.studentMoveTitle,
             child: StatePanel.forbidden(
               key: const Key('studentMove.forbidden'),
               title: studentErrorText(l10n, failure),
             ),
           ),
-          StudentMoveFailed(:final failure) => _Frame(
+          StudentMoveFailed(:final failure) => StudentFrame(
+            title: l10n.studentMoveTitle,
             child: StatePanel.error(
               key: const Key('studentMove.failed'),
               title: studentErrorText(l10n, failure),
@@ -96,30 +92,11 @@ class StudentMoveView extends StatelessWidget {
               onAction: () => context.read<StudentMoveBloc>().add(const StudentMoveStarted()),
             ),
           ),
-          _ => _Frame(
+          _ => StudentFrame(
+            title: l10n.studentMoveTitle,
             child: SkeletonCards(semanticLabel: l10n.loading, heights: const [120, 200]),
           ),
         },
-      ),
-    );
-  }
-}
-
-/// The screen around a body that is not the form: a placeholder or a failed state.
-class _Frame extends StatelessWidget {
-  const new({required this.child});
-
-  final Widget child;
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
-    return Scaffold(
-      body: Column(
-        children: [
-          AppTopBar(title: l10n.studentMoveTitle, onBack: () => context.pop(), backTooltip: l10n.back),
-          Expanded(child: child),
-        ],
       ),
     );
   }
@@ -156,9 +133,14 @@ class _FormState extends State<_Form> {
     final placement = summary.placement;
     final failure = state.failure;
     String? error(String field) => failure?.fieldError(field)?.message;
-    final banner = failure != null && !failure.namesOnly(_fields) ? studentFormErrorText(l10n, failure) : null;
+    // A 404 here is nearly always a student deactivated meanwhile, as in the list.
+    final banner = failure != null && !failure.namesOnly(_fields)
+        ? studentFormErrorText(l10n, failure, notFound: l10n.errorStudentNotFound)
+        : null;
     final changed = state.sectionId != placement.sectionId || _rollNumber.text.trim() != placement.rollNumber;
     final today = DateTime.now();
+    final started = DateTime.tryParse(placement.startDate) ?? DateTime(2000);
+    final todayOnly = DateTime(today.year, today.month, today.day);
     return Scaffold(
       body: Column(
         children: [
@@ -216,9 +198,10 @@ class _FormState extends State<_Form> {
                         day: state.effectiveDate,
                         hint: l10n.chooseDate,
                         clearLabel: l10n.clearDate(l10n.studentMoveFrom),
-                        // Not before the placement began, and not after today.
-                        firstDay: DateTime.tryParse(placement.startDate) ?? DateTime(2000),
-                        lastDay: DateTime(today.year, today.month, today.day),
+                        // Not before the placement began, and not after today: a placement that begins later (a promoted
+                        // student's, until the new year starts) takes only its first day.
+                        firstDay: started,
+                        lastDay: started.isAfter(todayOnly) ? started : todayOnly,
                         error: error('effectiveDate'),
                         onChanged: (day) => bloc.add(StudentMoveDateChosen(day)),
                       ),
