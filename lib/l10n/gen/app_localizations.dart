@@ -3559,6 +3559,24 @@ abstract class AppLocalizations {
   /// **'A student of this Institution already has this Aadhaar number.'**
   String get errorAadhaarDuplicateInInstitution;
 
+  /// No description provided for @errorTargetClassBelowSource.
+  ///
+  /// In en, this message translates to:
+  /// **'The student cannot be put in a class below the one they came from.'**
+  String get errorTargetClassBelowSource;
+
+  /// No description provided for @errorClassUnchanged.
+  ///
+  /// In en, this message translates to:
+  /// **'The student is in this class already. Change the section instead.'**
+  String get errorClassUnchanged;
+
+  /// No description provided for @errorNoCurrentPlacement.
+  ///
+  /// In en, this message translates to:
+  /// **'The student is not in a class this year.'**
+  String get errorNoCurrentPlacement;
+
   /// No description provided for @errorSectionNotInClass.
   ///
   /// In en, this message translates to:
@@ -3592,7 +3610,7 @@ abstract class AppLocalizations {
   /// No description provided for @studentMoveTitle.
   ///
   /// In en, this message translates to:
-  /// **'Move student'**
+  /// **'Change class or section'**
   String get studentMoveTitle;
 
   /// No description provided for @studentMoveSince.
@@ -3606,6 +3624,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'From'**
   String get studentMoveFrom;
+
+  /// No description provided for @studentMoveClass.
+  ///
+  /// In en, this message translates to:
+  /// **'Class'**
+  String get studentMoveClass;
+
+  /// No description provided for @studentMoveCorrectHelper.
+  ///
+  /// In en, this message translates to:
+  /// **'The class is corrected for the whole year, as if the student had been in it from the start. To change only from a day, keep the class and choose another section.'**
+  String get studentMoveCorrectHelper;
 
   /// No description provided for @studentMoveFromHelper.
   ///

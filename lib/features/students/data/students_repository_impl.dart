@@ -55,6 +55,22 @@ class StudentsRepositoryImpl implements StudentsRepository {
   }
 
   @override
+  Future<List<String>> correctClass(
+    String id, {
+    required String classId,
+    required String sectionId,
+    String? rollNumber,
+  }) async {
+    final answer = await _api.request(
+      'students/${Uri.encodeComponent(id)}/class',
+      method: HttpMethod.patch,
+      body: {'classId': classId, 'sectionId': sectionId, 'rollNumber': ?rollNumber},
+      parse: (_) {},
+    );
+    return answer.warnings;
+  }
+
+  @override
   Future<StudentSaved> create(
     String institutionId,
     StudentDraft draft, {

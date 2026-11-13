@@ -343,4 +343,37 @@ void main() {
       );
     });
   });
+  group('STU-12', () {
+    test('sends the class and the section to the class of the student, and answers the warnings', () async {
+      final (:repository, :adapter) = build(
+        () => okReply(
+          studentRow(),
+          meta: {
+            'warnings': ['SECTION_OVER_CAPACITY'],
+          },
+        ),
+      );
+      final warnings = await repository.correctClass('p1', classId: 'k2', sectionId: 'e3');
+      expect(warnings, ['SECTION_OVER_CAPACITY']);
+      final request = adapter.requests.single;
+      expect([request.method, request.uri.path], ['PATCH', '/v1/students/p1/class']);
+      expect(bodyOf(request), {'classId': 'k2', 'sectionId': 'e3'});
+    });
+
+    test('sends the roll number when it is set, and answers no warnings when there are none', () async {
+      final (:repository, :adapter) = build(() => okReply(studentRow()));
+      expect(await repository.correctClass('a/b', classId: 'k2', sectionId: 'e3', rollNumber: '3'), isEmpty);
+      final request = adapter.requests.single;
+      expect(request.uri.path, '/v1/students/a%2Fb/class');
+      expect(bodyOf(request), {'classId': 'k2', 'sectionId': 'e3', 'rollNumber': '3'});
+    });
+
+    test('throws the failure the API gives', () async {
+      final (:repository, adapter: _) = build(() => errorReply(422, 'TARGET_CLASS_BELOW_SOURCE'));
+      await expectLater(
+        repository.correctClass('p1', classId: 'k2', sectionId: 'e3'),
+        throwsA(isA<ApiFailure>().having((f) => f.code, 'code', 'TARGET_CLASS_BELOW_SOURCE')),
+      );
+    });
+  });
 }

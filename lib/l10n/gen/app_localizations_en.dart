@@ -1959,6 +1959,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get errorAadhaarDuplicateInInstitution => 'A student of this Institution already has this Aadhaar number.';
 
   @override
+  String get errorTargetClassBelowSource => 'The student cannot be put in a class below the one they came from.';
+
+  @override
+  String get errorClassUnchanged => 'The student is in this class already. Change the section instead.';
+
+  @override
+  String get errorNoCurrentPlacement => 'The student is not in a class this year.';
+
+  @override
   String get errorSectionNotInClass => 'This section is not in the class chosen.';
 
   @override
@@ -1975,7 +1984,7 @@ class AppLocalizationsEn extends AppLocalizations {
       'A guardian\'s email belongs to a platform account, which can\'t also be a parent.';
 
   @override
-  String get studentMoveTitle => 'Move student';
+  String get studentMoveTitle => 'Change class or section';
 
   @override
   String studentMoveSince(String date) {
@@ -1984,6 +1993,13 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get studentMoveFrom => 'From';
+
+  @override
+  String get studentMoveClass => 'Class';
+
+  @override
+  String get studentMoveCorrectHelper =>
+      'The class is corrected for the whole year, as if the student had been in it from the start. To change only from a day, keep the class and choose another section.';
 
   @override
   String get studentMoveFromHelper =>

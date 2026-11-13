@@ -17,6 +17,16 @@ final class StudentMoveStarted extends StudentMoveEvent {
   const new();
 }
 
+/// Another class chosen: the student is put in it for the whole year (STU-12), so a section of it has to be chosen too.
+final class StudentMoveClassChosen extends StudentMoveEvent {
+  const new(this.id);
+
+  final String? id;
+
+  @override
+  List<Object?> get props => [id];
+}
+
 final class StudentMoveSectionChosen extends StudentMoveEvent {
   const new(this.id);
 
@@ -67,41 +77,56 @@ class StudentMoveFailed extends StudentMoveState {
   List<Object?> get props => [failure];
 }
 
-/// The sections of the student's class to choose from, and what is chosen.
+/// The classes and sections of the Institution to choose from, and what is chosen.
 class StudentMoveReady extends StudentMoveState {
   const new({
+    required this.classes,
     required this.sections,
+    required this.classId,
     required this.sectionId,
     this.effectiveDate,
     this.saving = false,
     this.failure,
   });
 
+  final List<ClassChoice> classes;
   final List<SectionChoice> sections;
-  final String sectionId;
+  final String classId;
 
-  /// The first day in the new section; null for today.
+  /// Null while another class is chosen and none of its sections is yet.
+  final String? sectionId;
+
+  /// The first day in the new section; null for today. Only for a section of the class the student is in.
   final String? effectiveDate;
   final bool saving;
 
   /// The last save that was refused.
   final ApiFailure? failure;
 
+  /// The sections of the chosen class.
+  List<SectionChoice> get sectionsInClass => [
+    for (final section in sections)
+      if (section.classId == classId) section,
+  ];
+
   StudentMoveReady copyWith({
-    String? sectionId,
+    String? classId,
+    String? Function()? sectionId,
     String? Function()? effectiveDate,
     bool? saving,
     ApiFailure? Function()? failure,
   }) => StudentMoveReady(
+    classes: classes,
     sections: sections,
-    sectionId: sectionId ?? this.sectionId,
+    classId: classId ?? this.classId,
+    sectionId: sectionId == null ? this.sectionId : sectionId(),
     effectiveDate: effectiveDate == null ? this.effectiveDate : effectiveDate(),
     saving: saving ?? this.saving,
     failure: failure == null ? this.failure : failure(),
   );
 
   @override
-  List<Object?> get props => [sections, sectionId, effectiveDate, saving, failure];
+  List<Object?> get props => [classes, sections, classId, sectionId, effectiveDate, saving, failure];
 }
 
 /// The move went through; [warnings] are the second looks the server asked for.
@@ -114,15 +139,33 @@ class StudentMoveSaved extends StudentMoveState {
   List<Object?> get props => [warnings];
 }
 
-/// Moves a student to another section of their class, or gives them another roll number, from a day (STU-08). Only
-/// what changed is sent; the class and the year stay, since another class is a promotion.
+/// Moves a student to another section of their class, or gives them another roll number, from a day (STU-08), or puts
+/// them in another class for the whole year when they were in the wrong one (STU-12). Only what changed is sent; the
+/// year stays, since the next year is a promotion.
 class StudentMoveBloc extends Bloc<StudentMoveEvent, StudentMoveState> {
   new(this._students, this._options, this.student) : super(const StudentMoveLoading()) {
     on<StudentMoveStarted>(_onStarted);
+    on<StudentMoveClassChosen>(
+      (event, emit) => _ready((ready) {
+        final id = event.id;
+        if (ready.saving || id == null || id == ready.classId) return;
+        // Back in the class they are in, the section they are in is chosen again; in another, none yet, and no day,
+        // because the class is corrected for the whole year.
+        final here = id == student.placement.classId;
+        emit(
+          ready.copyWith(
+            classId: id,
+            sectionId: () => here ? student.placement.sectionId : null,
+            effectiveDate: () => null,
+            failure: () => null,
+          ),
+        );
+      }),
+    );
     on<StudentMoveSectionChosen>(
       (event, emit) => _ready((ready) {
         final id = event.id;
-        if (!ready.saving && id != null) emit(ready.copyWith(sectionId: id, failure: () => null));
+        if (!ready.saving && id != null) emit(ready.copyWith(sectionId: () => id, failure: () => null));
       }),
     );
     on<StudentMoveDateChosen>(
@@ -149,10 +192,9 @@ class StudentMoveBloc extends Bloc<StudentMoveEvent, StudentMoveState> {
       final options = await _options.read(student.institutionId);
       emit(
         StudentMoveReady(
-          sections: [
-            for (final section in options.sections)
-              if (section.classId == student.placement.classId) section,
-          ],
+          classes: options.classes,
+          sections: options.sections,
+          classId: student.placement.classId,
           sectionId: student.placement.sectionId,
         ),
       );
@@ -162,17 +204,25 @@ class StudentMoveBloc extends Bloc<StudentMoveEvent, StudentMoveState> {
   }
 
   Future<void> _onSubmitted(StudentMoveSubmitted event, Emitter<StudentMoveState> emit) async {
-    if (state case final StudentMoveReady ready when !ready.saving) {
+    if (state case final StudentMoveReady ready when !ready.saving && ready.sectionId != null) {
       final placement = student.placement;
+      final sectionId = ready.sectionId!;
       final rollNumber = event.rollNumber.trim();
       emit(ready.copyWith(saving: true, failure: () => null));
       try {
-        final warnings = await _students.move(
-          student.id,
-          sectionId: ready.sectionId == placement.sectionId ? null : ready.sectionId,
-          rollNumber: rollNumber == placement.rollNumber ? null : rollNumber,
-          effectiveDate: ready.effectiveDate,
-        );
+        final warnings = ready.classId == placement.classId
+            ? await _students.move(
+                student.id,
+                sectionId: sectionId == placement.sectionId ? null : sectionId,
+                rollNumber: rollNumber == placement.rollNumber ? null : rollNumber,
+                effectiveDate: ready.effectiveDate,
+              )
+            : await _students.correctClass(
+                student.id,
+                classId: ready.classId,
+                sectionId: sectionId,
+                rollNumber: rollNumber == placement.rollNumber ? null : rollNumber,
+              );
         emit(StudentMoveSaved(warnings));
       } on ApiFailure catch (failure) {
         _ready((now) => emit(now.copyWith(saving: false, failure: () => failure)));

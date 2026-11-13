@@ -37,10 +37,16 @@ const _asha = StudentSummary(
 const _entry = StudentListEntry(_asha, placeName: 'Class 1 · Section A');
 
 const _ready = StudentMoveReady(
+  classes: [
+    ClassChoice(id: 'k1', name: 'Class 1'),
+    ClassChoice(id: 'k2', name: 'Class 2'),
+  ],
   sections: [
     SectionChoice(id: 'e1', name: 'Class 1 · Section A', classId: 'k1'),
     SectionChoice(id: 'e2', name: 'Class 1 · Blue', classId: 'k1'),
+    SectionChoice(id: 'e3', name: 'Class 2 · Section A', classId: 'k2'),
   ],
+  classId: 'k1',
   sectionId: 'e1',
 );
 
@@ -86,7 +92,7 @@ void main() {
 
   testWidgets('says where the student is now, and starts with the roll number and section they have', (tester) async {
     await pump(tester, _ready);
-    expect(find.text('Move student'), findsOneWidget);
+    expect(find.text('Change class or section'), findsOneWidget);
     expect(find.text('Asha Rao'), findsOneWidget);
     expect(find.text('Class 1 · Section A · Roll 14 · since 01-06-2026'), findsOneWidget);
     expect(tester.widget<TextField>(field('studentMove.rollNumber')).controller!.text, '14');
@@ -108,12 +114,12 @@ void main() {
     });
 
     testWidgets('is offered once another section is chosen', (tester) async {
-      await pump(tester, _ready.copyWith(sectionId: 'e2'));
+      await pump(tester, _ready.copyWith(sectionId: () => 'e2'));
       expect(tester.widget<FilledButton>(saveButton()).onPressed, isNotNull);
     });
 
     testWidgets('waits when the roll number is emptied', (tester) async {
-      await pump(tester, _ready.copyWith(sectionId: 'e2'));
+      await pump(tester, _ready.copyWith(sectionId: () => 'e2'));
       await tester.enterText(field('studentMove.rollNumber'), '  ');
       await tester.pump();
       expect(tester.widget<FilledButton>(saveButton()).onPressed, isNull);
@@ -127,7 +133,7 @@ void main() {
     });
 
     testWidgets('does not send twice while saving', (tester) async {
-      await pump(tester, _ready.copyWith(sectionId: 'e2', saving: true));
+      await pump(tester, _ready.copyWith(sectionId: () => 'e2', saving: true));
       expect(find.byType(CircularProgressIndicator), findsOneWidget);
       await tester.tap(saveButton());
       verifyNever(() => bloc.add(any(that: isA<StudentMoveSubmitted>())));
@@ -139,6 +145,12 @@ void main() {
       await pump(tester, _ready);
       await choose(tester, 'studentMove.section', 'Class 1 · Blue');
       verify(() => bloc.add(const StudentMoveSectionChosen('e2'))).called(1);
+    });
+
+    testWidgets('tells the bloc the class chosen', (tester) async {
+      await pump(tester, _ready);
+      await choose(tester, 'studentMove.class', 'Class 2');
+      verify(() => bloc.add(const StudentMoveClassChosen('k2'))).called(1);
     });
 
     testWidgets('tells the bloc the day chosen', (tester) async {
@@ -154,6 +166,76 @@ void main() {
       await pump(tester, _ready.copyWith(effectiveDate: () => '2026-07-01'));
       await tester.tap(find.byTooltip('Clear From'));
       verify(() => bloc.add(const StudentMoveDateChosen(null))).called(1);
+    });
+  });
+
+  group('another class', () {
+    final another = _ready.copyWith(classId: 'k2', sectionId: () => null, effectiveDate: () => null);
+
+    testWidgets('offers the sections of that class only, and says it is for the whole year, with no day', (
+      tester,
+    ) async {
+      await pump(tester, another);
+      expect(find.byKey(const Key('studentMove.correctHelper')), findsOneWidget);
+      expect(find.byKey(const Key('studentMove.effectiveDate')), findsNothing);
+      await tester.tap(find.byKey(const Key('studentMove.section')));
+      await tester.pumpAndSettle();
+      expect(find.text('Class 2 · Section A'), findsOneWidget);
+      expect(find.text('Class 1 · Blue'), findsNothing);
+    });
+
+    testWidgets('waits for a section of it, and is offered once one is chosen', (tester) async {
+      await pump(tester, another);
+      expect(tester.widget<FilledButton>(saveButton()).onPressed, isNull);
+    });
+
+    testWidgets('can be saved once a section of it is chosen', (tester) async {
+      await pump(tester, another.copyWith(sectionId: () => 'e3'));
+      expect(tester.widget<FilledButton>(saveButton()).onPressed, isNotNull);
+      await tester.tap(find.text('Save'));
+      verify(() => bloc.add(const StudentMoveSubmitted('14'))).called(1);
+    });
+
+    testWidgets('says a class below the one they came from above the form', (tester) async {
+      await pump(tester, another.copyWith(failure: () => _failure(422, 'TARGET_CLASS_BELOW_SOURCE')));
+      expect(
+        find.descendant(
+          of: find.byKey(const Key('studentMove.error')),
+          matching: find.text('The student cannot be put in a class below the one they came from.'),
+        ),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('says the class is the one they are in', (tester) async {
+      await pump(tester, _ready.copyWith(failure: () => _failure(422, 'CLASS_UNCHANGED')));
+      expect(find.text('The student is in this class already. Change the section instead.'), findsOneWidget);
+    });
+
+    testWidgets('says the student is in no class this year', (tester) async {
+      await pump(tester, _ready.copyWith(failure: () => _failure(422, 'NO_CURRENT_PLACEMENT')));
+      expect(find.text('The student is not in a class this year.'), findsOneWidget);
+    });
+
+    testWidgets('shows an error under the class the API names', (tester) async {
+      await pump(
+        tester,
+        another.copyWith(
+          failure: () => _failure(
+            400,
+            'INVALID_VALUE',
+            fields: const [FieldError(field: 'classId', code: 'INVALID_VALUE', message: 'Not that class')],
+          ),
+        ),
+      );
+      expect(find.text('Not that class'), findsOneWidget);
+      expect(find.byKey(const Key('studentMove.error')), findsNothing);
+    });
+
+    testWidgets('reads whole at a large text scale on a small phone', (tester) async {
+      await pump(tester, another, textScale: 2, size: const Size(320, 640));
+      expect(tester.takeException(), isNull);
+      expect(clippedParagraphs(tester), isEmpty);
     });
   });
 
@@ -261,7 +343,7 @@ void main() {
   });
 
   testWidgets('reads whole at a large text scale on a small phone', (tester) async {
-    await pump(tester, _ready.copyWith(sectionId: 'e2'), textScale: 2, size: const Size(320, 640));
+    await pump(tester, _ready.copyWith(sectionId: () => 'e2'), textScale: 2, size: const Size(320, 640));
     expect(tester.takeException(), isNull);
     // "Choose" (the hint of an empty date field) is wider than the field at this size, so it cannot fit any box here.
     expect(clippedParagraphs(tester, unbreakable: 184), isEmpty);

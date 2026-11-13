@@ -1,5 +1,7 @@
 import 'package:bloc_test/bloc_test.dart';
 import 'package:bravynix_school_erp/core/network/api_failure.dart';
+import 'package:bravynix_school_erp/features/classes/domain/school_class.dart';
+import 'package:bravynix_school_erp/features/sections/domain/section.dart';
 import 'package:bravynix_school_erp/features/sections/domain/section_options.dart';
 import 'package:bravynix_school_erp/features/students/domain/student.dart';
 import 'package:bravynix_school_erp/features/students/presentation/bloc/student_move_bloc.dart';
@@ -30,6 +32,24 @@ const _asha = StudentSummary(
   version: 1,
 );
 
+/// Class 2 (k2), with one section.
+const _class2 = SchoolClass(
+  id: 'k2',
+  institutionId: 'i1',
+  predefinedClass: class2Ref,
+  category: lowerPrimaryCategory,
+  displayName: 'Class 2',
+  sectionCount: 1,
+  version: 1,
+);
+const _class2A = Section(
+  id: 'e3',
+  classId: 'k2',
+  predefinedSection: sectionARef,
+  displayName: 'Section A',
+  version: 1,
+);
+
 void main() {
   late MockStudentsRepository students;
   late MockAcademicYearsRepository years;
@@ -42,8 +62,9 @@ void main() {
     classes = MockClassesRepository();
     sections = MockSectionsRepository();
     when(() => years.years('i1')).thenAnswer((_) async => [currentYear]);
-    when(() => classes.classes('i1')).thenAnswer((_) async => [class1, pucClass]);
+    when(() => classes.classes('i1')).thenAnswer((_) async => [class1, _class2, pucClass]);
     when(() => sections.sections('k1')).thenAnswer((_) async => [sectionA, sectionB]);
+    when(() => sections.sections('k2')).thenAnswer((_) async => [_class2A]);
   });
 
   StudentMoveBloc build() => StudentMoveBloc(
@@ -60,13 +81,15 @@ void main() {
 
   group('opening', () {
     blocTest<StudentMoveBloc, StudentMoveState>(
-      'offers the sections of the class the student is in, with the one they are in chosen',
+      'offers the classes that have sections, with the class and section the student is in chosen',
       build: build,
       act: (bloc) => bloc.add(const StudentMoveStarted()),
       expect: () => [
         const StudentMoveLoading(),
         isA<StudentMoveReady>()
-            .having((s) => s.sections.map((c) => c.id), 'sections', ['e1', 'e2'])
+            .having((s) => s.classes.map((c) => c.id), 'classes', ['k1', 'k2'])
+            .having((s) => s.sectionsInClass.map((c) => c.id), 'sections of the class', ['e1', 'e2'])
+            .having((s) => s.classId, 'class', 'k1')
             .having((s) => s.sectionId, 'section', 'e1')
             .having((s) => s.effectiveDate, 'day', isNull),
       ],
@@ -115,6 +138,62 @@ void main() {
       bloc.add(const StudentMoveDateChosen(null));
       await Future<void>.delayed(Duration.zero);
       expect((bloc.state as StudentMoveReady).effectiveDate, isNull);
+    });
+  });
+
+  group('choosing a class', () {
+    test(
+      'offers its sections and asks for one, and the day goes, because the class is corrected for the year',
+      () async {
+        final bloc = await opened();
+        bloc
+          ..add(const StudentMoveDateChosen('2026-07-01'))
+          ..add(const StudentMoveClassChosen('k2'));
+        await Future<void>.delayed(Duration.zero);
+        final state = bloc.state as StudentMoveReady;
+        expect([state.classId, state.sectionId, state.effectiveDate], ['k2', null, null]);
+        expect(state.sectionsInClass.map((section) => section.id), ['e3']);
+        bloc.add(const StudentMoveSectionChosen('e3'));
+        await Future<void>.delayed(Duration.zero);
+        expect((bloc.state as StudentMoveReady).sectionId, 'e3');
+      },
+    );
+
+    test('goes back to the section the student is in when their own class is chosen again', () async {
+      final bloc = await opened();
+      bloc
+        ..add(const StudentMoveClassChosen('k2'))
+        ..add(const StudentMoveClassChosen('k1'));
+      await Future<void>.delayed(Duration.zero);
+      final state = bloc.state as StudentMoveReady;
+      expect([state.classId, state.sectionId], ['k1', 'e1']);
+    });
+
+    test('ignores the class already chosen and an emptied class, and a choice while saving', () async {
+      when(
+        () => students.correctClass(
+          any(),
+          classId: any(named: 'classId'),
+          sectionId: any(named: 'sectionId'),
+          rollNumber: any(named: 'rollNumber'),
+        ),
+      ).thenAnswer((_) => Future<List<String>>.delayed(const Duration(milliseconds: 20), () => <String>[]));
+      final bloc = await opened();
+      bloc
+        ..add(const StudentMoveClassChosen('k2'))
+        ..add(const StudentMoveSectionChosen('e3'));
+      await Future<void>.delayed(Duration.zero);
+      final before = bloc.state;
+      bloc
+        ..add(const StudentMoveClassChosen('k2'))
+        ..add(const StudentMoveClassChosen(null));
+      await Future<void>.delayed(Duration.zero);
+      expect(bloc.state, before);
+      bloc
+        ..add(const StudentMoveSubmitted('14'))
+        ..add(const StudentMoveClassChosen('k1'));
+      await bloc.stream.firstWhere((state) => state is StudentMoveSaved);
+      verify(() => students.correctClass('p1', classId: 'k2', sectionId: 'e3')).called(1);
     });
   });
 
@@ -193,6 +272,65 @@ void main() {
       await bloc.stream.firstWhere((state) => state is StudentMoveSaved);
       verify(() => students.move('p1', rollNumber: '15')).called(1);
       verifyNoMoreInteractions(students);
+    });
+
+    test('corrects the class, with the roll number only when it changed, and says the warnings', () async {
+      when(
+        () => students.correctClass(
+          any(),
+          classId: any(named: 'classId'),
+          sectionId: any(named: 'sectionId'),
+          rollNumber: any(named: 'rollNumber'),
+        ),
+      ).thenAnswer((_) async => ['SECTION_OVER_CAPACITY']);
+      final bloc = await opened();
+      bloc
+        ..add(const StudentMoveClassChosen('k2'))
+        ..add(const StudentMoveSectionChosen('e3'))
+        ..add(const StudentMoveSubmitted(' 3 '));
+      await bloc.stream.firstWhere((state) => state is StudentMoveSaved);
+      expect(bloc.state, const StudentMoveSaved(['SECTION_OVER_CAPACITY']));
+      verify(() => students.correctClass('p1', classId: 'k2', sectionId: 'e3', rollNumber: '3')).called(1);
+      verifyNever(
+        () => students.move(
+          any(),
+          sectionId: any(named: 'sectionId'),
+          rollNumber: any(named: 'rollNumber'),
+          effectiveDate: any(named: 'effectiveDate'),
+        ),
+      );
+    });
+
+    test('sends nothing for another class until a section of it is chosen', () async {
+      final bloc = await opened();
+      bloc
+        ..add(const StudentMoveClassChosen('k2'))
+        ..add(const StudentMoveSubmitted('14'));
+      await Future<void>.delayed(Duration.zero);
+      expect((bloc.state as StudentMoveReady).saving, isFalse);
+      verifyZeroInteractions(students);
+    });
+
+    test('stays on the form with the refusal of the class, and shows it until something is chosen', () async {
+      const below = ApiFailure(statusCode: 422, code: 'TARGET_CLASS_BELOW_SOURCE', message: 'x');
+      when(
+        () => students.correctClass(
+          any(),
+          classId: any(named: 'classId'),
+          sectionId: any(named: 'sectionId'),
+          rollNumber: any(named: 'rollNumber'),
+        ),
+      ).thenThrow(below);
+      final bloc = await opened();
+      bloc
+        ..add(const StudentMoveClassChosen('k2'))
+        ..add(const StudentMoveSectionChosen('e3'))
+        ..add(const StudentMoveSubmitted('14'));
+      await bloc.stream.firstWhere((state) => state is StudentMoveReady && state.failure != null);
+      expect((bloc.state as StudentMoveReady).failure, below);
+      bloc.add(const StudentMoveClassChosen('k1'));
+      await Future<void>.delayed(Duration.zero);
+      expect((bloc.state as StudentMoveReady).failure, isNull);
     });
   });
 }
