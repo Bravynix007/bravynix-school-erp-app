@@ -1,8 +1,11 @@
 import 'package:bloc/bloc.dart';
+import 'package:bravynix_school_erp/core/model/aadhaar.dart';
 import 'package:bravynix_school_erp/core/model/address.dart';
 import 'package:bravynix_school_erp/core/model/gender.dart';
 import 'package:bravynix_school_erp/core/model/phone.dart';
+import 'package:bravynix_school_erp/core/model/typed_text.dart';
 import 'package:bravynix_school_erp/core/network/api_failure.dart';
+import 'package:bravynix_school_erp/core/validation/field_problems.dart';
 import 'package:bravynix_school_erp/features/masters/domain/place_choice.dart';
 import 'package:bravynix_school_erp/features/sections/domain/section_options.dart';
 import 'package:bravynix_school_erp/features/students/domain/student.dart';
@@ -336,7 +339,8 @@ class StudentFormReady extends StudentFormState {
   final ApiFailure? failure;
 
   /// The rows the last save sent, in the order it sent them: the API names a row by its place in that order, and rows
-  /// are added and removed afterwards, so an error is shown under the row it was about and not the one now in its place.
+  /// are added and removed afterwards, so an error is shown under the row it was about and not the one now in its
+  /// place.
   final List<int> failedGuardianIds;
 
   bool get canAddGuardian => guardians.length < maxGuardians;
@@ -524,79 +528,93 @@ class StudentFormBloc extends Bloc<StudentFormEvent, StudentFormState> {
 
   Future<void> _onSubmitted(StudentFormSubmitted event, Emitter<StudentFormState> emit) async {
     if (state case final StudentFormReady ready when !ready.saving) {
+      // The rows the save is about, in the order it names them.
+      final rowIds = [for (final entry in ready.guardians) entry.id];
+      final problem = _problems(ready, event.texts);
+      if (problem != null) {
+        emit(ready.copyWith(failure: () => problem, failedGuardianIds: rowIds));
+        return;
+      }
       emit(ready.copyWith(saving: true, failure: () => null, failedGuardianIds: const []));
       try {
         final saved = await _students.create(
           institutionId,
           _draft(ready, event.texts, event.place),
           enrolment: EnrolmentDraft(
-            academicYearId: ready.yearId ?? '',
-            classId: ready.classId ?? '',
-            sectionId: ready.sectionId ?? '',
+            academicYearId: ready.yearId!,
+            classId: ready.classId!,
+            sectionId: ready.sectionId!,
             rollNumber: event.texts.rollNumber.trim(),
           ),
           guardians: [for (final entry in ready.guardians) _guardianDraft(entry)],
           identity: IdentityDraft(
-            aadhaarNumber: _digits(event.texts.aadhaar),
-            birthCertificateNumber: _text(event.texts.birthCertificate),
+            aadhaarNumber: Aadhaar.typed(event.texts.aadhaar),
+            birthCertificateNumber: TypedText.text(event.texts.birthCertificate),
           ),
         );
         emit(StudentFormSaved(saved));
       } on ApiFailure catch (failure) {
         // The rows can be changed while the save is out; keep what the form holds now, not what it held at the start.
         if (state case final StudentFormReady now) {
-          emit(
-            now.copyWith(
-              saving: false,
-              failure: () => failure,
-              failedGuardianIds: [for (final entry in ready.guardians) entry.id],
-            ),
-          );
+          emit(now.copyWith(saving: false, failure: () => failure, failedGuardianIds: rowIds));
         }
       }
     }
   }
 
-  static String? _text(String value) {
-    final trimmed = value.trim();
-    return trimmed.isEmpty ? null : trimmed;
+  /// What the form marks as required and has not been given, and an Aadhaar number that cannot be one: shown under the
+  /// fields without asking the server, which would name them by their format and type.
+  static ApiFailure? _problems(StudentFormReady ready, StudentTexts texts) {
+    final problems = FieldProblems()
+      ..requireText('firstName', texts.firstName)
+      ..requireText('mobile.number', texts.mobileNumber)
+      ..requireChoice('enrolment.academicYearId', ready.yearId)
+      ..requireChoice('enrolment.classId', ready.classId)
+      ..requireChoice('enrolment.sectionId', ready.sectionId)
+      ..requireText('enrolment.rollNumber', texts.rollNumber);
+    for (final (position, entry) in ready.guardians.indexed) {
+      problems
+        ..requireText('guardians[$position].firstName', entry.texts.firstName)
+        ..requireChoice('guardians[$position].relation', entry.relation)
+        ..requireText('guardians[$position].phone.number', entry.texts.number);
+    }
+    if (TypedText.text(texts.aadhaar) != null && Aadhaar.typed(texts.aadhaar) == null) {
+      problems.add('identity.aadhaarNumber', 'INVALID_AADHAAR');
+    }
+    return problems.failure;
   }
-
-  static String? _digits(String value) => _text(value.replaceAll(RegExp(r'[\s-]'), ''));
 
   StudentDraft _draft(StudentFormReady ready, StudentTexts texts, PlaceChoice place) => StudentDraft(
     firstName: texts.firstName.trim(),
-    lastName: _text(texts.lastName),
+    lastName: TypedText.text(texts.lastName),
     gender: ready.gender,
     dateOfBirth: ready.dateOfBirth,
     bloodGroup: ready.bloodGroup,
-    nationality: _text(texts.nationality),
+    nationality: TypedText.text(texts.nationality),
     photoFileId: ready.photoFileId,
-    admissionNo: _text(texts.admissionNo),
+    admissionNo: TypedText.text(texts.admissionNo),
     admissionDate: ready.admissionDate,
-    contactEmail: _text(texts.contactEmail),
-    mobile: Phone.typed(texts.mobileCountryCode, texts.mobileNumber) ?? const Phone(countryCode: '', number: ''),
-    alternateNumber: _digits(texts.alternateNumber),
-    address: Address(
-      line1: _text(texts.addressLine1),
-      line2: _text(texts.addressLine2),
+    contactEmail: TypedText.text(texts.contactEmail),
+    mobile: Phone.typedOrBlank(texts.mobileCountryCode, texts.mobileNumber),
+    alternateNumber: TypedText.digits(texts.alternateNumber),
+    address: Address.typed(
+      line1: texts.addressLine1,
+      line2: texts.addressLine2,
+      pincode: texts.pincode,
       countryId: place.countryId,
       stateId: place.stateId,
       cityId: place.cityId,
-      pincode: _text(texts.pincode),
     ),
   );
 
   GuardianDraft _guardianDraft(GuardianEntry entry) => GuardianDraft(
     firstName: entry.texts.firstName.trim(),
-    lastName: _text(entry.texts.lastName),
+    lastName: TypedText.text(entry.texts.lastName),
     relation: entry.relation,
-    phone:
-        Phone.typed(entry.texts.countryCode, entry.texts.number) ??
-        Phone(countryCode: entry.texts.countryCode.replaceAll(RegExp(r'[\s+]'), ''), number: ''),
-    alternatePhone: _digits(entry.texts.alternatePhone),
-    email: _text(entry.texts.email),
-    occupation: _text(entry.texts.occupation),
+    phone: Phone.typedOrBlank(entry.texts.countryCode, entry.texts.number),
+    alternatePhone: TypedText.digits(entry.texts.alternatePhone),
+    email: TypedText.text(entry.texts.email),
+    occupation: TypedText.text(entry.texts.occupation),
     isPrimary: entry.isPrimary,
     isEmergencyContact: entry.isEmergencyContact,
   );

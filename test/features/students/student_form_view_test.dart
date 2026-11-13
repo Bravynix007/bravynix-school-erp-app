@@ -365,6 +365,20 @@ void main() {
     });
   });
 
+  group('guardian rows', () {
+    testWidgets('are named by their place on the screen, and each title is a header for a screen reader', (
+      tester,
+    ) async {
+      await pump(tester, _filled);
+      // Rows 0 and 3 are the first and the second guardian.
+      expect(find.text('Remove guardian 1'), findsOneWidget);
+      expect(find.text('Remove guardian 2'), findsOneWidget);
+      for (final title in ['Guardian 1', 'Guardian 2']) {
+        expect(tester.getSemantics(find.text(title)), isSemantics(isHeader: true));
+      }
+    });
+  });
+
   group('refused', () {
     StudentFormReady refused(ApiFailure failure, {List<int> rows = const [0, 3]}) =>
         _filled.copyWith(failure: () => failure, failedGuardianIds: rows);
@@ -394,7 +408,7 @@ void main() {
           _failure(
             400,
             'VALIDATION_FAILED',
-            fields: const [FieldError(field: 'guardians[1].firstName', code: 'REQUIRED', message: 'Name needed')],
+            fields: const [FieldError(field: 'guardians[1].firstName', code: 'TOO_SHORT', message: 'Name needed')],
           ),
         ),
       );
@@ -413,12 +427,84 @@ void main() {
           _failure(
             400,
             'VALIDATION_FAILED',
-            fields: const [FieldError(field: 'guardians[0].firstName', code: 'REQUIRED', message: 'Name needed')],
+            fields: const [FieldError(field: 'guardians[0].firstName', code: 'TOO_SHORT', message: 'Name needed')],
           ),
           rows: [7],
         ),
       );
       expect(find.text('Name needed'), findsNothing);
+    });
+
+    testWidgets('says an empty required field is required, in the app’s words, under each field', (tester) async {
+      await pump(
+        tester,
+        refused(
+          const ApiFailure.invalid([
+            FieldError.required('firstName'),
+            FieldError.required('mobile.number'),
+            FieldError.required('enrolment.classId'),
+            FieldError.required('enrolment.sectionId'),
+            FieldError.required('enrolment.rollNumber'),
+            FieldError.required('guardians[0].relation'),
+            FieldError.required('guardians[1].phone.number'),
+          ]),
+        ),
+      );
+      expect(find.text('This field is required.'), findsNWidgets(7));
+      expect(find.byKey(const Key('studentForm.error')), findsNothing);
+    });
+
+    testWidgets('says an Aadhaar number that cannot be one under its field', (tester) async {
+      await pump(
+        tester,
+        refused(
+          const ApiFailure.invalid([FieldError(field: 'identity.aadhaarNumber', code: 'INVALID_AADHAAR', message: '')]),
+        ),
+      );
+      expect(
+        find.descendant(
+          of: find.byKey(const Key('studentForm.aadhaar')),
+          matching: find.text('This is not a valid Aadhaar number. Check the twelve digits.'),
+        ),
+        findsOneWidget,
+      );
+    });
+
+    for (final (field, key) in [
+      ('enrolment.classId', 'studentForm.class'),
+      ('identity.aadhaarNumber', 'studentForm.aadhaar'),
+      ('guardians[0].phone', 'studentForm.guardian.0.mobileNumber'),
+      ('guardians[0].email', 'studentForm.guardian.0.email'),
+    ]) {
+      testWidgets('shows the error the API names on $field under its field', (tester) async {
+        await pump(
+          tester,
+          refused(
+            _failure(
+              400,
+              'VALIDATION_FAILED',
+              fields: [FieldError(field: field, code: 'INVALID_FORMAT', message: 'Check this')],
+            ),
+          ),
+        );
+        expect(find.descendant(of: find.byKey(Key(key)), matching: find.text('Check this')), findsOneWidget);
+        expect(find.byKey(const Key('studentForm.error')), findsNothing);
+      });
+    }
+
+    testWidgets('shows the error on which guardian is primary under that guardian', (tester) async {
+      await pump(
+        tester,
+        refused(
+          _failure(
+            400,
+            'VALIDATION_FAILED',
+            fields: const [FieldError(field: 'guardians[0].isPrimary', code: 'INVALID_VALUE', message: 'Choose one')],
+          ),
+        ),
+      );
+      expect(find.byKey(const Key('studentForm.guardian.0.primaryError')), findsOneWidget);
+      expect(find.text('Choose one'), findsOneWidget);
     });
 
     testWidgets('says a refusal that names no field above the form', (tester) async {
@@ -439,7 +525,7 @@ void main() {
           _failure(
             400,
             'VALIDATION_FAILED',
-            fields: const [FieldError(field: 'guardians[6].firstName', code: 'REQUIRED', message: 'Name needed')],
+            fields: const [FieldError(field: 'guardians[6].firstName', code: 'TOO_SHORT', message: 'Name needed')],
           ),
         ),
       );

@@ -5,6 +5,11 @@ import 'package:equatable/equatable.dart';
 class Phone extends Equatable {
   const new({required this.countryCode, required this.number});
 
+  /// As [typed], but a phone that is required is still sent when no number was typed (with an empty number), so the API
+  /// names the field.
+  factory typedOrBlank(String countryCode, String number) =>
+      typed(countryCode, number) ?? Phone(countryCode: _dialCode(countryCode), number: '');
+
   /// `{ countryCode, number }`.
   factory fromJson(Object? raw) {
     final json = jsonObject(raw);
@@ -16,8 +21,10 @@ class Phone extends Equatable {
   static Phone? typed(String countryCode, String number) {
     final digits = number.replaceAll(RegExp(r'\s'), '');
     if (digits.isEmpty) return null;
-    return Phone(countryCode: countryCode.replaceAll(RegExp(r'[\s+]'), ''), number: digits);
+    return Phone(countryCode: _dialCode(countryCode), number: digits);
   }
+
+  static String _dialCode(String typed) => typed.replaceAll(RegExp(r'[\s+]'), '');
 
   /// The dial code a new phone starts with: India is the only country for now.
   static const indiaDialCode = '91';

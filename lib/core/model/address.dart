@@ -1,3 +1,4 @@
+import 'package:bravynix_school_erp/core/model/typed_text.dart';
 import 'package:bravynix_school_erp/core/network/json_shape.dart';
 import 'package:equatable/equatable.dart';
 
@@ -17,6 +18,23 @@ class Address extends Equatable {
       pincode: json['pincode'] as String?,
     );
   }
+
+  /// What was typed in the three text fields of an address, and the place chosen under them.
+  factory typed({
+    required String line1,
+    required String line2,
+    required String pincode,
+    String? countryId,
+    String? stateId,
+    String? cityId,
+  }) => Address(
+    line1: TypedText.text(line1),
+    line2: TypedText.text(line2),
+    countryId: countryId,
+    stateId: stateId,
+    cityId: cityId,
+    pincode: TypedText.text(pincode),
+  );
 
   final String? line1;
   final String? line2;

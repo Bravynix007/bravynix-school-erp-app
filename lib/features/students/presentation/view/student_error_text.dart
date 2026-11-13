@@ -23,6 +23,5 @@ String studentFormErrorText(AppLocalizations l10n, ApiFailure failure) => switch
   'INVALID_AADHAAR' => l10n.errorAadhaarInvalid,
   'PRIMARY_GUARDIAN_REQUIRED' => l10n.errorPrimaryGuardianRequired,
   'REFERENCE_INACTIVE' => l10n.errorReferenceInactive,
-  'NOT_FOUND' => l10n.errorStudentFormNotFound,
   _ => apiErrorText(l10n, failure, notFound: l10n.errorStudentFormNotFound),
 };
