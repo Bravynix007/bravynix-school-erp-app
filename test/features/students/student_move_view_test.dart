@@ -87,6 +87,13 @@ void main() {
   testWidgets('says where the student is now, and starts with the roll number and section they have', (tester) async {
     await pump(tester, _ready);
     expect(find.text('Move student'), findsOneWidget);
+    expect(
+      find.text(
+        'The first day in the new section or with the new roll number. Today when left empty, or the first day of the '
+        'placement when that comes later.',
+      ),
+      findsOneWidget,
+    );
     expect(find.text('Asha Rao'), findsOneWidget);
     expect(find.text('Class 1 · Section A · Roll 14 · since 01-06-2026'), findsOneWidget);
     expect(tester.widget<TextField>(field('studentMove.rollNumber')).controller!.text, '14');
@@ -283,6 +290,7 @@ void main() {
     testWidgets('shows a placeholder while it loads', (tester) async {
       await pump(tester, const StudentMoveLoading());
       expect(find.bySemanticsLabel('Loading'), findsOneWidget);
+      expect(find.text('Move student'), findsOneWidget);
     });
 
     testWidgets('says why it could not be read, and starts again on Try again', (tester) async {
@@ -290,12 +298,14 @@ void main() {
       expect(find.text("Can't reach the server. Check your connection and try again."), findsOneWidget);
       await tester.tap(find.text('Try again'));
       verify(() => bloc.add(const StudentMoveStarted())).called(1);
+      expect(find.text('Move student'), findsOneWidget);
     });
 
     testWidgets('says there is no access, with no retry', (tester) async {
       await pump(tester, StudentMoveFailed(_failure(403, 'FORBIDDEN')));
       expect(find.byKey(const Key('studentMove.forbidden')), findsOneWidget);
       expect(find.text('Try again'), findsNothing);
+      expect(find.text('Move student'), findsOneWidget);
     });
   });
 
