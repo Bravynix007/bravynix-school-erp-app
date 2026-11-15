@@ -3,6 +3,7 @@ import 'package:bravynix_school_erp/core/bloc/paged_list_bloc.dart';
 import 'package:bravynix_school_erp/core/network/api_failure.dart';
 import 'package:bravynix_school_erp/core/paging/items_page.dart';
 import 'package:bravynix_school_erp/features/masters/domain/master_entry.dart';
+import 'package:bravynix_school_erp/features/people/domain/place_names.dart';
 import 'package:bravynix_school_erp/features/staff/domain/staff_member.dart';
 import 'package:bravynix_school_erp/features/staff/domain/staff_profile.dart';
 import 'package:bravynix_school_erp/features/staff/presentation/bloc/staff_bloc.dart';
@@ -205,9 +206,7 @@ void main() {
             raviMember,
             designationName: 'Mathematics Teacher',
             categoryName: 'Lower Primary',
-            countryName: 'India',
-            stateName: 'Karnataka',
-            cityName: 'Bengaluru',
+            places: PlaceNames(country: 'India', state: 'Karnataka', city: 'Bengaluru'),
           ),
           tab: StaffProfileTab.settings,
         ),

@@ -3,6 +3,7 @@ import 'package:bravynix_school_erp/core/network/api_failure.dart';
 import 'package:bravynix_school_erp/features/masters/domain/master_entry.dart';
 import 'package:bravynix_school_erp/features/masters/domain/master_names.dart';
 import 'package:bravynix_school_erp/features/masters/domain/masters_repository.dart';
+import 'package:bravynix_school_erp/features/people/domain/place_names.dart';
 import 'package:bravynix_school_erp/features/staff/domain/staff_member.dart';
 import 'package:bravynix_school_erp/features/staff/domain/staff_profile.dart';
 import 'package:bravynix_school_erp/features/staff/domain/staff_repository.dart';
@@ -103,18 +104,13 @@ class StaffProfileBloc extends Bloc<StaffProfileEvent, StaffProfileState> {
     emit(const StaffProfileLoading());
     try {
       final member = await _staff.member(id);
-      final address = member.address;
       emit(
         StaffProfileLoaded(
           StaffProfile(
             member,
             designationName: await _masters.nameOf(MasterType.designations, member.designationId),
             categoryName: await _masters.nameOf(MasterType.classCategories, member.classCategoryId),
-            countryName: await _masters.nameOf(MasterType.countries, address.countryId),
-            stateName: await _masters.nameOf(MasterType.states, address.stateId, parentId: address.countryId),
-            cityName: address.stateId == null
-                ? null
-                : await _masters.nameOf(MasterType.cities, address.cityId, parentId: address.stateId),
+            places: await _masters.placeNamesOf(member.address),
           ),
           tab: tab,
         ),

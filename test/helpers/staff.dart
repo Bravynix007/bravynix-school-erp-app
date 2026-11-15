@@ -2,6 +2,7 @@ import 'package:bravynix_school_erp/core/model/address.dart';
 import 'package:bravynix_school_erp/core/model/gender.dart';
 import 'package:bravynix_school_erp/core/model/phone.dart';
 import 'package:bravynix_school_erp/features/masters/domain/master_entry.dart';
+import 'package:bravynix_school_erp/features/people/domain/place_names.dart';
 import 'package:bravynix_school_erp/features/staff/data/staff_models.dart';
 import 'package:bravynix_school_erp/features/staff/domain/staff_draft.dart';
 import 'package:bravynix_school_erp/features/staff/domain/staff_member.dart';
@@ -116,9 +117,7 @@ const kavyaProfile = StaffProfile(
   kavyaMember,
   designationName: 'Mathematics Teacher',
   categoryName: 'Lower Primary',
-  countryName: 'India',
-  stateName: 'Karnataka',
-  cityName: 'Bengaluru',
+  places: PlaceNames(country: 'India', state: 'Karnataka', city: 'Bengaluru'),
 );
 
 const raviProfile = StaffProfile(raviMember, categoryName: 'Lower Primary');

@@ -1,8 +1,12 @@
+import 'package:bravynix_school_erp/core/model/address.dart';
+import 'package:bravynix_school_erp/core/model/gender.dart';
+import 'package:bravynix_school_erp/core/model/phone.dart';
 import 'package:bravynix_school_erp/core/network/json_shape.dart';
 import 'package:bravynix_school_erp/features/students/domain/student.dart';
 import 'package:bravynix_school_erp/features/students/domain/student_draft.dart';
+import 'package:bravynix_school_erp/features/students/domain/student_profile.dart';
 
-/// JSON → domain for STU-01 and STU-02, and the body of STU-02. Unknown fields are ignored, as /v1 only ever adds
+/// JSON → domain for STU-01 to STU-03, and the body of STU-02. Unknown fields are ignored, as /v1 only ever adds
 /// fields (API design 5.2).
 abstract final class StudentModels {
   static StudentPlacement _placement(Object? raw) {
@@ -41,6 +45,54 @@ abstract final class StudentModels {
       institutionId: json['institutionId'] as String,
       firstName: json['firstName'] as String,
       lastName: json['lastName'] as String?,
+    );
+  }
+
+  static Guardian _readGuardian(Object? raw) {
+    final json = jsonObject(raw);
+    return Guardian(
+      id: json['id'] as String,
+      firstName: json['firstName'] as String,
+      lastName: json['lastName'] as String?,
+      relation: GuardianRelation.fromCode(json['relation']),
+      phone: Phone.fromJson(json['phone']),
+      alternatePhone: json['alternatePhone'] as String?,
+      email: json['email'] as String?,
+      occupation: json['occupation'] as String?,
+      isPrimary: json['isPrimary'] as bool,
+      isEmergencyContact: json['isEmergencyContact'] as bool,
+    );
+  }
+
+  /// A student as STU-03 answers an Owner or Admin. `status` 1 is active.
+  static StudentRecord record(Object? raw) {
+    final json = jsonObject(raw);
+    final identity = jsonObject(json['identity']);
+    return StudentRecord(
+      id: json['id'] as String,
+      institutionId: json['institutionId'] as String,
+      admissionNo: json['admissionNo'] as String?,
+      firstName: json['firstName'] as String,
+      lastName: json['lastName'] as String?,
+      gender: Gender.fromCode(json['gender']),
+      dateOfBirth: json['dateOfBirth'] as String?,
+      bloodGroup: json['bloodGroup'] as String?,
+      nationality: json['nationality'] as String?,
+      photoFileId: json['photoFileId'] as String?,
+      admissionDate: json['admissionDate'] as String?,
+      contactEmail: json['contactEmail'] as String?,
+      mobile: json['mobile'] == null ? null : Phone.fromJson(json['mobile']),
+      alternateNumber: json['alternateNumber'] as String?,
+      address: Address.fromJson(json['address']),
+      placement: json['placement'] == null ? null : _placement(json['placement']),
+      guardians: [for (final item in jsonList(json['guardians'])) _readGuardian(item)],
+      identity: StudentIdentity(
+        aadhaarMasked: identity['aadhaarMasked'] as String?,
+        birthCertificateNumber: identity['birthCertificateNumber'] as String?,
+      ),
+      isBlocked: json['isBlocked'] as bool,
+      isActive: json['status'] == 1,
+      version: (json['version'] as num).toInt(),
     );
   }
 

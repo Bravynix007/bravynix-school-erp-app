@@ -287,6 +287,7 @@ class _StudentCard extends StatelessWidget {
             name: summary.fullName,
             subtitle: detail,
             trailing: summary.isBlocked ? StatusChip(label: l10n.studentsBlocked, tone: StatusTone.error) : null,
+            onTap: locked ? null : () => unawaited(context.push<void>(AppRoutes.student(summary.id))),
           ),
           Wrap(
             alignment: WrapAlignment.end,

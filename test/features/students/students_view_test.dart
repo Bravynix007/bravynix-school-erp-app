@@ -399,6 +399,66 @@ void main() {
     });
   });
 
+  group('opening a student', () {
+    Future<List<String>> pumpWithProfile(WidgetTester tester, PagedListState<StudentListEntry> state) async {
+      when(() => bloc.state).thenReturn(state);
+      final opened = <String>[];
+      final router = GoRouter(
+        routes: [
+          GoRoute(
+            path: '/',
+            builder: (_, _) => Scaffold(
+              body: MultiBlocProvider(
+                providers: [
+                  BlocProvider<StudentsBloc>.value(value: bloc),
+                  BlocProvider<StudentFiltersBloc>.value(value: filters),
+                ],
+                child: const StudentsView(),
+              ),
+            ),
+          ),
+          GoRoute(
+            path: AppRoutes.studentPattern,
+            builder: (_, routeState) {
+              opened.add(routeState.pathParameters['id']!);
+              return const Scaffold(body: Text('profile'));
+            },
+          ),
+        ],
+      );
+      addTearDown(router.dispose);
+      await tester.pumpWidget(
+        MaterialApp.router(
+          theme: AppTheme.light(),
+          routerConfig: router,
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+        ),
+      );
+      return opened;
+    }
+
+    testWidgets('opens the profile of the student whose name is tapped', (tester) async {
+      final opened = await pumpWithProfile(tester, const _Loaded([ashaEntry, balaEntry]));
+      await tester.tap(find.text('Bala'));
+      await tester.pumpAndSettle();
+      expect(opened, ['p2']);
+      expect(find.text('profile'), findsOneWidget);
+    });
+
+    testWidgets('waits while a change to a student goes', (tester) async {
+      final opened = await pumpWithProfile(tester, const _Loaded([ashaEntry, balaEntry], busyId: 'p2'));
+      await tester.tap(find.text('Asha Rao'));
+      // The busy card has a spinner, which never settles.
+      await tester.pump(const Duration(seconds: 1));
+      expect(opened, isEmpty);
+    });
+
+    test('builds the location of a student, the ID encoded', () {
+      expect(AppRoutes.student('a/b'), '/school-setup/students/a%2Fb');
+    });
+  });
+
   group('Move', () {
     /// The list on a router that has the move form's location, which closes with [result] (null: backed out).
     Future<List<StudentMoveArgs>> pumpWithForm(WidgetTester tester, {required bool? result}) async {

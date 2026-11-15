@@ -7,6 +7,7 @@ import 'package:bravynix_school_erp/core/widgets/app_text_field.dart';
 import 'package:bravynix_school_erp/features/people/presentation/view/person_form_fields.dart';
 import 'package:bravynix_school_erp/features/students/domain/student_draft.dart';
 import 'package:bravynix_school_erp/features/students/presentation/bloc/student_form_bloc.dart';
+import 'package:bravynix_school_erp/features/students/presentation/view/student_names.dart';
 import 'package:bravynix_school_erp/l10n/gen/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -26,15 +27,6 @@ const guardianFields = [
   'isPrimary',
   'isEmergencyContact',
 ];
-
-String relationName(AppLocalizations l10n, GuardianRelation relation) => switch (relation) {
-  GuardianRelation.father => l10n.relationFather,
-  GuardianRelation.mother => l10n.relationMother,
-  GuardianRelation.guardian => l10n.relationGuardian,
-  GuardianRelation.grandparent => l10n.relationGrandparent,
-  GuardianRelation.sibling => l10n.relationSibling,
-  GuardianRelation.other => l10n.relationOther,
-};
 
 /// One guardian. The row owns its text controllers and tells the [StudentFormBloc] what is typed, so the bloc holds the
 /// whole form while the row is the only one that touches the text fields.

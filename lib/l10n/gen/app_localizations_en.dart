@@ -1826,6 +1826,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get errorStudentNotFound => 'This student could not be found. They may have been deactivated.';
 
   @override
+  String get errorStudentProfileNotFound => 'This student could not be found.';
+
+  @override
   String get studentsAddTitle => 'Add student';
 
   @override
@@ -2009,6 +2012,18 @@ class AppLocalizationsEn extends AppLocalizations {
   String studentMoved(String name) {
     return '$name\'s placement was changed.';
   }
+
+  @override
+  String get studentProfileTitle => 'Student';
+
+  @override
+  String get studentProfileDeactivated => 'Deactivated';
+
+  @override
+  String get studentProfileNotSet => 'Not set';
+
+  @override
+  String get studentProfileNoContact => 'No contact details are recorded for the student. Their guardians\' are below.';
 
   @override
   String get studentsMove => 'Move';

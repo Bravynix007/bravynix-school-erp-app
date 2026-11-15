@@ -2,6 +2,7 @@ import 'package:bravynix_school_erp/core/network/api_failure.dart';
 import 'package:bravynix_school_erp/core/paging/items_page.dart';
 import 'package:bravynix_school_erp/features/students/domain/student.dart';
 import 'package:bravynix_school_erp/features/students/domain/student_draft.dart';
+import 'package:bravynix_school_erp/features/students/domain/student_profile.dart';
 
 /// The students of the Society (STU-01 to STU-09). Methods throw [ApiFailure].
 abstract class StudentsRepository {
@@ -14,6 +15,10 @@ abstract class StudentsRepository {
     String query = '',
     StudentFilter filter = const StudentFilter(),
   });
+
+  /// STU-03: one student with their guardians. A deactivated student is still read, with `isActive` false; 404 for a
+  /// student of an Institution the caller does not reach.
+  Future<StudentRecord> student(String id);
 
   /// STU-05: deactivates the student for [reason]; the guardians lose the child, the open placement and the enrolment
   /// end today. 404 for a student already deactivated.

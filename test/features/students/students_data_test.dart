@@ -58,6 +58,64 @@ void main() {
     });
   });
 
+  group('STU-03', () {
+    test('reads the record: personal fields, placement, guardians and the masked identity', () {
+      // The second guardian's relation, 9, is one the app does not know: it reads as none.
+      expect(StudentModels.record(studentJson()), ashaRecord);
+    });
+
+    test('reads a record with only what is required, a deactivated one', () {
+      final record = StudentModels.record({
+        'id': 'p2',
+        'institutionId': 'i1',
+        'firstName': 'Bala',
+        'mobile': null,
+        'address': <String, Object?>{},
+        'placement': null,
+        'guardians': [
+          {
+            'id': 'g3',
+            'firstName': 'Devi',
+            'phone': {'countryCode': '91', 'number': '9876544444'},
+            'isPrimary': true,
+            'isEmergencyContact': false,
+          },
+        ],
+        'identity': {'aadhaarMasked': null, 'birthCertificateNumber': null},
+        'isBlocked': true,
+        'status': 0,
+        'version': 1,
+      });
+      expect(record, balaRecord);
+      expect(
+        [record.fullName, ashaRecord.fullName, ashaRecord.guardians.first.fullName],
+        ['Bala', 'Asha Rao', 'Anil Rao'],
+      );
+    });
+
+    test('knows the relations by code', () {
+      expect([
+        for (final relation in GuardianRelation.values) GuardianRelation.fromCode(relation.code),
+      ], GuardianRelation.values);
+      expect(GuardianRelation.fromCode(9), isNull);
+    });
+
+    test('asks for the student by ID, encoded in the path', () async {
+      final (:repository, :adapter) = build(() => okReply(studentJson()));
+      expect(await repository.student('a/b'), ashaRecord);
+      final request = adapter.requests.single;
+      expect([request.method, request.uri.path], ['GET', '/v1/students/a%2Fb']);
+    });
+
+    test('throws the failure the API gives', () async {
+      final (:repository, adapter: _) = build(() => errorReply(404, 'NOT_FOUND'));
+      await expectLater(
+        repository.student('p1'),
+        throwsA(isA<ApiFailure>().having((f) => f.code, 'code', 'NOT_FOUND')),
+      );
+    });
+  });
+
   group('STU-01', () {
     test('asks for a page of the Institution, with the search and the filters only when there are some', () async {
       final (:repository, :adapter) = build(() => okReply([studentRow()], meta: meta(page: 2)));

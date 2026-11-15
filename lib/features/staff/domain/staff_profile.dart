@@ -1,3 +1,4 @@
+import 'package:bravynix_school_erp/features/people/domain/place_names.dart';
 import 'package:bravynix_school_erp/features/staff/domain/staff_member.dart';
 import 'package:equatable/equatable.dart';
 
@@ -7,28 +8,22 @@ class StaffProfile extends Equatable {
     this.member, {
     this.categoryName,
     this.designationName,
-    this.countryName,
-    this.stateName,
-    this.cityName,
+    this.places = const PlaceNames(),
   });
 
   final StaffMember member;
   final String? designationName;
   final String? categoryName;
-  final String? countryName;
-  final String? stateName;
-  final String? cityName;
+  final PlaceNames places;
 
   /// The same profile with [member] replaced: the names stand for fields the access actions do not change.
   StaffProfile withMember(StaffMember member) => StaffProfile(
     member,
     categoryName: categoryName,
     designationName: designationName,
-    countryName: countryName,
-    stateName: stateName,
-    cityName: cityName,
+    places: places,
   );
 
   @override
-  List<Object?> get props => [member, designationName, categoryName, countryName, stateName, cityName];
+  List<Object?> get props => [member, designationName, categoryName, places];
 }

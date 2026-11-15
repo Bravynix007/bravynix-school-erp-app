@@ -26,6 +26,7 @@ import 'package:bravynix_school_erp/features/staff/presentation/view/staff_page.
 import 'package:bravynix_school_erp/features/staff/presentation/view/staff_profile_page.dart';
 import 'package:bravynix_school_erp/features/students/presentation/view/student_form_page.dart';
 import 'package:bravynix_school_erp/features/students/presentation/view/student_move_page.dart';
+import 'package:bravynix_school_erp/features/students/presentation/view/student_profile_page.dart';
 import 'package:bravynix_school_erp/features/students/presentation/view/students_page.dart';
 import 'package:bravynix_school_erp/features/subjects/presentation/view/subject_form_page.dart';
 import 'package:bravynix_school_erp/features/subjects/presentation/view/subjects_page.dart';
@@ -174,6 +175,10 @@ GoRouter createRouter(SessionBloc session, {required SessionChanges changes}) {
         path: AppRoutes.studentMove,
         redirect: (_, state) => studentMoveRedirect(state.extra),
         builder: (_, state) => StudentMovePage(args: state.extra! as StudentMoveArgs),
+      ),
+      GoRoute(
+        path: AppRoutes.studentPattern,
+        builder: (_, state) => StudentProfilePage(id: state.pathParameters['id']!),
       ),
       GoRoute(path: AppRoutes.updateRequired, builder: (_, _) => const UpdateRequiredPage()),
       if (!kReleaseMode) GoRoute(path: AppRoutes.gallery, builder: (_, _) => const ComponentGalleryPage()),
