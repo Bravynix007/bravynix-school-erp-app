@@ -526,6 +526,14 @@ void main() {
       expect(bodyOf(request), {'field': 'aadhaar', 'reason': 'Checking the records'});
     });
 
+    test('revealing encodes the id of the student in the path', () async {
+      final (:repository, :adapter) = build(
+        () => okReply({'field': 'aadhaar', 'value': '234567890123', 'revealedAt': '2026-11-15T10:00:00Z'}),
+      );
+      await repository.revealAadhaar('a/b c', reason: 'Checking the records');
+      expect(adapter.requests.single.uri.path, '/v1/students/a%2Fb%20c/identity/reveal');
+    });
+
     test('throw the failure the API gives', () async {
       final (:repository, adapter: _) = build(() => errorReply(409, 'AADHAAR_DUPLICATE_IN_INSTITUTION'));
       await expectLater(
