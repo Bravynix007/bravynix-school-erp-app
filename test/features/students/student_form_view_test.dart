@@ -796,16 +796,19 @@ void main() {
       expect(find.text('Try again'), findsNothing);
     });
 
-    testWidgets('closes with "saved" and tells the screen behind it', (tester) async {
-      whenListen(
-        bloc,
-        Stream.value(
-          const StudentFormSaved(
-            StudentSaved(Student(id: 'p1', institutionId: 'i1', firstName: 'Asha', lastName: 'Rao')),
-          ),
-        ),
-        initialState: _editing,
-      );
+    /// The edit form opened from a screen behind it, with the bloc answering [states] after [initial]; the form's
+    /// result (null: backed out) is read through the returned function once the test has acted.
+    Future<bool? Function()> openForm(
+      WidgetTester tester, {
+      required StudentFormState initial,
+      Stream<StudentFormState> states = const Stream.empty(),
+    }) async {
+      whenListen(bloc, states, initialState: initial);
+      // Tall, so the whole form is built.
+      tester.view
+        ..physicalSize = const Size(400, 8000)
+        ..devicePixelRatio = 1;
+      addTearDown(tester.view.reset);
       bool? result;
       final router = GoRouter(
         routes: [
@@ -835,8 +838,78 @@ void main() {
       );
       await tester.tap(find.text('open'));
       await tester.pumpAndSettle();
-      expect(result, isTrue);
+      return () => result;
+    }
+
+    testWidgets('closes with "saved" and tells the screen behind it', (tester) async {
+      final result = await openForm(
+        tester,
+        initial: _editing,
+        states: Stream.value(
+          const StudentFormSaved(
+            StudentSaved(Student(id: 'p1', institutionId: 'i1', firstName: 'Asha', lastName: 'Rao')),
+          ),
+        ),
+      );
+      expect(result(), isTrue);
       expect(find.text('Asha Rao saved'), findsOneWidget);
+    });
+
+    for (final (name, code) in [
+      ('the student was changed meanwhile', 'VERSION_CONFLICT'),
+      ('they are gone', 'NOT_FOUND'),
+    ]) {
+      testWidgets('tells the screen behind it to read again when $name, whichever way the form is left', (
+        tester,
+      ) async {
+        final result = await openForm(
+          tester,
+          initial: StudentFormReady(
+            existing: ashaRecord,
+            guardians: const [],
+            nextRowId: 0,
+            failure: _failure(code == 'NOT_FOUND' ? 404 : 409, code),
+          ),
+        );
+        await tester.tap(find.text('Cancel'));
+        await tester.pumpAndSettle();
+        expect(result(), isTrue);
+      });
+    }
+
+    testWidgets('leaves with nothing to read again when nothing was refused', (tester) async {
+      final result = await openForm(tester, initial: _editing);
+      await tester.tap(find.text('Cancel'));
+      await tester.pumpAndSettle();
+      expect(result(), isNull);
+    });
+
+    testWidgets('rebuilds from the student read again after Reload, so nothing of the old copy stays', (tester) async {
+      final result = await openForm(
+        tester,
+        initial: _editing,
+        states: Stream.value(const StudentFormReady(existing: chitraRecord, guardians: [], nextRowId: 0)),
+      );
+      expect(result(), isNull);
+      expect(tester.widget<TextField>(field('studentForm.firstName')).controller!.text, 'Chitra');
+      expect(tester.widget<TextField>(field('studentForm.mobileNumber')).controller!.text, '9876500001');
+    });
+
+    testWidgets('keeps the dial code of the student, and sends it', (tester) async {
+      await pump(tester, const StudentFormReady(existing: kiranRecord, guardians: [], nextRowId: 0));
+      expect(tester.widget<TextField>(field('studentForm.mobileCode')).controller!.text, '44');
+      await tester.tap(saveButton());
+      final texts = submitted().texts;
+      expect([texts.mobileCountryCode, texts.mobileNumber], ['44', '7911123456']);
+    });
+
+    testWidgets('does not fill in a country the student has none of, but leaves the choice to the person', (
+      tester,
+    ) async {
+      await pump(tester, const StudentFormReady(existing: kiranRecord, guardians: [], nextRowId: 0));
+      expect(find.text('India'), findsNothing);
+      await tester.tap(saveButton());
+      expect(submitted().place, const PlaceChoice());
     });
 
     testWidgets('reads whole at a large text scale on a small phone', (tester) async {
