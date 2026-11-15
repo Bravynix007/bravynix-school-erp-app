@@ -1,5 +1,6 @@
 import 'package:bravynix_school_erp/core/network/api_failure.dart';
 import 'package:bravynix_school_erp/core/paging/items_page.dart';
+import 'package:bravynix_school_erp/features/students/domain/promotion.dart';
 import 'package:bravynix_school_erp/features/students/domain/student.dart';
 import 'package:bravynix_school_erp/features/students/domain/student_draft.dart';
 import 'package:bravynix_school_erp/features/students/domain/student_profile.dart';
@@ -45,6 +46,27 @@ abstract class StudentsRepository {
   /// STU-11: the whole Aadhaar number, for a [reason] of 10 to 500 characters that is kept in the audit. Works for a
   /// deactivated student. 404 `NOT_SET` when none is held, 429 `REVEAL_LIMIT` after ten in a day.
   Future<String> revealAadhaar(String id, {required String reason});
+
+  /// STU-09: promotes the student from their open placement to [target], or completes the final class when it is null,
+  /// with [rollNumber] when given (the old one otherwise). The answer is the profile with the new placement, and the
+  /// warnings of the write. 404 for a student already deactivated; 409 `ALREADY_ENROLLED` and `ROLL_NUMBER_TAKEN`; 422
+  /// `NO_CURRENT_PLACEMENT`, `TARGET_YEAR_NOT_AFTER_SOURCE`, `TARGET_CLASS_BELOW_SOURCE`, `NOT_FINAL_CLASS`,
+  /// `SECTION_NOT_IN_CLASS`, `INACTIVE_SECTION` and `YEAR_NOT_ACTIVE`.
+  Future<Promoted> promoteStudent(String id, {PromotionTarget? target, String? rollNumber});
+
+  /// PRM-01: promotes the active students of a class, or of one section of it ([fromSectionId] null for every section),
+  /// to [target], or completes the final class when it is null. All of them or none. [idempotencyKey] makes a repeat of
+  /// the same attempt, after a lost answer, find the first one done. Students who cannot be promoted are left and
+  /// counted. 413 `BATCH_TOO_LARGE` above 500; 409 `ROLL_NUMBER_TAKEN`; and the 422 codes of [promoteStudent].
+  Future<PromotionResult> promote({
+    required String institutionId,
+    required String fromAcademicYearId,
+    required String fromClassId,
+    required String idempotencyKey,
+    String? fromSectionId,
+    PromotionTarget? target,
+    bool keepRollNumbers = true,
+  });
 
   /// STU-05: deactivates the student for [reason]; the guardians lose the child, the open placement and the enrolment
   /// end today. 404 for a student already deactivated.

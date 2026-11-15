@@ -9,6 +9,7 @@ import 'package:bravynix_school_erp/core/network/dio_factory.dart';
 import 'package:bravynix_school_erp/core/storage/token_storage.dart';
 import 'package:bravynix_school_erp/features/students/data/student_models.dart';
 import 'package:bravynix_school_erp/features/students/data/students_repository_impl.dart';
+import 'package:bravynix_school_erp/features/students/domain/promotion.dart';
 import 'package:bravynix_school_erp/features/students/domain/student.dart';
 import 'package:bravynix_school_erp/features/students/domain/student_draft.dart';
 import 'package:bravynix_school_erp/features/students/domain/student_profile.dart';
@@ -535,6 +536,125 @@ void main() {
       await expectLater(
         repository.revealAadhaar('p1', reason: 'Checking the records'),
         throwsA(isA<ApiFailure>()),
+      );
+    });
+  });
+
+  group('STU-09', () {
+    const target = PromotionTarget(academicYearId: 'y2', classId: 'k2', sectionId: 'e3');
+
+    test('sends the target and a roll number when one is given, and answers the profile and the warnings', () async {
+      final (:repository, :adapter) = build(
+        () => okReply(
+          studentJson(),
+          meta: {
+            'warnings': ['SECTION_OVER_CAPACITY'],
+          },
+        ),
+      );
+      final promoted = await repository.promoteStudent('a/b', target: target, rollNumber: '20');
+      expect(promoted.record, ashaRecord);
+      expect(promoted.warnings, ['SECTION_OVER_CAPACITY']);
+      final request = adapter.requests.single;
+      expect([request.method, request.uri.path], ['POST', '/v1/students/a%2Fb/promote']);
+      expect(bodyOf(request), {
+        'toAcademicYearId': 'y2',
+        'toClassId': 'k2',
+        'toSectionId': 'e3',
+        'rollNumber': '20',
+      });
+      // There is no Idempotency-Key: a repeat is refused, as the open placement is already in the new year.
+      expect(request.headers.containsKey('Idempotency-Key'), isFalse);
+    });
+
+    test('sends all three parts as null to complete the final class, and leaves the roll number out', () async {
+      final (:repository, :adapter) = build(() => okReply(studentJson()));
+      await repository.promoteStudent('p1');
+      expect(bodyOf(adapter.requests.single), {'toAcademicYearId': null, 'toClassId': null, 'toSectionId': null});
+    });
+
+    test('throws the failure the API gives', () async {
+      final (:repository, adapter: _) = build(() => errorReply(409, 'ALREADY_ENROLLED'));
+      await expectLater(
+        repository.promoteStudent('p1', target: target),
+        throwsA(isA<ApiFailure>().having((f) => f.code, 'code', 'ALREADY_ENROLLED')),
+      );
+    });
+  });
+
+  group('PRM-01', () {
+    const target = PromotionTarget(academicYearId: 'y2', classId: 'k2', sectionId: 'e3');
+
+    test('sends the source, the target, the roll rule and the key, and counts who was left and why', () async {
+      final (:repository, :adapter) = build(
+        () => okReply(
+          {
+            'promotedCount': 12,
+            'skipped': [
+              {'studentId': 's1', 'reason': 'ALREADY_ENROLLED'},
+              {'studentId': 's2', 'reason': 'NOT_IN_SOURCE'},
+              {'studentId': 's3', 'reason': 'SOMETHING_NEW'},
+            ],
+          },
+          code: 'PROMOTED',
+          meta: {
+            'warnings': ['SECTION_OVER_CAPACITY'],
+          },
+        ),
+      );
+      final result = await repository.promote(
+        institutionId: 'i1',
+        fromAcademicYearId: 'y1',
+        fromClassId: 'k1',
+        fromSectionId: 'e1',
+        target: target,
+        keepRollNumbers: false,
+        idempotencyKey: 'key-1',
+      );
+      expect(result.promotedCount, 12);
+      expect(result.skipped, [SkipReason.alreadyEnrolled, SkipReason.notInSource]);
+      expect(result.warnings, ['SECTION_OVER_CAPACITY']);
+      final request = adapter.requests.single;
+      expect([request.method, request.uri.path], ['POST', '/v1/promotions']);
+      expect(request.headers['Idempotency-Key'], 'key-1');
+      expect(bodyOf(request), {
+        'institutionId': 'i1',
+        'fromAcademicYearId': 'y1',
+        'fromClassId': 'k1',
+        'fromSectionId': 'e1',
+        'toAcademicYearId': 'y2',
+        'toClassId': 'k2',
+        'toSectionId': 'e3',
+        'keepRollNumbers': false,
+      });
+    });
+
+    test('sends null for every section, and null for the target to complete the final class', () async {
+      final (:repository, :adapter) = build(() => okReply({'promotedCount': 0, 'skipped': <Object?>[]}));
+      final result = await repository.promote(
+        institutionId: 'i1',
+        fromAcademicYearId: 'y1',
+        fromClassId: 'k1',
+        idempotencyKey: 'key-2',
+      );
+      expect(result, const PromotionResult(promotedCount: 0));
+      expect(bodyOf(adapter.requests.single), {
+        'institutionId': 'i1',
+        'fromAcademicYearId': 'y1',
+        'fromClassId': 'k1',
+        'fromSectionId': null,
+        'toAcademicYearId': null,
+        'toClassId': null,
+        'toSectionId': null,
+        'keepRollNumbers': true,
+      });
+    });
+
+    test('throws the failure the API gives', () async {
+      final (:repository, adapter: _) = build(() => errorReply(413, 'BATCH_TOO_LARGE'));
+      await expectLater(
+        repository.promote(institutionId: 'i1', fromAcademicYearId: 'y1', fromClassId: 'k1', idempotencyKey: 'k'),
+        throwsA(isA<ApiFailure>().having((f) => f.code, 'code', 'BATCH_TOO_LARGE')),
       );
     });
   });

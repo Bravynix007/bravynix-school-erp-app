@@ -26,6 +26,7 @@ import 'package:bravynix_school_erp/features/students/presentation/view/student_
 import 'package:bravynix_school_erp/features/students/presentation/view/student_form_page.dart';
 import 'package:bravynix_school_erp/features/students/presentation/view/student_leaving_sheet.dart';
 import 'package:bravynix_school_erp/features/students/presentation/view/student_move_page.dart';
+import 'package:bravynix_school_erp/features/students/presentation/view/student_promote_page.dart';
 import 'package:bravynix_school_erp/l10n/gen/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -97,6 +98,15 @@ Future<void> _openMoveForm(BuildContext context, StudentListEntry entry) async {
   if (saved ?? false) bloc.add(const PagedListRequested());
 }
 
+/// Opens the form that promotes one student, or a class or section when [entry] is null; a promotion changes the list, so
+/// it is read again when the form closes with true.
+Future<void> _openPromoteForm(BuildContext context, {StudentListEntry? entry}) async {
+  final bloc = context.read<StudentsBloc>();
+  final args = entry == null ? StudentPromoteArgs.group(bloc.institutionId) : StudentPromoteArgs.one(entry);
+  final saved = await context.push<bool>(AppRoutes.studentPromote, extra: args);
+  if (saved ?? false) bloc.add(const PagedListRequested());
+}
+
 /// Opens one student's profile; Edit there changes the student, so the list is read again on the way back.
 Future<void> _openProfile(BuildContext context, String id) async {
   final bloc = context.read<StudentsBloc>();
@@ -141,6 +151,14 @@ class StudentsView extends StatelessWidget {
             icon: Icons.add,
             variant: AppButtonVariant.secondary,
             onPressed: idle ? () => _openAddForm(context) : null,
+          ),
+          const SizedBox(height: AppSpacing.xs),
+          AppButton(
+            key: const Key('students.promoteClass'),
+            label: l10n.studentsPromoteClass,
+            icon: Icons.trending_up,
+            variant: AppButtonVariant.secondary,
+            onPressed: idle ? () => _openPromoteForm(context) : null,
           ),
           const SizedBox(height: AppSpacing.sm),
         ],
@@ -306,6 +324,14 @@ class _StudentCard extends StatelessWidget {
                   variant: AppButtonVariant.text,
                   size: AppButtonSize.medium,
                   onPressed: locked ? null : () => unawaited(_openMoveForm(context, entry)),
+                ),
+              if (canMove)
+                AppButton(
+                  key: ValueKey('students.promote.${summary.id}'),
+                  label: l10n.studentsPromote,
+                  variant: AppButtonVariant.text,
+                  size: AppButtonSize.medium,
+                  onPressed: locked ? null : () => unawaited(_openPromoteForm(context, entry: entry)),
                 ),
               AppButton(
                 key: ValueKey('students.deactivate.${summary.id}'),

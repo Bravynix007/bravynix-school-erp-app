@@ -70,6 +70,9 @@ abstract final class AppRoutes {
   /// Moves a student to another section or roll number (STU-08); takes the student as the route's `extra`.
   static const studentMove = '/school-setup/students/move';
 
+  /// Promotes one student, or a class or section (STU-09, PRM-01); takes who as the route's `extra`.
+  static const studentPromote = '/school-setup/students/promote';
+
   /// One student's profile (STU-03). The `:id` pattern is for the router and comes after the form's and the move's own
   /// locations; [student] builds the location of one student.
   static const studentPattern = '/school-setup/students/:id';

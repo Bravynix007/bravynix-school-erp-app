@@ -3822,6 +3822,186 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Move'**
   String get studentsMove;
+
+  /// No description provided for @studentsPromote.
+  ///
+  /// In en, this message translates to:
+  /// **'Promote'**
+  String get studentsPromote;
+
+  /// No description provided for @studentsPromoteClass.
+  ///
+  /// In en, this message translates to:
+  /// **'Promote a class'**
+  String get studentsPromoteClass;
+
+  /// No description provided for @promotionTitleOne.
+  ///
+  /// In en, this message translates to:
+  /// **'Promote student'**
+  String get promotionTitleOne;
+
+  /// No description provided for @promotionTitleGroup.
+  ///
+  /// In en, this message translates to:
+  /// **'Promote a class'**
+  String get promotionTitleGroup;
+
+  /// No description provided for @promotionFrom.
+  ///
+  /// In en, this message translates to:
+  /// **'Promote from'**
+  String get promotionFrom;
+
+  /// No description provided for @promotionTo.
+  ///
+  /// In en, this message translates to:
+  /// **'Promote to'**
+  String get promotionTo;
+
+  /// No description provided for @promotionAllSections.
+  ///
+  /// In en, this message translates to:
+  /// **'Every section'**
+  String get promotionAllSections;
+
+  /// No description provided for @promotionCompletes.
+  ///
+  /// In en, this message translates to:
+  /// **'Completes the final class'**
+  String get promotionCompletes;
+
+  /// No description provided for @promotionCompletesHelper.
+  ///
+  /// In en, this message translates to:
+  /// **'They leave the school. Each is deactivated as completed, and their guardians lose the child. Only for the last class of the Institution.'**
+  String get promotionCompletesHelper;
+
+  /// No description provided for @promotionKeepRollNumbers.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep roll numbers'**
+  String get promotionKeepRollNumbers;
+
+  /// No description provided for @promotionKeepRollNumbersHelper.
+  ///
+  /// In en, this message translates to:
+  /// **'When off, the students are numbered again in the new section, after the highest number there.'**
+  String get promotionKeepRollNumbersHelper;
+
+  /// No description provided for @promotionRollNumberHelper.
+  ///
+  /// In en, this message translates to:
+  /// **'Leave it as it is to keep the roll number.'**
+  String get promotionRollNumberHelper;
+
+  /// No description provided for @promotionAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Promote'**
+  String get promotionAction;
+
+  /// No description provided for @promotionDoneAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Done'**
+  String get promotionDoneAction;
+
+  /// No description provided for @promotionConfirmTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Promote to {target}?'**
+  String promotionConfirmTitle(String target);
+
+  /// No description provided for @promotionConfirmGroup.
+  ///
+  /// In en, this message translates to:
+  /// **'Every active student of the class or section chosen is promoted together, all or none. A student who already has a place in the new year is left where they are.'**
+  String get promotionConfirmGroup;
+
+  /// No description provided for @promotionConfirmCompletesTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Complete the final class?'**
+  String get promotionConfirmCompletesTitle;
+
+  /// No description provided for @promotionConfirmCompletes.
+  ///
+  /// In en, this message translates to:
+  /// **'Each student leaves the school: they are deactivated as completed, and their guardians lose the child. Their records stay readable.'**
+  String get promotionConfirmCompletes;
+
+  /// No description provided for @promotionDoneOne.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} promoted to {target}'**
+  String promotionDoneOne(String name, String target);
+
+  /// No description provided for @promotionDoneOneCompleted.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} completed the final class'**
+  String promotionDoneOneCompleted(String name);
+
+  /// No description provided for @promotionDoneGroup.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =0{No student was promoted} =1{1 student promoted to {target}} other{{count} students promoted to {target}}}'**
+  String promotionDoneGroup(int count, String target);
+
+  /// No description provided for @promotionDoneCompleted.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =0{No student completed the final class} =1{1 student completed the final class} other{{count} students completed the final class}}'**
+  String promotionDoneCompleted(int count);
+
+  /// No description provided for @promotionSkippedNotInSource.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 student is not an active student of this class or section, and was left.} other{{count} students are not active students of this class or section, and were left.}}'**
+  String promotionSkippedNotInSource(int count);
+
+  /// No description provided for @promotionSkippedAlreadyEnrolled.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 student already has a place in the new year, and was left where they are.} other{{count} students already have a place in the new year, and were left where they are.}}'**
+  String promotionSkippedAlreadyEnrolled(int count);
+
+  /// No description provided for @errorPromotionYearNotAfter.
+  ///
+  /// In en, this message translates to:
+  /// **'The new year must begin after the year the students are in now.'**
+  String get errorPromotionYearNotAfter;
+
+  /// No description provided for @errorPromotionClassBelow.
+  ///
+  /// In en, this message translates to:
+  /// **'Students cannot go to a class below the one they are in. Choose the same class to repeat it.'**
+  String get errorPromotionClassBelow;
+
+  /// No description provided for @errorPromotionNotFinalClass.
+  ///
+  /// In en, this message translates to:
+  /// **'Only the last class of the Institution can be completed.'**
+  String get errorPromotionNotFinalClass;
+
+  /// No description provided for @errorPromotionAlreadyEnrolled.
+  ///
+  /// In en, this message translates to:
+  /// **'The student already has a place in the new year.'**
+  String get errorPromotionAlreadyEnrolled;
+
+  /// No description provided for @errorPromotionTooLarge.
+  ///
+  /// In en, this message translates to:
+  /// **'That is more than 500 students at once. Promote one section at a time.'**
+  String get errorPromotionTooLarge;
+
+  /// No description provided for @errorPromotionNotFound.
+  ///
+  /// In en, this message translates to:
+  /// **'The student, class, year or section could not be found. It may have been deactivated.'**
+  String get errorPromotionNotFound;
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {

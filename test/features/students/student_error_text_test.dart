@@ -71,4 +71,33 @@ void main() {
     }
     expect(studentIdentityErrorText(l10n, _code('NOT_FOUND', status: 404)), l10n.errorStudentNotFound);
   });
+
+  testWidgets('promotionErrorText has its own words for the codes of a promotion', (tester) async {
+    late AppLocalizations l10n;
+    await tester.pumpApp(
+      Builder(
+        builder: (context) {
+          l10n = AppLocalizations.of(context);
+          return const SizedBox();
+        },
+      ),
+    );
+    final expected = {
+      'TARGET_YEAR_NOT_AFTER_SOURCE': l10n.errorPromotionYearNotAfter,
+      'TARGET_CLASS_BELOW_SOURCE': l10n.errorPromotionClassBelow,
+      'NOT_FINAL_CLASS': l10n.errorPromotionNotFinalClass,
+      'ALREADY_ENROLLED': l10n.errorPromotionAlreadyEnrolled,
+      'BATCH_TOO_LARGE': l10n.errorPromotionTooLarge,
+      'ROLL_NUMBER_TAKEN': l10n.errorRollNumberTaken,
+      'SECTION_NOT_IN_CLASS': l10n.errorSectionNotInClass,
+      'YEAR_NOT_ACTIVE': l10n.errorStudentYearNotActive,
+      'INACTIVE_SECTION': l10n.errorInactiveSection,
+      'NO_CURRENT_PLACEMENT': l10n.errorNoCurrentPlacement,
+    };
+    for (final MapEntry(:key, :value) in expected.entries) {
+      expect(promotionErrorText(l10n, _code(key)), value, reason: key);
+    }
+    expect(expected.values.toSet(), hasLength(expected.length));
+    expect(promotionErrorText(l10n, _code('NOT_FOUND', status: 404)), l10n.errorPromotionNotFound);
+  });
 }

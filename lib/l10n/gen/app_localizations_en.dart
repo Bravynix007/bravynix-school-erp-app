@@ -2111,4 +2111,140 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get studentsMove => 'Move';
+
+  @override
+  String get studentsPromote => 'Promote';
+
+  @override
+  String get studentsPromoteClass => 'Promote a class';
+
+  @override
+  String get promotionTitleOne => 'Promote student';
+
+  @override
+  String get promotionTitleGroup => 'Promote a class';
+
+  @override
+  String get promotionFrom => 'Promote from';
+
+  @override
+  String get promotionTo => 'Promote to';
+
+  @override
+  String get promotionAllSections => 'Every section';
+
+  @override
+  String get promotionCompletes => 'Completes the final class';
+
+  @override
+  String get promotionCompletesHelper =>
+      'They leave the school. Each is deactivated as completed, and their guardians lose the child. Only for the last class of the Institution.';
+
+  @override
+  String get promotionKeepRollNumbers => 'Keep roll numbers';
+
+  @override
+  String get promotionKeepRollNumbersHelper =>
+      'When off, the students are numbered again in the new section, after the highest number there.';
+
+  @override
+  String get promotionRollNumberHelper => 'Leave it as it is to keep the roll number.';
+
+  @override
+  String get promotionAction => 'Promote';
+
+  @override
+  String get promotionDoneAction => 'Done';
+
+  @override
+  String promotionConfirmTitle(String target) {
+    return 'Promote to $target?';
+  }
+
+  @override
+  String get promotionConfirmGroup =>
+      'Every active student of the class or section chosen is promoted together, all or none. A student who already has a place in the new year is left where they are.';
+
+  @override
+  String get promotionConfirmCompletesTitle => 'Complete the final class?';
+
+  @override
+  String get promotionConfirmCompletes =>
+      'Each student leaves the school: they are deactivated as completed, and their guardians lose the child. Their records stay readable.';
+
+  @override
+  String promotionDoneOne(String name, String target) {
+    return '$name promoted to $target';
+  }
+
+  @override
+  String promotionDoneOneCompleted(String name) {
+    return '$name completed the final class';
+  }
+
+  @override
+  String promotionDoneGroup(int count, String target) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count students promoted to $target',
+      one: '1 student promoted to $target',
+      zero: 'No student was promoted',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String promotionDoneCompleted(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count students completed the final class',
+      one: '1 student completed the final class',
+      zero: 'No student completed the final class',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String promotionSkippedNotInSource(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count students are not active students of this class or section, and were left.',
+      one: '1 student is not an active student of this class or section, and was left.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String promotionSkippedAlreadyEnrolled(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count students already have a place in the new year, and were left where they are.',
+      one: '1 student already has a place in the new year, and was left where they are.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get errorPromotionYearNotAfter => 'The new year must begin after the year the students are in now.';
+
+  @override
+  String get errorPromotionClassBelow =>
+      'Students cannot go to a class below the one they are in. Choose the same class to repeat it.';
+
+  @override
+  String get errorPromotionNotFinalClass => 'Only the last class of the Institution can be completed.';
+
+  @override
+  String get errorPromotionAlreadyEnrolled => 'The student already has a place in the new year.';
+
+  @override
+  String get errorPromotionTooLarge => 'That is more than 500 students at once. Promote one section at a time.';
+
+  @override
+  String get errorPromotionNotFound =>
+      'The student, class, year or section could not be found. It may have been deactivated.';
 }

@@ -10,6 +10,7 @@ import 'package:bravynix_school_erp/features/sections/presentation/view/sections
 import 'package:bravynix_school_erp/features/staff/presentation/view/staff_form_page.dart';
 import 'package:bravynix_school_erp/features/students/presentation/view/student_form_page.dart';
 import 'package:bravynix_school_erp/features/students/presentation/view/student_move_page.dart';
+import 'package:bravynix_school_erp/features/students/presentation/view/student_promote_page.dart';
 import 'package:bravynix_school_erp/features/subjects/presentation/view/subject_form_page.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -120,5 +121,8 @@ void main() {
     expect(studentMoveRedirect(const StudentMoveArgs(ashaEntry)), isNull);
     expect(studentMoveRedirect(null), AppRoutes.students);
     expect(studentMoveRedirect('p1'), AppRoutes.students);
+    expect(studentPromoteRedirect(const StudentPromoteArgs.group('i1')), isNull);
+    expect(studentPromoteRedirect(null), AppRoutes.students);
+    expect(studentPromoteRedirect('i1'), AppRoutes.students);
   });
 }
