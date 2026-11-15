@@ -648,7 +648,6 @@
   "studentCertificateSet": "Set number",
   "studentCertificateChange": "Change number",
   "studentCertificateClear": "Clear number",
-  "studentCertificateSave": "Save number",
   "studentCertificateRequired": "Enter the number as it is written on the certificate.",
   "studentCertificateSaved": "Birth certificate number saved",
   "studentCertificateCleared": "Birth certificate number cleared",

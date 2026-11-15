@@ -25,9 +25,9 @@ import 'package:bravynix_school_erp/features/files/domain/files_repository.dart'
 import 'package:bravynix_school_erp/features/files/presentation/bloc/file_upload_bloc.dart';
 import 'package:bravynix_school_erp/features/institutions/domain/institutions_repository.dart';
 import 'package:bravynix_school_erp/features/masters/domain/masters_repository.dart';
-import 'package:bravynix_school_erp/features/people/presentation/bloc/aadhaar_bloc.dart';
 import 'package:bravynix_school_erp/features/people/presentation/bloc/access_block_bloc.dart';
-import 'package:bravynix_school_erp/features/people/presentation/view/aadhaar_section.dart';
+import 'package:bravynix_school_erp/features/people/presentation/bloc/identity_number_bloc.dart';
+import 'package:bravynix_school_erp/features/people/presentation/view/aadhaar_card.dart';
 import 'package:bravynix_school_erp/features/people/presentation/view/person_names.dart';
 import 'package:bravynix_school_erp/features/people/presentation/view/personal_rows.dart';
 import 'package:bravynix_school_erp/features/sections/domain/section_options.dart';
@@ -158,13 +158,13 @@ class StaffProfileView extends StatelessWidget {
                       )..add(const StaffClassTeacherStarted()),
                     ),
                     BlocProvider(
-                      create: (_) => AadhaarBloc(
+                      create: (_) => IdentityNumberBloc(
                         save: (aadhaar) async => (
-                          masked: await getIt<StaffRepository>().setAadhaar(profile.member.id, aadhaar),
+                          number: await getIt<StaffRepository>().setAadhaar(profile.member.id, aadhaar),
                           elsewhere: false,
                         ),
                         reveal: (reason) => getIt<StaffRepository>().revealAadhaar(profile.member.id, reason: reason),
-                        masked: profile.member.aadhaarMasked,
+                        number: profile.member.aadhaarMasked,
                       ),
                     ),
                     BlocProvider(
@@ -373,7 +373,9 @@ class _Details extends StatelessWidget {
           ),
         ),
         const SizedBox(height: AppSpacing.md),
-        AadhaarSection(
+        SectionHeader(title: l10n.identityTitle),
+        const SizedBox(height: AppSpacing.xs),
+        AadhaarCard(
           personName: member.fullName,
           protection: getIt<ScreenProtection>(),
           errorText: staffIdentityErrorText,

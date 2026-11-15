@@ -2,8 +2,8 @@ import 'dart:async';
 
 import 'package:bravynix_school_erp/core/network/api_failure.dart';
 import 'package:bravynix_school_erp/core/widgets/app_button.dart';
-import 'package:bravynix_school_erp/features/people/presentation/bloc/aadhaar_bloc.dart';
-import 'package:bravynix_school_erp/features/people/presentation/view/aadhaar_section.dart';
+import 'package:bravynix_school_erp/features/people/presentation/bloc/identity_number_bloc.dart';
+import 'package:bravynix_school_erp/features/people/presentation/view/aadhaar_card.dart';
 import 'package:bravynix_school_erp/features/staff/presentation/view/staff_error_text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -28,17 +28,17 @@ void main() {
     protection = RecordingScreenProtection();
   });
 
-  Future<AadhaarBloc> pump(
+  Future<IdentityNumberBloc> pump(
     WidgetTester tester, {
     String? held = masked,
     bool elsewhere = false,
     double textScale = 1,
     Size size = const Size(400, 1200),
   }) async {
-    final bloc = AadhaarBloc(
-      save: (aadhaar) async => (masked: await staff.setAadhaar('f1', aadhaar), elsewhere: elsewhere),
+    final bloc = IdentityNumberBloc(
+      save: (aadhaar) async => (number: await staff.setAadhaar('f1', aadhaar), elsewhere: elsewhere),
       reveal: (reason) => staff.revealAadhaar('f1', reason: reason),
-      masked: held,
+      number: held,
     );
     addTearDown(bloc.close);
     await tester.pumpAppScaled(
@@ -46,7 +46,7 @@ void main() {
         value: bloc,
         child: Scaffold(
           body: SingleChildScrollView(
-            child: AadhaarSection(personName: 'Kavya Nair', protection: protection, errorText: staffIdentityErrorText),
+            child: AadhaarCard(personName: 'Kavya Nair', protection: protection, errorText: staffIdentityErrorText),
           ),
         ),
       ),
@@ -66,7 +66,6 @@ void main() {
   group('the number', () {
     testWidgets('is shown masked, with ways to show it whole, change it and clear it', (tester) async {
       await pump(tester);
-      expect(find.text('Identity'), findsOneWidget);
       expect(find.text(masked), findsOneWidget);
       expect(find.text('Show full number'), findsOneWidget);
       expect(find.text('Change number'), findsOneWidget);
@@ -139,11 +138,11 @@ void main() {
       when(() => staff.setAadhaar('f1', number)).thenAnswer((_) async => 'XXXX XXXX 0123');
       await pump(tester, held: null);
       await open(tester, 'set');
-      await tester.enterText(find.byKey(const Key('aadhaar.aadhaar')), '2345 6789-0123');
+      await tester.enterText(find.byKey(const Key('aadhaar.field')), '2345 6789-0123');
       await tester.tap(find.byKey(const Key('aadhaar.save')));
       await tester.pumpAndSettle();
       verify(() => staff.setAadhaar('f1', number)).called(1);
-      expect(find.byKey(const Key('aadhaar.aadhaar')), findsNothing);
+      expect(find.byKey(const Key('aadhaar.field')), findsNothing);
       expect(find.text('XXXX XXXX 0123'), findsOneWidget);
       expect(find.text('Aadhaar number saved'), findsOneWidget);
     });
@@ -152,7 +151,7 @@ void main() {
       when(() => staff.setAadhaar('f1', number)).thenAnswer((_) async => 'XXXX XXXX 0123');
       await pump(tester, held: null, elsewhere: true);
       await open(tester, 'set');
-      await tester.enterText(find.byKey(const Key('aadhaar.aadhaar')), number);
+      await tester.enterText(find.byKey(const Key('aadhaar.field')), number);
       await tester.tap(find.byKey(const Key('aadhaar.save')));
       await tester.pumpAndSettle();
       expect(find.text('XXXX XXXX 0123'), findsOneWidget);
@@ -166,7 +165,7 @@ void main() {
       await pump(tester, held: null);
       await open(tester, 'set');
       for (final typed in ['', '2345 6789 012', '1345 6789 0123']) {
-        await tester.enterText(find.byKey(const Key('aadhaar.aadhaar')), typed);
+        await tester.enterText(find.byKey(const Key('aadhaar.field')), typed);
         await tester.tap(find.byKey(const Key('aadhaar.save')));
         await tester.pump();
         expect(find.text('Check the twelve digits.'), findsOneWidget, reason: typed);
@@ -177,7 +176,7 @@ void main() {
     testWidgets('takes only digits, spaces and hyphens, and no more than fourteen characters', (tester) async {
       await pump(tester, held: null);
       await open(tester, 'set');
-      await tester.enterText(find.byKey(const Key('aadhaar.aadhaar')), 'ab2345 6789 0123 99');
+      await tester.enterText(find.byKey(const Key('aadhaar.field')), 'ab2345 6789 0123 99');
       expect(tester.widget<TextField>(find.byType(TextField)).controller!.text, '2345 6789 0123');
     });
 
@@ -196,7 +195,7 @@ void main() {
         when(() => staff.setAadhaar(any(), any())).thenThrow(failure);
         await pump(tester, held: null);
         await open(tester, 'set');
-        await tester.enterText(find.byKey(const Key('aadhaar.aadhaar')), number);
+        await tester.enterText(find.byKey(const Key('aadhaar.field')), number);
         await tester.tap(find.byKey(const Key('aadhaar.save')));
         await tester.pumpAndSettle();
         expect(find.byKey(const Key('aadhaar.saveError')), findsOneWidget);
@@ -211,7 +210,7 @@ void main() {
       when(() => staff.setAadhaar(any(), any())).thenAnswer((_) => held.future);
       await pump(tester, held: null);
       await open(tester, 'set');
-      await tester.enterText(find.byKey(const Key('aadhaar.aadhaar')), number);
+      await tester.enterText(find.byKey(const Key('aadhaar.field')), number);
       await tester.tap(find.byKey(const Key('aadhaar.save')));
       await tester.pump(const Duration(milliseconds: 100));
       expect(button(tester, 'save').loading, isTrue);
@@ -224,12 +223,12 @@ void main() {
       when(() => staff.setAadhaar(any(), any())).thenThrow(const ApiFailure.network());
       final bloc = await pump(tester, held: null);
       await open(tester, 'set');
-      await tester.enterText(find.byKey(const Key('aadhaar.aadhaar')), number);
+      await tester.enterText(find.byKey(const Key('aadhaar.field')), number);
       await tester.tap(find.byKey(const Key('aadhaar.save')));
       await tester.pumpAndSettle();
       await tester.tapAt(const Offset(5, 5));
       await tester.pumpAndSettle();
-      expect(bloc.state, const AadhaarIdle(null));
+      expect(bloc.state, const IdentityNumberIdle(null));
     });
   });
 
@@ -272,7 +271,7 @@ void main() {
       await tester.pumpAndSettle();
       expect(find.text('2345 6789 0123'), findsNothing);
       expect(find.text(masked), findsOneWidget);
-      expect(bloc.state, const AadhaarIdle(masked));
+      expect(bloc.state, const IdentityNumberIdle(masked));
       expect(find.text('Aadhaar number saved'), findsNothing);
     });
 
@@ -285,7 +284,7 @@ void main() {
       await tester.pumpAndSettle();
       await tester.tapAt(const Offset(5, 5));
       await tester.pumpAndSettle();
-      expect(bloc.state, const AadhaarIdle(masked));
+      expect(bloc.state, const IdentityNumberIdle(masked));
     });
 
     for (final (failure, words) in [
@@ -411,7 +410,7 @@ void main() {
       await tester.pumpAndSettle();
       held.complete(number);
       await tester.pumpAndSettle();
-      expect(bloc.state, const AadhaarIdle(masked));
+      expect(bloc.state, const IdentityNumberIdle(masked));
       expect(find.text('Aadhaar number saved'), findsNothing);
       await open(tester, 'reveal');
       expect(find.byKey(const Key('aadhaar.reason')), findsOneWidget);
@@ -424,7 +423,7 @@ void main() {
       when(() => staff.setAadhaar(any(), any())).thenAnswer((_) => held.future);
       await pump(tester, held: null);
       await open(tester, 'set');
-      await tester.enterText(find.byKey(const Key('aadhaar.aadhaar')), number);
+      await tester.enterText(find.byKey(const Key('aadhaar.field')), number);
       await tester.tap(find.byKey(const Key('aadhaar.save')));
       await tester.pump(const Duration(milliseconds: 100));
       await tester.tapAt(const Offset(5, 5));
@@ -464,7 +463,7 @@ void main() {
       when(() => staff.setAadhaar(any(), any())).thenAnswer((_) => held.future);
       await pump(tester, held: null);
       await open(tester, 'set');
-      await tester.enterText(find.byKey(const Key('aadhaar.aadhaar')), number);
+      await tester.enterText(find.byKey(const Key('aadhaar.field')), number);
       await tester.tap(find.byKey(const Key('aadhaar.save')));
       await tester.pump(const Duration(milliseconds: 100));
       await tester.tapAt(const Offset(5, 5));
@@ -492,7 +491,7 @@ void main() {
     );
     await pump(tester, held: null, textScale: 2, size: const Size(320, 3000));
     await open(tester, 'set');
-    await tester.enterText(find.byKey(const Key('aadhaar.aadhaar')), number);
+    await tester.enterText(find.byKey(const Key('aadhaar.field')), number);
     await tester.tap(find.byKey(const Key('aadhaar.save')));
     await tester.pumpAndSettle();
     expect(find.byKey(const Key('aadhaar.saveError')), findsOneWidget);

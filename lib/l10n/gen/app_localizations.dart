@@ -3541,12 +3541,6 @@ abstract class AppLocalizations {
   /// **'Clear number'**
   String get studentCertificateClear;
 
-  /// No description provided for @studentCertificateSave.
-  ///
-  /// In en, this message translates to:
-  /// **'Save number'**
-  String get studentCertificateSave;
-
   /// No description provided for @studentCertificateRequired.
   ///
   /// In en, this message translates to:

@@ -1947,9 +1947,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get studentCertificateClear => 'Clear number';
 
   @override
-  String get studentCertificateSave => 'Save number';
-
-  @override
   String get studentCertificateRequired => 'Enter the number as it is written on the certificate.';
 
   @override

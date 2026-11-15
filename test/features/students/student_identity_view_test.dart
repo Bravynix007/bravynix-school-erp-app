@@ -87,6 +87,8 @@ void main() {
       expect(find.byKey(const Key('aadhaar.set')), findsOneWidget);
       expect(find.byKey(const Key('aadhaar.clear')), findsOneWidget);
       expect(find.byKey(const Key('studentCertificate.set')), findsOneWidget);
+      // It is shown whole already, so there is nothing to reveal.
+      expect(find.byKey(const Key('studentCertificate.reveal')), findsNothing);
       expect(find.byKey(const Key('studentCertificate.clear')), findsOneWidget);
     });
 
@@ -121,7 +123,7 @@ void main() {
       when(() => students.setAadhaar('p3', number)).thenAnswer((_) async => saved);
       await pump(tester, record: chitraRecord);
       await open(tester, 'aadhaar.set');
-      await tester.enterText(find.byKey(const Key('aadhaar.aadhaar')), number);
+      await tester.enterText(find.byKey(const Key('aadhaar.field')), number);
       await tester.tap(find.byKey(const Key('aadhaar.save')));
       await tester.pumpAndSettle();
       verify(() => students.setAadhaar('p3', number)).called(1);
@@ -138,7 +140,7 @@ void main() {
       );
       await pump(tester, record: chitraRecord);
       await open(tester, 'aadhaar.set');
-      await tester.enterText(find.byKey(const Key('aadhaar.aadhaar')), number);
+      await tester.enterText(find.byKey(const Key('aadhaar.field')), number);
       await tester.tap(find.byKey(const Key('aadhaar.save')));
       await tester.pumpAndSettle();
       expect(find.text('XXXX XXXX 0123'), findsOneWidget);
@@ -156,7 +158,7 @@ void main() {
       );
       await pump(tester, record: chitraRecord);
       await open(tester, 'aadhaar.set');
-      await tester.enterText(find.byKey(const Key('aadhaar.aadhaar')), number);
+      await tester.enterText(find.byKey(const Key('aadhaar.field')), number);
       await tester.tap(find.byKey(const Key('aadhaar.save')));
       await tester.pumpAndSettle();
       expect(find.byKey(const Key('aadhaar.saveError')), findsOneWidget);
@@ -211,12 +213,12 @@ void main() {
       );
       await pump(tester);
       await open(tester, 'studentCertificate.set');
-      expect(field(tester, 'studentCertificate.number').controller!.text, certificate);
-      await tester.enterText(find.byKey(const Key('studentCertificate.number')), '  BC-2019-12 ');
+      expect(field(tester, 'studentCertificate.field').controller!.text, certificate);
+      await tester.enterText(find.byKey(const Key('studentCertificate.field')), '  BC-2019-12 ');
       await tester.tap(find.byKey(const Key('studentCertificate.save')));
       await tester.pumpAndSettle();
       verify(() => students.setBirthCertificate('p1', 'BC-2019-12')).called(1);
-      expect(find.byKey(const Key('studentCertificate.number')), findsNothing);
+      expect(find.byKey(const Key('studentCertificate.field')), findsNothing);
       expect(find.text('BC-2019-12'), findsOneWidget);
       expect(find.text('Birth certificate number saved'), findsOneWidget);
       expect(find.text(masked), findsOneWidget);
@@ -225,12 +227,12 @@ void main() {
     testWidgets('is first set from an empty field, and an empty one sends nothing', (tester) async {
       await pump(tester, record: chitraRecord);
       await open(tester, 'studentCertificate.set');
-      await tester.enterText(find.byKey(const Key('studentCertificate.number')), '   ');
+      await tester.enterText(find.byKey(const Key('studentCertificate.field')), '   ');
       await tester.tap(find.byKey(const Key('studentCertificate.save')));
       await tester.pump();
       expect(find.text('Enter the number as it is written on the certificate.'), findsOneWidget);
       verifyNever(() => students.setBirthCertificate(any(), any()));
-      await tester.enterText(find.byKey(const Key('studentCertificate.number')), 'B');
+      await tester.enterText(find.byKey(const Key('studentCertificate.field')), 'B');
       await tester.pump();
       expect(find.text('Enter the number as it is written on the certificate.'), findsNothing);
     });
@@ -238,10 +240,10 @@ void main() {
     testWidgets('takes no more than 50 characters', (tester) async {
       await pump(tester, record: chitraRecord);
       await open(tester, 'studentCertificate.set');
-      await tester.enterText(find.byKey(const Key('studentCertificate.number')), 'x' * 60);
+      await tester.enterText(find.byKey(const Key('studentCertificate.field')), 'x' * 60);
       await tester.pump();
       expect(
-        field(tester, 'studentCertificate.number').controller!.text,
+        field(tester, 'studentCertificate.field').controller!.text,
         hasLength(50),
       );
     });
@@ -251,11 +253,11 @@ void main() {
       when(() => students.setBirthCertificate(any(), any())).thenAnswer((_) => reply.future);
       await pump(tester, record: chitraRecord);
       await open(tester, 'studentCertificate.set');
-      await tester.enterText(find.byKey(const Key('studentCertificate.number')), 'BC-1');
+      await tester.enterText(find.byKey(const Key('studentCertificate.field')), 'BC-1');
       await tester.tap(find.byKey(const Key('studentCertificate.save')));
       await tester.pump(const Duration(milliseconds: 100));
       expect(button(tester, 'studentCertificate.save').loading, isTrue);
-      expect(field(tester, 'studentCertificate.number').enabled, isFalse);
+      expect(field(tester, 'studentCertificate.field').enabled, isFalse);
       reply.complete(const IdentitySaved(StudentIdentity(birthCertificateNumber: 'BC-1')));
       await tester.pumpAndSettle();
     });
@@ -264,7 +266,7 @@ void main() {
       when(() => students.setBirthCertificate(any(), any())).thenThrow(const ApiFailure.network());
       await pump(tester);
       await open(tester, 'studentCertificate.set');
-      await tester.enterText(find.byKey(const Key('studentCertificate.number')), 'BC-1');
+      await tester.enterText(find.byKey(const Key('studentCertificate.field')), 'BC-1');
       await tester.tap(find.byKey(const Key('studentCertificate.save')));
       await tester.pumpAndSettle();
       expect(find.byKey(const Key('studentCertificate.saveError')), findsOneWidget);
@@ -277,12 +279,12 @@ void main() {
       when(() => students.setBirthCertificate(any(), any())).thenThrow(const ApiFailure.network());
       await pump(tester);
       await open(tester, 'studentCertificate.set');
-      await tester.enterText(find.byKey(const Key('studentCertificate.number')), 'BC-1');
+      await tester.enterText(find.byKey(const Key('studentCertificate.field')), 'BC-1');
       await tester.tap(find.byKey(const Key('studentCertificate.save')));
       await tester.pumpAndSettle();
       await tester.tapAt(const Offset(5, 5));
       await tester.pumpAndSettle();
-      expect(find.byKey(const Key('studentCertificate.number')), findsNothing);
+      expect(find.byKey(const Key('studentCertificate.field')), findsNothing);
       expect(find.byKey(const Key('studentCertificate.error')), findsNothing);
       expect(find.text(certificate), findsOneWidget);
     });
@@ -292,7 +294,7 @@ void main() {
       when(() => students.setBirthCertificate(any(), any())).thenAnswer((_) => reply.future);
       await pump(tester);
       await open(tester, 'studentCertificate.set');
-      await tester.enterText(find.byKey(const Key('studentCertificate.number')), 'BC-1');
+      await tester.enterText(find.byKey(const Key('studentCertificate.field')), 'BC-1');
       await tester.tap(find.byKey(const Key('studentCertificate.save')));
       await tester.pump(const Duration(milliseconds: 100));
       await tester.tapAt(const Offset(5, 5));
