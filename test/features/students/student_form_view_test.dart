@@ -536,7 +536,7 @@ void main() {
       expect(find.text('Choose one'), findsOneWidget);
     });
 
-    testWidgets('says a refusal that names no field above the form', (tester) async {
+    testWidgets('says a refusal that names no field above Save, where the person is looking', (tester) async {
       await pump(tester, refused(_failure(409, 'ROLE_CONFLICT')));
       expect(
         find.descendant(
@@ -545,9 +545,20 @@ void main() {
         ),
         findsOneWidget,
       );
+      expect(
+        find.descendant(of: find.byType(StickyBottomActions), matching: find.byKey(const Key('studentForm.error'))),
+        findsOneWidget,
+      );
     });
 
-    testWidgets('says an error on a row that is not there above the form, not nowhere', (tester) async {
+    testWidgets('keeps the refusal in view when the form is long and scrolled to its top', (tester) async {
+      await pump(tester, refused(_failure(409, 'ROLE_CONFLICT')), size: const Size(400, 640));
+      final refusal = tester.getRect(find.byKey(const Key('studentForm.error')));
+      expect(refusal.bottom, lessThanOrEqualTo(tester.getRect(saveButton()).top));
+      expect(refusal.bottom, lessThanOrEqualTo(640));
+    });
+
+    testWidgets('says an error on a row that is not there above Save, not nowhere', (tester) async {
       await pump(
         tester,
         refused(
