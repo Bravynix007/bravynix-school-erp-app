@@ -1,7 +1,9 @@
 import 'package:bravynix_school_erp/app/di/injection.dart';
+import 'package:bravynix_school_erp/app/router/app_routes.dart';
 import 'package:bravynix_school_erp/core/format/formatters.dart';
 import 'package:bravynix_school_erp/core/theme/app_spacing.dart';
 import 'package:bravynix_school_erp/core/widgets/app_card.dart';
+import 'package:bravynix_school_erp/core/widgets/app_icon_button.dart';
 import 'package:bravynix_school_erp/core/widgets/app_tag.dart';
 import 'package:bravynix_school_erp/core/widgets/key_value_row.dart';
 import 'package:bravynix_school_erp/core/widgets/section_header.dart';
@@ -17,11 +19,13 @@ import 'package:bravynix_school_erp/features/students/domain/student_profile.dar
 import 'package:bravynix_school_erp/features/students/domain/students_repository.dart';
 import 'package:bravynix_school_erp/features/students/presentation/bloc/student_profile_bloc.dart';
 import 'package:bravynix_school_erp/features/students/presentation/view/student_error_text.dart';
+import 'package:bravynix_school_erp/features/students/presentation/view/student_form_page.dart';
 import 'package:bravynix_school_erp/features/students/presentation/view/student_frame.dart';
 import 'package:bravynix_school_erp/features/students/presentation/view/student_names.dart';
 import 'package:bravynix_school_erp/l10n/gen/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 
 /// School setup → Students → one student (STU-03): who they are, where they sit, their guardians and the identity
 /// numbers, the Aadhaar masked.
@@ -46,12 +50,29 @@ class StudentProfilePage extends StatelessWidget {
 class StudentProfileView extends StatelessWidget {
   const new({super.key});
 
+  /// A saved change shows here, so the profile is read again when the form closes with true.
+  static Future<void> _openEditForm(BuildContext context) async {
+    final bloc = context.read<StudentProfileBloc>();
+    final saved = await context.push<bool>(AppRoutes.studentForm, extra: StudentFormArgs.edit(bloc.id));
+    if (saved ?? false) bloc.add(const StudentProfileRequested());
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     return BlocBuilder<StudentProfileBloc, StudentProfileState>(
       builder: (context, state) => StudentFrame(
         title: l10n.studentProfileTitle,
+        actions: [
+          // A deactivated student cannot be edited (STU-04 is 404).
+          if (state case StudentProfileLoaded(:final profile) when profile.record.isActive)
+            AppIconButton(
+              key: const Key('studentProfile.edit'),
+              icon: Icons.edit_outlined,
+              tooltip: l10n.studentEditTitle,
+              onPressed: () => _openEditForm(context),
+            ),
+        ],
         child: switch (state) {
           StudentProfileLoading() => SkeletonCards(semanticLabel: l10n.loading, heights: const [160, 112]),
           StudentProfileFailed(:final failure) when failure.code == 'FORBIDDEN' => StatePanel.forbidden(

@@ -1935,6 +1935,14 @@ class AppLocalizationsEn extends AppLocalizations {
   String get studentBirthCertificate => 'Birth certificate number';
 
   @override
+  String get studentEditTitle => 'Edit student';
+
+  @override
+  String studentSaved(String name) {
+    return '$name saved';
+  }
+
+  @override
   String studentAdded(String name) {
     return '$name added';
   }

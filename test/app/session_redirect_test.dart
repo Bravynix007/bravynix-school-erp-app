@@ -111,7 +111,7 @@ void main() {
   });
 
   test('the student form opens only with the Institution the list passes, else back to the list', () {
-    expect(studentFormRedirect(const StudentFormArgs('i1')), isNull);
+    expect(studentFormRedirect(const StudentFormArgs.add('i1')), isNull);
     expect(studentFormRedirect(null), AppRoutes.students);
     expect(studentFormRedirect('i1'), AppRoutes.students);
   });

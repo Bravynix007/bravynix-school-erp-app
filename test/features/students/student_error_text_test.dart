@@ -42,5 +42,11 @@ void main() {
     // Each of the words is its own: none is the generic text a code without any would get.
     expect(expected.values.toSet(), hasLength(expected.length));
     expect(studentFormErrorText(l10n, _code('NOT_FOUND', status: 404)), l10n.errorStudentFormNotFound);
+    // An edit (STU-04) is also refused when the student was changed meanwhile, or is gone.
+    expect(studentFormErrorText(l10n, _code('VERSION_CONFLICT', status: 409)), l10n.errorVersionConflict);
+    expect(
+      studentFormErrorText(l10n, _code('NOT_FOUND', status: 404), notFound: l10n.errorStudentNotFound),
+      l10n.errorStudentNotFound,
+    );
   });
 }

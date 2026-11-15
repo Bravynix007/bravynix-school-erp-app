@@ -10,6 +10,7 @@ import 'package:bravynix_school_erp/features/masters/domain/place_choice.dart';
 import 'package:bravynix_school_erp/features/sections/domain/section_options.dart';
 import 'package:bravynix_school_erp/features/students/domain/student.dart';
 import 'package:bravynix_school_erp/features/students/domain/student_draft.dart';
+import 'package:bravynix_school_erp/features/students/domain/student_profile.dart';
 import 'package:bravynix_school_erp/features/students/domain/students_repository.dart';
 import 'package:equatable/equatable.dart';
 
@@ -134,7 +135,8 @@ sealed class StudentFormEvent extends Equatable {
   List<Object?> get props => [];
 }
 
-/// Opening the form, and Try again after the years and sections could not be read.
+/// Opening the form, and Try again after the years and sections, or the student being edited, could not be read; also
+/// the reload after another save came first (409 VERSION_CONFLICT).
 final class StudentFormStarted extends StudentFormEvent {
   const new();
 }
@@ -301,12 +303,14 @@ class StudentFormFailed extends StudentFormState {
 }
 
 /// The form: what is chosen, and the years, classes and sections it is chosen from. The place of the address is chosen
-/// through its own `PlaceBloc`, and the text by the form's own controllers.
+/// through its own `PlaceBloc`, and the text by the form's own controllers. An edit holds the student it changes in
+/// [existing] and has no [options], placement or guardians: those change on their own screens.
 class StudentFormReady extends StudentFormState {
   const new({
-    required this.options,
     required this.guardians,
     required this.nextRowId,
+    this.options,
+    this.existing,
     this.gender,
     this.bloodGroup,
     this.dateOfBirth,
@@ -320,7 +324,11 @@ class StudentFormReady extends StudentFormState {
     this.failedGuardianIds = const [],
   });
 
-  final SectionOptions options;
+  /// The years, classes and sections a new student is placed in; null when editing one.
+  final SectionOptions? options;
+
+  /// The student being edited, as last read; null when adding one.
+  final StudentRecord? existing;
   final Gender? gender;
   final String? bloodGroup;
   final String? dateOfBirth;
@@ -343,11 +351,13 @@ class StudentFormReady extends StudentFormState {
   /// place.
   final List<int> failedGuardianIds;
 
+  bool get isEdit => existing != null;
+
   bool get canAddGuardian => guardians.length < maxGuardians;
 
   /// The sections of the class chosen; none until a class is.
   List<SectionChoice> get sections => [
-    for (final section in options.sections)
+    for (final section in options?.sections ?? const <SectionChoice>[])
       if (section.classId == classId) section,
   ];
 
@@ -367,6 +377,7 @@ class StudentFormReady extends StudentFormState {
     List<int>? failedGuardianIds,
   }) => StudentFormReady(
     options: options,
+    existing: existing,
     gender: gender == null ? this.gender : gender(),
     bloodGroup: bloodGroup == null ? this.bloodGroup : bloodGroup(),
     dateOfBirth: dateOfBirth == null ? this.dateOfBirth : dateOfBirth(),
@@ -385,6 +396,7 @@ class StudentFormReady extends StudentFormState {
   @override
   List<Object?> get props => [
     options,
+    existing,
     gender,
     bloodGroup,
     dateOfBirth,
@@ -411,9 +423,13 @@ class StudentFormSaved extends StudentFormState {
 }
 
 /// Adds a student to an Institution (STU-02): the personal details, the class and section they start in, one to five
-/// guardians with one primary, and the Aadhaar and birth certificate numbers when known.
+/// guardians with one primary, and the Aadhaar and birth certificate numbers when known. Given a [studentId] instead it
+/// edits the personal and contact fields of that student (STU-04).
 class StudentFormBloc extends Bloc<StudentFormEvent, StudentFormState> {
-  new(this._students, this._options, this.institutionId) : super(const StudentFormLoading()) {
+  /// [institutionId] is where a new student is placed; [studentId] set edits that student instead.
+  new(this._students, this._options, {this.institutionId, this.studentId})
+    : assert((institutionId == null) != (studentId == null), 'Add at an Institution, or edit one student'),
+      super(const StudentFormLoading()) {
     on<StudentFormStarted>(_onStarted);
     on<StudentGenderChosen>((event, emit) => _ready((ready) => emit(ready.copyWith(gender: () => event.gender))));
     on<StudentBloodGroupChosen>(
@@ -446,8 +462,11 @@ class StudentFormBloc extends Bloc<StudentFormEvent, StudentFormState> {
   final StudentsRepository _students;
   final SectionOptionsSource _options;
 
-  /// Where the new student is placed.
-  final String institutionId;
+  /// Where the new student is placed; null when editing one.
+  final String? institutionId;
+
+  /// The student being edited; null when adding one.
+  final String? studentId;
 
   void _ready(void Function(StudentFormReady ready) work) {
     if (state case final StudentFormReady ready) work(ready);
@@ -467,7 +486,22 @@ class StudentFormBloc extends Bloc<StudentFormEvent, StudentFormState> {
   Future<void> _onStarted(StudentFormStarted event, Emitter<StudentFormState> emit) async {
     emit(const StudentFormLoading());
     try {
-      final options = await _options.read(institutionId);
+      if (studentId case final id?) {
+        final existing = await _students.student(id);
+        emit(
+          StudentFormReady(
+            existing: existing,
+            gender: existing.gender,
+            bloodGroup: existing.bloodGroup,
+            dateOfBirth: existing.dateOfBirth,
+            admissionDate: existing.admissionDate,
+            guardians: const [],
+            nextRowId: 0,
+          ),
+        );
+        return;
+      }
+      final options = await _options.read(institutionId!);
       emit(
         StudentFormReady(
           options: options,
@@ -483,7 +517,7 @@ class StudentFormBloc extends Bloc<StudentFormEvent, StudentFormState> {
   }
 
   void _onClassChosen(StudentClassChosen event, Emitter<StudentFormState> emit) => _ready((ready) {
-    final keeps = ready.options.sections.any(
+    final keeps = (ready.options?.sections ?? const <SectionChoice>[]).any(
       (section) => section.id == ready.sectionId && section.classId == event.id,
     );
     emit(ready.copyWith(classId: () => event.id, sectionId: keeps ? null : () => null));
@@ -537,9 +571,27 @@ class StudentFormBloc extends Bloc<StudentFormEvent, StudentFormState> {
       }
       emit(ready.copyWith(saving: true, failure: () => null, failedGuardianIds: const []));
       try {
+        final existing = ready.existing;
+        final draft = _draft(ready, event.texts, event.place);
+        if (existing != null) {
+          final record = await _students.update(existing.id, existing.version, draft);
+          emit(
+            StudentFormSaved(
+              StudentSaved(
+                Student(
+                  id: record.id,
+                  institutionId: record.institutionId,
+                  firstName: record.firstName,
+                  lastName: record.lastName,
+                ),
+              ),
+            ),
+          );
+          return;
+        }
         final saved = await _students.create(
-          institutionId,
-          _draft(ready, event.texts, event.place),
+          institutionId!,
+          draft,
           enrolment: EnrolmentDraft(
             academicYearId: ready.yearId!,
             classId: ready.classId!,
@@ -567,7 +619,10 @@ class StudentFormBloc extends Bloc<StudentFormEvent, StudentFormState> {
   static ApiFailure? _problems(StudentFormReady ready, StudentTexts texts) {
     final problems = FieldProblems()
       ..requireText('firstName', texts.firstName)
-      ..requireText('mobile.number', texts.mobileNumber)
+      ..requireText('mobile.number', texts.mobileNumber);
+    // An edit changes neither the placement, the guardians nor the numbers, which have their own screens.
+    if (ready.isEdit) return problems.failure;
+    problems
       ..requireChoice('enrolment.academicYearId', ready.yearId)
       ..requireChoice('enrolment.classId', ready.classId)
       ..requireChoice('enrolment.sectionId', ready.sectionId)
