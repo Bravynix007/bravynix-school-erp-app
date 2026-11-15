@@ -251,6 +251,20 @@ const chitraRecord = StudentRecord(
   version: 1,
 );
 
+/// Chitra with the guardians' access to her blocked.
+const chitraBlockedRecord = StudentRecord(
+  id: 'p3',
+  institutionId: 'i1',
+  firstName: 'Chitra',
+  mobile: Phone(countryCode: '91', number: '9876500001'),
+  address: Address(),
+  guardians: [],
+  identity: StudentIdentity(),
+  isBlocked: true,
+  isActive: true,
+  version: 2,
+);
+
 /// A student whose mobile number is not an Indian one, and who has no address.
 const kiranRecord = StudentRecord(
   id: 'p4',

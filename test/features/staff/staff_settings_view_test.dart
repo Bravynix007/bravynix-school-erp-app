@@ -1,7 +1,8 @@
 import 'package:bloc_test/bloc_test.dart';
 import 'package:bravynix_school_erp/core/network/api_failure.dart';
 import 'package:bravynix_school_erp/core/widgets/app_button.dart';
-import 'package:bravynix_school_erp/features/staff/presentation/bloc/staff_block_bloc.dart';
+import 'package:bravynix_school_erp/features/people/presentation/bloc/access_block_bloc.dart';
+import 'package:bravynix_school_erp/features/staff/domain/staff_member.dart';
 import 'package:bravynix_school_erp/features/staff/presentation/bloc/staff_profile_bloc.dart';
 import 'package:bravynix_school_erp/features/staff/presentation/view/staff_settings_view.dart';
 import 'package:flutter/material.dart';
@@ -14,7 +15,8 @@ import '../../helpers/mocks.dart';
 import '../../helpers/pump_app.dart';
 import '../../helpers/staff.dart';
 
-class _MockBlockBloc extends MockBloc<StaffBlockEvent, StaffBlockState> implements StaffBlockBloc;
+class _MockBlockBloc extends MockBloc<AccessBlockEvent, AccessBlockState<StaffMember>>
+    implements AccessBlockBloc<StaffMember>;
 
 class _MockProfileBloc extends MockBloc<StaffProfileEvent, StaffProfileState> implements StaffProfileBloc;
 
@@ -23,7 +25,7 @@ void main() {
   late _MockProfileBloc profile;
 
   setUpAll(() {
-    registerFallbackValue(const StaffBlockToggled());
+    registerFallbackValue(const AccessBlockToggled());
     registerFallbackValue(const StaffProfileRequested());
     registerFallbackValue(StaffProfileMemberChanged(kavyaWith()));
   });
@@ -31,6 +33,8 @@ void main() {
   setUp(() {
     bloc = _MockBlockBloc();
     profile = _MockProfileBloc();
+    // The card asks the bloc whether a record is blocked.
+    when(() => bloc.isBlocked).thenReturn((member) => member.isBlocked);
   });
 
   final active = kavyaWith();
@@ -38,7 +42,7 @@ void main() {
 
   Future<void> pump(
     WidgetTester tester,
-    StaffBlockState state, {
+    AccessBlockState<StaffMember> state, {
     double textScale = 1,
     Size size = const Size(400, 1000),
   }) {
@@ -46,7 +50,7 @@ void main() {
     return tester.pumpAppScaled(
       MultiBlocProvider(
         providers: [
-          BlocProvider<StaffBlockBloc>.value(value: bloc),
+          BlocProvider<AccessBlockBloc<StaffMember>>.value(value: bloc),
           BlocProvider<StaffProfileBloc>.value(value: profile),
         ],
         child: const Scaffold(body: StaffSettingsView()),
@@ -60,14 +64,14 @@ void main() {
 
   group('a staff member who can sign in', () {
     testWidgets('is told so, with Block access offered', (tester) async {
-      await pump(tester, StaffBlockIdle(active));
+      await pump(tester, AccessBlockIdle(active));
       expect(find.text('They can use the app as staff.'), findsOneWidget);
       expect(find.text('Blocked'), findsNothing);
       expect(find.text('Block access'), findsOneWidget);
     });
 
     testWidgets('is blocked only once the person confirms', (tester) async {
-      await pump(tester, StaffBlockIdle(active));
+      await pump(tester, AccessBlockIdle(active));
       await tester.tap(find.byKey(const Key('staffSettings.toggle')));
       await tester.pumpAndSettle();
       expect(find.text('Block Kavya Nair?'), findsOneWidget);
@@ -75,11 +79,11 @@ void main() {
       verifyNever(() => bloc.add(any()));
       await tester.tap(find.descendant(of: find.byType(Dialog), matching: find.text('Block access')));
       await tester.pumpAndSettle();
-      verify(() => bloc.add(const StaffBlockToggled())).called(1);
+      verify(() => bloc.add(const AccessBlockToggled())).called(1);
     });
 
     testWidgets('is asked in red, as it is hard to undo at once', (tester) async {
-      await pump(tester, StaffBlockIdle(active));
+      await pump(tester, AccessBlockIdle(active));
       await tester.tap(find.byKey(const Key('staffSettings.toggle')));
       await tester.pumpAndSettle();
       final confirm = find.descendant(of: find.byType(Dialog), matching: find.byType(AppButton)).last;
@@ -87,7 +91,7 @@ void main() {
     });
 
     testWidgets('is left as they are when the dialog is dismissed', (tester) async {
-      await pump(tester, StaffBlockIdle(active));
+      await pump(tester, AccessBlockIdle(active));
       await tester.tap(find.byKey(const Key('staffSettings.toggle')));
       await tester.pumpAndSettle();
       await tester.tapAt(const Offset(5, 5));
@@ -97,7 +101,7 @@ void main() {
     });
 
     testWidgets('is left as they are when the person cancels', (tester) async {
-      await pump(tester, StaffBlockIdle(active));
+      await pump(tester, AccessBlockIdle(active));
       await tester.tap(find.byKey(const Key('staffSettings.toggle')));
       await tester.pumpAndSettle();
       await tester.tap(find.text('Cancel'));
@@ -108,7 +112,7 @@ void main() {
 
   group('a blocked staff member', () {
     testWidgets('is told so, with Unblock access offered', (tester) async {
-      await pump(tester, StaffBlockIdle(blocked));
+      await pump(tester, AccessBlockIdle(blocked));
       expect(find.text('Blocked'), findsOneWidget);
       expect(find.textContaining('They are blocked.'), findsOneWidget);
       expect(find.text('Unblock access'), findsOneWidget);
@@ -116,7 +120,7 @@ void main() {
     });
 
     testWidgets('is unblocked only once the person confirms', (tester) async {
-      await pump(tester, StaffBlockIdle(blocked));
+      await pump(tester, AccessBlockIdle(blocked));
       await tester.tap(find.byKey(const Key('staffSettings.toggle')));
       await tester.pumpAndSettle();
       expect(find.text('Unblock Kavya Nair?'), findsOneWidget);
@@ -125,20 +129,47 @@ void main() {
       verifyNever(() => bloc.add(any()));
       await tester.tap(find.descendant(of: find.byType(Dialog), matching: find.text('Unblock access')));
       await tester.pumpAndSettle();
-      verify(() => bloc.add(const StaffBlockToggled())).called(1);
+      verify(() => bloc.add(const AccessBlockToggled())).called(1);
     });
   });
 
   testWidgets('shows progress on the button while it works', (tester) async {
-    await pump(tester, StaffBlockWorking(active));
+    await pump(tester, AccessBlockWorking(active));
     expect(toggle(tester).loading, isTrue);
+  });
+
+  testWidgets('cannot be pressed again while it works, so a second question does not open', (tester) async {
+    await pump(tester, AccessBlockWorking(active));
+    expect(toggle(tester).onPressed, isNull);
+  });
+
+  testWidgets('tells the profile to read again when the staff member was deactivated meanwhile', (tester) async {
+    whenListen(
+      bloc,
+      Stream.value(
+        AccessBlockRefused(active, const ApiFailure(statusCode: 404, code: 'NOT_FOUND', message: 'x')),
+      ),
+      initialState: AccessBlockIdle(active),
+    );
+    await tester.pumpAppScaled(
+      MultiBlocProvider(
+        providers: [
+          BlocProvider<AccessBlockBloc<StaffMember>>.value(value: bloc),
+          BlocProvider<StaffProfileBloc>.value(value: profile),
+        ],
+        child: const Scaffold(body: StaffSettingsView()),
+      ),
+    );
+    await tester.pump();
+    verify(() => profile.add(const StaffProfileRequested())).called(1);
+    verifyNever(() => profile.add(any(that: isA<StaffProfileMemberChanged>())));
   });
 
   group('a refused block', () {
     testWidgets('says why, in words beside the button', (tester) async {
       await pump(
         tester,
-        StaffBlockRefused(active, const ApiFailure(statusCode: 409, code: 'CANNOT_ACT_ON_SELF', message: 'x')),
+        AccessBlockRefused(active, const ApiFailure(statusCode: 409, code: 'CANNOT_ACT_ON_SELF', message: 'x')),
       );
       expect(find.byKey(const Key('staffSettings.error')), findsOneWidget);
       expect(find.text("You can't do this to your own record."), findsOneWidget);
@@ -149,7 +180,7 @@ void main() {
     testWidgets('names the Society Owner when an Institution Admin may not block an Admin', (tester) async {
       await pump(
         tester,
-        StaffBlockRefused(active, const ApiFailure(statusCode: 403, code: 'FORBIDDEN', message: 'server words')),
+        AccessBlockRefused(active, const ApiFailure(statusCode: 403, code: 'FORBIDDEN', message: 'server words')),
       );
       expect(find.text('Only the Society Owner can change the access of an Institution Admin.'), findsOneWidget);
       expect(find.text('server words'), findsNothing);
@@ -160,10 +191,10 @@ void main() {
     testWidgets('tells the profile of the staff member the API answered with, and says so', (tester) async {
       whenListen(
         bloc,
-        Stream.fromIterable([StaffBlockWorking(active), StaffBlockIdle(blocked)]),
-        initialState: StaffBlockIdle(active),
+        Stream.fromIterable([AccessBlockWorking(active), AccessBlockIdle(blocked)]),
+        initialState: AccessBlockIdle(active),
       );
-      await pump(tester, StaffBlockIdle(active));
+      await pump(tester, AccessBlockIdle(active));
       await tester.pump();
       verify(() => profile.add(StaffProfileMemberChanged(blocked))).called(1);
       expect(find.text('Kavya Nair blocked'), findsOneWidget);
@@ -172,10 +203,10 @@ void main() {
     testWidgets('does the same for a lift, in its own words', (tester) async {
       whenListen(
         bloc,
-        Stream.fromIterable([StaffBlockWorking(blocked), StaffBlockIdle(active)]),
-        initialState: StaffBlockIdle(blocked),
+        Stream.fromIterable([AccessBlockWorking(blocked), AccessBlockIdle(active)]),
+        initialState: AccessBlockIdle(blocked),
       );
-      await pump(tester, StaffBlockIdle(blocked));
+      await pump(tester, AccessBlockIdle(blocked));
       await tester.pump();
       verify(() => profile.add(StaffProfileMemberChanged(active))).called(1);
       expect(find.text('Kavya Nair unblocked'), findsOneWidget);
@@ -187,12 +218,12 @@ void main() {
       whenListen(
         bloc,
         Stream.fromIterable([
-          StaffBlockWorking(active),
-          StaffBlockRefused(blocked, const ApiFailure(statusCode: 409, code: 'INVALID_STATE', message: 'x')),
+          AccessBlockWorking(active),
+          AccessBlockRefused(blocked, const ApiFailure(statusCode: 409, code: 'INVALID_STATE', message: 'x')),
         ]),
-        initialState: StaffBlockIdle(active),
+        initialState: AccessBlockIdle(active),
       );
-      await pump(tester, StaffBlockIdle(active));
+      await pump(tester, AccessBlockIdle(active));
       await tester.pump();
       verify(() => profile.add(StaffProfileMemberChanged(blocked))).called(1);
       expect(find.text('Kavya Nair blocked'), findsNothing);
@@ -202,12 +233,12 @@ void main() {
       whenListen(
         bloc,
         Stream.fromIterable([
-          StaffBlockWorking(active),
-          StaffBlockRefused(active, const ApiFailure.network()),
+          AccessBlockWorking(active),
+          AccessBlockRefused(active, const ApiFailure.network()),
         ]),
-        initialState: StaffBlockIdle(active),
+        initialState: AccessBlockIdle(active),
       );
-      await pump(tester, StaffBlockIdle(active));
+      await pump(tester, AccessBlockIdle(active));
       await tester.pump();
       verifyNever(() => profile.add(any()));
     });
@@ -219,12 +250,18 @@ void main() {
     final staff = MockStaffRepository();
     when(() => staff.block('f1')).thenThrow(const ApiFailure(statusCode: 409, code: 'INVALID_STATE', message: 'x'));
     when(() => staff.member('f1')).thenAnswer((_) async => blocked);
-    final real = StaffBlockBloc(staff, active);
+    final real = AccessBlockBloc<StaffMember>(
+      active,
+      isBlocked: (member) => member.isBlocked,
+      block: (member) => staff.block(member.id),
+      unblock: (member) => staff.unblock(member.id),
+      read: (member) => staff.member(member.id),
+    );
     addTearDown(real.close);
     await tester.pumpAppScaled(
       MultiBlocProvider(
         providers: [
-          BlocProvider<StaffBlockBloc>.value(value: real),
+          BlocProvider<AccessBlockBloc<StaffMember>>.value(value: real),
           BlocProvider<StaffProfileBloc>.value(value: profile),
         ],
         child: const Scaffold(body: StaffSettingsView()),
@@ -241,7 +278,7 @@ void main() {
   });
 
   testWidgets('reads whole at a large text scale on a small phone', (tester) async {
-    await pump(tester, StaffBlockIdle(blocked), textScale: 2, size: const Size(320, 2000));
+    await pump(tester, AccessBlockIdle(blocked), textScale: 2, size: const Size(320, 2000));
     expect(tester.takeException(), isNull);
     expect(clippedParagraphs(tester, unbreakable: 320 - 4 * 16), isEmpty);
   });
