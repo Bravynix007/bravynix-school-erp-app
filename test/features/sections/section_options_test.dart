@@ -70,4 +70,22 @@ void main() {
       () => expect(const SectionOptions(years: [], sections: []).firstYearId, isNull),
     );
   });
+
+  group('the sections in a class', () {
+    const choices = [
+      SectionChoice(id: 'e1', name: 'Class 1 · A', classId: 'k1'),
+      SectionChoice(id: 'e2', name: 'Class 1 · B', classId: 'k1'),
+      SectionChoice(id: 'e3', name: 'Class 2 · A', classId: 'k2'),
+    ];
+
+    test('are those of the class, in their order', () {
+      expect(choices.inClass('k1').map((s) => s.id), ['e1', 'e2']);
+      expect(choices.inClass('k2').map((s) => s.id), ['e3']);
+    });
+
+    test('are none for a class without sections and while no class is chosen', () {
+      expect(choices.inClass('k9'), isEmpty);
+      expect(choices.inClass(null), isEmpty);
+    });
+  });
 }

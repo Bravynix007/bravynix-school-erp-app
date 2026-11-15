@@ -80,7 +80,7 @@ void main() {
     classes = MockClassesRepository();
     sections = MockSectionsRepository();
     keys = 0;
-    when(() => years.years('i1')).thenAnswer((_) async => [currentYear, earlierYear, _nextYear]);
+    when(() => years.years('i1')).thenAnswer((_) async => [_nextYear, currentYear, earlierYear]);
     when(() => classes.classes('i1')).thenAnswer((_) async => [class1, _class2, pucClass]);
     when(() => sections.sections('k1')).thenAnswer((_) async => [sectionA, sectionB]);
     when(() => sections.sections('k2')).thenAnswer((_) async => [_class2A]);
@@ -150,7 +150,7 @@ void main() {
         var calls = 0;
         when(() => years.years('i1')).thenAnswer((_) async {
           if (calls++ == 0) throw _down;
-          return [currentYear, _nextYear];
+          return [_nextYear, currentYear];
         });
       },
       build: () => build(const PromoteOne(_asha)),
@@ -235,11 +235,12 @@ void main() {
       await bloc.close();
     });
 
-    test('sends no target to complete the final class, and says so', () async {
+    test('sends no target to complete the final class even after one was chosen, and says so', () async {
       when(() => students.promoteStudent('p1')).thenAnswer((_) async => const Promoted(ashaRecord));
       final bloc = await opened(const PromoteOne(_asha));
-      // A roll number typed before the final class was chosen is not sent: it belongs to a new place.
+      // A target chosen, and a roll number typed, before the final class was chosen are not sent: they belong to a new place.
       bloc
+        ..add(const PromotionTargetSectionChosen('e3'))
         ..add(const PromotionCompletesToggled(value: true))
         ..add(const PromotionSubmitted(rollNumber: '20'));
       final done = await bloc.stream.firstWhere((state) => state is PromotionDone) as PromotionDone;
@@ -384,6 +385,7 @@ void main() {
       final bloc = await opened(const PromoteGroup('i1'));
       bloc
         ..add(const PromotionSourceSectionChosen('e1'))
+        ..add(const PromotionTargetSectionChosen('e3'))
         ..add(const PromotionCompletesToggled(value: true))
         ..add(const PromotionSubmitted());
       final done = await bloc.stream.firstWhere((state) => state is PromotionDone) as PromotionDone;

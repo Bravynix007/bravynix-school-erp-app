@@ -104,10 +104,7 @@ class StudentMoveReady extends StudentMoveState {
   final ApiFailure? failure;
 
   /// The sections of the chosen class.
-  List<SectionChoice> get sectionsInClass => [
-    for (final section in sections)
-      if (section.classId == classId) section,
-  ];
+  List<SectionChoice> get sectionsInClass => sections.inClass(classId);
 
   StudentMoveReady copyWith({
     String? classId,

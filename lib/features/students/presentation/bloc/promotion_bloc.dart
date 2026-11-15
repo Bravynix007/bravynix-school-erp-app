@@ -196,14 +196,9 @@ class PromotionReady extends PromotionState {
   /// The last attempt that was refused.
   final ApiFailure? failure;
 
-  List<SectionChoice> get sourceSections => _inClass(sourceClassId);
+  List<SectionChoice> get sourceSections => sections.inClass(sourceClassId);
 
-  List<SectionChoice> get targetSections => _inClass(targetClassId);
-
-  List<SectionChoice> _inClass(String? classId) => [
-    for (final section in sections)
-      if (section.classId == classId) section,
-  ];
+  List<SectionChoice> get targetSections => sections.inClass(targetClassId);
 
   /// The years that begin after the year the students are in, earliest first: all a promotion can go to.
   List<AcademicYear> get targetYears {
@@ -391,7 +386,6 @@ class PromotionBloc extends Bloc<PromotionEvent, PromotionState> {
           PromoteOne(:final student) => await _promoteOne(student, ready, event.rollNumber.trim()),
           PromoteGroup(:final institutionId) => await _promoteGroup(institutionId, ready),
         };
-        _key = null;
         emit(PromotionDone(result, targetName: ready.completes ? null : ready.targetName));
       } on ApiFailure catch (failure) {
         if (state case final PromotionReady now) emit(now.copyWith(saving: false, failure: () => failure));

@@ -364,7 +364,8 @@ void main() {
       expect(find.text('No student was promoted'), findsOneWidget);
     });
 
-    testWidgets('closes with true, so the list behind it reads again', (tester) async {
+    /// Opens the finished promotion from a list screen, taps what [close] finds, and answers what the list gets back.
+    Future<bool?> closedBy(WidgetTester tester, Finder Function() close) async {
       when(() => bloc.state).thenReturn(const PromotionDone(PromotionResult(promotedCount: 3), targetName: 'Class 2'));
       bool? result;
       final router = GoRouter(
@@ -396,9 +397,17 @@ void main() {
       );
       await tester.tap(find.text('open'));
       await tester.pumpAndSettle();
-      await tester.tap(find.text('Done'));
+      await tester.tap(close());
       await tester.pumpAndSettle();
-      expect(result, isTrue);
+      return result;
+    }
+
+    testWidgets('closes with true from Done, so the list behind it reads again', (tester) async {
+      expect(await closedBy(tester, () => find.text('Done')), isTrue);
+    });
+
+    testWidgets('closes with true from the back arrow too, as the students are already promoted', (tester) async {
+      expect(await closedBy(tester, () => find.byTooltip('Back')), isTrue);
     });
   });
 
