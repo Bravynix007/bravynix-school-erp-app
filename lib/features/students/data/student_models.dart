@@ -6,8 +6,8 @@ import 'package:bravynix_school_erp/features/students/domain/student.dart';
 import 'package:bravynix_school_erp/features/students/domain/student_draft.dart';
 import 'package:bravynix_school_erp/features/students/domain/student_profile.dart';
 
-/// JSON → domain for STU-01 to STU-03, and the bodies of STU-02 and STU-04. Unknown fields are ignored, as /v1 only ever adds
-/// fields (API design 5.2).
+/// JSON → domain for STU-01 to STU-03, and the bodies of STU-02 and STU-04. Unknown fields are ignored, as /v1 only
+/// ever adds fields (API design 5.2).
 abstract final class StudentModels {
   static StudentPlacement _placement(Object? raw) {
     final json = jsonObject(raw);

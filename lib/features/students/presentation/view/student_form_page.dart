@@ -58,8 +58,8 @@ String studentAddedMessage(AppLocalizations l10n, StudentSaved saved) =>
 /// What the snackbar says once a student's details are saved.
 String studentSavedMessage(AppLocalizations l10n, StudentSaved saved) => l10n.studentSaved(saved.student.fullName);
 
-/// School setup → Students → Add student, or Edit on one profile (STU-02, STU-04). Closes with `true` once saved, so the
-/// screen behind it reads again.
+/// School setup → Students → Add student, or Edit on one profile (STU-02, STU-04). Closes with `true` once saved, so
+/// the screen behind it reads again.
 class StudentFormPage extends StatelessWidget {
   const new({required this.args, super.key});
 
@@ -108,7 +108,8 @@ class StudentFormView extends StatelessWidget {
               message: l10n.studentFormNoPlacesMessage,
             ),
           ),
-          // A read of another version builds a new form, so no typed text or picker outlives the record it was typed on.
+          // A read of another version builds a new form, so no typed text or picker outlives the record it was typed
+          // on.
           StudentFormReady() => _Form(key: ValueKey(state.existing?.version), state: state, title: title),
           StudentFormFailed(:final failure) when failure.code == 'FORBIDDEN' => StudentFrame(
             title: title,
@@ -463,8 +464,8 @@ class _FormBodyState extends State<_FormBody> {
                       errorOf: error,
                     ),
                   ),
-                  // An edit changes neither the placement, the guardians nor the numbers: they have their own screens, so only a
-                  // new student is asked for them.
+                  // An edit changes neither the placement, the guardians nor the numbers: they have their own
+                  // screens, so only a new student is asked for them.
                   if (options != null) ...[
                     const SizedBox(height: AppSpacing.md),
                     SectionHeader(title: l10n.studentFormPlacement),
@@ -586,8 +587,8 @@ class _FormBodyState extends State<_FormBody> {
         bottomNavigationBar: StickyBottomActions(
           primaryLabel: l10n.formSave,
           primaryLoading: state.saving,
-          // The place is sent with the rest, so Save waits until it is read, and until a photo that is on its way has its
-          // ID.
+          // The place is sent with the rest, so Save waits until it is read, and until a photo that is on its way has
+          // its ID.
           onPrimary: state.saving || place == null || uploading ? null : () => _save(place),
           secondaryLabel: l10n.cancel,
           onSecondary: () => Navigator.maybePop(context),
