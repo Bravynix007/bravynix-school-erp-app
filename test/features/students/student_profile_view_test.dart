@@ -34,12 +34,14 @@ ApiFailure _failure(int status, String code) => ApiFailure(statusCode: status, c
 
 void main() {
   late _MockProfileBloc bloc;
+  late MockStudentsRepository students;
   setUpAll(() => registerFallbackValue(const StudentProfileRequested()));
   setUp(() {
     bloc = _MockProfileBloc();
     when(() => bloc.id).thenReturn('p1');
     // The parent access card makes its own bloc from the repository.
-    getIt.registerSingleton<StudentsRepository>(MockStudentsRepository());
+    students = MockStudentsRepository();
+    getIt.registerSingleton<StudentsRepository>(students);
   });
   tearDown(getIt.reset);
 
@@ -163,6 +165,47 @@ void main() {
     await pump(tester, const StudentProfileLoaded(_ashaProfile), textScale: 2, size: const Size(320, 640));
     expect(tester.takeException(), isNull);
     expect(clippedParagraphs(tester), isEmpty);
+  });
+
+  group('Parent access through the card', () {
+    /// Opens the card of the profile and confirms [action].
+    Future<void> pumpAndOpen(WidgetTester tester, StudentProfile profile, String action) async {
+      await pump(tester, StudentProfileLoaded(profile));
+      await tester.tap(find.byKey(const Key('studentAccess.toggle')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.descendant(of: find.byType(Dialog), matching: find.text(action)));
+      await tester.pumpAndSettle();
+    }
+
+    testWidgets('blocks this student through the repository, and tells the profile of the record it answered', (
+      tester,
+    ) async {
+      when(() => students.block('p1')).thenAnswer((_) async => chitraBlockedRecord);
+      await pumpAndOpen(tester, _ashaProfile, 'Block parent access');
+      verify(() => students.block('p1')).called(1);
+      verifyNever(() => students.unblock(any()));
+      verify(() => bloc.add(const StudentProfileRecordChanged(chitraBlockedRecord))).called(1);
+    });
+
+    testWidgets('lifts the block of this student through the repository', (tester) async {
+      when(() => students.unblock('p3')).thenAnswer((_) async => chitraRecord);
+      await pumpAndOpen(tester, const StudentProfile(chitraBlockedRecord), 'Restore parent access');
+      verify(() => students.unblock('p3')).called(1);
+      verifyNever(() => students.block(any()));
+      verify(() => bloc.add(const StudentProfileRecordChanged(chitraRecord))).called(1);
+    });
+
+    testWidgets('reads the student again from the API when the access was already as asked, and tells the profile', (
+      tester,
+    ) async {
+      when(
+        () => students.block('p1'),
+      ).thenThrow(const ApiFailure(statusCode: 409, code: 'INVALID_STATE', message: 'x'));
+      when(() => students.student('p1')).thenAnswer((_) async => chitraBlockedRecord);
+      await pumpAndOpen(tester, _ashaProfile, 'Block parent access');
+      verify(() => students.student('p1')).called(1);
+      verify(() => bloc.add(const StudentProfileRecordChanged(chitraBlockedRecord))).called(1);
+    });
   });
 
   group('Parent access', () {
