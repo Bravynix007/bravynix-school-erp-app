@@ -191,11 +191,16 @@ void main() {
         ..add(const StudentMoveClassChosen(null));
       await Future<void>.delayed(Duration.zero);
       expect(bloc.state, before);
+      final states = <StudentMoveState>[];
+      final listening = bloc.stream.listen(states.add);
       bloc
         ..add(const StudentMoveSubmitted('14'))
         ..add(const StudentMoveClassChosen('k1'));
       await bloc.stream.firstWhere((state) => state is StudentMoveSaved);
+      await listening.cancel();
       verify(() => students.correctClass('p1', classId: 'k2', sectionId: 'e3')).called(1);
+      // The class chosen while saving was not taken: no state after the save began is in the class they came from.
+      expect(states.whereType<StudentMoveReady>().map((ready) => ready.classId), everyElement('k2'));
     });
   });
 
