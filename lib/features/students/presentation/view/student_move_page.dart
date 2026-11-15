@@ -10,8 +10,11 @@ import 'package:bravynix_school_erp/core/widgets/optional_date_field.dart';
 import 'package:bravynix_school_erp/core/widgets/skeleton.dart';
 import 'package:bravynix_school_erp/core/widgets/state_panel.dart';
 import 'package:bravynix_school_erp/core/widgets/sticky_bottom_actions.dart';
+import 'package:bravynix_school_erp/features/academic_years/domain/academic_years_repository.dart';
+import 'package:bravynix_school_erp/features/classes/domain/classes_repository.dart';
 import 'package:bravynix_school_erp/features/masters/domain/master_entry.dart';
 import 'package:bravynix_school_erp/features/masters/presentation/view/master_dropdown.dart';
+import 'package:bravynix_school_erp/features/sections/domain/section_options.dart';
 import 'package:bravynix_school_erp/features/sections/domain/sections_repository.dart';
 import 'package:bravynix_school_erp/features/students/domain/student.dart';
 import 'package:bravynix_school_erp/features/students/domain/students_repository.dart';
@@ -46,7 +49,11 @@ class StudentMovePage extends StatelessWidget {
   Widget build(BuildContext context) => BlocProvider(
     create: (_) => StudentMoveBloc(
       getIt<StudentsRepository>(),
-      getIt<SectionsRepository>(),
+      SectionOptionsSource(
+        years: getIt<AcademicYearsRepository>(),
+        classes: getIt<ClassesRepository>(),
+        sections: getIt<SectionsRepository>(),
+      ),
       args.entry.summary,
     )..add(const StudentMoveStarted()),
     child: StudentMoveView(entry: args.entry),
@@ -122,7 +129,7 @@ class _FormState extends State<_Form> {
   }
 
   /// The fields the form shows an error under, named as the API names them.
-  static const _fields = {'sectionId', 'rollNumber', 'effectiveDate'};
+  static const _fields = {'classId', 'sectionId', 'rollNumber', 'effectiveDate'};
 
   @override
   Widget build(BuildContext context) {
@@ -137,7 +144,9 @@ class _FormState extends State<_Form> {
     final banner = failure != null && !failure.namesOnly(_fields)
         ? studentFormErrorText(l10n, failure, notFound: l10n.errorStudentNotFound)
         : null;
-    final changed = state.sectionId != placement.sectionId || _rollNumber.text.trim() != placement.rollNumber;
+    final correcting = state.classId != placement.classId;
+    final changed =
+        correcting || state.sectionId != placement.sectionId || _rollNumber.text.trim() != placement.rollNumber;
     final today = DateTime.now();
     final started = DateTime.tryParse(placement.startDate) ?? DateTime(2000);
     final todayOnly = DateTime(today.year, today.month, today.day);
@@ -170,9 +179,22 @@ class _FormState extends State<_Form> {
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
                       MasterDropdown(
+                        key: const Key('studentMove.class'),
+                        label: l10n.studentClass,
+                        entries: [for (final choice in state.classes) MasterEntry(id: choice.id, name: choice.name)],
+                        value: state.classId,
+                        required: true,
+                        requiredLabel: l10n.fieldRequired,
+                        error: error('classId'),
+                        onChanged: (id) => bloc.add(StudentMoveClassChosen(id)),
+                      ),
+                      const SizedBox(height: AppSpacing.sm),
+                      MasterDropdown(
                         key: const Key('studentMove.section'),
                         label: l10n.studentSection,
-                        entries: [for (final choice in state.sections) MasterEntry(id: choice.id, name: choice.name)],
+                        entries: [
+                          for (final choice in state.sectionsInClass) MasterEntry(id: choice.id, name: choice.name),
+                        ],
                         value: state.sectionId,
                         required: true,
                         requiredLabel: l10n.fieldRequired,
@@ -192,21 +214,29 @@ class _FormState extends State<_Form> {
                         textInputAction: TextInputAction.done,
                       ),
                       const SizedBox(height: AppSpacing.sm),
-                      OptionalDateField(
-                        key: const Key('studentMove.effectiveDate'),
-                        label: l10n.studentMoveFrom,
-                        day: state.effectiveDate,
-                        hint: l10n.chooseDate,
-                        clearLabel: l10n.clearDate(l10n.studentMoveFrom),
-                        // Not before the placement began, and not after today: a placement that begins later (a promoted
-                        // student's, until the new year starts) takes only its first day.
-                        firstDay: started,
-                        lastDay: started.isAfter(todayOnly) ? started : todayOnly,
-                        error: error('effectiveDate'),
-                        onChanged: (day) => bloc.add(StudentMoveDateChosen(day)),
-                      ),
-                      const SizedBox(height: AppSpacing.xxs),
-                      Text(l10n.studentMoveFromHelper, style: Theme.of(context).textTheme.bodySmall),
+                      if (correcting)
+                        Text(
+                          l10n.studentMoveCorrectHelper,
+                          key: const Key('studentMove.correctHelper'),
+                          style: Theme.of(context).textTheme.bodySmall,
+                        )
+                      else ...[
+                        OptionalDateField(
+                          key: const Key('studentMove.effectiveDate'),
+                          label: l10n.studentMoveFrom,
+                          day: state.effectiveDate,
+                          hint: l10n.chooseDate,
+                          clearLabel: l10n.clearDate(l10n.studentMoveFrom),
+                          // Not before the placement began, and not after today: a placement that begins later (a
+                          // promoted student's, until the new year starts) takes only its first day.
+                          firstDay: started,
+                          lastDay: started.isAfter(todayOnly) ? started : todayOnly,
+                          error: error('effectiveDate'),
+                          onChanged: (day) => bloc.add(StudentMoveDateChosen(day)),
+                        ),
+                        const SizedBox(height: AppSpacing.xxs),
+                        Text(l10n.studentMoveFromHelper, style: Theme.of(context).textTheme.bodySmall),
+                      ],
                     ],
                   ),
                 ),
@@ -218,7 +248,7 @@ class _FormState extends State<_Form> {
       bottomNavigationBar: StickyBottomActions(
         primaryLabel: l10n.formSave,
         primaryLoading: state.saving,
-        onPrimary: state.saving || !changed || _rollNumber.text.trim().isEmpty
+        onPrimary: state.saving || !changed || state.sectionId == null || _rollNumber.text.trim().isEmpty
             ? null
             : () => bloc.add(StudentMoveSubmitted(_rollNumber.text)),
         secondaryLabel: l10n.cancel,

@@ -32,6 +32,9 @@ void main() {
       'INVALID_AADHAAR': l10n.errorAadhaarInvalid,
       'PRIMARY_GUARDIAN_REQUIRED': l10n.errorPrimaryGuardianRequired,
       'REFERENCE_INACTIVE': l10n.errorReferenceInactive,
+      'TARGET_CLASS_BELOW_SOURCE': l10n.errorTargetClassBelowSource,
+      'CLASS_UNCHANGED': l10n.errorClassUnchanged,
+      'NO_CURRENT_PLACEMENT': l10n.errorNoCurrentPlacement,
     };
     for (final MapEntry(:key, :value) in expected.entries) {
       expect(studentFormErrorText(l10n, _code(key)), value, reason: key);

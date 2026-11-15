@@ -26,6 +26,18 @@ abstract class StudentsRepository {
   /// `effectiveDate`.
   Future<List<String>> move(String id, {String? sectionId, String? rollNumber, String? effectiveDate});
 
+  /// STU-12: puts the student in [classId] and its [sectionId] for the whole of the year they are enrolled in, when they
+  /// were in the wrong class from the start; [rollNumber] only when it changes. The answer is the warnings of the write
+  /// (`SECTION_OVER_CAPACITY`). 404 for a student already deactivated; 409 `ROLL_NUMBER_TAKEN`; 422 `CLASS_UNCHANGED`,
+  /// `TARGET_CLASS_BELOW_SOURCE` (below the class they were promoted from), `NO_CURRENT_PLACEMENT`,
+  /// `SECTION_NOT_IN_CLASS`, `INACTIVE_SECTION` and `YEAR_NOT_ACTIVE`.
+  Future<List<String>> correctClass(
+    String id, {
+    required String classId,
+    required String sectionId,
+    String? rollNumber,
+  });
+
   /// STU-02: adds a student to [institutionId] with the first placement ([enrolment]), one to five [guardians] with
   /// exactly one primary, and the [identity] numbers when given. The answer carries the warnings of the write. 409
   /// `ADMISSION_NO_TAKEN`, `ROLL_NUMBER_TAKEN`, `AADHAAR_DUPLICATE_IN_INSTITUTION`, `ROLE_CONFLICT` and
