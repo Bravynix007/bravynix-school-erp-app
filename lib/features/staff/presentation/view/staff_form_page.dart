@@ -280,7 +280,8 @@ class _FormBodyState extends State<_FormBody> {
       },
     );
     final uploading = context.select<FileUploadBloc, bool>((bloc) => bloc.state is FileUploadSending);
-    // A save that failed on fields of this form is shown under them; any other failure is said above.
+    // A save that failed on fields of this form is shown under them; any other failure is said above Save, where the
+    // person is looking after pressing it.
     final banner = failure != null && !failure.namesOnly(_fieldsShown(state)) ? staffErrorText(l10n, failure) : null;
     return StaleCopyGuard(
       // The staff member was deactivated meanwhile, so the screen behind reads again.
@@ -293,17 +294,6 @@ class _FormBodyState extends State<_FormBody> {
               child: ListView(
                 padding: const EdgeInsets.all(AppSpacing.screenMargin),
                 children: [
-                  if (banner != null) ...[
-                    // Someone else saved first, so the form is read again before another Save can succeed (API design 8.2).
-                    InlineMessage.error(
-                      banner,
-                      key: const Key('staffForm.error'),
-                      actionLabel: failure?.code == 'VERSION_CONFLICT' ? l10n.institutionReload : null,
-                      onAction: () => bloc.add(const StaffFormStarted()),
-                      actionKey: const Key('staffForm.reload'),
-                    ),
-                    const SizedBox(height: AppSpacing.sm),
-                  ],
                   SectionHeader(title: l10n.personFormPhoto),
                   const SizedBox(height: AppSpacing.xs),
                   AppCard(
@@ -534,6 +524,16 @@ class _FormBodyState extends State<_FormBody> {
           onPrimary: state.saving || place == null || uploading ? null : () => _save(place),
           secondaryLabel: l10n.cancel,
           onSecondary: () => Navigator.maybePop(context),
+          // Someone else saved first, so the form is read again before another Save can succeed (API design 8.2).
+          notice: banner == null
+              ? null
+              : InlineMessage.error(
+                  banner,
+                  key: const Key('staffForm.error'),
+                  actionLabel: failure?.code == 'VERSION_CONFLICT' ? l10n.institutionReload : null,
+                  onAction: () => bloc.add(const StaffFormStarted()),
+                  actionKey: const Key('staffForm.reload'),
+                ),
         ),
       ),
     );
