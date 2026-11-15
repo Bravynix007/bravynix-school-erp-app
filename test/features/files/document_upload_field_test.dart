@@ -30,6 +30,7 @@ void main() {
     WidgetTester tester,
     FileUploadState state, {
     FilePicking? picking,
+    bool csv = false,
     double textScale = 1,
   }) {
     when(() => bloc.state).thenReturn(state);
@@ -38,7 +39,7 @@ void main() {
         body: SingleChildScrollView(
           child: BlocProvider<FileUploadBloc>.value(
             value: bloc,
-            child: DocumentUploadField(picking: picking ?? FakeFilePicking()),
+            child: DocumentUploadField(picking: picking ?? FakeFilePicking(), csv: csv),
           ),
         ),
       ),
@@ -55,6 +56,17 @@ void main() {
     expect(find.text('Choose a file'), findsOneWidget);
     expect(find.byKey(const Key('document.remove')), findsNothing);
     expect(find.byType(InlineMessage), findsNothing);
+  });
+
+  testWidgets('an import field says it takes a CSV file, and asks the phone for one', (tester) async {
+    final picking = FakeFilePicking(result: csvFile);
+    await pump(tester, const FileUploadIdle(), picking: picking, csv: true);
+    expect(find.text('A CSV file, up to 5 MB.'), findsOneWidget);
+    expect(find.text('PDF, JPG, PNG or WebP, up to 5 MB.'), findsNothing);
+    await tester.tap(find.byKey(const Key('document.pick')));
+    await tester.pumpAndSettle();
+    expect([picking.csvs, picking.documents], [1, 0]);
+    verify(() => bloc.add(FileUploadStarted(csvFile))).called(1);
   });
 
   testWidgets('hands the file the phone gives to the bloc', (tester) async {

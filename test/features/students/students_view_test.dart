@@ -707,6 +707,74 @@ void main() {
     });
   });
 
+  group('Import', () {
+    /// The list on a router that has the import's location, which closes with [result] (null: backed out).
+    Future<List<String>> pumpWithImport(WidgetTester tester, {required bool? result}) async {
+      when(() => bloc.state).thenReturn(const _Loaded([ashaEntry]));
+      when(() => bloc.institutionId).thenReturn('i1');
+      final opened = <String>[];
+      final router = GoRouter(
+        routes: [
+          GoRoute(
+            path: '/',
+            builder: (_, _) => Scaffold(
+              body: MultiBlocProvider(
+                providers: [
+                  BlocProvider<StudentsBloc>.value(value: bloc),
+                  BlocProvider<StudentFiltersBloc>.value(value: filters),
+                ],
+                child: const StudentsView(),
+              ),
+            ),
+          ),
+          GoRoute(
+            path: AppRoutes.studentImport,
+            builder: (context, routeState) {
+              opened.add(routeState.extra! as String);
+              return Scaffold(
+                body: TextButton(onPressed: () => context.pop(result), child: const Text('close import')),
+              );
+            },
+          ),
+        ],
+      );
+      addTearDown(router.dispose);
+      await tester.pumpWidget(
+        MaterialApp.router(
+          theme: AppTheme.light(),
+          routerConfig: router,
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+        ),
+      );
+      return opened;
+    }
+
+    testWidgets('opens the import for this Institution, and reads the list again once one was started', (tester) async {
+      final opened = await pumpWithImport(tester, result: true);
+      await tester.tap(find.byKey(const Key('students.import')));
+      await tester.pumpAndSettle();
+      expect(opened, ['i1']);
+      await tester.tap(find.text('close import'));
+      await tester.pumpAndSettle();
+      verify(() => bloc.add(const PagedListRequested())).called(1);
+    });
+
+    testWidgets('leaves the list alone when the import closed without starting', (tester) async {
+      await pumpWithImport(tester, result: false);
+      await tester.tap(find.byKey(const Key('students.import')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('close import'));
+      await tester.pumpAndSettle();
+      verifyNever(() => bloc.add(const PagedListRequested()));
+    });
+
+    testWidgets('waits while a deactivation goes', (tester) async {
+      await pump(tester, const _Loaded([ashaEntry], busyId: 'p1'));
+      expect(tester.widget<ButtonStyleButton>(button('students.import')).onPressed, isNull);
+    });
+  });
+
   group('an empty list', () {
     testWidgets('says there are no students yet when nothing is searched or filtered', (tester) async {
       await pump(tester, const _Loaded([]));

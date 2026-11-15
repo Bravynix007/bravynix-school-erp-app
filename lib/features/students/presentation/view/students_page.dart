@@ -107,6 +107,14 @@ Future<void> _openPromoteForm(BuildContext context, {StudentListEntry? entry}) a
   if (saved ?? false) bloc.add(const PagedListRequested());
 }
 
+/// Opens the import of students from a file; students that were imported change the list, so it is read again when the
+/// screen closes with true.
+Future<void> _openImport(BuildContext context) async {
+  final bloc = context.read<StudentsBloc>();
+  final started = await context.push<bool>(AppRoutes.studentImport, extra: bloc.institutionId);
+  if (started ?? false) bloc.add(const PagedListRequested());
+}
+
 /// Opens one student's profile; Edit there changes the student, so the list is read again on the way back.
 Future<void> _openProfile(BuildContext context, String id) async {
   final bloc = context.read<StudentsBloc>();
@@ -159,6 +167,14 @@ class StudentsView extends StatelessWidget {
             icon: Icons.trending_up,
             variant: AppButtonVariant.secondary,
             onPressed: idle ? () => _openPromoteForm(context) : null,
+          ),
+          const SizedBox(height: AppSpacing.xs),
+          AppButton(
+            key: const Key('students.import'),
+            label: l10n.studentsImport,
+            icon: Icons.upload_file,
+            variant: AppButtonVariant.secondary,
+            onPressed: idle ? () => _openImport(context) : null,
           ),
           const SizedBox(height: AppSpacing.sm),
         ],

@@ -4,6 +4,7 @@ import 'package:bravynix_school_erp/core/model/phone.dart';
 import 'package:bravynix_school_erp/features/sections/domain/section_options.dart';
 import 'package:bravynix_school_erp/features/students/domain/student.dart';
 import 'package:bravynix_school_erp/features/students/domain/student_draft.dart';
+import 'package:bravynix_school_erp/features/students/domain/student_import.dart';
 import 'package:bravynix_school_erp/features/students/domain/student_profile.dart';
 
 import 'academic_years.dart';
@@ -277,4 +278,41 @@ const kiranRecord = StudentRecord(
   isBlocked: false,
   isActive: true,
   version: 5,
+);
+
+/// An import the worker has not finished: [processed] of 10 rows done.
+StudentImport importRunning({int processed = 0}) => StudentImport(
+  id: 'm1',
+  status: processed == 0 ? ImportStatus.queued : ImportStatus.running,
+  totalRows: processed == 0 ? null : 10,
+  processedRows: processed,
+  importedRows: processed,
+  skippedRows: 0,
+  overCapacity: false,
+);
+
+/// An import that is settled: 8 students and 2 skipped rows.
+const importDone = StudentImport(
+  id: 'm1',
+  status: ImportStatus.done,
+  totalRows: 10,
+  processedRows: 10,
+  importedRows: 8,
+  skippedRows: 2,
+  overCapacity: true,
+  rowErrors: [
+    ImportRowError(row: 4, message: 'The roll number is already taken.'),
+    ImportRowError(row: 9, message: 'The class was not found.'),
+  ],
+);
+
+/// An import that read no row.
+const importRefused = StudentImport(
+  id: 'm1',
+  status: ImportStatus.failed,
+  processedRows: 0,
+  importedRows: 0,
+  skippedRows: 0,
+  overCapacity: false,
+  errorCode: 'CSV_HEADER_INVALID',
 );

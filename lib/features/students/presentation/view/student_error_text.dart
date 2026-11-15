@@ -72,3 +72,20 @@ String studentFormErrorText(AppLocalizations l10n, ApiFailure failure, {String? 
   'NO_CURRENT_PLACEMENT' => l10n.errorNoCurrentPlacement,
   _ => apiErrorText(l10n, failure, notFound: notFound ?? l10n.errorStudentFormNotFound),
 };
+
+/// Copy for the codes IMP-02 adds (API design 10.8): 422 FILE_NOT_READY and YEAR_NOT_ACTIVE, 409 IMPORT_ALREADY_RUNNING,
+/// and 404 for a file or year that is not found. The rest reads as everywhere else.
+String studentImportErrorText(AppLocalizations l10n, ApiFailure failure) => switch (failure.code) {
+  'FILE_NOT_READY' => l10n.errorImportFileNotReady,
+  'IMPORT_ALREADY_RUNNING' => l10n.errorImportAlreadyRunning,
+  'YEAR_NOT_ACTIVE' => l10n.errorStudentYearNotActive,
+  _ => apiErrorText(l10n, failure, notFound: l10n.errorImportNotFound),
+};
+
+/// Why an import that read no row stopped (API design 10.8): the codes of a failed import.
+String studentImportFailureText(AppLocalizations l10n, String code) => switch (code) {
+  'CSV_HEADER_INVALID' => l10n.errorImportHeaderInvalid,
+  'CSV_TOO_LARGE' => l10n.errorImportTooLarge,
+  'CSV_UNREADABLE' => l10n.errorImportUnreadable,
+  _ => l10n.errorImportFailed,
+};

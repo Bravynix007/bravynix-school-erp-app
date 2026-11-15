@@ -64,6 +64,19 @@ class ApiClient {
     }
   }
 
+  /// A read whose answer is text, not the envelope (the sample CSV of IMP-01). A refusal is still the envelope.
+  Future<String> text(String path) async {
+    Response<Object?>? response;
+    try {
+      response = await _dio.get<Object?>(path);
+      final body = response.data;
+      if (body is! String) throw ApiFailure.unexpected(response.statusCode ?? 0, requestId: _requestId(response));
+      return body;
+    } on Object catch (error, stackTrace) {
+      throw _asFailure(path, error, stackTrace, response);
+    }
+  }
+
   /// A read the server may answer 304 to when [etag] still matches (API design 19.2): the caller keeps what it
   /// holds. A 200 carries the new data and the tag to send next time.
   Future<ConditionalData<T>> conditional<T>(

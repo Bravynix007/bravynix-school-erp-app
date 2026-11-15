@@ -3037,6 +3037,12 @@ abstract class AppLocalizations {
   /// **'PDF, JPG, PNG or WebP, up to 5 MB.'**
   String get filesDocumentHint;
 
+  /// No description provided for @filesCsvHint.
+  ///
+  /// In en, this message translates to:
+  /// **'A CSV file, up to 5 MB.'**
+  String get filesCsvHint;
+
   /// No description provided for @staffTabDocuments.
   ///
   /// In en, this message translates to:
@@ -4002,6 +4008,180 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'The student, class, year or section could not be found. It may have been deactivated.'**
   String get errorPromotionNotFound;
+
+  /// No description provided for @importTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Import students'**
+  String get importTitle;
+
+  /// No description provided for @studentsImport.
+  ///
+  /// In en, this message translates to:
+  /// **'Import from a file'**
+  String get studentsImport;
+
+  /// No description provided for @importIntro.
+  ///
+  /// In en, this message translates to:
+  /// **'Add many students at once from a CSV file. Each row is one student with one guardian. Rows that cannot be added are skipped, and listed when the import is done.'**
+  String get importIntro;
+
+  /// No description provided for @importColumns.
+  ///
+  /// In en, this message translates to:
+  /// **'The first row of the file must be exactly these columns, in this order:'**
+  String get importColumns;
+
+  /// No description provided for @importShowSample.
+  ///
+  /// In en, this message translates to:
+  /// **'Show a sample file'**
+  String get importShowSample;
+
+  /// No description provided for @importSampleTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Sample file'**
+  String get importSampleTitle;
+
+  /// No description provided for @importYear.
+  ///
+  /// In en, this message translates to:
+  /// **'Add the students to the year'**
+  String get importYear;
+
+  /// No description provided for @importFile.
+  ///
+  /// In en, this message translates to:
+  /// **'The file'**
+  String get importFile;
+
+  /// No description provided for @importStart.
+  ///
+  /// In en, this message translates to:
+  /// **'Start import'**
+  String get importStart;
+
+  /// No description provided for @importRunningTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Importing students'**
+  String get importRunningTitle;
+
+  /// No description provided for @importWaiting.
+  ///
+  /// In en, this message translates to:
+  /// **'Waiting for the import to start.'**
+  String get importWaiting;
+
+  /// No description provided for @importReading.
+  ///
+  /// In en, this message translates to:
+  /// **'{done} of {total} rows done'**
+  String importReading(int done, int total);
+
+  /// No description provided for @importLeave.
+  ///
+  /// In en, this message translates to:
+  /// **'You can leave this screen. The import carries on, and the students appear in the list.'**
+  String get importLeave;
+
+  /// No description provided for @importCheckAgain.
+  ///
+  /// In en, this message translates to:
+  /// **'Check again'**
+  String get importCheckAgain;
+
+  /// No description provided for @importDoneTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Import finished'**
+  String get importDoneTitle;
+
+  /// No description provided for @importDoneSummary.
+  ///
+  /// In en, this message translates to:
+  /// **'{imported, plural, =1{1 student imported} other{{imported} students imported}}, {skipped, plural, =1{1 row skipped} other{{skipped} rows skipped}}'**
+  String importDoneSummary(int imported, int skipped);
+
+  /// No description provided for @importOverCapacity.
+  ///
+  /// In en, this message translates to:
+  /// **'Some sections now hold more students than their capacity.'**
+  String get importOverCapacity;
+
+  /// No description provided for @importRowErrorsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Rows that were skipped'**
+  String get importRowErrorsTitle;
+
+  /// No description provided for @importRowError.
+  ///
+  /// In en, this message translates to:
+  /// **'Row {row}: {message}'**
+  String importRowError(int row, String message);
+
+  /// No description provided for @importRowErrorsMore.
+  ///
+  /// In en, this message translates to:
+  /// **'Showing the first {shown} of {total} skipped rows.'**
+  String importRowErrorsMore(int shown, int total);
+
+  /// No description provided for @importDoneAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Done'**
+  String get importDoneAction;
+
+  /// No description provided for @importFailedTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'The import could not run'**
+  String get importFailedTitle;
+
+  /// No description provided for @errorImportHeaderInvalid.
+  ///
+  /// In en, this message translates to:
+  /// **'The first row of the file is not the columns above. Fix it and choose the file again.'**
+  String get errorImportHeaderInvalid;
+
+  /// No description provided for @errorImportTooLarge.
+  ///
+  /// In en, this message translates to:
+  /// **'The file has more than 5,000 students. Split it into parts and import them one after the other.'**
+  String get errorImportTooLarge;
+
+  /// No description provided for @errorImportUnreadable.
+  ///
+  /// In en, this message translates to:
+  /// **'The file could not be read. Save it as a CSV file in UTF-8 and choose it again.'**
+  String get errorImportUnreadable;
+
+  /// No description provided for @errorImportFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'The import stopped because of a problem on our side. Check the students list, then try again.'**
+  String get errorImportFailed;
+
+  /// No description provided for @errorImportFileNotReady.
+  ///
+  /// In en, this message translates to:
+  /// **'The file is not ready. Choose it again.'**
+  String get errorImportFileNotReady;
+
+  /// No description provided for @errorImportAlreadyRunning.
+  ///
+  /// In en, this message translates to:
+  /// **'Another import of this school is still running. Try again when it has finished.'**
+  String get errorImportAlreadyRunning;
+
+  /// No description provided for @errorImportNotFound.
+  ///
+  /// In en, this message translates to:
+  /// **'The file or the academic year could not be found.'**
+  String get errorImportNotFound;
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {
