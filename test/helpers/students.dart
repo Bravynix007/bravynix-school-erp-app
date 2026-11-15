@@ -263,6 +263,7 @@ const chitraBlockedRecord = StudentRecord(
   isBlocked: true,
   isActive: true,
   version: 2,
+);
 
 /// A student whose mobile number is not an Indian one, and who has no address.
 const kiranRecord = StudentRecord(
