@@ -789,6 +789,23 @@ void main() {
       expect(find.byKey(const Key('studentForm.error')), findsNothing);
     });
 
+    testWidgets('a save refused because the student was deactivated meanwhile says the student is gone', (
+      tester,
+    ) async {
+      await pump(
+        tester,
+        StudentFormReady(existing: ashaRecord, guardians: const [], nextRowId: 0, failure: _failure(404, 'NOT_FOUND')),
+      );
+      expect(
+        find.descendant(
+          of: find.byType(StickyBottomActions),
+          matching: find.text('This student could not be found. They may have been deactivated.'),
+        ),
+        findsOneWidget,
+      );
+      expect(find.byKey(const Key('studentForm.reload')), findsNothing);
+    });
+
     testWidgets('says the student is gone, with no Try again, when they cannot be found', (tester) async {
       await pump(tester, StudentFormFailed(_failure(404, 'NOT_FOUND')));
       expect(find.byKey(const Key('studentForm.notFound')), findsOneWidget);

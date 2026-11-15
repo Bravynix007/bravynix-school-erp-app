@@ -329,8 +329,9 @@ class _FormBodyState extends State<_FormBody> {
     final uploading = context.select<FileUploadBloc, bool>((bloc) => bloc.state is FileUploadSending);
     // A save that failed on fields of this form is shown under them; any other failure is said above Save, where the
     // person is looking after pressing it.
+    // On an edit, a 404 is the student deactivated meanwhile: nothing else the save sends can be not found.
     final banner = failure != null && !failure.namesOnly(_fieldsShown(state))
-        ? studentFormErrorText(l10n, failure)
+        ? studentFormErrorText(l10n, failure, notFound: state.existing == null ? null : l10n.errorStudentNotFound)
         : null;
     final options = state.options;
     return StaleCopyGuard(
