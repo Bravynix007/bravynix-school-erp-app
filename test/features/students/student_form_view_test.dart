@@ -350,6 +350,32 @@ void main() {
       expect(edited.texts, const GuardianTexts(firstName: 'Sita', number: '9845054321', email: 'sita@example.com'));
     });
 
+    testWidgets('tells the bloc the number, the dial code and the alternate number typed, each on its own', (
+      tester,
+    ) async {
+      await pump(tester, _filled);
+      await tester.enterText(field('studentForm.guardian.0.mobileNumber'), '9845000001');
+      await tester.enterText(field('studentForm.guardian.0.mobileCode'), '44');
+      await tester.enterText(field('studentForm.guardian.0.alternate'), '9845000002');
+      final edits = verify(
+        () => bloc.add(captureAny(that: isA<StudentGuardianEdited>())),
+      ).captured.cast<StudentGuardianEdited>();
+      expect(edits.map((edit) => edit.id), [0, 0, 0]);
+      expect(edits[0].texts.number, '9845000001');
+      expect(edits[1].texts.countryCode, '44');
+      expect(edits[2].texts.alternatePhone, '9845000002');
+    });
+
+    testWidgets('moves on from the alternate number to the next field of the row, not to the end of the form', (
+      tester,
+    ) async {
+      await pump(tester, _filled);
+      expect(
+        tester.widget<TextField>(field('studentForm.guardian.0.alternate')).textInputAction,
+        TextInputAction.next,
+      );
+    });
+
     testWidgets('removes a row, makes another primary, marks an emergency contact and chooses a relation', (
       tester,
     ) async {
@@ -474,6 +500,9 @@ void main() {
       ('enrolment.classId', 'studentForm.class'),
       ('identity.aadhaarNumber', 'studentForm.aadhaar'),
       ('guardians[0].phone', 'studentForm.guardian.0.mobileNumber'),
+      ('guardians[0].phone.countryCode', 'studentForm.guardian.0.mobileCode'),
+      ('guardians[0].phone.number', 'studentForm.guardian.0.mobileNumber'),
+      ('guardians[0].alternatePhone', 'studentForm.guardian.0.alternate'),
       ('guardians[0].email', 'studentForm.guardian.0.email'),
     ]) {
       testWidgets('shows the error the API names on $field under its field', (tester) async {
