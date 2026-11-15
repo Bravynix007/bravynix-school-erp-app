@@ -76,6 +76,17 @@ const _filled = StudentFormReady(
   nextRowId: 4,
 );
 
+/// Asha opened for an edit: her personal and contact fields, and nothing of the placement, guardians or numbers.
+const _editing = StudentFormReady(
+  existing: ashaRecord,
+  gender: Gender.female,
+  bloodGroup: 'O+',
+  dateOfBirth: '2018-04-17',
+  admissionDate: '2026-06-01',
+  guardians: [],
+  nextRowId: 0,
+);
+
 ApiFailure _failure(int status, String code, {List<FieldError> fields = const []}) =>
     ApiFailure(statusCode: status, code: code, message: 'server words', fieldErrors: fields);
 
@@ -97,6 +108,7 @@ void main() {
     when(() => masters.entries(MasterType.states, parentId: 'k1')).thenAnswer((_) async => [karnataka, kerala]);
     when(() => masters.entries(MasterType.cities, parentId: 's1')).thenAnswer((_) async => [bengaluru, mysuru]);
     when(() => bloc.institutionId).thenReturn('i1');
+    when(() => bloc.studentId).thenReturn(null);
     // The form starts its own place picker and photo upload from these.
     getIt
       ..registerSingleton<MastersRepository>(masters)
@@ -682,5 +694,246 @@ void main() {
     expect(tester.takeException(), isNull);
     expect(find.text('Save'), findsOneWidget);
     expect(find.text('Cancel'), findsOneWidget);
+  });
+
+  group('editing', () {
+    setUp(() {
+      when(() => bloc.institutionId).thenReturn(null);
+      when(() => bloc.studentId).thenReturn('p1');
+      when(() => masters.entries(MasterType.states, parentId: 'k1')).thenAnswer((_) async => [karnataka, kerala]);
+    });
+
+    testWidgets('opens with the details of the student, and asks nothing of the placement or the guardians', (
+      tester,
+    ) async {
+      await pump(tester, _editing);
+      expect(find.text('Edit student'), findsOneWidget);
+      expect(tester.widget<TextField>(field('studentForm.firstName')).controller!.text, 'Asha');
+      expect(tester.widget<TextField>(field('studentForm.lastName')).controller!.text, 'Rao');
+      expect(tester.widget<TextField>(field('studentForm.admissionNo')).controller!.text, 'A-2026-014');
+      expect(tester.widget<TextField>(field('studentForm.contactEmail')).controller!.text, 'asha.rao@example.com');
+      expect(tester.widget<TextField>(field('studentForm.mobileNumber')).controller!.text, '9876543210');
+      expect(tester.widget<TextField>(field('studentForm.nationality')).controller!.text, 'Indian');
+      expect(tester.widget<TextField>(field('studentForm.line1')).controller!.text, '12 Lake Road');
+      expect(tester.widget<TextField>(field('studentForm.pincode')).controller!.text, '560066');
+      for (final key in [
+        'studentForm.year',
+        'studentForm.class',
+        'studentForm.section',
+        'studentForm.rollNumber',
+        'studentForm.addGuardian',
+        'studentForm.aadhaar',
+        'studentForm.birthCertificate',
+      ]) {
+        expect(find.byKey(Key(key)), findsNothing, reason: key);
+      }
+      expect(find.text('Guardian 1'), findsNothing);
+    });
+
+    testWidgets('starts the place from the one the student has, and sends it when Save is pressed', (tester) async {
+      await pump(tester, _editing);
+      await tester.enterText(field('studentForm.firstName'), 'Asha K');
+      await tester.tap(saveButton());
+      final event = submitted();
+      expect(event.texts.firstName, 'Asha K');
+      expect(event.texts.admissionNo, 'A-2026-014');
+      expect(event.texts.mobileNumber, '9876543210');
+      expect(event.texts.addressLine1, '12 Lake Road');
+      expect(event.place, const PlaceChoice(countryId: 'k1', stateId: 's1', cityId: 'y1'));
+    });
+
+    testWidgets('says a photo is saved, until another is chosen', (tester) async {
+      await pump(tester, const StudentFormReady(existing: chitraRecord, guardians: [], nextRowId: 0));
+      expect(find.byKey(const Key('studentForm.photoKept')), findsOneWidget);
+      expect(find.text('A photo is saved. Choose another to replace it.'), findsOneWidget);
+    });
+
+    testWidgets('says nothing of a photo when the student has none', (tester) async {
+      await pump(tester, const StudentFormReady(existing: ashaRecord, guardians: [], nextRowId: 0));
+      expect(find.byKey(const Key('studentForm.photoKept')), findsNothing);
+    });
+
+    testWidgets('a change made meanwhile is said above Save, with Reload to read the student again', (tester) async {
+      await pump(
+        tester,
+        StudentFormReady(
+          existing: ashaRecord,
+          guardians: const [],
+          nextRowId: 0,
+          failure: _failure(409, 'VERSION_CONFLICT'),
+        ),
+      );
+      expect(
+        find.descendant(of: find.byType(StickyBottomActions), matching: find.byKey(const Key('studentForm.error'))),
+        findsOneWidget,
+      );
+      await tester.tap(find.byKey(const Key('studentForm.reload')));
+      verify(() => bloc.add(const StudentFormStarted())).called(1);
+    });
+
+    testWidgets('a taken Admission ID is said under its field, and Reload is not offered', (tester) async {
+      await pump(
+        tester,
+        StudentFormReady(
+          existing: ashaRecord,
+          guardians: const [],
+          nextRowId: 0,
+          failure: _failure(
+            409,
+            'ADMISSION_NO_TAKEN',
+            fields: const [FieldError(field: 'admissionNo', code: 'ADMISSION_NO_TAKEN', message: 'Taken')],
+          ),
+        ),
+      );
+      expect(find.byKey(const Key('studentForm.reload')), findsNothing);
+      expect(find.byKey(const Key('studentForm.error')), findsNothing);
+    });
+
+    testWidgets('a save refused because the student was deactivated meanwhile says the student is gone', (
+      tester,
+    ) async {
+      await pump(
+        tester,
+        StudentFormReady(existing: ashaRecord, guardians: const [], nextRowId: 0, failure: _failure(404, 'NOT_FOUND')),
+      );
+      expect(
+        find.descendant(
+          of: find.byType(StickyBottomActions),
+          matching: find.text('This student could not be found. They may have been deactivated.'),
+        ),
+        findsOneWidget,
+      );
+      expect(find.byKey(const Key('studentForm.reload')), findsNothing);
+    });
+
+    testWidgets('says the student is gone, with no Try again, when they cannot be found', (tester) async {
+      await pump(tester, StudentFormFailed(_failure(404, 'NOT_FOUND')));
+      expect(find.byKey(const Key('studentForm.notFound')), findsOneWidget);
+      expect(find.text('This student could not be found. They may have been deactivated.'), findsOneWidget);
+      expect(find.text('Try again'), findsNothing);
+    });
+
+    /// The edit form opened from a screen behind it, with the bloc answering [states] after [initial]; the form's
+    /// result (null: backed out) is read through the returned function once the test has acted.
+    Future<bool? Function()> openForm(
+      WidgetTester tester, {
+      required StudentFormState initial,
+      Stream<StudentFormState> states = const Stream.empty(),
+    }) async {
+      whenListen(bloc, states, initialState: initial);
+      // Tall, so the whole form is built.
+      tester.view
+        ..physicalSize = const Size(400, 8000)
+        ..devicePixelRatio = 1;
+      addTearDown(tester.view.reset);
+      bool? result;
+      final router = GoRouter(
+        routes: [
+          GoRoute(
+            path: '/',
+            builder: (context, _) => Scaffold(
+              body: TextButton(
+                onPressed: () async => result = await context.push<bool>('/form'),
+                child: const Text('open'),
+              ),
+            ),
+          ),
+          GoRoute(
+            path: '/form',
+            builder: (_, _) => BlocProvider<StudentFormBloc>.value(value: bloc, child: const StudentFormView()),
+          ),
+        ],
+      );
+      addTearDown(router.dispose);
+      await tester.pumpWidget(
+        MaterialApp.router(
+          theme: AppTheme.light(),
+          routerConfig: router,
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+        ),
+      );
+      await tester.tap(find.text('open'));
+      await tester.pumpAndSettle();
+      return () => result;
+    }
+
+    testWidgets('closes with "saved" and tells the screen behind it', (tester) async {
+      final result = await openForm(
+        tester,
+        initial: _editing,
+        states: Stream.value(
+          const StudentFormSaved(
+            StudentSaved(Student(id: 'p1', institutionId: 'i1', firstName: 'Asha', lastName: 'Rao')),
+          ),
+        ),
+      );
+      expect(result(), isTrue);
+      expect(find.text('Asha Rao saved'), findsOneWidget);
+    });
+
+    for (final (name, code) in [
+      ('the student was changed meanwhile', 'VERSION_CONFLICT'),
+      ('they are gone', 'NOT_FOUND'),
+    ]) {
+      testWidgets('tells the screen behind it to read again when $name, whichever way the form is left', (
+        tester,
+      ) async {
+        final result = await openForm(
+          tester,
+          initial: StudentFormReady(
+            existing: ashaRecord,
+            guardians: const [],
+            nextRowId: 0,
+            failure: _failure(code == 'NOT_FOUND' ? 404 : 409, code),
+          ),
+        );
+        await tester.tap(find.text('Cancel'));
+        await tester.pumpAndSettle();
+        expect(result(), isTrue);
+      });
+    }
+
+    testWidgets('leaves with nothing to read again when nothing was refused', (tester) async {
+      final result = await openForm(tester, initial: _editing);
+      await tester.tap(find.text('Cancel'));
+      await tester.pumpAndSettle();
+      expect(result(), isNull);
+    });
+
+    testWidgets('rebuilds from the student read again after Reload, so nothing of the old copy stays', (tester) async {
+      final result = await openForm(
+        tester,
+        initial: _editing,
+        states: Stream.value(const StudentFormReady(existing: chitraRecord, guardians: [], nextRowId: 0)),
+      );
+      expect(result(), isNull);
+      expect(tester.widget<TextField>(field('studentForm.firstName')).controller!.text, 'Chitra');
+      expect(tester.widget<TextField>(field('studentForm.mobileNumber')).controller!.text, '9876500001');
+    });
+
+    testWidgets('keeps the dial code of the student, and sends it', (tester) async {
+      await pump(tester, const StudentFormReady(existing: kiranRecord, guardians: [], nextRowId: 0));
+      expect(tester.widget<TextField>(field('studentForm.mobileCode')).controller!.text, '44');
+      await tester.tap(saveButton());
+      final texts = submitted().texts;
+      expect([texts.mobileCountryCode, texts.mobileNumber], ['44', '7911123456']);
+    });
+
+    testWidgets('does not fill in a country the student has none of, but leaves the choice to the person', (
+      tester,
+    ) async {
+      await pump(tester, const StudentFormReady(existing: kiranRecord, guardians: [], nextRowId: 0));
+      expect(find.text('India'), findsNothing);
+      await tester.tap(saveButton());
+      expect(submitted().place, const PlaceChoice());
+    });
+
+    testWidgets('reads whole at a large text scale on a small phone', (tester) async {
+      await pump(tester, _editing, textScale: 2, size: const Size(320, 640));
+      expect(tester.takeException(), isNull);
+      expect(clippedParagraphs(tester, unbreakable: 184), isEmpty);
+      expect(find.text('Save'), findsOneWidget);
+    });
   });
 }

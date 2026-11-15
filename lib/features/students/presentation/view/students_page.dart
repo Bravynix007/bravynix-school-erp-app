@@ -86,7 +86,7 @@ class StudentsPage extends StatelessWidget {
 /// closes with true.
 Future<void> _openAddForm(BuildContext context) async {
   final bloc = context.read<StudentsBloc>();
-  final saved = await context.push<bool>(AppRoutes.studentForm, extra: StudentFormArgs(bloc.institutionId));
+  final saved = await context.push<bool>(AppRoutes.studentForm, extra: StudentFormArgs.add(bloc.institutionId));
   if (saved ?? false) bloc.add(const PagedListRequested());
 }
 
@@ -95,6 +95,13 @@ Future<void> _openMoveForm(BuildContext context, StudentListEntry entry) async {
   final bloc = context.read<StudentsBloc>();
   final saved = await context.push<bool>(AppRoutes.studentMove, extra: StudentMoveArgs(entry));
   if (saved ?? false) bloc.add(const PagedListRequested());
+}
+
+/// Opens one student's profile; Edit there changes the student, so the list is read again on the way back.
+Future<void> _openProfile(BuildContext context, String id) async {
+  final bloc = context.read<StudentsBloc>();
+  await context.push<void>(AppRoutes.student(id));
+  if (!bloc.isClosed) bloc.add(const PagedListRequested());
 }
 
 /// The students of one Institution, under the switcher: a search box, the year, class and section filters, and the
@@ -287,7 +294,7 @@ class _StudentCard extends StatelessWidget {
             name: summary.fullName,
             subtitle: detail,
             trailing: summary.isBlocked ? StatusChip(label: l10n.studentsBlocked, tone: StatusTone.error) : null,
-            onTap: locked ? null : () => unawaited(context.push<void>(AppRoutes.student(summary.id))),
+            onTap: locked ? null : () => unawaited(_openProfile(context, summary.id)),
           ),
           Wrap(
             alignment: WrapAlignment.end,

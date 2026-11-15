@@ -1,13 +1,18 @@
 import 'package:bloc_test/bloc_test.dart';
+import 'package:bravynix_school_erp/app/router/app_routes.dart';
 import 'package:bravynix_school_erp/core/model/phone.dart';
 import 'package:bravynix_school_erp/core/network/api_failure.dart';
+import 'package:bravynix_school_erp/core/theme/app_theme.dart';
 import 'package:bravynix_school_erp/features/people/domain/place_names.dart';
 import 'package:bravynix_school_erp/features/students/domain/student_profile.dart';
 import 'package:bravynix_school_erp/features/students/presentation/bloc/student_profile_bloc.dart';
+import 'package:bravynix_school_erp/features/students/presentation/view/student_form_page.dart';
 import 'package:bravynix_school_erp/features/students/presentation/view/student_profile_page.dart';
+import 'package:bravynix_school_erp/l10n/gen/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:go_router/go_router.dart';
 import 'package:mocktail/mocktail.dart';
 
 import '../../helpers/clipped_text.dart';
@@ -27,7 +32,10 @@ ApiFailure _failure(int status, String code) => ApiFailure(statusCode: status, c
 void main() {
   late _MockProfileBloc bloc;
   setUpAll(() => registerFallbackValue(const StudentProfileRequested()));
-  setUp(() => bloc = _MockProfileBloc());
+  setUp(() {
+    bloc = _MockProfileBloc();
+    when(() => bloc.id).thenReturn('p1');
+  });
 
   Future<void> pump(
     WidgetTester tester,
@@ -149,5 +157,73 @@ void main() {
     await pump(tester, const StudentProfileLoaded(_ashaProfile), textScale: 2, size: const Size(320, 640));
     expect(tester.takeException(), isNull);
     expect(clippedParagraphs(tester), isEmpty);
+  });
+
+  group('Edit', () {
+    /// The profile on a router that has the edit form's location, which closes with [result] (null: backed out).
+    Future<List<StudentFormArgs>> pumpWithForm(WidgetTester tester, StudentProfileState state, {bool? result}) async {
+      when(() => bloc.state).thenReturn(state);
+      final opened = <StudentFormArgs>[];
+      final router = GoRouter(
+        routes: [
+          GoRoute(
+            path: '/',
+            builder: (_, _) => BlocProvider<StudentProfileBloc>.value(value: bloc, child: const StudentProfileView()),
+          ),
+          GoRoute(
+            path: AppRoutes.studentForm,
+            builder: (context, routeState) {
+              opened.add(routeState.extra! as StudentFormArgs);
+              return Scaffold(
+                body: TextButton(onPressed: () => context.pop(result), child: const Text('close form')),
+              );
+            },
+          ),
+        ],
+      );
+      addTearDown(router.dispose);
+      await tester.pumpWidget(
+        MaterialApp.router(
+          theme: AppTheme.light(),
+          routerConfig: router,
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+        ),
+      );
+      return opened;
+    }
+
+    testWidgets('opens the edit form of this student, and reads the profile again once it saved', (tester) async {
+      final opened = await pumpWithForm(tester, const StudentProfileLoaded(_ashaProfile), result: true);
+      await tester.tap(find.byKey(const Key('studentProfile.edit')));
+      await tester.pumpAndSettle();
+      expect(opened.single.studentId, 'p1');
+      expect(opened.single.institutionId, isNull);
+      await tester.tap(find.text('close form'));
+      await tester.pumpAndSettle();
+      verify(() => bloc.add(const StudentProfileRequested())).called(1);
+    });
+
+    testWidgets('leaves the profile as it is when the form is backed out of', (tester) async {
+      await pumpWithForm(tester, const StudentProfileLoaded(_ashaProfile));
+      await tester.tap(find.byKey(const Key('studentProfile.edit')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('close form'));
+      await tester.pumpAndSettle();
+      verifyNever(() => bloc.add(any()));
+    });
+
+    testWidgets('is not offered while the profile loads, once it failed, or for a deactivated student', (
+      tester,
+    ) async {
+      for (final state in <StudentProfileState>[
+        const StudentProfileLoading(),
+        StudentProfileFailed(_failure(500, 'INTERNAL')),
+        const StudentProfileLoaded(StudentProfile(balaRecord)),
+      ]) {
+        await pumpWithForm(tester, state);
+        expect(find.byKey(const Key('studentProfile.edit')), findsNothing, reason: '$state');
+      }
+    });
   });
 }

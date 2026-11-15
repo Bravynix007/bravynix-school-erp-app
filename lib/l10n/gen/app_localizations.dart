@@ -3517,6 +3517,18 @@ abstract class AppLocalizations {
   /// **'Birth certificate number'**
   String get studentBirthCertificate;
 
+  /// No description provided for @studentEditTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit student'**
+  String get studentEditTitle;
+
+  /// No description provided for @studentSaved.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} saved'**
+  String studentSaved(String name);
+
   /// No description provided for @studentAdded.
   ///
   /// In en, this message translates to:

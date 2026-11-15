@@ -235,3 +235,32 @@ Map<String, Object?> studentJson() => {
   'status': 1,
   'version': 3,
 };
+
+/// A student with a photo and nothing else beyond what is required, as an edit form is opened with.
+const chitraRecord = StudentRecord(
+  id: 'p3',
+  institutionId: 'i1',
+  firstName: 'Chitra',
+  photoFileId: 'f1',
+  mobile: Phone(countryCode: '91', number: '9876500001'),
+  address: Address(),
+  guardians: [],
+  identity: StudentIdentity(),
+  isBlocked: false,
+  isActive: true,
+  version: 1,
+);
+
+/// A student whose mobile number is not an Indian one, and who has no address.
+const kiranRecord = StudentRecord(
+  id: 'p4',
+  institutionId: 'i1',
+  firstName: 'Kiran',
+  mobile: Phone(countryCode: '44', number: '7911123456'),
+  address: Address(),
+  guardians: [],
+  identity: StudentIdentity(),
+  isBlocked: false,
+  isActive: true,
+  version: 5,
+);

@@ -15,6 +15,7 @@ import '../../helpers/academic_years.dart';
 import '../../helpers/classes.dart';
 import '../../helpers/mocks.dart';
 import '../../helpers/sections.dart';
+import '../../helpers/students.dart';
 
 const _down = ApiFailure(statusCode: 503, code: 'UNAVAILABLE', message: 'x');
 const _taken = ApiFailure(statusCode: 409, code: 'ROLL_NUMBER_TAKEN', message: 'x');
@@ -22,6 +23,8 @@ const _saved = StudentSaved(
   Student(id: 'p1', institutionId: 'i1', firstName: 'Asha'),
   warnings: ['SECTION_OVER_CAPACITY'],
 );
+
+const _conflict = ApiFailure(statusCode: 409, code: 'VERSION_CONFLICT', message: 'x');
 
 const _india = PlaceChoice(countryId: 'k1', stateId: 's1', cityId: 'y1');
 
@@ -57,7 +60,7 @@ void main() {
   StudentFormBloc build() => StudentFormBloc(
     students,
     SectionOptionsSource(years: years, classes: classes, sections: sections),
-    'i1',
+    institutionId: 'i1',
   );
 
   /// The bloc opened, then [act].
@@ -83,7 +86,7 @@ void main() {
             .having((s) => s.guardians, 'guardians', const [
               GuardianEntry(0, GuardianTexts(countryCode: '91'), isPrimary: true),
             ])
-            .having((s) => s.options.classes.map((c) => c.id), 'classes', ['k1']),
+            .having((s) => s.options!.classes.map((c) => c.id), 'classes', ['k1']),
       ],
     );
 
@@ -520,5 +523,169 @@ void main() {
         expect([state.classId, state.gender], [null, Gender.other]);
       },
     );
+  });
+
+  group('editing', () {
+    StudentFormBloc edit() => StudentFormBloc(
+      students,
+      SectionOptionsSource(years: years, classes: classes, sections: sections),
+      studentId: 'p1',
+    );
+
+    Future<StudentFormBloc> opened() async {
+      when(() => students.student('p1')).thenAnswer((_) async => ashaRecord);
+      final bloc = edit()..add(const StudentFormStarted());
+      await bloc.stream.firstWhere((state) => state is StudentFormReady);
+      return bloc;
+    }
+
+    // The personal and contact fields the form is opened with, typed back as the form's controllers would hold them.
+    const kept = StudentTexts(
+      firstName: 'Asha',
+      lastName: 'Rao',
+      admissionNo: 'A-2026-014',
+      contactEmail: 'asha.rao@example.com',
+      mobileCountryCode: '91',
+      mobileNumber: '9876543210',
+      alternateNumber: '9876500000',
+      nationality: 'Indian',
+      addressLine1: '12 Lake Road',
+      addressLine2: 'Near the park',
+      pincode: '560066',
+    );
+
+    test('opens with the student read, and without the years, classes, sections or guardians', () async {
+      final bloc = await opened();
+      final state = ready(bloc);
+      expect(state.existing, ashaRecord);
+      expect(state.isEdit, isTrue);
+      expect(state.options, isNull);
+      expect(state.guardians, isEmpty);
+      expect(
+        [state.gender, state.bloodGroup, state.dateOfBirth, state.admissionDate, state.photoFileId],
+        [Gender.female, 'O+', '2018-04-17', '2026-06-01', null],
+      );
+      verifyNever(() => years.years(any()));
+    });
+
+    blocTest<StudentFormBloc, StudentFormState>(
+      'fails when the student cannot be read, and reads them again on Try again',
+      setUp: () {
+        var calls = 0;
+        when(() => students.student('p1')).thenAnswer((_) async {
+          if (calls++ == 0) throw _down;
+          return ashaRecord;
+        });
+      },
+      build: edit,
+      act: (bloc) async {
+        bloc.add(const StudentFormStarted());
+        await bloc.stream.firstWhere((state) => state is StudentFormFailed);
+        bloc.add(const StudentFormStarted());
+      },
+      expect: () => [
+        const StudentFormLoading(),
+        const StudentFormFailed(_down),
+        const StudentFormLoading(),
+        isA<StudentFormReady>(),
+      ],
+    );
+
+    test('lets the gender, the dates and the photo be changed', () async {
+      final bloc = await opened()
+        ..add(const StudentGenderChosen(Gender.male))
+        ..add(const StudentBirthDateChosen(null))
+        ..add(const StudentPhotoChosen('f2'));
+      await Future<void>.delayed(Duration.zero);
+      expect([ready(bloc).gender, ready(bloc).dateOfBirth, ready(bloc).photoFileId], [Gender.male, null, 'f2']);
+    });
+
+    test('saves the changes with the version that was read, and does not add a student', () async {
+      when(() => students.update('p1', 3, any())).thenAnswer((_) async => ashaRecord);
+      final bloc = await opened()
+        ..add(const StudentGenderChosen(Gender.other))
+        ..add(const StudentPhotoChosen('f2'));
+      await Future<void>.delayed(Duration.zero);
+      final states = <StudentFormState>[];
+      final subscription = bloc.stream.listen(states.add);
+      // The roll number, the numbers and the rest of an add form are not part of an edit and are not asked for.
+      bloc.add(
+        const StudentFormSubmitted(
+          StudentTexts(
+            firstName: ' Asha ',
+            mobileCountryCode: '+91',
+            mobileNumber: '98765 43210',
+          ),
+          _india,
+        ),
+      );
+      await bloc.stream.firstWhere((state) => state is StudentFormSaved);
+      await subscription.cancel();
+      expect(states.first, isA<StudentFormReady>().having((s) => s.saving, 'saving', true));
+      expect(
+        states.last,
+        const StudentFormSaved(
+          StudentSaved(Student(id: 'p1', institutionId: 'i1', firstName: 'Asha', lastName: 'Rao')),
+        ),
+      );
+      final draft = verify(() => students.update('p1', 3, captureAny())).captured.single as StudentDraft;
+      expect(
+        draft,
+        const StudentDraft(
+          firstName: 'Asha',
+          gender: Gender.other,
+          dateOfBirth: '2018-04-17',
+          bloodGroup: 'O+',
+          photoFileId: 'f2',
+          admissionDate: '2026-06-01',
+          mobile: Phone(countryCode: '91', number: '9876543210'),
+          address: Address(countryId: 'k1', stateId: 's1', cityId: 'y1'),
+        ),
+      );
+      verifyNever(
+        () => students.create(
+          any(),
+          any(),
+          enrolment: any(named: 'enrolment'),
+          guardians: any(named: 'guardians'),
+          identity: any(named: 'identity'),
+        ),
+      );
+    });
+
+    test('sends the fields as they were when nothing changed, so the server writes nothing', () async {
+      when(() => students.update('p1', 3, any())).thenAnswer((_) async => ashaRecord);
+      final bloc = await opened();
+      bloc.add(const StudentFormSubmitted(kept, _india));
+      await bloc.stream.firstWhere((state) => state is StudentFormSaved);
+      final draft = verify(() => students.update('p1', 3, captureAny())).captured.single as StudentDraft;
+      expect(draft.admissionNo, 'A-2026-014');
+      expect(draft.contactEmail, 'asha.rao@example.com');
+      expect(draft.photoFileId, isNull);
+    });
+
+    test('still asks for the first name and the mobile number, and does not ask the server', () async {
+      final bloc = await opened();
+      bloc.add(const StudentFormSubmitted(StudentTexts(firstName: ' '), _india));
+      final state = await bloc.stream.firstWhere((state) => state is StudentFormReady && state.failure != null);
+      final failure = (state as StudentFormReady).failure!;
+      expect(failure.fieldError('firstName'), isNotNull);
+      expect(failure.fieldError('mobile.number'), isNotNull);
+      expect(failure.fieldError('enrolment.rollNumber'), isNull);
+      verifyNever(() => students.update(any(), any(), any()));
+    });
+
+    test('keeps the form and says why when the version is old, and reads the student again on Reload', () async {
+      when(() => students.update('p1', 3, any())).thenThrow(_conflict);
+      final bloc = await opened();
+      bloc.add(const StudentFormSubmitted(kept, _india));
+      await bloc.stream.firstWhere((state) => state is StudentFormReady && state.failure != null);
+      expect(ready(bloc).saving, isFalse);
+      expect(ready(bloc).failure, _conflict);
+      bloc.add(const StudentFormStarted());
+      final again = await bloc.stream.firstWhere((state) => state is StudentFormReady);
+      expect((again as StudentFormReady).failure, isNull);
+      verify(() => students.student('p1')).called(2);
+    });
   });
 }

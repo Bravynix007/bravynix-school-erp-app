@@ -20,6 +20,11 @@ abstract class StudentsRepository {
   /// student of an Institution the caller does not reach.
   Future<StudentRecord> student(String id);
 
+  /// STU-04: changes the personal and contact fields of the student; a field [draft] leaves empty is cleared, and a
+  /// photo only when [draft] holds a new one. [version] is the one that was read. The answer is the student as STU-03
+  /// reads them. 404 for a student already deactivated; 409 `VERSION_CONFLICT` and `ADMISSION_NO_TAKEN`.
+  Future<StudentRecord> update(String id, int version, StudentDraft draft);
+
   /// STU-05: deactivates the student for [reason]; the guardians lose the child, the open placement and the enrolment
   /// end today. 404 for a student already deactivated.
   Future<void> deactivate(String id, LeavingReason reason);

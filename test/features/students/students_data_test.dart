@@ -370,6 +370,89 @@ void main() {
     });
   });
 
+  group('STU-04', () {
+    const mobile = Phone(countryCode: '91', number: '9876501234');
+
+    test('sends every personal field with the version, null for what is empty, and answers the record', () async {
+      final (:repository, :adapter) = build(() => okReply(studentJson()));
+      final record = await repository.update('p1', 3, const StudentDraft(firstName: 'Asha', mobile: mobile));
+      expect(record, ashaRecord);
+      final request = adapter.requests.single;
+      expect([request.method, request.uri.path], ['PATCH', '/v1/students/p1']);
+      expect(bodyOf(request), {
+        'version': 3,
+        'firstName': 'Asha',
+        'mobile': {'countryCode': '91', 'number': '9876501234'},
+        'lastName': null,
+        'gender': null,
+        'dateOfBirth': null,
+        'bloodGroup': null,
+        'nationality': null,
+        'admissionNo': null,
+        'contactEmail': null,
+        'alternateNumber': null,
+        'admissionDate': null,
+        'address': {'line1': null, 'line2': null, 'countryId': null, 'stateId': null, 'cityId': null, 'pincode': null},
+      });
+    });
+
+    test('sends what is set, and a photo only when a new one was uploaded', () async {
+      final (:repository, :adapter) = build(() => okReply(studentJson()));
+      await repository.update(
+        'a/b',
+        7,
+        const StudentDraft(
+          firstName: 'Asha',
+          lastName: 'Rao',
+          gender: Gender.female,
+          dateOfBirth: '2018-04-17',
+          bloodGroup: 'O+',
+          nationality: 'Indian',
+          photoFileId: 'f2',
+          admissionNo: 'A-1',
+          admissionDate: '2026-06-01',
+          contactEmail: 'asha@example.com',
+          mobile: mobile,
+          alternateNumber: '9876500000',
+          address: Address(line1: '12 Lake Road', countryId: 'k1', stateId: 's1', cityId: 'y1', pincode: '560066'),
+        ),
+      );
+      final request = adapter.requests.single;
+      expect(request.uri.path, '/v1/students/a%2Fb');
+      expect(bodyOf(request), {
+        'version': 7,
+        'firstName': 'Asha',
+        'mobile': {'countryCode': '91', 'number': '9876501234'},
+        'lastName': 'Rao',
+        'gender': 2,
+        'dateOfBirth': '2018-04-17',
+        'bloodGroup': 'O+',
+        'nationality': 'Indian',
+        'admissionNo': 'A-1',
+        'contactEmail': 'asha@example.com',
+        'alternateNumber': '9876500000',
+        'photoFileId': 'f2',
+        'admissionDate': '2026-06-01',
+        'address': {
+          'line1': '12 Lake Road',
+          'line2': null,
+          'countryId': 'k1',
+          'stateId': 's1',
+          'cityId': 'y1',
+          'pincode': '560066',
+        },
+      });
+    });
+
+    test('throws the failure the API gives', () async {
+      final (:repository, adapter: _) = build(() => errorReply(409, 'VERSION_CONFLICT'));
+      await expectLater(
+        repository.update('p1', 3, const StudentDraft(firstName: 'Asha', mobile: mobile)),
+        throwsA(isA<ApiFailure>().having((f) => f.code, 'code', 'VERSION_CONFLICT')),
+      );
+    });
+  });
+
   group('STU-08', () {
     test('sends only what changes, to the placement of the student, and answers the warnings', () async {
       final (:repository, :adapter) = build(

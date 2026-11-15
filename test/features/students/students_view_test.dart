@@ -446,6 +446,19 @@ void main() {
       expect(find.text('profile'), findsOneWidget);
     });
 
+    testWidgets('reads the list again when the profile is closed, as Edit there may have changed the student', (
+      tester,
+    ) async {
+      when(() => bloc.isClosed).thenReturn(false);
+      await pumpWithProfile(tester, const _Loaded([ashaEntry, balaEntry]));
+      await tester.tap(find.text('Bala'));
+      await tester.pumpAndSettle();
+      verifyNever(() => bloc.add(const PagedListRequested()));
+      tester.state<NavigatorState>(find.byType(Navigator)).pop();
+      await tester.pumpAndSettle();
+      verify(() => bloc.add(const PagedListRequested())).called(1);
+    });
+
     testWidgets('waits while a change to a student goes', (tester) async {
       final opened = await pumpWithProfile(tester, const _Loaded([ashaEntry, balaEntry], busyId: 'p2'));
       await tester.tap(find.text('Asha Rao'));

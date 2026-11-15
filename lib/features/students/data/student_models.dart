@@ -6,8 +6,8 @@ import 'package:bravynix_school_erp/features/students/domain/student.dart';
 import 'package:bravynix_school_erp/features/students/domain/student_draft.dart';
 import 'package:bravynix_school_erp/features/students/domain/student_profile.dart';
 
-/// JSON → domain for STU-01 to STU-03, and the body of STU-02. Unknown fields are ignored, as /v1 only ever adds
-/// fields (API design 5.2).
+/// JSON → domain for STU-01 to STU-03, and the bodies of STU-02 and STU-04. Unknown fields are ignored, as /v1 only
+/// ever adds fields (API design 5.2).
 abstract final class StudentModels {
   static StudentPlacement _placement(Object? raw) {
     final json = jsonObject(raw);
@@ -121,7 +121,16 @@ abstract final class StudentModels {
       },
   };
 
-  static Map<String, Object?> _details(StudentDraft draft) {
+  /// STU-04: every personal and contact field, with `null` for what the form left empty, so clearing a field clears it
+  /// (an omitted one stays). The photo is sent only when a new one was uploaded, and the placement, guardians and
+  /// identity have their own endpoints.
+  static Map<String, Object?> updateBody(StudentDraft draft, int version) => {
+    'version': version,
+    ..._details(draft, clearing: true),
+    'admissionDate': draft.admissionDate,
+  };
+
+  static Map<String, Object?> _details(StudentDraft draft, {bool clearing = false}) {
     final address = draft.address;
     return {
       'firstName': draft.firstName,
@@ -136,9 +145,10 @@ abstract final class StudentModels {
         'contactEmail': draft.contactEmail,
         'alternateNumber': draft.alternateNumber,
       }.entries)
-        if (entry.value != null) entry.key: entry.value,
+        if (clearing || entry.value != null) entry.key: entry.value,
+      // A photo is never cleared here: no photo chosen leaves the one the record has.
       if (draft.photoFileId != null) 'photoFileId': draft.photoFileId,
-      if (!address.isEmpty) 'address': address.toJson(clearing: false),
+      if (clearing || !address.isEmpty) 'address': address.toJson(clearing: clearing),
     };
   }
 

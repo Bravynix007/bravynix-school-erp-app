@@ -41,6 +41,14 @@ class StudentsRepositoryImpl implements StudentsRepository {
       _api.data('students/${Uri.encodeComponent(id)}', parse: StudentModels.record);
 
   @override
+  Future<StudentRecord> update(String id, int version, StudentDraft draft) => _api.data(
+    'students/${Uri.encodeComponent(id)}',
+    method: HttpMethod.patch,
+    body: StudentModels.updateBody(draft, version),
+    parse: StudentModels.record,
+  );
+
+  @override
   Future<void> deactivate(String id, LeavingReason reason) => _api.data(
     'students/${Uri.encodeComponent(id)}',
     method: HttpMethod.delete,
