@@ -1,7 +1,9 @@
 import 'dart:async';
 
 import 'package:bravynix_school_erp/app/di/injection.dart';
+import 'package:bravynix_school_erp/app/router/app_routes.dart';
 import 'package:bravynix_school_erp/core/bloc/paged_list_bloc.dart';
+import 'package:bravynix_school_erp/core/theme/app_spacing.dart';
 import 'package:bravynix_school_erp/core/widgets/app_button.dart';
 import 'package:bravynix_school_erp/core/widgets/app_card.dart';
 import 'package:bravynix_school_erp/core/widgets/app_filter_bar.dart';
@@ -21,6 +23,7 @@ import 'package:bravynix_school_erp/features/students/presentation/bloc/student_
 import 'package:bravynix_school_erp/features/students/presentation/bloc/students_bloc.dart';
 import 'package:bravynix_school_erp/features/students/presentation/view/student_error_text.dart';
 import 'package:bravynix_school_erp/features/students/presentation/view/student_filter_sheet.dart';
+import 'package:bravynix_school_erp/features/students/presentation/view/student_form_page.dart';
 import 'package:bravynix_school_erp/features/students/presentation/view/student_leaving_sheet.dart';
 import 'package:bravynix_school_erp/l10n/gen/app_localizations.dart';
 import 'package:flutter/material.dart';
@@ -78,6 +81,14 @@ class StudentsPage extends StatelessWidget {
   }
 }
 
+/// Opens the form that adds a student to this Institution; one saved joins the list, so it is read again when the form
+/// closes with true.
+Future<void> _openAddForm(BuildContext context) async {
+  final bloc = context.read<StudentsBloc>();
+  final saved = await context.push<bool>(AppRoutes.studentForm, extra: StudentFormArgs(bloc.institutionId));
+  if (saved ?? false) bloc.add(const PagedListRequested());
+}
+
 /// The students of one Institution, under the switcher: a search box, the year, class and section filters, and the
 /// pages read so far.
 class StudentsView extends StatelessWidget {
@@ -108,6 +119,16 @@ class StudentsView extends StatelessWidget {
         },
         belowSearch: (context, {required idle}) => _Filters(enabled: idle),
         empty: (context, query) => _Empty(query: query),
+        leading: (context, {required idle}) => [
+          AppButton(
+            key: const Key('students.add'),
+            label: l10n.studentsAddTitle,
+            icon: Icons.add,
+            variant: AppButtonVariant.secondary,
+            onPressed: idle ? () => _openAddForm(context) : null,
+          ),
+          const SizedBox(height: AppSpacing.sm),
+        ],
         idOf: (entry) => entry.summary.id,
         itemBuilder: (context, entry, {required busy, required locked}) =>
             _StudentCard(entry: entry, busy: busy, locked: locked),
@@ -144,7 +165,12 @@ class _Empty extends StatelessWidget {
         message: l10n.studentsNoFilterMatchMessage,
       );
     }
-    return StatePanel.empty(title: l10n.studentsEmptyTitle, message: l10n.studentsEmptyMessage);
+    return StatePanel.empty(
+      title: l10n.studentsEmptyTitle,
+      message: l10n.studentsEmptyMessage,
+      actionLabel: l10n.studentsAddTitle,
+      onAction: () => _openAddForm(context),
+    );
   }
 }
 

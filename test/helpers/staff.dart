@@ -1,3 +1,5 @@
+import 'package:bravynix_school_erp/core/model/address.dart';
+import 'package:bravynix_school_erp/core/model/gender.dart';
 import 'package:bravynix_school_erp/core/model/phone.dart';
 import 'package:bravynix_school_erp/features/masters/domain/master_entry.dart';
 import 'package:bravynix_school_erp/features/staff/data/staff_models.dart';
@@ -54,7 +56,7 @@ const kavyaMember = StaffMember(
   classCategoryId: 'c1',
   mobile: mobile,
   alternateNumber: '9876500000',
-  address: StaffAddress(
+  address: Address(
     line1: '12 Lake Road',
     line2: 'Near the park',
     countryId: 'k1',
@@ -102,7 +104,7 @@ const raviMember = StaffMember(
   firstName: 'Ravi',
   classCategoryId: 'c1',
   mobile: mobile,
-  address: StaffAddress(),
+  address: Address(),
   educations: [],
   emergencyContacts: [],
   isBlocked: true,
@@ -224,7 +226,7 @@ const kavyaDraft = StaffDraft(
   classCategoryId: 'c1',
   mobile: mobile,
   alternateNumber: '9876500000',
-  address: StaffAddress(
+  address: Address(
     line1: '12 Lake Road',
     line2: 'Near the park',
     countryId: 'k1',

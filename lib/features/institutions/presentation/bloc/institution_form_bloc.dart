@@ -1,5 +1,6 @@
 import 'package:bloc/bloc.dart';
 import 'package:bravynix_school_erp/core/model/phone.dart';
+import 'package:bravynix_school_erp/core/model/typed_text.dart';
 import 'package:bravynix_school_erp/core/network/api_failure.dart';
 import 'package:bravynix_school_erp/features/institutions/domain/institution.dart';
 import 'package:bravynix_school_erp/features/institutions/domain/institutions_repository.dart';
@@ -247,11 +248,6 @@ class InstitutionFormBloc extends Bloc<InstitutionFormEvent, InstitutionFormStat
     }
   }
 
-  static String? _text(String value) {
-    final trimmed = value.trim();
-    return trimmed.isEmpty ? null : trimmed;
-  }
-
   InstitutionDraft _draft(InstitutionFormReady ready, InstitutionTexts texts, PlaceChoice place) {
     return InstitutionDraft(
       name: texts.name.trim(),
@@ -259,16 +255,16 @@ class InstitutionFormBloc extends Bloc<InstitutionFormEvent, InstitutionFormStat
       code: ready.existing?.code ?? texts.code.trim(),
       addressLine1: texts.addressLine1.trim(),
       classesOffered: ready.categoryIds,
-      place: _text(texts.place),
+      place: TypedText.text(texts.place),
       board: ready.board,
-      affiliationNumber: _text(texts.affiliationNumber),
-      gstin: _text(texts.gstin)?.toUpperCase(),
-      email: _text(texts.email),
+      affiliationNumber: TypedText.text(texts.affiliationNumber),
+      gstin: TypedText.text(texts.gstin)?.toUpperCase(),
+      email: TypedText.text(texts.email),
       // A country code alone is no number.
       phone: Phone.typed(texts.phoneCountryCode, texts.phoneNumber),
-      telephone: _text(texts.telephone),
-      addressLine2: _text(texts.addressLine2),
-      pincode: _text(texts.pincode),
+      telephone: TypedText.text(texts.telephone),
+      addressLine2: TypedText.text(texts.addressLine2),
+      pincode: TypedText.text(texts.pincode),
       countryId: place.countryId,
       stateId: place.stateId,
       cityId: place.cityId,

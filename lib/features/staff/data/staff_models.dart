@@ -1,3 +1,5 @@
+import 'package:bravynix_school_erp/core/model/address.dart';
+import 'package:bravynix_school_erp/core/model/gender.dart';
 import 'package:bravynix_school_erp/core/model/phone.dart';
 import 'package:bravynix_school_erp/core/network/json_shape.dart';
 import 'package:bravynix_school_erp/features/staff/domain/staff_draft.dart';
@@ -45,7 +47,6 @@ abstract final class StaffModels {
 
   static StaffMember member(Object? raw) {
     final json = jsonObject(raw);
-    final address = jsonObject(json['address']);
     return StaffMember(
       id: json['id'] as String,
       homeInstitutionId: json['homeInstitutionId'] as String,
@@ -62,14 +63,7 @@ abstract final class StaffModels {
       classCategoryId: json['classCategoryId'] as String,
       mobile: Phone.fromJson(json['mobile']),
       alternateNumber: json['alternateNumber'] as String?,
-      address: StaffAddress(
-        line1: address['line1'] as String?,
-        line2: address['line2'] as String?,
-        countryId: address['countryId'] as String?,
-        stateId: address['stateId'] as String?,
-        cityId: address['cityId'] as String?,
-        pincode: address['pincode'] as String?,
-      ),
+      address: Address.fromJson(json['address']),
       joiningDate: json['joiningDate'] as String?,
       resignationDate: json['resignationDate'] as String?,
       employmentType: EmploymentType.fromCode(json['employmentType']),
@@ -132,15 +126,7 @@ abstract final class StaffModels {
       }),
       // A photo is never cleared here: no photo chosen leaves the one the record has.
       if (draft.photoFileId != null) 'photoFileId': draft.photoFileId,
-      if (clearing || !address.isEmpty)
-        'address': optional({
-          'line1': address.line1,
-          'line2': address.line2,
-          'countryId': address.countryId,
-          'stateId': address.stateId,
-          'cityId': address.cityId,
-          'pincode': address.pincode,
-        }),
+      if (clearing || !address.isEmpty) 'address': address.toJson(clearing: clearing),
       'educations': [
         for (final line in draft.educations)
           {

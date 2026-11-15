@@ -1,4 +1,5 @@
 import 'package:bravynix_school_erp/app/di/injection.dart';
+import 'package:bravynix_school_erp/core/model/address.dart';
 import 'package:bravynix_school_erp/core/network/api_failure.dart';
 import 'package:bravynix_school_erp/features/files/domain/file_picking.dart';
 import 'package:bravynix_school_erp/features/files/domain/files_repository.dart';
@@ -29,7 +30,7 @@ const _newer = StaffMember(
   firstName: 'Kavya R',
   classCategoryId: 'c1',
   mobile: mobile,
-  address: StaffAddress(),
+  address: Address(),
   educations: [],
   emergencyContacts: [],
   isBlocked: false,

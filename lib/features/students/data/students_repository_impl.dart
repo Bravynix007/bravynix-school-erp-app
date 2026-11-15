@@ -3,6 +3,7 @@ import 'package:bravynix_school_erp/core/network/api_envelope.dart';
 import 'package:bravynix_school_erp/core/paging/items_page.dart';
 import 'package:bravynix_school_erp/features/students/data/student_models.dart';
 import 'package:bravynix_school_erp/features/students/domain/student.dart';
+import 'package:bravynix_school_erp/features/students/domain/student_draft.dart';
 import 'package:bravynix_school_erp/features/students/domain/students_repository.dart';
 
 class StudentsRepositoryImpl implements StudentsRepository {
@@ -41,4 +42,21 @@ class StudentsRepositoryImpl implements StudentsRepository {
     query: {'reason': reason.code},
     parse: (_) {},
   );
+
+  @override
+  Future<StudentSaved> create(
+    String institutionId,
+    StudentDraft draft, {
+    required EnrolmentDraft enrolment,
+    required List<GuardianDraft> guardians,
+    IdentityDraft identity = const IdentityDraft(),
+  }) async {
+    final answer = await _api.request(
+      'students',
+      method: HttpMethod.post,
+      body: StudentModels.createBody(institutionId, draft, enrolment, guardians, identity),
+      parse: StudentModels.student,
+    );
+    return StudentSaved(answer.data, warnings: answer.warnings);
+  }
 }

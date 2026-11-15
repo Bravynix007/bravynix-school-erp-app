@@ -17,6 +17,17 @@ void main() {
     });
   });
 
+  group('Phone.typedOrBlank', () {
+    test('is the phone typed', () {
+      expect(Phone.typedOrBlank('+91', '98765 43210'), const Phone(countryCode: '91', number: '9876543210'));
+    });
+
+    test('keeps the dial code when no number was typed, so the API names only the number', () {
+      expect(Phone.typedOrBlank(' +91 ', '  '), const Phone(countryCode: '91', number: ''));
+      expect(Phone.typedOrBlank('', ''), const Phone(countryCode: '', number: ''));
+    });
+  });
+
   test('reads and writes the API shape, and shows +code number', () {
     const phone = Phone(countryCode: '91', number: '9876543210');
     expect(Phone.fromJson(phone.toJson()), phone);

@@ -1,5 +1,6 @@
 import 'package:bravynix_school_erp/app/config/app_config.dart';
 import 'package:bravynix_school_erp/core/device/app_device.dart';
+import 'package:bravynix_school_erp/core/model/gender.dart';
 import 'package:bravynix_school_erp/core/network/api_events.dart';
 import 'package:bravynix_school_erp/core/network/api_failure.dart';
 import 'package:bravynix_school_erp/core/network/dio_factory.dart';

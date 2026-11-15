@@ -2,6 +2,8 @@ import 'package:bloc_test/bloc_test.dart';
 import 'package:bravynix_school_erp/app/di/injection.dart';
 import 'package:bravynix_school_erp/app/router/app_routes.dart';
 import 'package:bravynix_school_erp/core/device/screen_protection.dart';
+import 'package:bravynix_school_erp/core/model/address.dart';
+import 'package:bravynix_school_erp/core/model/gender.dart';
 import 'package:bravynix_school_erp/core/network/api_failure.dart';
 import 'package:bravynix_school_erp/core/paging/items_page.dart';
 import 'package:bravynix_school_erp/core/theme/app_theme.dart';
@@ -249,7 +251,7 @@ void main() {
               firstName: 'A',
               classCategoryId: 'c1',
               mobile: mobile,
-              address: const StaffAddress(),
+              address: const Address(),
               educations: const [],
               emergencyContacts: const [],
               isBlocked: false,

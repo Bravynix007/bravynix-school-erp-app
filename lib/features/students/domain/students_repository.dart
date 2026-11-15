@@ -1,6 +1,7 @@
 import 'package:bravynix_school_erp/core/network/api_failure.dart';
 import 'package:bravynix_school_erp/core/paging/items_page.dart';
 import 'package:bravynix_school_erp/features/students/domain/student.dart';
+import 'package:bravynix_school_erp/features/students/domain/student_draft.dart';
 
 /// The students of the Society (STU-01 to STU-09). Methods throw [ApiFailure].
 abstract class StudentsRepository {
@@ -17,4 +18,17 @@ abstract class StudentsRepository {
   /// STU-05: deactivates the student for [reason]; the guardians lose the child, the open placement and the enrolment
   /// end today. 404 for a student already deactivated.
   Future<void> deactivate(String id, LeavingReason reason);
+
+  /// STU-02: adds a student to [institutionId] with the first placement ([enrolment]), one to five [guardians] with
+  /// exactly one primary, and the [identity] numbers when given. The answer carries the warnings of the write. 409
+  /// `ADMISSION_NO_TAKEN`, `ROLL_NUMBER_TAKEN`, `AADHAAR_DUPLICATE_IN_INSTITUTION`, `ROLE_CONFLICT` and
+  /// `ACCOUNT_BLOCKED` (a guardian's email); 422 `SECTION_NOT_IN_CLASS`, `YEAR_NOT_ACTIVE`, `INACTIVE_SECTION`,
+  /// `INVALID_AADHAAR` and `PRIMARY_GUARDIAN_REQUIRED`.
+  Future<StudentSaved> create(
+    String institutionId,
+    StudentDraft draft, {
+    required EnrolmentDraft enrolment,
+    required List<GuardianDraft> guardians,
+    IdentityDraft identity = const IdentityDraft(),
+  });
 }

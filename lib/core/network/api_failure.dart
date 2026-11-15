@@ -11,6 +11,11 @@ class FieldError extends Equatable {
     message: _string(json['message']),
   );
 
+  /// [field] is empty and may not be; the screen words it in its own language.
+  const new required(String field) : this(field: field, code: requiredCode, message: '');
+
+  static const requiredCode = 'REQUIRED';
+
   static String _string(Object? value) => value is String ? value : '';
 
   final String field;
@@ -39,6 +44,10 @@ class ApiFailure extends Equatable implements Exception {
   const new network({String message = "Can't reach the server. Check your connection and try again."})
     : this(statusCode: 0, code: networkError, message: message);
 
+  /// A form refused before it was sent: [fieldErrors] name what is to be fixed, each shown under its own field.
+  const new invalid(List<FieldError> fieldErrors)
+    : this(statusCode: 400, code: validationFailed, message: 'Check the fields', fieldErrors: fieldErrors);
+
   const new timeout()
     : this(statusCode: 0, code: timeoutError, message: 'The server took too long to answer. Try again.');
 
@@ -58,6 +67,7 @@ class ApiFailure extends Equatable implements Exception {
   static const networkError = 'NETWORK_ERROR';
   static const timeoutError = 'TIMEOUT';
   static const storageError = 'DEVICE_STORAGE_ERROR';
+  static const validationFailed = 'VALIDATION_FAILED';
 
   final int statusCode;
   final String code;

@@ -1,3 +1,5 @@
+import 'package:bravynix_school_erp/core/model/address.dart';
+import 'package:bravynix_school_erp/core/model/gender.dart';
 import 'package:bravynix_school_erp/core/model/phone.dart';
 import 'package:bravynix_school_erp/features/staff/domain/staff_member.dart';
 import 'package:equatable/equatable.dart';
@@ -19,7 +21,7 @@ class StaffDraft extends Equatable {
     this.photoFileId,
     this.designationId,
     this.alternateNumber,
-    this.address = const StaffAddress(),
+    this.address = const Address(),
     this.joiningDate,
     this.resignationDate,
     this.employmentType,
@@ -42,7 +44,7 @@ class StaffDraft extends Equatable {
   final String classCategoryId;
   final Phone mobile;
   final String? alternateNumber;
-  final StaffAddress address;
+  final Address address;
   final String? joiningDate;
   final String? resignationDate;
   final EmploymentType? employmentType;

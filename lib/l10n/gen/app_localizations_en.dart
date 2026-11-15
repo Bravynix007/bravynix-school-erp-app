@@ -547,6 +547,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get fieldRequired => 'Required';
 
   @override
+  String get errorFieldRequired => 'This field is required.';
+
+  @override
   String get errorInstitutionDuplicate => 'Another Institution already uses this code.';
 
   @override
@@ -1111,7 +1114,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get staffProfileTitle => 'Teacher profile';
 
   @override
-  String get staffSectionContact => 'Contact';
+  String get personFormContact => 'Contact';
 
   @override
   String get staffSectionEmployment => 'Employment';
@@ -1132,7 +1135,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get staffCategory => 'Category';
 
   @override
-  String get staffGender => 'Gender';
+  String get personGender => 'Gender';
 
   @override
   String get genderMale => 'Male';
@@ -1144,19 +1147,19 @@ class AppLocalizationsEn extends AppLocalizations {
   String get genderOther => 'Other';
 
   @override
-  String get staffDateOfBirth => 'Date of birth';
+  String get personDateOfBirth => 'Date of birth';
 
   @override
-  String get staffBloodGroup => 'Blood group';
+  String get personBloodGroup => 'Blood group';
 
   @override
-  String get staffNationality => 'Nationality';
+  String get personNationality => 'Nationality';
 
   @override
-  String get staffMobile => 'Mobile';
+  String get personMobile => 'Mobile';
 
   @override
-  String get staffAlternateNumber => 'Alternate number';
+  String get personAlternateNumber => 'Alternate number';
 
   @override
   String get staffAddress => 'Address';
@@ -1197,28 +1200,28 @@ class AppLocalizationsEn extends AppLocalizations {
   String get staffEditTitle => 'Edit staff';
 
   @override
-  String get staffSave => 'Save';
+  String get formSave => 'Save';
 
   @override
   String get staffSaved => 'Staff saved';
 
   @override
-  String get staffFormPhoto => 'Photo';
+  String get personFormPhoto => 'Photo';
 
   @override
-  String get staffPhotoKept => 'A photo is saved. Choose another to replace it.';
+  String get personPhotoKept => 'A photo is saved. Choose another to replace it.';
 
   @override
   String get staffPhotoLabel => 'Staff photo';
 
   @override
-  String get staffFormPersonal => 'Personal details';
+  String get personFormPersonal => 'Personal details';
 
   @override
-  String get staffFirstName => 'First name';
+  String get personFirstName => 'First name';
 
   @override
-  String get staffLastName => 'Last name';
+  String get personLastName => 'Last name';
 
   @override
   String get staffEmailAddHelper => 'They sign in with a code sent to this email.';
@@ -1227,7 +1230,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get staffEmailEditHelper => 'The login email can\'t be changed here.';
 
   @override
-  String get staffFormAddress => 'Address';
+  String get personFormAddress => 'Address';
 
   @override
   String get staffFormEducation => 'Education';
@@ -1297,7 +1300,7 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get staffUploadingWait => 'Wait for the photo to finish sending.';
+  String get personUploadingWait => 'Wait for the photo to finish sending.';
 
   @override
   String get staffTabPersonal => 'Personal';
@@ -1821,4 +1824,156 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get errorStudentNotFound => 'This student could not be found. They may have been deactivated.';
+
+  @override
+  String get studentsAddTitle => 'Add student';
+
+  @override
+  String get studentPhotoLabel => 'Student photo';
+
+  @override
+  String get studentFormAdmission => 'Admission';
+
+  @override
+  String get studentAdmissionNo => 'Admission ID';
+
+  @override
+  String get studentAdmissionDate => 'Admission date';
+
+  @override
+  String get studentAdmissionDateHelper => 'The day the class placement starts. Today when left empty.';
+
+  @override
+  String get studentContactEmail => 'Student\'s email';
+
+  @override
+  String get studentContactEmailHelper => 'Not a login. Guardians sign in with their own email.';
+
+  @override
+  String get studentFormPlacement => 'Class and section';
+
+  @override
+  String get studentYear => 'Academic year';
+
+  @override
+  String get studentClass => 'Class';
+
+  @override
+  String get studentSection => 'Section';
+
+  @override
+  String get studentRollNumber => 'Roll number';
+
+  @override
+  String get studentFormGuardians => 'Parents and guardians';
+
+  @override
+  String get studentFormGuardiansHelper => 'Add one to five. Exactly one is the primary guardian.';
+
+  @override
+  String studentGuardianRow(int number) {
+    return 'Guardian $number';
+  }
+
+  @override
+  String studentRemoveGuardian(int number) {
+    return 'Remove guardian $number';
+  }
+
+  @override
+  String get studentGuardianRelation => 'Relation';
+
+  @override
+  String get relationFather => 'Father';
+
+  @override
+  String get relationMother => 'Mother';
+
+  @override
+  String get relationGuardian => 'Guardian';
+
+  @override
+  String get relationGrandparent => 'Grandparent';
+
+  @override
+  String get relationSibling => 'Sibling';
+
+  @override
+  String get relationOther => 'Other';
+
+  @override
+  String get studentGuardianEmail => 'Email';
+
+  @override
+  String get studentGuardianEmailHelper => 'Their login. A parent who already has an account is linked by this email.';
+
+  @override
+  String get studentGuardianOccupation => 'Occupation';
+
+  @override
+  String get studentGuardianPrimary => 'Primary guardian';
+
+  @override
+  String get studentGuardianEmergency => 'Emergency contact';
+
+  @override
+  String get studentAddGuardian => 'Add guardian';
+
+  @override
+  String get studentFormIdentity => 'Identity';
+
+  @override
+  String get studentAadhaar => 'Aadhaar number';
+
+  @override
+  String get studentAadhaarHelper => 'Optional. Twelve digits, kept encrypted.';
+
+  @override
+  String get studentBirthCertificate => 'Birth certificate number';
+
+  @override
+  String studentAdded(String name) {
+    return '$name added';
+  }
+
+  @override
+  String get studentWarnOverCapacity => 'The section is now over its capacity.';
+
+  @override
+  String get studentWarnAadhaarElsewhere => 'Another Institution of the Society holds this Aadhaar number.';
+
+  @override
+  String get studentFormNoPlacesTitle => 'Set up a class first';
+
+  @override
+  String get studentFormNoPlacesMessage => 'Add an academic year, a class and a section before adding students.';
+
+  @override
+  String get errorStudentFormNotFound =>
+      'The Institution, year, class, section or photo could not be found. It may have been deactivated.';
+
+  @override
+  String get errorAdmissionNoTaken => 'Another student of this Institution has this Admission ID.';
+
+  @override
+  String get errorRollNumberTaken => 'Another student in this section has this roll number.';
+
+  @override
+  String get errorAadhaarDuplicateInInstitution => 'A student of this Institution already has this Aadhaar number.';
+
+  @override
+  String get errorSectionNotInClass => 'This section is not in the class chosen.';
+
+  @override
+  String get errorStudentYearNotActive => 'This academic year is not active.';
+
+  @override
+  String get errorInactiveSection => 'This section is deactivated.';
+
+  @override
+  String get errorPrimaryGuardianRequired => 'Choose exactly one primary guardian.';
+
+  @override
+  String get errorGuardianRoleConflict =>
+      'A guardian\'s email belongs to a platform account, which can\'t also be a parent.';
 }
