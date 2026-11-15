@@ -12,12 +12,12 @@ import 'package:bravynix_school_erp/core/widgets/state_panel.dart';
 import 'package:bravynix_school_erp/core/widgets/status_chip.dart';
 import 'package:bravynix_school_erp/features/classes/domain/classes_repository.dart';
 import 'package:bravynix_school_erp/features/masters/domain/masters_repository.dart';
+import 'package:bravynix_school_erp/features/people/presentation/bloc/access_block_bloc.dart';
 import 'package:bravynix_school_erp/features/people/presentation/view/person_names.dart';
 import 'package:bravynix_school_erp/features/people/presentation/view/personal_rows.dart';
 import 'package:bravynix_school_erp/features/sections/domain/sections_repository.dart';
 import 'package:bravynix_school_erp/features/students/domain/student_profile.dart';
 import 'package:bravynix_school_erp/features/students/domain/students_repository.dart';
-import 'package:bravynix_school_erp/features/students/presentation/bloc/student_block_bloc.dart';
 import 'package:bravynix_school_erp/features/students/presentation/bloc/student_profile_bloc.dart';
 import 'package:bravynix_school_erp/features/students/presentation/view/student_access_section.dart';
 import 'package:bravynix_school_erp/features/students/presentation/view/student_error_text.dart';
@@ -93,7 +93,13 @@ class StudentProfileView extends StatelessWidget {
           ),
           StudentProfileLoaded(:final profile) => BlocProvider(
             // The profile reads again (Try again, an edit) with a new record, so the block is made anew with it.
-            create: (_) => StudentBlockBloc(getIt<StudentsRepository>(), profile.record),
+            create: (_) => AccessBlockBloc<StudentRecord>(
+              profile.record,
+              isBlocked: (record) => record.isBlocked,
+              block: (record) => getIt<StudentsRepository>().block(record.id),
+              unblock: (record) => getIt<StudentsRepository>().unblock(record.id),
+              read: (record) => getIt<StudentsRepository>().student(record.id),
+            ),
             child: _Details(profile: profile),
           ),
         },

@@ -1,6 +1,10 @@
+import 'dart:async';
+
 import 'package:bloc_test/bloc_test.dart';
 import 'package:bravynix_school_erp/core/network/api_failure.dart';
-import 'package:bravynix_school_erp/features/students/presentation/bloc/student_block_bloc.dart';
+import 'package:bravynix_school_erp/core/widgets/app_button.dart';
+import 'package:bravynix_school_erp/features/people/presentation/bloc/access_block_bloc.dart';
+import 'package:bravynix_school_erp/features/students/domain/student_profile.dart';
 import 'package:bravynix_school_erp/features/students/presentation/bloc/student_profile_bloc.dart';
 import 'package:bravynix_school_erp/features/students/presentation/view/student_access_section.dart';
 import 'package:flutter/material.dart';
@@ -34,7 +38,15 @@ void main() {
       body: MultiBlocProvider(
         providers: [
           BlocProvider<StudentProfileBloc>.value(value: profile),
-          BlocProvider(create: (_) => StudentBlockBloc(students, blocked ? chitraBlockedRecord : chitraRecord)),
+          BlocProvider(
+            create: (_) => AccessBlockBloc<StudentRecord>(
+              blocked ? chitraBlockedRecord : chitraRecord,
+              isBlocked: (record) => record.isBlocked,
+              block: (record) => students.block(record.id),
+              unblock: (record) => students.unblock(record.id),
+              read: (record) => students.student(record.id),
+            ),
+          ),
         ],
         child: const SingleChildScrollView(child: StudentAccessSection()),
       ),
@@ -104,6 +116,30 @@ void main() {
     expect(find.textContaining('already changed'), findsOneWidget);
     expect(find.text('Restore parent access'), findsOneWidget);
     verify(() => profile.add(const StudentProfileRecordChanged(chitraBlockedRecord))).called(1);
+  });
+
+  testWidgets('reads the profile again when the student was deactivated meanwhile', (tester) async {
+    when(() => students.block('p3')).thenThrow(const ApiFailure(statusCode: 404, code: 'NOT_FOUND', message: 'x'));
+    await pump(tester);
+    await tester.tap(find.byKey(const Key('studentAccess.toggle')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.descendant(of: find.byType(Dialog), matching: find.text('Block parent access')));
+    await tester.pumpAndSettle();
+    verify(() => profile.add(const StudentProfileRequested())).called(1);
+    verifyNever(() => profile.add(any(that: isA<StudentProfileRecordChanged>())));
+  });
+
+  testWidgets('cannot be pressed again while it works, so a second question does not open', (tester) async {
+    final held = Completer<StudentRecord>();
+    when(() => students.block('p3')).thenAnswer((_) => held.future);
+    await pump(tester);
+    await tester.tap(find.byKey(const Key('studentAccess.toggle')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.descendant(of: find.byType(Dialog), matching: find.text('Block parent access')));
+    await tester.pump();
+    expect(tester.widget<AppButton>(find.byKey(const Key('studentAccess.toggle'))).onPressed, isNull);
+    held.complete(chitraBlockedRecord);
+    await tester.pumpAndSettle();
   });
 
   testWidgets('reads whole at a large text scale', (tester) async {
