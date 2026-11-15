@@ -60,6 +60,11 @@ void main() {
         '12 Lake Road\nIndia',
       );
       expect(addressText(const Address(), const PlaceNames()), isEmpty);
+      // No line is left empty where the places are missing.
+      expect(
+        addressText(const Address(line1: '12 Lake Road', pincode: '560066'), const PlaceNames()),
+        '12 Lake Road\n560066',
+      );
     });
   });
 }
