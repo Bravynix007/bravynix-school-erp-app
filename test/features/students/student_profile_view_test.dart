@@ -1,10 +1,12 @@
 import 'package:bloc_test/bloc_test.dart';
+import 'package:bravynix_school_erp/app/di/injection.dart';
 import 'package:bravynix_school_erp/app/router/app_routes.dart';
 import 'package:bravynix_school_erp/core/model/phone.dart';
 import 'package:bravynix_school_erp/core/network/api_failure.dart';
 import 'package:bravynix_school_erp/core/theme/app_theme.dart';
 import 'package:bravynix_school_erp/features/people/domain/place_names.dart';
 import 'package:bravynix_school_erp/features/students/domain/student_profile.dart';
+import 'package:bravynix_school_erp/features/students/domain/students_repository.dart';
 import 'package:bravynix_school_erp/features/students/presentation/bloc/student_profile_bloc.dart';
 import 'package:bravynix_school_erp/features/students/presentation/view/student_form_page.dart';
 import 'package:bravynix_school_erp/features/students/presentation/view/student_profile_page.dart';
@@ -16,6 +18,7 @@ import 'package:go_router/go_router.dart';
 import 'package:mocktail/mocktail.dart';
 
 import '../../helpers/clipped_text.dart';
+import '../../helpers/mocks.dart';
 import '../../helpers/pump_app.dart';
 import '../../helpers/students.dart';
 
@@ -35,7 +38,10 @@ void main() {
   setUp(() {
     bloc = _MockProfileBloc();
     when(() => bloc.id).thenReturn('p1');
+    // The parent access card makes its own bloc from the repository.
+    getIt.registerSingleton<StudentsRepository>(MockStudentsRepository());
   });
+  tearDown(getIt.reset);
 
   Future<void> pump(
     WidgetTester tester,
@@ -157,6 +163,21 @@ void main() {
     await pump(tester, const StudentProfileLoaded(_ashaProfile), textScale: 2, size: const Size(320, 640));
     expect(tester.takeException(), isNull);
     expect(clippedParagraphs(tester), isEmpty);
+  });
+
+  group('Parent access', () {
+    testWidgets('is on the profile of an active student, with what the access is now', (tester) async {
+      await pump(tester, const StudentProfileLoaded(_ashaProfile));
+      expect(find.text('Parent access'), findsOneWidget);
+      expect(find.text('Parents and guardians can see this child.'), findsOneWidget);
+      expect(find.byKey(const Key('studentAccess.toggle')), findsOneWidget);
+    });
+
+    testWidgets('is not on the profile of a deactivated student', (tester) async {
+      await pump(tester, const StudentProfileLoaded(StudentProfile(balaRecord)));
+      expect(find.text('Parent access'), findsNothing);
+      expect(find.byKey(const Key('studentAccess.toggle')), findsNothing);
+    });
   });
 
   group('Edit', () {

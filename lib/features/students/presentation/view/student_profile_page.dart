@@ -17,7 +17,9 @@ import 'package:bravynix_school_erp/features/people/presentation/view/personal_r
 import 'package:bravynix_school_erp/features/sections/domain/sections_repository.dart';
 import 'package:bravynix_school_erp/features/students/domain/student_profile.dart';
 import 'package:bravynix_school_erp/features/students/domain/students_repository.dart';
+import 'package:bravynix_school_erp/features/students/presentation/bloc/student_block_bloc.dart';
 import 'package:bravynix_school_erp/features/students/presentation/bloc/student_profile_bloc.dart';
+import 'package:bravynix_school_erp/features/students/presentation/view/student_access_section.dart';
 import 'package:bravynix_school_erp/features/students/presentation/view/student_error_text.dart';
 import 'package:bravynix_school_erp/features/students/presentation/view/student_form_page.dart';
 import 'package:bravynix_school_erp/features/students/presentation/view/student_frame.dart';
@@ -89,7 +91,11 @@ class StudentProfileView extends StatelessWidget {
             actionLabel: l10n.retry,
             onAction: () => context.read<StudentProfileBloc>().add(const StudentProfileRequested()),
           ),
-          StudentProfileLoaded(:final profile) => _Details(profile: profile),
+          StudentProfileLoaded(:final profile) => BlocProvider(
+            // The profile reads again (Try again, an edit) with a new record, so the block is made anew with it.
+            create: (_) => StudentBlockBloc(getIt<StudentsRepository>(), profile.record),
+            child: _Details(profile: profile),
+          ),
         },
       ),
     );
@@ -175,6 +181,8 @@ class _Details extends StatelessWidget {
           const SizedBox(height: AppSpacing.xs),
         ],
         const SizedBox(height: AppSpacing.xs),
+        // A deactivated student's access is not changed (STU-06 is 404).
+        if (record.isActive) const StudentAccessSection(),
         SectionHeader(title: l10n.studentFormIdentity),
         const SizedBox(height: AppSpacing.xs),
         AppCard(

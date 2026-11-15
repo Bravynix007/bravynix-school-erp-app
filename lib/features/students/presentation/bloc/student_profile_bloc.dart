@@ -20,6 +20,16 @@ final class StudentProfileRequested extends StudentProfileEvent {
   const new();
 }
 
+/// The student changed on this screen (a block or a lift, STU-06 and STU-07); the names read with the profile stay.
+final class StudentProfileRecordChanged extends StudentProfileEvent {
+  const new(this.record);
+
+  final StudentRecord record;
+
+  @override
+  List<Object?> get props => [record];
+}
+
 sealed class StudentProfileState extends Equatable {
   const new();
 
@@ -53,6 +63,7 @@ class StudentProfileFailed extends StudentProfileState {
 class StudentProfileBloc extends Bloc<StudentProfileEvent, StudentProfileState> {
   new(this._students, this._masters, this._classes, this._sections, this.id) : super(const StudentProfileLoading()) {
     on<StudentProfileRequested>(_onRequested);
+    on<StudentProfileRecordChanged>(_onRecordChanged);
   }
 
   final StudentsRepository _students;
@@ -60,6 +71,12 @@ class StudentProfileBloc extends Bloc<StudentProfileEvent, StudentProfileState> 
   final ClassesRepository _classes;
   final SectionsRepository _sections;
   final String id;
+
+  void _onRecordChanged(StudentProfileRecordChanged event, Emitter<StudentProfileState> emit) {
+    if (state case StudentProfileLoaded(:final profile)) {
+      emit(StudentProfileLoaded(StudentProfile(event.record, placeName: profile.placeName, places: profile.places)));
+    }
+  }
 
   Future<void> _onRequested(StudentProfileRequested event, Emitter<StudentProfileState> emit) async {
     emit(const StudentProfileLoading());

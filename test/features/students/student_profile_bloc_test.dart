@@ -39,6 +39,33 @@ void main() {
   StudentProfileBloc build() => StudentProfileBloc(students, masters, classes, sections, 'p1');
 
   blocTest<StudentProfileBloc, StudentProfileState>(
+    'takes a student that changed on this screen and keeps the names it read',
+    build: build,
+    act: (bloc) async {
+      bloc.add(const StudentProfileRequested());
+      await bloc.stream.firstWhere((state) => state is StudentProfileLoaded);
+      bloc.add(const StudentProfileRecordChanged(chitraBlockedRecord));
+    },
+    skip: 2,
+    expect: () => [
+      const StudentProfileLoaded(
+        StudentProfile(
+          chitraBlockedRecord,
+          placeName: 'Class 1 · Section A',
+          places: PlaceNames(country: 'India', state: 'Karnataka', city: 'Bengaluru'),
+        ),
+      ),
+    ],
+  );
+
+  blocTest<StudentProfileBloc, StudentProfileState>(
+    'ignores a changed student before the profile is read',
+    build: build,
+    act: (bloc) => bloc.add(const StudentProfileRecordChanged(chitraBlockedRecord)),
+    expect: () => <StudentProfileState>[],
+  );
+
+  blocTest<StudentProfileBloc, StudentProfileState>(
     'reads the student, and the names of their class, section and place',
     build: build,
     act: (bloc) => bloc.add(const StudentProfileRequested()),

@@ -250,3 +250,17 @@ const chitraRecord = StudentRecord(
   isActive: true,
   version: 1,
 );
+
+/// Chitra with the guardians' access to her blocked.
+const chitraBlockedRecord = StudentRecord(
+  id: 'p3',
+  institutionId: 'i1',
+  firstName: 'Chitra',
+  mobile: Phone(countryCode: '91', number: '9876500001'),
+  address: Address(),
+  guardians: [],
+  identity: StudentIdentity(),
+  isBlocked: true,
+  isActive: true,
+  version: 2,
+);

@@ -3517,6 +3517,78 @@ abstract class AppLocalizations {
   /// **'Birth certificate number'**
   String get studentBirthCertificate;
 
+  /// No description provided for @studentAccessTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Parent access'**
+  String get studentAccessTitle;
+
+  /// No description provided for @studentAccessActive.
+  ///
+  /// In en, this message translates to:
+  /// **'Parents and guardians can see this child.'**
+  String get studentAccessActive;
+
+  /// No description provided for @studentAccessBlockedMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Parent access is blocked. Parents and guardians cannot see this child. Their other children are not affected.'**
+  String get studentAccessBlockedMessage;
+
+  /// No description provided for @studentBlockAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Block parent access'**
+  String get studentBlockAction;
+
+  /// No description provided for @studentUnblockAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Restore parent access'**
+  String get studentUnblockAction;
+
+  /// No description provided for @studentBlockTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Block parent access to {name}?'**
+  String studentBlockTitle(String name);
+
+  /// No description provided for @studentBlockMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Parents and guardians will not see this child until you restore access. Their other children and their accounts are not affected.'**
+  String get studentBlockMessage;
+
+  /// No description provided for @studentUnblockTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Restore parent access to {name}?'**
+  String studentUnblockTitle(String name);
+
+  /// No description provided for @studentUnblockMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Parents and guardians will see this child again.'**
+  String get studentUnblockMessage;
+
+  /// No description provided for @studentBlockDone.
+  ///
+  /// In en, this message translates to:
+  /// **'Parent access to {name} blocked'**
+  String studentBlockDone(String name);
+
+  /// No description provided for @studentUnblockDone.
+  ///
+  /// In en, this message translates to:
+  /// **'Parent access to {name} restored'**
+  String studentUnblockDone(String name);
+
+  /// No description provided for @errorStudentAccessState.
+  ///
+  /// In en, this message translates to:
+  /// **'Someone else already changed this child\'s parent access. The screen now shows how it is.'**
+  String get errorStudentAccessState;
+
   /// No description provided for @studentEditTitle.
   ///
   /// In en, this message translates to:

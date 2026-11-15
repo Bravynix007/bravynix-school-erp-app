@@ -1935,6 +1935,53 @@ class AppLocalizationsEn extends AppLocalizations {
   String get studentBirthCertificate => 'Birth certificate number';
 
   @override
+  String get studentAccessTitle => 'Parent access';
+
+  @override
+  String get studentAccessActive => 'Parents and guardians can see this child.';
+
+  @override
+  String get studentAccessBlockedMessage =>
+      'Parent access is blocked. Parents and guardians cannot see this child. Their other children are not affected.';
+
+  @override
+  String get studentBlockAction => 'Block parent access';
+
+  @override
+  String get studentUnblockAction => 'Restore parent access';
+
+  @override
+  String studentBlockTitle(String name) {
+    return 'Block parent access to $name?';
+  }
+
+  @override
+  String get studentBlockMessage =>
+      'Parents and guardians will not see this child until you restore access. Their other children and their accounts are not affected.';
+
+  @override
+  String studentUnblockTitle(String name) {
+    return 'Restore parent access to $name?';
+  }
+
+  @override
+  String get studentUnblockMessage => 'Parents and guardians will see this child again.';
+
+  @override
+  String studentBlockDone(String name) {
+    return 'Parent access to $name blocked';
+  }
+
+  @override
+  String studentUnblockDone(String name) {
+    return 'Parent access to $name restored';
+  }
+
+  @override
+  String get errorStudentAccessState =>
+      'Someone else already changed this child\'s parent access. The screen now shows how it is.';
+
+  @override
   String get studentEditTitle => 'Edit student';
 
   @override

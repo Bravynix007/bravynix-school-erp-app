@@ -12,6 +12,13 @@ String studentErrorText(AppLocalizations l10n, ApiFailure failure) =>
 String studentProfileErrorText(AppLocalizations l10n, ApiFailure failure) =>
     apiErrorText(l10n, failure, notFound: l10n.errorStudentProfileNotFound);
 
+/// Copy for STU-06 and STU-07: 409 INVALID_STATE for a block or a lift the student is already in, and a 404 for a
+/// student deactivated meanwhile. The rest reads as everywhere else.
+String studentAccessErrorText(AppLocalizations l10n, ApiFailure failure) => switch (failure.code) {
+  'INVALID_STATE' => l10n.errorStudentAccessState,
+  _ => apiErrorText(l10n, failure, notFound: l10n.errorStudentNotFound),
+};
+
 /// Copy for the codes STU-02 adds (API design 10.6): 409 ADMISSION_NO_TAKEN, ROLL_NUMBER_TAKEN,
 /// AADHAAR_DUPLICATE_IN_INSTITUTION and ROLE_CONFLICT (a guardian's email that is a platform account); 422
 /// SECTION_NOT_IN_CLASS, YEAR_NOT_ACTIVE, INACTIVE_SECTION, INVALID_AADHAAR, PRIMARY_GUARDIAN_REQUIRED and

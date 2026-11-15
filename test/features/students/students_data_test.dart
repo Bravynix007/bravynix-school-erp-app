@@ -453,6 +453,29 @@ void main() {
     });
   });
 
+  group('STU-06 and STU-07', () {
+    test('block posts to the student and answers the record', () async {
+      final (:repository, :adapter) = build(() => okReply(studentJson()));
+      expect(await repository.block('a/b'), ashaRecord);
+      final request = adapter.requests.single;
+      expect([request.method, request.uri.path], ['POST', '/v1/students/a%2Fb/block']);
+    });
+
+    test('unblock posts to the student and answers the record', () async {
+      final (:repository, :adapter) = build(() => okReply(studentJson()));
+      expect(await repository.unblock('p1'), ashaRecord);
+      final request = adapter.requests.single;
+      expect([request.method, request.uri.path], ['POST', '/v1/students/p1/unblock']);
+    });
+
+    test('throw the failure the API gives', () async {
+      final (:repository, adapter: _) = build(() => errorReply(409, 'INVALID_STATE'));
+      for (final call in [repository.block, repository.unblock]) {
+        await expectLater(call('p1'), throwsA(isA<ApiFailure>().having((f) => f.code, 'code', 'INVALID_STATE')));
+      }
+    });
+  });
+
   group('STU-08', () {
     test('sends only what changes, to the placement of the student, and answers the warnings', () async {
       final (:repository, :adapter) = build(
