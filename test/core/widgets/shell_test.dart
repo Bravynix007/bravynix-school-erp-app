@@ -4,6 +4,7 @@ import 'package:bravynix_school_erp/core/theme/app_theme.dart';
 import 'package:bravynix_school_erp/core/widgets/app_fab.dart';
 import 'package:bravynix_school_erp/core/widgets/app_top_bar.dart';
 import 'package:bravynix_school_erp/core/widgets/floating_pill_nav_bar.dart';
+import 'package:bravynix_school_erp/core/widgets/inline_message.dart';
 import 'package:bravynix_school_erp/core/widgets/module_header.dart';
 import 'package:bravynix_school_erp/core/widgets/notification_bell.dart';
 import 'package:bravynix_school_erp/core/widgets/sticky_bottom_actions.dart';
@@ -704,6 +705,47 @@ void main() {
       final submit = tester.getRect(find.widgetWithText(FilledButton, 'Confirm and submit'));
       expect(submit.bottom, lessThanOrEqualTo(cancel.top));
       expect(submit.width, cancel.width);
+    });
+
+    testWidgets('a notice sits above the buttons, inside the bar', (tester) async {
+      await tester.pumpApp(
+        Scaffold(
+          bottomNavigationBar: StickyBottomActions(
+            primaryLabel: 'Save',
+            onPrimary: () {},
+            secondaryLabel: 'Cancel',
+            onSecondary: () {},
+            notice: const InlineMessage.error('That Admission ID is taken.'),
+          ),
+        ),
+      );
+      final notice = tester.getRect(find.text('That Admission ID is taken.'));
+      final save = tester.getRect(find.widgetWithText(FilledButton, 'Save'));
+      expect(notice.bottom, lessThanOrEqualTo(save.top));
+      expect(
+        find.descendant(of: find.byType(StickyBottomActions), matching: find.byType(InlineMessage)),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('a notice at 300% text on a 320 px phone scrolls and keeps the buttons on screen', (tester) async {
+      await tester.pumpAppScaled(
+        Scaffold(
+          bottomNavigationBar: StickyBottomActions(
+            primaryLabel: 'Save',
+            onPrimary: () {},
+            secondaryLabel: 'Cancel',
+            onSecondary: () {},
+            notice: const InlineMessage.error('That Admission ID is taken. Choose another one.'),
+          ),
+        ),
+        textScale: 3,
+      );
+      expect(tester.takeException(), isNull);
+      expect(find.text('That Admission ID is taken. Choose another one.'), findsOneWidget);
+      // The message scrolls inside a quarter of the screen, so both buttons stay on it.
+      expect(tester.getRect(find.widgetWithText(OutlinedButton, 'Cancel')).bottom, lessThanOrEqualTo(640));
+      expect(tester.getRect(find.widgetWithText(FilledButton, 'Save')).top, greaterThan(0));
     });
 
     testWidgets('a long label in another script is measured, so it stacks instead of overflowing', (tester) async {

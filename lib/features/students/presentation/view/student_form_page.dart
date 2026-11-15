@@ -280,7 +280,8 @@ class _FormBodyState extends State<_FormBody> {
       },
     );
     final uploading = context.select<FileUploadBloc, bool>((bloc) => bloc.state is FileUploadSending);
-    // A save that failed on fields of this form is shown under them; any other failure is said above.
+    // A save that failed on fields of this form is shown under them; any other failure is said above Save, where the
+    // person is looking after pressing it.
     final banner = failure != null && !failure.namesOnly(_fieldsShown(state))
         ? studentFormErrorText(l10n, failure)
         : null;
@@ -293,10 +294,6 @@ class _FormBodyState extends State<_FormBody> {
             child: ListView(
               padding: const EdgeInsets.all(AppSpacing.screenMargin),
               children: [
-                if (banner != null) ...[
-                  InlineMessage.error(banner, key: const Key('studentForm.error')),
-                  const SizedBox(height: AppSpacing.sm),
-                ],
                 SectionHeader(title: l10n.personFormPhoto),
                 const SizedBox(height: AppSpacing.xs),
                 AppCard(
@@ -529,6 +526,7 @@ class _FormBodyState extends State<_FormBody> {
         onPrimary: state.saving || place == null || uploading ? null : () => _save(place),
         secondaryLabel: l10n.cancel,
         onSecondary: () => Navigator.maybePop(context),
+        notice: banner == null ? null : InlineMessage.error(banner, key: const Key('studentForm.error')),
       ),
     );
   }
