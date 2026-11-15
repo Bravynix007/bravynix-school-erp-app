@@ -11,8 +11,9 @@ String studentErrorText(AppLocalizations l10n, ApiFailure failure) =>
 /// AADHAAR_DUPLICATE_IN_INSTITUTION and ROLE_CONFLICT (a guardian's email that is a platform account); 422
 /// SECTION_NOT_IN_CLASS, YEAR_NOT_ACTIVE, INACTIVE_SECTION, INVALID_AADHAAR, PRIMARY_GUARDIAN_REQUIRED and
 /// REFERENCE_INACTIVE (a photo that is no longer available); and 404 for an Institution, year, class, section or photo
-/// that is not found. The rest reads as everywhere else, ACCOUNT_BLOCKED among it.
-String studentFormErrorText(AppLocalizations l10n, ApiFailure failure) => switch (failure.code) {
+/// that is not found. The rest reads as everywhere else, ACCOUNT_BLOCKED among it. [notFound] words a 404 that is not
+/// about those, such as a student deactivated meanwhile.
+String studentFormErrorText(AppLocalizations l10n, ApiFailure failure, {String? notFound}) => switch (failure.code) {
   'ADMISSION_NO_TAKEN' => l10n.errorAdmissionNoTaken,
   'ROLL_NUMBER_TAKEN' => l10n.errorRollNumberTaken,
   'AADHAAR_DUPLICATE_IN_INSTITUTION' => l10n.errorAadhaarDuplicateInInstitution,
@@ -23,5 +24,5 @@ String studentFormErrorText(AppLocalizations l10n, ApiFailure failure) => switch
   'INVALID_AADHAAR' => l10n.errorAadhaarInvalid,
   'PRIMARY_GUARDIAN_REQUIRED' => l10n.errorPrimaryGuardianRequired,
   'REFERENCE_INACTIVE' => l10n.errorReferenceInactive,
-  _ => apiErrorText(l10n, failure, notFound: l10n.errorStudentFormNotFound),
+  _ => apiErrorText(l10n, failure, notFound: notFound ?? l10n.errorStudentFormNotFound),
 };

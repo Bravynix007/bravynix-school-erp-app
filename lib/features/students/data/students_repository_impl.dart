@@ -44,6 +44,17 @@ class StudentsRepositoryImpl implements StudentsRepository {
   );
 
   @override
+  Future<List<String>> move(String id, {String? sectionId, String? rollNumber, String? effectiveDate}) async {
+    final answer = await _api.request(
+      'students/${Uri.encodeComponent(id)}/placement',
+      method: HttpMethod.patch,
+      body: {'sectionId': ?sectionId, 'rollNumber': ?rollNumber, 'effectiveDate': ?effectiveDate},
+      parse: (_) {},
+    );
+    return answer.warnings;
+  }
+
+  @override
   Future<StudentSaved> create(
     String institutionId,
     StudentDraft draft, {

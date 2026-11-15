@@ -12,6 +12,7 @@ abstract final class StudentModels {
       classId: json['classId'] as String,
       sectionId: json['sectionId'] as String,
       rollNumber: json['rollNumber'] as String,
+      startDate: json['startDate'] as String,
     );
   }
 

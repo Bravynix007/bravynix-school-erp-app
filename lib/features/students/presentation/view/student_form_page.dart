@@ -33,7 +33,9 @@ import 'package:bravynix_school_erp/features/students/domain/student.dart';
 import 'package:bravynix_school_erp/features/students/domain/students_repository.dart';
 import 'package:bravynix_school_erp/features/students/presentation/bloc/student_form_bloc.dart';
 import 'package:bravynix_school_erp/features/students/presentation/view/student_error_text.dart';
+import 'package:bravynix_school_erp/features/students/presentation/view/student_frame.dart';
 import 'package:bravynix_school_erp/features/students/presentation/view/student_guardian_row.dart';
+import 'package:bravynix_school_erp/features/students/presentation/view/student_warnings.dart';
 import 'package:bravynix_school_erp/l10n/gen/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -47,15 +49,8 @@ class StudentFormArgs {
 }
 
 /// What the snackbar says once a student is added: the name, and a line for each second look the server asked for.
-String studentAddedMessage(AppLocalizations l10n, StudentSaved saved) => [
-  l10n.studentAdded(saved.student.fullName),
-  for (final warning in saved.warnings)
-    switch (warning) {
-      'SECTION_OVER_CAPACITY' => l10n.studentWarnOverCapacity,
-      'AADHAAR_EXISTS_IN_SOCIETY' => l10n.studentWarnAadhaarElsewhere,
-      _ => null,
-    },
-].nonNulls.join(' ');
+String studentAddedMessage(AppLocalizations l10n, StudentSaved saved) =>
+    [l10n.studentAdded(saved.student.fullName), ...studentWarningLines(l10n, saved.warnings)].join(' ');
 
 /// School setup → Students → Add student (STU-02). Closes with `true` once saved, so the list reads again.
 class StudentFormPage extends StatelessWidget {
@@ -94,7 +89,8 @@ class StudentFormView extends StatelessWidget {
       },
       child: BlocBuilder<StudentFormBloc, StudentFormState>(
         builder: (context, state) => switch (state) {
-          StudentFormReady() when state.options.years.isEmpty || state.options.sections.isEmpty => _Frame(
+          StudentFormReady() when state.options.years.isEmpty || state.options.sections.isEmpty => StudentFrame(
+            title: l10n.studentsAddTitle,
             child: StatePanel.empty(
               key: const Key('studentForm.noPlaces'),
               title: l10n.studentFormNoPlacesTitle,
@@ -102,13 +98,15 @@ class StudentFormView extends StatelessWidget {
             ),
           ),
           StudentFormReady() => _Form(state: state),
-          StudentFormFailed(:final failure) when failure.code == 'FORBIDDEN' => _Frame(
+          StudentFormFailed(:final failure) when failure.code == 'FORBIDDEN' => StudentFrame(
+            title: l10n.studentsAddTitle,
             child: StatePanel.forbidden(
               key: const Key('studentForm.forbidden'),
               title: studentFormErrorText(l10n, failure),
             ),
           ),
-          StudentFormFailed(:final failure) => _Frame(
+          StudentFormFailed(:final failure) => StudentFrame(
+            title: l10n.studentsAddTitle,
             child: StatePanel.error(
               key: const Key('studentForm.failed'),
               title: studentFormErrorText(l10n, failure),
@@ -116,30 +114,11 @@ class StudentFormView extends StatelessWidget {
               onAction: () => context.read<StudentFormBloc>().add(const StudentFormStarted()),
             ),
           ),
-          _ => _Frame(
+          _ => StudentFrame(
+            title: l10n.studentsAddTitle,
             child: SkeletonCards(semanticLabel: l10n.loading, heights: const [160, 280]),
           ),
         },
-      ),
-    );
-  }
-}
-
-/// The screen around a body that is not the form: a placeholder, an empty or failed state.
-class _Frame extends StatelessWidget {
-  const new({required this.child});
-
-  final Widget child;
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
-    return Scaffold(
-      body: Column(
-        children: [
-          AppTopBar(title: l10n.studentsAddTitle, onBack: () => context.pop(), backTooltip: l10n.back),
-          Expanded(child: child),
-        ],
       ),
     );
   }

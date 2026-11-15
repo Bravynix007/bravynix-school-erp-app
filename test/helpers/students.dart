@@ -10,7 +10,13 @@ const asha = StudentSummary(
   admissionNo: 'A-2026-014',
   firstName: 'Asha',
   lastName: 'Rao',
-  placement: StudentPlacement(academicYearId: 'y1', classId: 'c1', sectionId: 'e1', rollNumber: '14'),
+  placement: StudentPlacement(
+    academicYearId: 'y1',
+    classId: 'c1',
+    sectionId: 'e1',
+    rollNumber: '14',
+    startDate: '2026-06-01',
+  ),
   isBlocked: false,
   version: 3,
 );
@@ -20,7 +26,13 @@ const bala = StudentSummary(
   id: 'p2',
   institutionId: 'i1',
   firstName: 'Bala',
-  placement: StudentPlacement(academicYearId: 'y1', classId: 'c9', sectionId: 'e9', rollNumber: '2'),
+  placement: StudentPlacement(
+    academicYearId: 'y1',
+    classId: 'c9',
+    sectionId: 'e9',
+    rollNumber: '2',
+    startDate: '2026-06-01',
+  ),
   isBlocked: true,
   version: 1,
 );

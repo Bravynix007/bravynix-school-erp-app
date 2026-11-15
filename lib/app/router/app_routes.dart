@@ -67,6 +67,9 @@ abstract final class AppRoutes {
   static const students = '/school-setup/students';
   static const studentForm = '/school-setup/students/form';
 
+  /// Moves a student to another section or roll number (STU-08); takes the student as the route's `extra`.
+  static const studentMove = '/school-setup/students/move';
+
   /// The component gallery, registered in debug and profile builds only.
   static const gallery = '/gallery';
 

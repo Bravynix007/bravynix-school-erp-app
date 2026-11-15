@@ -25,6 +25,7 @@ import 'package:bravynix_school_erp/features/staff/presentation/view/staff_form_
 import 'package:bravynix_school_erp/features/staff/presentation/view/staff_page.dart';
 import 'package:bravynix_school_erp/features/staff/presentation/view/staff_profile_page.dart';
 import 'package:bravynix_school_erp/features/students/presentation/view/student_form_page.dart';
+import 'package:bravynix_school_erp/features/students/presentation/view/student_move_page.dart';
 import 'package:bravynix_school_erp/features/students/presentation/view/students_page.dart';
 import 'package:bravynix_school_erp/features/subjects/presentation/view/subject_form_page.dart';
 import 'package:bravynix_school_erp/features/subjects/presentation/view/subjects_page.dart';
@@ -70,6 +71,9 @@ String? subjectFormRedirect(Object? extra) => extra is SubjectFormArgs ? null : 
 
 /// The student form needs the Institution the screen behind it hands over.
 String? studentFormRedirect(Object? extra) => extra is StudentFormArgs ? null : AppRoutes.students;
+
+/// The move form needs the student the list hands over.
+String? studentMoveRedirect(Object? extra) => extra is StudentMoveArgs ? null : AppRoutes.students;
 
 /// The staff form needs the Institution or the staff member the screen behind it hands over.
 String? staffFormRedirect(Object? extra) => extra is StaffFormArgs ? null : AppRoutes.staff;
@@ -165,6 +169,11 @@ GoRouter createRouter(SessionBloc session, {required SessionChanges changes}) {
         path: AppRoutes.studentForm,
         redirect: (_, state) => studentFormRedirect(state.extra),
         builder: (_, state) => StudentFormPage(args: state.extra! as StudentFormArgs),
+      ),
+      GoRoute(
+        path: AppRoutes.studentMove,
+        redirect: (_, state) => studentMoveRedirect(state.extra),
+        builder: (_, state) => StudentMovePage(args: state.extra! as StudentMoveArgs),
       ),
       GoRoute(path: AppRoutes.updateRequired, builder: (_, _) => const UpdateRequiredPage()),
       if (!kReleaseMode) GoRoute(path: AppRoutes.gallery, builder: (_, _) => const ComponentGalleryPage()),

@@ -19,6 +19,13 @@ abstract class StudentsRepository {
   /// end today. 404 for a student already deactivated.
   Future<void> deactivate(String id, LeavingReason reason);
 
+  /// STU-08: moves the student to [sectionId] of the same class, or gives them [rollNumber], from [effectiveDate]
+  /// (`YYYY-MM-DD`; today when null, never in the future or before the current placement began). Send what changes. The
+  /// answer is the warnings of the write (`SECTION_OVER_CAPACITY`). 404 for a student already deactivated; 409
+  /// `ROLL_NUMBER_TAKEN`; 422 `INACTIVE_SECTION`, `SECTION_NOT_IN_CLASS` and `YEAR_NOT_ACTIVE`; 400 `INVALID_VALUE` on
+  /// `effectiveDate`.
+  Future<List<String>> move(String id, {String? sectionId, String? rollNumber, String? effectiveDate});
+
   /// STU-02: adds a student to [institutionId] with the first placement ([enrolment]), one to five [guardians] with
   /// exactly one primary, and the [identity] numbers when given. The answer carries the warnings of the write. 409
   /// `ADMISSION_NO_TAKEN`, `ROLL_NUMBER_TAKEN`, `AADHAAR_DUPLICATE_IN_INSTITUTION`, `ROLE_CONFLICT` and

@@ -7,6 +7,7 @@ class StudentPlacement extends Equatable {
     required this.classId,
     required this.sectionId,
     required this.rollNumber,
+    required this.startDate,
   });
 
   final String academicYearId;
@@ -14,8 +15,11 @@ class StudentPlacement extends Equatable {
   final String sectionId;
   final String rollNumber;
 
+  /// First day in this section with this roll number, as `YYYY-MM-DD`.
+  final String startDate;
+
   @override
-  List<Object?> get props => [academicYearId, classId, sectionId, rollNumber];
+  List<Object?> get props => [academicYearId, classId, sectionId, rollNumber, startDate];
 }
 
 /// One row of the students list (STU-01); the profile has the rest. The class and section are IDs: the Institution's
