@@ -607,6 +607,7 @@
   "studentsDeactivated": "{name} deactivated",
   "@studentsDeactivated": { "placeholders": { "name": { "type": "String" } } },
   "errorStudentNotFound": "This student could not be found. They may have been deactivated.",
+  "errorStudentProfileNotFound": "This student could not be found.",
   "studentsAddTitle": "Add student",
   "studentPhotoLabel": "Student photo",
   "studentFormAdmission": "Admission",

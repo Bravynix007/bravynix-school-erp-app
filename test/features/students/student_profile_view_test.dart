@@ -1,6 +1,7 @@
 import 'package:bloc_test/bloc_test.dart';
 import 'package:bravynix_school_erp/core/model/phone.dart';
 import 'package:bravynix_school_erp/core/network/api_failure.dart';
+import 'package:bravynix_school_erp/features/people/domain/place_names.dart';
 import 'package:bravynix_school_erp/features/students/domain/student_profile.dart';
 import 'package:bravynix_school_erp/features/students/presentation/bloc/student_profile_bloc.dart';
 import 'package:bravynix_school_erp/features/students/presentation/view/student_profile_page.dart';
@@ -18,9 +19,7 @@ class _MockProfileBloc extends MockBloc<StudentProfileEvent, StudentProfileState
 const _ashaProfile = StudentProfile(
   ashaRecord,
   placeName: 'Class 1 · Section A',
-  countryName: 'India',
-  stateName: 'Karnataka',
-  cityName: 'Bengaluru',
+  places: PlaceNames(country: 'India', state: 'Karnataka', city: 'Bengaluru'),
 );
 
 ApiFailure _failure(int status, String code) => ApiFailure(statusCode: status, code: code, message: 'server words');
@@ -135,7 +134,7 @@ void main() {
     testWidgets('says the student could not be found, with no retry', (tester) async {
       await pump(tester, StudentProfileFailed(_failure(404, 'NOT_FOUND')));
       expect(find.byKey(const Key('studentProfile.notFound')), findsOneWidget);
-      expect(find.text('This student could not be found. They may have been deactivated.'), findsOneWidget);
+      expect(find.text('This student could not be found.'), findsOneWidget);
       expect(find.text('Try again'), findsNothing);
     });
 

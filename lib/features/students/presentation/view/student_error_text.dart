@@ -7,6 +7,11 @@ import 'package:bravynix_school_erp/l10n/gen/app_localizations.dart';
 String studentErrorText(AppLocalizations l10n, ApiFailure failure) =>
     apiErrorText(l10n, failure, notFound: l10n.errorStudentNotFound);
 
+/// Copy for STU-03: a deactivated student is read like any other, so its 404 is only a student outside the caller's
+/// scope. The rest reads as everywhere else.
+String studentProfileErrorText(AppLocalizations l10n, ApiFailure failure) =>
+    apiErrorText(l10n, failure, notFound: l10n.errorStudentProfileNotFound);
+
 /// Copy for the codes STU-02 adds (API design 10.6): 409 ADMISSION_NO_TAKEN, ROLL_NUMBER_TAKEN,
 /// AADHAAR_DUPLICATE_IN_INSTITUTION and ROLE_CONFLICT (a guardian's email that is a platform account); 422
 /// SECTION_NOT_IN_CLASS, YEAR_NOT_ACTIVE, INACTIVE_SECTION, INVALID_AADHAAR, PRIMARY_GUARDIAN_REQUIRED and

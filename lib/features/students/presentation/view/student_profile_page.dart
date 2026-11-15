@@ -11,6 +11,7 @@ import 'package:bravynix_school_erp/core/widgets/status_chip.dart';
 import 'package:bravynix_school_erp/features/classes/domain/classes_repository.dart';
 import 'package:bravynix_school_erp/features/masters/domain/masters_repository.dart';
 import 'package:bravynix_school_erp/features/people/presentation/view/person_names.dart';
+import 'package:bravynix_school_erp/features/people/presentation/view/personal_rows.dart';
 import 'package:bravynix_school_erp/features/sections/domain/sections_repository.dart';
 import 'package:bravynix_school_erp/features/students/domain/student_profile.dart';
 import 'package:bravynix_school_erp/features/students/domain/students_repository.dart';
@@ -55,15 +56,15 @@ class StudentProfileView extends StatelessWidget {
           StudentProfileLoading() => SkeletonCards(semanticLabel: l10n.loading, heights: const [160, 112]),
           StudentProfileFailed(:final failure) when failure.code == 'FORBIDDEN' => StatePanel.forbidden(
             key: const Key('studentProfile.forbidden'),
-            title: studentErrorText(l10n, failure),
+            title: studentProfileErrorText(l10n, failure),
           ),
           StudentProfileFailed(:final failure) when failure.code == 'NOT_FOUND' => StatePanel.empty(
             key: const Key('studentProfile.notFound'),
-            title: studentErrorText(l10n, failure),
+            title: studentProfileErrorText(l10n, failure),
           ),
           StudentProfileFailed(:final failure) => StatePanel.error(
             key: const Key('studentProfile.failed'),
-            title: studentErrorText(l10n, failure),
+            title: studentProfileErrorText(l10n, failure),
             actionLabel: l10n.retry,
             onAction: () => context.read<StudentProfileBloc>().add(const StudentProfileRequested()),
           ),
@@ -84,13 +85,7 @@ class _Details extends StatelessWidget {
     final l10n = AppLocalizations.of(context);
     final text = Theme.of(context).textTheme;
     final record = profile.record;
-    final address = record.address;
-    final addressText = [
-      ?address.line1,
-      ?address.line2,
-      [?profile.cityName, ?profile.stateName, ?profile.countryName].join(', '),
-      ?address.pincode,
-    ].where((line) => line.isNotEmpty).join('\n');
+    final address = addressText(record.address, profile.places);
     final where = [
       ?profile.placeName,
       if (record.placement case final placement?) l10n.studentsRoll(placement.rollNumber),
@@ -122,13 +117,12 @@ class _Details extends StatelessWidget {
               if (record.admissionDate case final day?)
                 KeyValueRow(label: l10n.studentAdmissionDate, value: Formatters.schoolDate(day)),
               if (where.isNotEmpty) KeyValueRow(label: l10n.studentFormPlacement, value: where),
-              if (record.gender case final gender?)
-                KeyValueRow(label: l10n.personGender, value: genderName(l10n, gender)),
-              if (record.dateOfBirth case final day?)
-                KeyValueRow(label: l10n.personDateOfBirth, value: Formatters.schoolDate(day)),
-              if (record.bloodGroup case final group?) KeyValueRow(label: l10n.personBloodGroup, value: group),
-              if (record.nationality case final nationality?)
-                KeyValueRow(label: l10n.personNationality, value: nationality),
+              PersonalRows(
+                gender: record.gender,
+                dateOfBirth: record.dateOfBirth,
+                bloodGroup: record.bloodGroup,
+                nationality: record.nationality,
+              ),
             ],
           ),
         ),
@@ -143,11 +137,11 @@ class _Details extends StatelessWidget {
               if (record.mobile case final mobile?) KeyValueRow(label: l10n.personMobile, value: mobile.display),
               if (record.alternateNumber case final number?)
                 KeyValueRow(label: l10n.personAlternateNumber, value: number),
-              if (addressText.isNotEmpty) KeyValueRow(label: l10n.personFormAddress, value: addressText),
+              if (address.isNotEmpty) KeyValueRow(label: l10n.personFormAddress, value: address),
               if (record.contactEmail == null &&
                   record.mobile == null &&
                   record.alternateNumber == null &&
-                  addressText.isEmpty)
+                  address.isEmpty)
                 Text(l10n.studentProfileNoContact, style: text.bodyMedium),
             ],
           ),

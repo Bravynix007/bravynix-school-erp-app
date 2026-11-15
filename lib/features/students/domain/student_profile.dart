@@ -1,6 +1,7 @@
 import 'package:bravynix_school_erp/core/model/address.dart';
 import 'package:bravynix_school_erp/core/model/gender.dart';
 import 'package:bravynix_school_erp/core/model/phone.dart';
+import 'package:bravynix_school_erp/features/people/domain/place_names.dart';
 import 'package:bravynix_school_erp/features/students/domain/student.dart';
 import 'package:bravynix_school_erp/features/students/domain/student_draft.dart';
 import 'package:equatable/equatable.dart';
@@ -148,16 +149,14 @@ class StudentRecord extends Equatable {
 
 /// A student with the names of the class, section and places their IDs stand for, as the profile shows them.
 class StudentProfile extends Equatable {
-  const new(this.record, {this.placeName, this.countryName, this.stateName, this.cityName});
+  const new(this.record, {this.placeName, this.places = const PlaceNames()});
 
   final StudentRecord record;
 
   /// "Class 5 · A"; null when the student has no placement or the section is no longer offered.
   final String? placeName;
-  final String? countryName;
-  final String? stateName;
-  final String? cityName;
+  final PlaceNames places;
 
   @override
-  List<Object?> get props => [record, placeName, countryName, stateName, cityName];
+  List<Object?> get props => [record, placeName, places];
 }

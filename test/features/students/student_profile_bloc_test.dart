@@ -2,6 +2,7 @@ import 'package:bloc_test/bloc_test.dart';
 import 'package:bravynix_school_erp/core/model/address.dart';
 import 'package:bravynix_school_erp/core/network/api_failure.dart';
 import 'package:bravynix_school_erp/features/masters/domain/master_entry.dart';
+import 'package:bravynix_school_erp/features/people/domain/place_names.dart';
 import 'package:bravynix_school_erp/features/students/domain/student_profile.dart';
 import 'package:bravynix_school_erp/features/students/presentation/bloc/student_profile_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -47,9 +48,7 @@ void main() {
         StudentProfile(
           ashaRecord,
           placeName: 'Class 1 · Section A',
-          countryName: 'India',
-          stateName: 'Karnataka',
-          cityName: 'Bengaluru',
+          places: PlaceNames(country: 'India', state: 'Karnataka', city: 'Bengaluru'),
         ),
       ),
     ],
@@ -84,11 +83,13 @@ void main() {
     act: (bloc) => bloc.add(const StudentProfileRequested()),
     expect: () => [
       const StudentProfileLoading(),
-      isA<StudentProfileLoaded>().having((s) => s.profile.placeName, 'place', 'Class 1').having(
-        (s) => [s.profile.countryName, s.profile.stateName, s.profile.cityName],
-        'places',
-        [null, null, null],
-      ),
+      isA<StudentProfileLoaded>()
+          .having((s) => s.profile.placeName, 'place', 'Class 1')
+          .having(
+            (s) => s.profile.places,
+            'places',
+            const PlaceNames(),
+          ),
     ],
     verify: (_) => verifyNever(() => masters.entries(any(), parentId: any(named: 'parentId'))),
   );

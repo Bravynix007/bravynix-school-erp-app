@@ -26,6 +26,7 @@ import 'package:bravynix_school_erp/features/files/presentation/bloc/file_upload
 import 'package:bravynix_school_erp/features/institutions/domain/institutions_repository.dart';
 import 'package:bravynix_school_erp/features/masters/domain/masters_repository.dart';
 import 'package:bravynix_school_erp/features/people/presentation/view/person_names.dart';
+import 'package:bravynix_school_erp/features/people/presentation/view/personal_rows.dart';
 import 'package:bravynix_school_erp/features/sections/domain/section_options.dart';
 import 'package:bravynix_school_erp/features/sections/domain/sections_repository.dart';
 import 'package:bravynix_school_erp/features/staff/domain/staff_member.dart';
@@ -311,13 +312,7 @@ class _Details extends StatelessWidget {
     final l10n = AppLocalizations.of(context);
     final text = Theme.of(context).textTheme;
     final member = profile.member;
-    final address = member.address;
-    final addressText = [
-      ?address.line1,
-      ?address.line2,
-      [?profile.cityName, ?profile.stateName, ?profile.countryName].join(', '),
-      ?address.pincode,
-    ].where((line) => line.isNotEmpty).join('\n');
+    final address = addressText(member.address, profile.places);
     return ListView(
       padding: const EdgeInsets.all(AppSpacing.screenMargin),
       children: [
@@ -342,13 +337,12 @@ class _Details extends StatelessWidget {
               if (profile.designationName case final designation?)
                 KeyValueRow(label: l10n.staffDesignation, value: designation),
               if (profile.categoryName case final category?) KeyValueRow(label: l10n.staffCategory, value: category),
-              if (member.gender case final gender?)
-                KeyValueRow(label: l10n.personGender, value: genderName(l10n, gender)),
-              if (member.dateOfBirth case final day?)
-                KeyValueRow(label: l10n.personDateOfBirth, value: Formatters.schoolDate(day)),
-              if (member.bloodGroup case final group?) KeyValueRow(label: l10n.personBloodGroup, value: group),
-              if (member.nationality case final nationality?)
-                KeyValueRow(label: l10n.personNationality, value: nationality),
+              PersonalRows(
+                gender: member.gender,
+                dateOfBirth: member.dateOfBirth,
+                bloodGroup: member.bloodGroup,
+                nationality: member.nationality,
+              ),
             ],
           ),
         ),
@@ -363,7 +357,7 @@ class _Details extends StatelessWidget {
               KeyValueRow(label: l10n.personMobile, value: member.mobile.display),
               if (member.alternateNumber case final number?)
                 KeyValueRow(label: l10n.personAlternateNumber, value: number),
-              if (addressText.isNotEmpty) KeyValueRow(label: l10n.staffAddress, value: addressText),
+              if (address.isNotEmpty) KeyValueRow(label: l10n.staffAddress, value: address),
             ],
           ),
         ),

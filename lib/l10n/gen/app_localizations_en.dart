@@ -1826,6 +1826,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get errorStudentNotFound => 'This student could not be found. They may have been deactivated.';
 
   @override
+  String get errorStudentProfileNotFound => 'This student could not be found.';
+
+  @override
   String get studentsAddTitle => 'Add student';
 
   @override

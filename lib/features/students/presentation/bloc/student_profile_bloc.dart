@@ -1,9 +1,8 @@
 import 'package:bloc/bloc.dart';
 import 'package:bravynix_school_erp/core/network/api_failure.dart';
 import 'package:bravynix_school_erp/features/classes/domain/classes_repository.dart';
-import 'package:bravynix_school_erp/features/masters/domain/master_entry.dart';
-import 'package:bravynix_school_erp/features/masters/domain/master_names.dart';
 import 'package:bravynix_school_erp/features/masters/domain/masters_repository.dart';
+import 'package:bravynix_school_erp/features/people/domain/place_names.dart';
 import 'package:bravynix_school_erp/features/sections/domain/sections_repository.dart';
 import 'package:bravynix_school_erp/features/students/domain/student_profile.dart';
 import 'package:bravynix_school_erp/features/students/domain/students_repository.dart';
@@ -66,17 +65,12 @@ class StudentProfileBloc extends Bloc<StudentProfileEvent, StudentProfileState> 
     emit(const StudentProfileLoading());
     try {
       final record = await _students.student(id);
-      final address = record.address;
       emit(
         StudentProfileLoaded(
           StudentProfile(
             record,
             placeName: await _placeName(record),
-            countryName: await _masters.nameOf(MasterType.countries, address.countryId),
-            stateName: await _masters.nameOf(MasterType.states, address.stateId, parentId: address.countryId),
-            cityName: address.stateId == null
-                ? null
-                : await _masters.nameOf(MasterType.cities, address.cityId, parentId: address.stateId),
+            places: await _masters.placeNamesOf(record.address),
           ),
         ),
       );

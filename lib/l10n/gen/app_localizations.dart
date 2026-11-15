@@ -3307,6 +3307,12 @@ abstract class AppLocalizations {
   /// **'This student could not be found. They may have been deactivated.'**
   String get errorStudentNotFound;
 
+  /// No description provided for @errorStudentProfileNotFound.
+  ///
+  /// In en, this message translates to:
+  /// **'This student could not be found.'**
+  String get errorStudentProfileNotFound;
+
   /// No description provided for @studentsAddTitle.
   ///
   /// In en, this message translates to:
