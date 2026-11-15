@@ -64,10 +64,18 @@ abstract final class StudentModels {
     );
   }
 
+  /// The `identity` of STU-03, and the answer of STU-10.
+  static StudentIdentity identity(Object? raw) {
+    final json = jsonObject(raw);
+    return StudentIdentity(
+      aadhaarMasked: json['aadhaarMasked'] as String?,
+      birthCertificateNumber: json['birthCertificateNumber'] as String?,
+    );
+  }
+
   /// A student as STU-03 answers an Owner or Admin. `status` 1 is active.
   static StudentRecord record(Object? raw) {
     final json = jsonObject(raw);
-    final identity = jsonObject(json['identity']);
     return StudentRecord(
       id: json['id'] as String,
       institutionId: json['institutionId'] as String,
@@ -86,10 +94,7 @@ abstract final class StudentModels {
       address: Address.fromJson(json['address']),
       placement: json['placement'] == null ? null : _placement(json['placement']),
       guardians: [for (final item in jsonList(json['guardians'])) _readGuardian(item)],
-      identity: StudentIdentity(
-        aadhaarMasked: identity['aadhaarMasked'] as String?,
-        birthCertificateNumber: identity['birthCertificateNumber'] as String?,
-      ),
+      identity: identity(json['identity']),
       isBlocked: json['isBlocked'] as bool,
       isActive: json['status'] == 1,
       version: (json['version'] as num).toInt(),

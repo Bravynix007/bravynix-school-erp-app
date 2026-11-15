@@ -32,6 +32,20 @@ abstract class StudentsRepository {
   /// STU-07: lifts the block, with the same answer and errors as [block] (409 `INVALID_STATE` when not blocked).
   Future<StudentRecord> unblock(String id);
 
+  /// STU-10: sets the Aadhaar number, or clears it when [aadhaar] is null; the birth certificate number stays. The
+  /// answer is the numbers as they are now, the Aadhaar masked, and the warnings of the write. 404 for a student
+  /// already deactivated; 422 `INVALID_AADHAAR`; 409 `AADHAAR_DUPLICATE_IN_INSTITUTION` when another active student of
+  /// the Institution holds it.
+  Future<IdentitySaved> setAadhaar(String id, String? aadhaar);
+
+  /// STU-10: sets the birth certificate number (1 to 50 characters), or clears it when [number] is null; the Aadhaar
+  /// number stays. The answer and errors are those of [setAadhaar].
+  Future<IdentitySaved> setBirthCertificate(String id, String? number);
+
+  /// STU-11: the whole Aadhaar number, for a [reason] of 10 to 500 characters that is kept in the audit. Works for a
+  /// deactivated student. 404 `NOT_SET` when none is held, 429 `REVEAL_LIMIT` after ten in a day.
+  Future<String> revealAadhaar(String id, {required String reason});
+
   /// STU-05: deactivates the student for [reason]; the guardians lose the child, the open placement and the enrolment
   /// end today. 404 for a student already deactivated.
   Future<void> deactivate(String id, LeavingReason reason);

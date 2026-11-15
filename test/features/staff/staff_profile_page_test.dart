@@ -332,10 +332,10 @@ void main() {
         await pumpAs(tester, role);
         await tester.ensureVisible(find.text('XXXX XXXX 1234'));
         expect(find.text('Identity'), findsOneWidget);
-        await tester.tap(find.byKey(const Key('staffIdentity.reveal')));
+        await tester.tap(find.byKey(const Key('aadhaar.reveal')));
         await tester.pumpAndSettle();
-        await tester.enterText(find.byKey(const Key('staffIdentity.reason')), 'Checking the records');
-        await tester.tap(find.byKey(const Key('staffIdentity.show')));
+        await tester.enterText(find.byKey(const Key('aadhaar.reason')), 'Checking the records');
+        await tester.tap(find.byKey(const Key('aadhaar.show')));
         await tester.pumpAndSettle();
         expect(find.text('2345 6789 0123'), findsOneWidget);
       });
@@ -344,8 +344,8 @@ void main() {
     testWidgets('keeps the number it holds when the person goes to another tab and back', (tester) async {
       when(() => staff.setAadhaar('f1', null)).thenAnswer((_) async => null);
       await pumpAs(tester, RoleCode.societyOwner);
-      await tester.ensureVisible(find.byKey(const Key('staffIdentity.clear')));
-      await tester.tap(find.byKey(const Key('staffIdentity.clear')));
+      await tester.ensureVisible(find.byKey(const Key('aadhaar.clear')));
+      await tester.tap(find.byKey(const Key('aadhaar.clear')));
       await tester.pumpAndSettle();
       await tester.tap(find.descendant(of: find.byType(Dialog), matching: find.text('Clear number')));
       await tester.pumpAndSettle();

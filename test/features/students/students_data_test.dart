@@ -11,6 +11,7 @@ import 'package:bravynix_school_erp/features/students/data/student_models.dart';
 import 'package:bravynix_school_erp/features/students/data/students_repository_impl.dart';
 import 'package:bravynix_school_erp/features/students/domain/student.dart';
 import 'package:bravynix_school_erp/features/students/domain/student_draft.dart';
+import 'package:bravynix_school_erp/features/students/domain/student_profile.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import '../../helpers/fake_http.dart';
@@ -473,6 +474,68 @@ void main() {
       for (final call in [repository.block, repository.unblock]) {
         await expectLater(call('p1'), throwsA(isA<ApiFailure>().having((f) => f.code, 'code', 'INVALID_STATE')));
       }
+    });
+  });
+
+  group('STU-10 and STU-11', () {
+    test('setting the Aadhaar sends only that key, and answers the numbers and the warnings', () async {
+      final (:repository, :adapter) = build(
+        () => okReply(
+          {'aadhaarMasked': 'XXXX XXXX 0123', 'birthCertificateNumber': 'BC-1'},
+          meta: {
+            'warnings': ['AADHAAR_EXISTS_IN_SOCIETY'],
+          },
+        ),
+      );
+      final saved = await repository.setAadhaar('a/b', '234567890123');
+      expect(saved.identity, const StudentIdentity(aadhaarMasked: 'XXXX XXXX 0123', birthCertificateNumber: 'BC-1'));
+      expect(saved.aadhaarElsewhere, isTrue);
+      final request = adapter.requests.single;
+      expect([request.method, request.uri.path], ['PUT', '/v1/students/a%2Fb/identity']);
+      expect(bodyOf(request), {'aadhaarNumber': '234567890123'});
+    });
+
+    test('clearing the Aadhaar sends null, so the key is not left out', () async {
+      final (:repository, :adapter) = build(() => okReply({'aadhaarMasked': null, 'birthCertificateNumber': 'BC-1'}));
+      final saved = await repository.setAadhaar('p1', null);
+      expect(saved.identity.aadhaarMasked, isNull);
+      expect(saved.aadhaarElsewhere, isFalse);
+      expect(bodyOf(adapter.requests.single), {'aadhaarNumber': null});
+    });
+
+    test('setting and clearing the birth certificate send only that key', () async {
+      final (:repository, :adapter) = build(
+        () => okReply({'aadhaarMasked': 'XXXX XXXX 0123', 'birthCertificateNumber': 'BC-1'}),
+      );
+      expect((await repository.setBirthCertificate('p1', 'BC-1')).identity.birthCertificateNumber, 'BC-1');
+      await repository.setBirthCertificate('p1', null);
+      expect(adapter.requests.map(bodyOf), [
+        {'birthCertificateNumber': 'BC-1'},
+        {'birthCertificateNumber': null},
+      ]);
+      expect(adapter.requests.map((request) => request.uri.path), everyElement('/v1/students/p1/identity'));
+    });
+
+    test('revealing posts the reason and answers the whole number', () async {
+      final (:repository, :adapter) = build(
+        () => okReply({'field': 'aadhaar', 'value': '234567890123', 'revealedAt': '2026-11-15T10:00:00Z'}),
+      );
+      expect(await repository.revealAadhaar('p1', reason: 'Checking the records'), '234567890123');
+      final request = adapter.requests.single;
+      expect([request.method, request.uri.path], ['POST', '/v1/students/p1/identity/reveal']);
+      expect(bodyOf(request), {'field': 'aadhaar', 'reason': 'Checking the records'});
+    });
+
+    test('throw the failure the API gives', () async {
+      final (:repository, adapter: _) = build(() => errorReply(409, 'AADHAAR_DUPLICATE_IN_INSTITUTION'));
+      await expectLater(
+        repository.setAadhaar('p1', '234567890123'),
+        throwsA(isA<ApiFailure>().having((f) => f.code, 'code', 'AADHAAR_DUPLICATE_IN_INSTITUTION')),
+      );
+      await expectLater(
+        repository.revealAadhaar('p1', reason: 'Checking the records'),
+        throwsA(isA<ApiFailure>()),
+      );
     });
   });
 

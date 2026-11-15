@@ -2,7 +2,7 @@ import 'dart:async';
 
 import 'package:bloc_test/bloc_test.dart';
 import 'package:bravynix_school_erp/core/network/api_failure.dart';
-import 'package:bravynix_school_erp/features/staff/presentation/bloc/staff_identity_bloc.dart';
+import 'package:bravynix_school_erp/features/people/presentation/bloc/aadhaar_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 
@@ -17,115 +17,130 @@ void main() {
 
   setUp(() => staff = MockStaffRepository());
 
-  StaffIdentityBloc build({String? held = masked}) => StaffIdentityBloc(staff, staffMemberId: 'f1', masked: held);
+  AadhaarBloc build({String? held = masked, bool elsewhere = false}) => AadhaarBloc(
+    save: (aadhaar) async => (masked: await staff.setAadhaar('f1', aadhaar), elsewhere: elsewhere),
+    reveal: (reason) => staff.revealAadhaar('f1', reason: reason),
+    masked: held,
+  );
 
   group('saving a number', () {
-    blocTest<StaffIdentityBloc, StaffIdentityState>(
+    blocTest<AadhaarBloc, AadhaarState>(
       'sends it and shows the masked number the API answers with',
       setUp: () => when(() => staff.setAadhaar('f1', number)).thenAnswer((_) async => 'XXXX XXXX 0123'),
       build: build,
-      act: (bloc) => bloc.add(const StaffAadhaarSaved(number)),
+      act: (bloc) => bloc.add(const AadhaarSaved(number)),
       expect: () => [
-        const StaffIdentityWorking(masked, StaffIdentityAction.save),
-        const StaffIdentityIdle('XXXX XXXX 0123'),
+        const AadhaarWorking(masked, AadhaarAction.save),
+        const AadhaarIdle('XXXX XXXX 0123'),
       ],
     );
 
-    blocTest<StaffIdentityBloc, StaffIdentityState>(
+    blocTest<AadhaarBloc, AadhaarState>(
+      'says when another Institution of the Society holds the number too',
+      setUp: () => when(() => staff.setAadhaar('f1', number)).thenAnswer((_) async => 'XXXX XXXX 0123'),
+      build: () => build(elsewhere: true),
+      act: (bloc) => bloc.add(const AadhaarSaved(number)),
+      expect: () => [
+        const AadhaarWorking(masked, AadhaarAction.save),
+        const AadhaarIdle('XXXX XXXX 0123', elsewhere: true),
+      ],
+    );
+
+    blocTest<AadhaarBloc, AadhaarState>(
       'keeps the number it had, and says why, when it is refused',
       setUp: () => when(() => staff.setAadhaar(any(), any())).thenThrow(invalid),
       build: build,
-      act: (bloc) => bloc.add(const StaffAadhaarSaved(number)),
+      act: (bloc) => bloc.add(const AadhaarSaved(number)),
       expect: () => [
-        const StaffIdentityWorking(masked, StaffIdentityAction.save),
-        const StaffIdentityRefused(masked, StaffIdentityAction.save, invalid, inSheet: true),
+        const AadhaarWorking(masked, AadhaarAction.save),
+        const AadhaarRefused(masked, AadhaarAction.save, invalid, inSheet: true),
       ],
     );
 
-    blocTest<StaffIdentityBloc, StaffIdentityState>(
+    blocTest<AadhaarBloc, AadhaarState>(
       'sets the first number of a staff member who had none',
       setUp: () => when(() => staff.setAadhaar('f1', number)).thenAnswer((_) async => masked),
       build: () => build(held: null),
-      act: (bloc) => bloc.add(const StaffAadhaarSaved(number)),
+      act: (bloc) => bloc.add(const AadhaarSaved(number)),
       expect: () => [
-        const StaffIdentityWorking(null, StaffIdentityAction.save),
-        const StaffIdentityIdle(masked),
+        const AadhaarWorking(null, AadhaarAction.save),
+        const AadhaarIdle(masked),
       ],
     );
   });
 
   group('clearing the number', () {
-    blocTest<StaffIdentityBloc, StaffIdentityState>(
+    blocTest<AadhaarBloc, AadhaarState>(
       'sends null and shows none',
       setUp: () => when(() => staff.setAadhaar('f1', null)).thenAnswer((_) async => null),
       build: build,
-      act: (bloc) => bloc.add(const StaffAadhaarCleared()),
+      act: (bloc) => bloc.add(const AadhaarCleared()),
       expect: () => [
-        const StaffIdentityWorking(masked, StaffIdentityAction.clear),
-        const StaffIdentityIdle(null),
+        const AadhaarWorking(masked, AadhaarAction.clear),
+        const AadhaarIdle(null),
       ],
     );
 
-    blocTest<StaffIdentityBloc, StaffIdentityState>(
+    blocTest<AadhaarBloc, AadhaarState>(
       'keeps the number, and says why, when it is refused',
       setUp: () => when(() => staff.setAadhaar(any(), any())).thenThrow(const ApiFailure.network()),
       build: build,
-      act: (bloc) => bloc.add(const StaffAadhaarCleared()),
+      act: (bloc) => bloc.add(const AadhaarCleared()),
       expect: () => [
-        const StaffIdentityWorking(masked, StaffIdentityAction.clear),
-        const StaffIdentityRefused(masked, StaffIdentityAction.clear, ApiFailure.network(), inSheet: false),
+        const AadhaarWorking(masked, AadhaarAction.clear),
+        const AadhaarRefused(masked, AadhaarAction.clear, ApiFailure.network(), inSheet: false),
       ],
     );
   });
 
   group('revealing the number', () {
-    blocTest<StaffIdentityBloc, StaffIdentityState>(
+    blocTest<AadhaarBloc, AadhaarState>(
       'sends the reason and holds the whole number until it is hidden',
       setUp: () =>
           when(() => staff.revealAadhaar('f1', reason: 'Checking the records')).thenAnswer((_) async => number),
       build: build,
       act: (bloc) async {
-        bloc.add(const StaffAadhaarRevealed('Checking the records'));
+        bloc.add(const AadhaarRevealed('Checking the records'));
         await pumpEventQueue();
-        bloc.add(const StaffIdentityHidden());
+        bloc.add(const AadhaarHidden());
       },
       expect: () => [
-        const StaffIdentityWorking(masked, StaffIdentityAction.reveal),
-        const StaffIdentityRevealed(masked, number),
-        const StaffIdentityIdle(masked),
+        const AadhaarWorking(masked, AadhaarAction.reveal),
+        const AadhaarShown(masked, number),
+        const AadhaarIdle(masked),
       ],
     );
 
-    blocTest<StaffIdentityBloc, StaffIdentityState>(
+    blocTest<AadhaarBloc, AadhaarState>(
       'says why when it is refused, and keeps the number masked',
       setUp: () => when(() => staff.revealAadhaar(any(), reason: any(named: 'reason'))).thenThrow(
         const ApiFailure(statusCode: 429, code: 'REVEAL_LIMIT', message: 'x'),
       ),
       build: build,
-      act: (bloc) => bloc.add(const StaffAadhaarRevealed('Checking the records')),
+      act: (bloc) => bloc.add(const AadhaarRevealed('Checking the records')),
       expect: () => [
-        const StaffIdentityWorking(masked, StaffIdentityAction.reveal),
-        const StaffIdentityRefused(
+        const AadhaarWorking(masked, AadhaarAction.reveal),
+        const AadhaarRefused(
           masked,
-          StaffIdentityAction.reveal,
+          AadhaarAction.reveal,
           ApiFailure(statusCode: 429, code: 'REVEAL_LIMIT', message: 'x'),
           inSheet: true,
         ),
       ],
     );
 
-    blocTest<StaffIdentityBloc, StaffIdentityState>(
+    blocTest<AadhaarBloc, AadhaarState>(
       'shows none when the API says no number is set, as the screen was behind',
       setUp: () => when(() => staff.revealAadhaar(any(), reason: any(named: 'reason'))).thenThrow(
         const ApiFailure(statusCode: 404, code: 'NOT_SET', message: 'x'),
       ),
       build: build,
-      act: (bloc) => bloc.add(const StaffAadhaarRevealed('Checking the records')),
+      act: (bloc) => bloc.add(const AadhaarRevealed('Checking the records')),
       expect: () => [
-        const StaffIdentityWorking(masked, StaffIdentityAction.reveal),
-        const StaffIdentityRefused(
+        const AadhaarWorking(masked, AadhaarAction.reveal),
+        const AadhaarRefused(
           null,
-          StaffIdentityAction.reveal,
+          AadhaarAction.reveal,
           ApiFailure(statusCode: 404, code: 'NOT_SET', message: 'x'),
           inSheet: true,
         ),
@@ -139,16 +154,16 @@ void main() {
       when(() => staff.revealAadhaar(any(), reason: any(named: 'reason'))).thenAnswer((_) => held.future);
       final bloc = build();
       addTearDown(bloc.close);
-      final states = <StaffIdentityState>[];
+      final states = <AadhaarState>[];
       bloc.stream.listen(states.add);
-      bloc.add(const StaffAadhaarRevealed('Checking the records'));
-      await bloc.stream.firstWhere((state) => state is StaffIdentityWorking);
-      bloc.add(const StaffIdentityHidden());
+      bloc.add(const AadhaarRevealed('Checking the records'));
+      await bloc.stream.firstWhere((state) => state is AadhaarWorking);
+      bloc.add(const AadhaarHidden());
       await pumpEventQueue();
       held.complete(number);
       await pumpEventQueue();
-      expect(bloc.state, const StaffIdentityIdle(masked));
-      expect(states.whereType<StaffIdentityRevealed>(), isEmpty);
+      expect(bloc.state, const AadhaarIdle(masked));
+      expect(states.whereType<AadhaarShown>(), isEmpty);
     });
 
     test('forgets that it was closed once the next call starts, so that sheet gets its number', () async {
@@ -157,15 +172,15 @@ void main() {
       when(() => staff.revealAadhaar('f1', reason: 'Checking the records')).thenAnswer((_) async => number);
       final bloc = build();
       addTearDown(bloc.close);
-      bloc.add(const StaffAadhaarRevealed('First reason here'));
-      await bloc.stream.firstWhere((state) => state is StaffIdentityWorking);
-      bloc.add(const StaffIdentityHidden());
+      bloc.add(const AadhaarRevealed('First reason here'));
+      await bloc.stream.firstWhere((state) => state is AadhaarWorking);
+      bloc.add(const AadhaarHidden());
       await pumpEventQueue();
       held.complete(number);
       await pumpEventQueue();
-      bloc.add(const StaffAadhaarRevealed('Checking the records'));
-      await bloc.stream.firstWhere((state) => state is StaffIdentityRevealed);
-      expect(bloc.state, const StaffIdentityRevealed(masked, number));
+      bloc.add(const AadhaarRevealed('Checking the records'));
+      await bloc.stream.firstWhere((state) => state is AadhaarShown);
+      expect(bloc.state, const AadhaarShown(masked, number));
     });
 
     test('says a refusal on the card, as there is no sheet to say it', () async {
@@ -173,13 +188,13 @@ void main() {
       when(() => staff.setAadhaar(any(), any())).thenAnswer((_) => held.future);
       final bloc = build();
       addTearDown(bloc.close);
-      bloc.add(const StaffAadhaarSaved(number));
-      await bloc.stream.firstWhere((state) => state is StaffIdentityWorking);
-      bloc.add(const StaffIdentityHidden());
+      bloc.add(const AadhaarSaved(number));
+      await bloc.stream.firstWhere((state) => state is AadhaarWorking);
+      bloc.add(const AadhaarHidden());
       await pumpEventQueue();
       held.completeError(invalid);
-      await bloc.stream.firstWhere((state) => state is StaffIdentityRefused);
-      expect(bloc.state, const StaffIdentityRefused(masked, StaffIdentityAction.save, invalid, inSheet: false));
+      await bloc.stream.firstWhere((state) => state is AadhaarRefused);
+      expect(bloc.state, const AadhaarRefused(masked, AadhaarAction.save, invalid, inSheet: false));
     });
 
     test('is forgotten once the next save starts, so a refusal there is said in its sheet', () async {
@@ -191,15 +206,15 @@ void main() {
       });
       final bloc = build();
       addTearDown(bloc.close);
-      bloc.add(const StaffAadhaarSaved(number));
-      await bloc.stream.firstWhere((state) => state is StaffIdentityWorking);
-      bloc.add(const StaffIdentityHidden());
+      bloc.add(const AadhaarSaved(number));
+      await bloc.stream.firstWhere((state) => state is AadhaarWorking);
+      bloc.add(const AadhaarHidden());
       await pumpEventQueue();
       held.complete(masked);
       await pumpEventQueue();
-      bloc.add(const StaffAadhaarSaved(number));
-      await bloc.stream.firstWhere((state) => state is StaffIdentityRefused);
-      expect(bloc.state, const StaffIdentityRefused(masked, StaffIdentityAction.save, invalid, inSheet: true));
+      bloc.add(const AadhaarSaved(number));
+      await bloc.stream.firstWhere((state) => state is AadhaarRefused);
+      expect(bloc.state, const AadhaarRefused(masked, AadhaarAction.save, invalid, inSheet: true));
     });
 
     test('keeps a masked number that went through, as the card shows it', () async {
@@ -207,13 +222,13 @@ void main() {
       when(() => staff.setAadhaar(any(), any())).thenAnswer((_) => held.future);
       final bloc = build();
       addTearDown(bloc.close);
-      bloc.add(const StaffAadhaarSaved(number));
-      await bloc.stream.firstWhere((state) => state is StaffIdentityWorking);
-      bloc.add(const StaffIdentityHidden());
+      bloc.add(const AadhaarSaved(number));
+      await bloc.stream.firstWhere((state) => state is AadhaarWorking);
+      bloc.add(const AadhaarHidden());
       await pumpEventQueue();
       held.complete('XXXX XXXX 0123');
       await pumpEventQueue();
-      expect(bloc.state, const StaffIdentityIdle('XXXX XXXX 0123'));
+      expect(bloc.state, const AadhaarIdle('XXXX XXXX 0123'));
     });
   });
 
@@ -222,10 +237,10 @@ void main() {
       when(() => staff.setAadhaar(any(), any())).thenThrow(invalid);
       final bloc = build();
       addTearDown(bloc.close);
-      bloc.add(const StaffAadhaarSaved(number));
-      await bloc.stream.firstWhere((state) => state is StaffIdentityRefused);
-      bloc.add(const StaffIdentityHidden());
-      await bloc.stream.firstWhere((state) => state is StaffIdentityIdle);
+      bloc.add(const AadhaarSaved(number));
+      await bloc.stream.firstWhere((state) => state is AadhaarRefused);
+      bloc.add(const AadhaarHidden());
+      await bloc.stream.firstWhere((state) => state is AadhaarIdle);
       expect(bloc.state.masked, masked);
     });
 
@@ -234,14 +249,14 @@ void main() {
       when(() => staff.setAadhaar(any(), any())).thenAnswer((_) => held.future);
       final bloc = build();
       addTearDown(bloc.close);
-      bloc.add(const StaffIdentityHidden());
+      bloc.add(const AadhaarHidden());
       await pumpEventQueue();
-      expect(bloc.state, const StaffIdentityIdle(masked));
-      bloc.add(const StaffAadhaarSaved(number));
-      await bloc.stream.firstWhere((state) => state is StaffIdentityWorking);
-      bloc.add(const StaffIdentityHidden());
+      expect(bloc.state, const AadhaarIdle(masked));
+      bloc.add(const AadhaarSaved(number));
+      await bloc.stream.firstWhere((state) => state is AadhaarWorking);
+      bloc.add(const AadhaarHidden());
       await pumpEventQueue();
-      expect(bloc.state, const StaffIdentityWorking(masked, StaffIdentityAction.save));
+      expect(bloc.state, const AadhaarWorking(masked, AadhaarAction.save));
       held.complete(masked);
     });
   });
@@ -251,11 +266,11 @@ void main() {
     when(() => staff.setAadhaar(any(), any())).thenAnswer((_) => held.future);
     final bloc = build();
     addTearDown(bloc.close);
-    bloc.add(const StaffAadhaarSaved(number));
-    await bloc.stream.firstWhere((state) => state is StaffIdentityWorking);
+    bloc.add(const AadhaarSaved(number));
+    await bloc.stream.firstWhere((state) => state is AadhaarWorking);
     bloc
-      ..add(const StaffAadhaarCleared())
-      ..add(const StaffAadhaarRevealed('Checking the records'));
+      ..add(const AadhaarCleared())
+      ..add(const AadhaarRevealed('Checking the records'));
     await pumpEventQueue();
     verify(() => staff.setAadhaar(any(), any())).called(1);
     verifyNever(() => staff.revealAadhaar(any(), reason: any(named: 'reason')));
