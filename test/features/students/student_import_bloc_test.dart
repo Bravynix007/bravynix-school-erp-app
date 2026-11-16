@@ -381,6 +381,44 @@ void main() {
       await bloc.stream.firstWhere((state) => state is StudentImportFinished);
     });
 
+    test('ignores a year or file chosen while the start is on its way, and keeps the key for the repeat', () async {
+      final answer = Completer<String>();
+      when(
+        () => imports.start(
+          institutionId: 'i1',
+          fileId: 'f1',
+          academicYearId: 'y1',
+          idempotencyKey: any(named: 'idempotencyKey'),
+        ),
+      ).thenAnswer((_) => answer.future);
+      final bloc = await filled();
+      bloc.add(const StudentImportSubmitted());
+      await Future<void>.delayed(Duration.zero);
+      bloc
+        ..add(const StudentImportYearChosen('y0'))
+        ..add(const StudentImportFileChosen('f2'));
+      await Future<void>.delayed(Duration.zero);
+      expect(bloc.state, _filled.copyWith(starting: true));
+
+      answer.completeError(_down);
+      await bloc.stream.firstWhere((state) => state is StudentImportReady && !state.starting);
+      expect(bloc.state, _filled.copyWith(failure: () => _down));
+
+      // The repeat is the same attempt, so it carries the same key and finds the first import.
+      startsAs('m1');
+      when(() => imports.status('m1')).thenAnswer((_) async => importDone);
+      bloc.add(const StudentImportSubmitted());
+      await bloc.stream.firstWhere((state) => state is StudentImportFinished);
+      verify(
+        () => imports.start(
+          institutionId: 'i1',
+          fileId: 'f1',
+          academicYearId: 'y1',
+          idempotencyKey: 'key-1',
+        ),
+      ).called(2);
+    });
+
     test('does not ask for the sample again while it is on its way', () async {
       final answer = Completer<String>();
       when(() => imports.template()).thenAnswer((_) => answer.future);
