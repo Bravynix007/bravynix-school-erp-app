@@ -1,6 +1,7 @@
 import 'package:bloc_test/bloc_test.dart';
 import 'package:bravynix_school_erp/app/di/injection.dart';
 import 'package:bravynix_school_erp/app/router/app_routes.dart';
+import 'package:bravynix_school_erp/core/device/screen_protection.dart';
 import 'package:bravynix_school_erp/core/model/phone.dart';
 import 'package:bravynix_school_erp/core/network/api_failure.dart';
 import 'package:bravynix_school_erp/core/theme/app_theme.dart';
@@ -20,6 +21,7 @@ import 'package:mocktail/mocktail.dart';
 import '../../helpers/clipped_text.dart';
 import '../../helpers/mocks.dart';
 import '../../helpers/pump_app.dart';
+import '../../helpers/screen_protection.dart';
 import '../../helpers/students.dart';
 
 class _MockProfileBloc extends MockBloc<StudentProfileEvent, StudentProfileState> implements StudentProfileBloc;
@@ -39,9 +41,11 @@ void main() {
   setUp(() {
     bloc = _MockProfileBloc();
     when(() => bloc.id).thenReturn('p1');
-    // The parent access card makes its own bloc from the repository.
+    // The parent access card and the identity numbers make their own blocs from the repository.
     students = MockStudentsRepository();
-    getIt.registerSingleton<StudentsRepository>(students);
+    getIt
+      ..registerSingleton<StudentsRepository>(students)
+      ..registerSingleton<ScreenProtection>(RecordingScreenProtection());
   });
   tearDown(getIt.reset);
 

@@ -19,6 +19,18 @@ String studentAccessErrorText(AppLocalizations l10n, ApiFailure failure) => swit
   _ => apiErrorText(l10n, failure, notFound: l10n.errorStudentNotFound),
 };
 
+/// Copy for the codes STU-10 and STU-11 add (API design 6.8, 10.9): 422 INVALID_AADHAAR, 409
+/// AADHAAR_DUPLICATE_IN_INSTITUTION (without saying whose), 404 NOT_SET for a reveal when no number is held, and 429
+/// REVEAL_LIMIT after ten reveals in a day. A 404 is a student outside the caller's scope or deactivated meanwhile. The
+/// rest reads as everywhere else.
+String studentIdentityErrorText(AppLocalizations l10n, ApiFailure failure) => switch (failure.code) {
+  'INVALID_AADHAAR' => l10n.errorAadhaarInvalid,
+  'AADHAAR_DUPLICATE_IN_INSTITUTION' => l10n.errorAadhaarDuplicateInInstitution,
+  'NOT_SET' => l10n.errorAadhaarNotSet,
+  'REVEAL_LIMIT' => l10n.errorRevealLimit,
+  _ => apiErrorText(l10n, failure, notFound: l10n.errorStudentNotFound),
+};
+
 /// Copy for the codes STU-02 adds (API design 10.6): 409 ADMISSION_NO_TAKEN, ROLL_NUMBER_TAKEN,
 /// AADHAAR_DUPLICATE_IN_INSTITUTION and ROLE_CONFLICT (a guardian's email that is a platform account); 422
 /// SECTION_NOT_IN_CLASS, YEAR_NOT_ACTIVE, INACTIVE_SECTION, INVALID_AADHAAR, PRIMARY_GUARDIAN_REQUIRED and

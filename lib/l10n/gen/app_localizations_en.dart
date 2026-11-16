@@ -1571,69 +1571,72 @@ class AppLocalizationsEn extends AppLocalizations {
       'The assignment, the section or the subject could not be found. It may have been ended or deactivated.';
 
   @override
-  String get staffIdentityTitle => 'Identity';
+  String get identityTitle => 'Identity';
 
   @override
-  String get staffAadhaar => 'Aadhaar number';
+  String get aadhaar => 'Aadhaar number';
 
   @override
-  String get staffAadhaarNotSet => 'Not set';
+  String get aadhaarNotSet => 'Not set';
 
   @override
-  String get staffAadhaarShow => 'Show full number';
+  String get aadhaarShow => 'Show full number';
 
   @override
-  String get staffAadhaarSet => 'Set number';
+  String get aadhaarSet => 'Set number';
 
   @override
-  String get staffAadhaarChange => 'Change number';
+  String get aadhaarChange => 'Change number';
 
   @override
-  String get staffAadhaarClear => 'Clear number';
+  String get aadhaarClear => 'Clear number';
 
   @override
-  String get staffAadhaarSetHelper => 'Twelve digits, the first one from 2 to 9. It is kept sealed and shown masked.';
+  String get aadhaarSetHelper => 'Twelve digits, the first one from 2 to 9. It is kept sealed and shown masked.';
 
   @override
-  String get staffAadhaarInvalid => 'Check the twelve digits.';
+  String get aadhaarInvalid => 'Check the twelve digits.';
 
   @override
-  String get staffAadhaarSave => 'Save number';
+  String get aadhaarSave => 'Save number';
 
   @override
-  String get staffAadhaarSaved => 'Aadhaar number saved';
+  String get aadhaarSaved => 'Aadhaar number saved';
 
   @override
-  String get staffAadhaarCleared => 'Aadhaar number cleared';
+  String get aadhaarSavedElsewhere => 'Aadhaar number saved. Another Institution of the Society holds this number too.';
 
   @override
-  String staffAadhaarClearTitle(String name) {
+  String get aadhaarCleared => 'Aadhaar number cleared';
+
+  @override
+  String aadhaarClearTitle(String name) {
     return 'Clear the Aadhaar number of $name?';
   }
 
   @override
-  String get staffAadhaarClearMessage => 'The number is removed. You can set it again later.';
+  String get aadhaarClearMessage => 'The number is removed. You can set it again later.';
 
   @override
-  String get staffAadhaarRevealTitle => 'Show Aadhaar number';
+  String get aadhaarRevealTitle => 'Show Aadhaar number';
 
   @override
-  String get staffAadhaarReason => 'Reason (at least 10 characters)';
+  String get aadhaarReason => 'Reason (at least 10 characters)';
 
   @override
-  String get staffAadhaarReasonHelper => 'It is kept in the audit log with your name.';
+  String get aadhaarReasonHelper => 'It is kept in the audit log with your name.';
 
   @override
-  String get staffAadhaarReasonShort => 'At least 10 characters.';
+  String get aadhaarReasonShort => 'At least 10 characters.';
 
   @override
-  String get staffAadhaarRevealAction => 'Show number';
+  String get aadhaarRevealAction => 'Show number';
 
   @override
-  String get staffAadhaarRevealed => 'This is hidden again when you close it.';
+  String get aadhaarRevealed => 'This is hidden again when you close it.';
 
   @override
-  String get staffAadhaarDone => 'Done';
+  String get aadhaarDone => 'Done';
 
   @override
   String get errorAadhaarInvalid => 'This is not a valid Aadhaar number. Check the twelve digits.';
@@ -1933,6 +1936,32 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get studentBirthCertificate => 'Birth certificate number';
+
+  @override
+  String get studentCertificateSet => 'Set number';
+
+  @override
+  String get studentCertificateChange => 'Change number';
+
+  @override
+  String get studentCertificateClear => 'Clear number';
+
+  @override
+  String get studentCertificateRequired => 'Enter the number as it is written on the certificate.';
+
+  @override
+  String get studentCertificateSaved => 'Birth certificate number saved';
+
+  @override
+  String get studentCertificateCleared => 'Birth certificate number cleared';
+
+  @override
+  String studentCertificateClearTitle(String name) {
+    return 'Clear the birth certificate number of $name?';
+  }
+
+  @override
+  String get studentCertificateClearMessage => 'The number is removed. You can set it again later.';
 
   @override
   String get studentAccessTitle => 'Parent access';

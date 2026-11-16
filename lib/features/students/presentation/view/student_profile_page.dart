@@ -23,6 +23,7 @@ import 'package:bravynix_school_erp/features/students/presentation/view/student_
 import 'package:bravynix_school_erp/features/students/presentation/view/student_error_text.dart';
 import 'package:bravynix_school_erp/features/students/presentation/view/student_form_page.dart';
 import 'package:bravynix_school_erp/features/students/presentation/view/student_frame.dart';
+import 'package:bravynix_school_erp/features/students/presentation/view/student_identity_section.dart';
 import 'package:bravynix_school_erp/features/students/presentation/view/student_names.dart';
 import 'package:bravynix_school_erp/l10n/gen/app_localizations.dart';
 import 'package:flutter/material.dart';
@@ -189,24 +190,7 @@ class _Details extends StatelessWidget {
         const SizedBox(height: AppSpacing.xs),
         // A deactivated student's access is not changed (STU-06 is 404).
         if (record.isActive) const StudentAccessSection(),
-        SectionHeader(title: l10n.studentFormIdentity),
-        const SizedBox(height: AppSpacing.xs),
-        AppCard(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              KeyValueRow(
-                label: l10n.studentAadhaar,
-                value: record.identity.aadhaarMasked ?? l10n.studentProfileNotSet,
-                mono: record.identity.aadhaarMasked != null,
-              ),
-              KeyValueRow(
-                label: l10n.studentBirthCertificate,
-                value: record.identity.birthCertificateNumber ?? l10n.studentProfileNotSet,
-              ),
-            ],
-          ),
-        ),
+        StudentIdentitySection(record: record),
       ],
     );
   }
