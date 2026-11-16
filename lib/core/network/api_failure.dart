@@ -87,11 +87,11 @@ class ApiFailure extends Equatable implements Exception {
   /// 429 and 503 (502 and 504 count as 503) may be retried after [retryAfter].
   bool get isRetryable => statusCode == 429 || statusCode == 503 || statusCode == 502 || statusCode == 504;
 
-  /// A 409 or 422 the server keeps under the request's Idempotency-Key for a day and sends again for a repeat of that key
-  /// (API design 14.2, rules 4 and 7). A screen that retries after one starts a new attempt with a new key: what the
-  /// refusal rests on may have changed elsewhere. A failure the server keeps nothing for (no answer, 5xx, a key still
-  /// being worked on or used for another request, a try later) is not one, so its repeat keeps the key and finds a
-  /// request that did go through.
+  /// A 409 or 422 the server keeps under the request's Idempotency-Key for a day and sends again for a repeat of that
+  /// key (API design 14.2, rules 4 and 7). A screen that retries after one starts a new attempt with a new key: what
+  /// the refusal rests on may have changed elsewhere. A failure the server keeps nothing for (no answer, 5xx, a key
+  /// still being worked on or used for another request, a try later) is not one, so its repeat keeps the key and finds
+  /// a request that did go through.
   bool get isStoredRefusal =>
       (statusCode == 409 || statusCode == 422) && !code.startsWith('IDEMPOTENCY_') && retryAfter == null;
 

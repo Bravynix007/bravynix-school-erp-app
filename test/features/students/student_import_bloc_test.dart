@@ -224,7 +224,7 @@ void main() {
     });
 
     blocTest<StudentImportBloc, StudentImportState>(
-      'keeps the form, with why, when the import is refused, and a second try is a new attempt (the refusal is kept under its key)',
+      'keeps the form, with why, when the import is refused, and a second try is a new attempt (a new key)',
       setUp: () => when(
         () => imports.start(
           institutionId: any(named: 'institutionId'),
