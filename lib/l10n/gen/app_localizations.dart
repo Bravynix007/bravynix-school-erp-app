@@ -2023,6 +2023,18 @@ abstract class AppLocalizations {
   /// **'Teacher profile'**
   String get staffProfileTitle;
 
+  /// No description provided for @staffOwnTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'My details'**
+  String get staffOwnTitle;
+
+  /// No description provided for @staffOwnDetail.
+  ///
+  /// In en, this message translates to:
+  /// **'Your staff record and documents'**
+  String get staffOwnDetail;
+
   /// No description provided for @personFormContact.
   ///
   /// In en, this message translates to:
@@ -3151,6 +3163,42 @@ abstract class AppLocalizations {
   /// **'This phone could not open the file.'**
   String get errorDocumentOpen;
 
+  /// No description provided for @classroomTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'My students'**
+  String get classroomTitle;
+
+  /// No description provided for @classroomDetail.
+  ///
+  /// In en, this message translates to:
+  /// **'The students of the sections you lead or teach'**
+  String get classroomDetail;
+
+  /// No description provided for @classroomSearchHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Search name or roll'**
+  String get classroomSearchHint;
+
+  /// No description provided for @classroomEmptyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'No students in your sections yet'**
+  String get classroomEmptyTitle;
+
+  /// No description provided for @classroomEmptyMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Students of the sections you lead or teach this year appear here.'**
+  String get classroomEmptyMessage;
+
+  /// No description provided for @classroomNoMatchMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Check the spelling, or search by roll number.'**
+  String get classroomNoMatchMessage;
+
   /// No description provided for @studentsTitle.
   ///
   /// In en, this message translates to:
@@ -4194,6 +4242,84 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'The file or the academic year could not be found.'**
   String get errorImportNotFound;
+
+  /// No description provided for @starSilver.
+  ///
+  /// In en, this message translates to:
+  /// **'Silver'**
+  String get starSilver;
+
+  /// No description provided for @starGold.
+  ///
+  /// In en, this message translates to:
+  /// **'Gold'**
+  String get starGold;
+
+  /// No description provided for @starPlatinum.
+  ///
+  /// In en, this message translates to:
+  /// **'Platinum'**
+  String get starPlatinum;
+
+  /// No description provided for @achievementsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Stars'**
+  String get achievementsTitle;
+
+  /// No description provided for @achievementsTotal.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =0{No stars yet} =1{1 star} other{{count} stars}}'**
+  String achievementsTotal(int count);
+
+  /// No description provided for @achievementsGiveTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Give a star'**
+  String get achievementsGiveTitle;
+
+  /// No description provided for @achievementsDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Why the student earned it'**
+  String get achievementsDescription;
+
+  /// No description provided for @achievementsGive.
+  ///
+  /// In en, this message translates to:
+  /// **'Give star'**
+  String get achievementsGive;
+
+  /// No description provided for @achievementsRemove.
+  ///
+  /// In en, this message translates to:
+  /// **'Take back'**
+  String get achievementsRemove;
+
+  /// No description provided for @achievementsRemoveTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Take back this star?'**
+  String get achievementsRemoveTitle;
+
+  /// No description provided for @achievementsRemoveMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'The star leaves the student\'s list and their count.'**
+  String get achievementsRemoveMessage;
+
+  /// No description provided for @errorNotAssigned.
+  ///
+  /// In en, this message translates to:
+  /// **'This student is not in one of your sections.'**
+  String get errorNotAssigned;
+
+  /// No description provided for @errorAchievementNotFound.
+  ///
+  /// In en, this message translates to:
+  /// **'The student or the star could not be found. The student may have been deactivated.'**
+  String get errorAchievementNotFound;
 
   /// No description provided for @errorImportRunGone.
   ///

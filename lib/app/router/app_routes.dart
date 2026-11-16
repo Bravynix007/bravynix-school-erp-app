@@ -7,6 +7,9 @@ abstract final class AppRoutes {
   static const chooseRole = '/choose-role';
   static const profile = '/profile';
 
+  /// A teacher's own staff record and documents (STF-03, STF-14), read only.
+  static const ownStaffRecord = '/profile/staff-record';
+
   /// BIL-01: what BravyNix has charged the Owner's Society. View only.
   static const platformDues = '/platform-dues';
 
@@ -80,6 +83,12 @@ abstract final class AppRoutes {
   /// locations; [student] builds the location of one student.
   static const studentPattern = '/school-setup/students/:id';
   static String student(String id) => '$students/${Uri.encodeComponent(id)}';
+
+  /// My students (STU-01 for a teacher): the students of the sections the teacher leads or teaches, and one of them
+  /// (STU-03, ACH-01 to ACH-03). The `:id` pattern is for the router; [classroomStudent] builds the location of one.
+  static const classroom = '/classroom';
+  static const classroomStudentPattern = '/classroom/:id';
+  static String classroomStudent(String id) => '$classroom/${Uri.encodeComponent(id)}';
 
   /// The component gallery, registered in debug and profile builds only.
   static const gallery = '/gallery';

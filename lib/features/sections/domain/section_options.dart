@@ -1,6 +1,8 @@
+import 'package:bravynix_school_erp/core/network/api_failure.dart';
 import 'package:bravynix_school_erp/features/academic_years/domain/academic_year.dart';
 import 'package:bravynix_school_erp/features/academic_years/domain/academic_years_repository.dart';
 import 'package:bravynix_school_erp/features/classes/domain/classes_repository.dart';
+import 'package:bravynix_school_erp/features/sections/domain/section.dart';
 import 'package:bravynix_school_erp/features/sections/domain/sections_repository.dart';
 import 'package:equatable/equatable.dart';
 
@@ -26,6 +28,9 @@ extension SectionsInClass on List<SectionChoice> {
     for (final section in this)
       if (section.classId == classId) section,
   ];
+
+  /// The name of the section [id], such as "Class 5 · A"; null when there is no such section in the list.
+  String? nameOf(String? id) => where((section) => section.id == id).firstOrNull?.name;
 }
 
 /// A class that has sections, as it is shown to choose from.
@@ -84,20 +89,25 @@ class SectionOptionsSource {
   Future<SectionOptions> _fetch(String institutionId) async {
     final years = await _years.years(institutionId);
     final classes = await _classes.classes(institutionId);
-    // A class without sections has nothing to read.
+    // A class without sections has nothing to read, and a teacher is refused the class where they have none (403
+    // `NOT_ASSIGNED`, API design 10.4j): both are left out.
     final withSections = [
       for (final schoolClass in classes)
         if (schoolClass.sectionCount > 0) schoolClass,
     ];
-    final bySection = await Future.wait([for (final schoolClass in withSections) _sections.sections(schoolClass.id)]);
+    final bySection = await Future.wait([for (final schoolClass in withSections) _sectionsOf(schoolClass.id)]);
+    final offered = [
+      for (final (index, schoolClass) in withSections.indexed)
+        if (bySection[index].isNotEmpty) (schoolClass, bySection[index]),
+    ];
     return SectionOptions(
       years: years,
       classes: [
-        for (final schoolClass in withSections) ClassChoice(id: schoolClass.id, name: schoolClass.displayName),
+        for (final (schoolClass, _) in offered) ClassChoice(id: schoolClass.id, name: schoolClass.displayName),
       ],
       sections: [
-        for (final (index, schoolClass) in withSections.indexed)
-          for (final section in bySection[index])
+        for (final (schoolClass, sections) in offered)
+          for (final section in sections)
             SectionChoice(
               id: section.id,
               name: '${schoolClass.displayName} · ${section.displayName}',
@@ -105,5 +115,14 @@ class SectionOptionsSource {
             ),
       ],
     );
+  }
+
+  Future<List<Section>> _sectionsOf(String classId) async {
+    try {
+      return await _sections.sections(classId);
+    } on ApiFailure catch (failure) {
+      if (failure.code == 'NOT_ASSIGNED') return const [];
+      rethrow;
+    }
   }
 }

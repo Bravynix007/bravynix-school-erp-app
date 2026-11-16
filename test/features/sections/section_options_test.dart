@@ -1,4 +1,5 @@
 import 'package:bravynix_school_erp/core/network/api_failure.dart';
+import 'package:bravynix_school_erp/features/classes/domain/school_class.dart' show SchoolClass;
 import 'package:bravynix_school_erp/features/sections/domain/section_options.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
@@ -7,6 +8,17 @@ import '../../helpers/academic_years.dart';
 import '../../helpers/classes.dart';
 import '../../helpers/mocks.dart';
 import '../../helpers/sections.dart';
+
+/// A class whose sections a teacher does not lead or teach.
+const class2 = SchoolClass(
+  id: 'k2',
+  institutionId: 'i1',
+  predefinedClass: class2Ref,
+  category: lowerPrimaryCategory,
+  displayName: 'Class 2',
+  sectionCount: 1,
+  version: 1,
+);
 
 void main() {
   late MockAcademicYearsRepository years;
@@ -55,6 +67,24 @@ void main() {
     ]);
   });
 
+  test('leaves out the classes where a teacher has no section, which the API refuses with NOT_ASSIGNED', () async {
+    when(() => classes.classes('i1')).thenAnswer((_) async => [class1, class2]);
+    when(() => sections.sections('k2')).thenThrow(
+      const ApiFailure(statusCode: 403, code: 'NOT_ASSIGNED', message: 'x'),
+    );
+    final options = await source.read('i1');
+    expect(options.classes, const [ClassChoice(id: 'k1', name: 'Class 1')]);
+    expect([for (final section in options.sections) section.id], ['e1', 'e2']);
+  });
+
+  test('still throws any other refusal of the sections of a class', () async {
+    when(() => classes.classes('i1')).thenAnswer((_) async => [class1, class2]);
+    when(() => sections.sections('k2')).thenThrow(
+      const ApiFailure(statusCode: 403, code: 'FORBIDDEN', message: 'x'),
+    );
+    await expectLater(source.read('i1'), throwsA(isA<ApiFailure>().having((f) => f.code, 'code', 'FORBIDDEN')));
+  });
+
   group('the year to look at first', () {
     test(
       'is the current one',
@@ -86,6 +116,12 @@ void main() {
     test('are none for a class without sections and while no class is chosen', () {
       expect(choices.inClass('k9'), isEmpty);
       expect(choices.inClass(null), isEmpty);
+    });
+
+    test('have their name found by ID, and none for an ID that is not there or not chosen', () {
+      expect(choices.nameOf('e2'), 'Class 1 · B');
+      expect(choices.nameOf('e9'), isNull);
+      expect(choices.nameOf(null), isNull);
     });
   });
 }

@@ -10,6 +10,8 @@ import 'package:bravynix_school_erp/features/auth/presentation/splash/splash_pag
 import 'package:bravynix_school_erp/features/classes/presentation/view/class_bulk_page.dart';
 import 'package:bravynix_school_erp/features/classes/presentation/view/class_form_page.dart';
 import 'package:bravynix_school_erp/features/classes/presentation/view/classes_page.dart';
+import 'package:bravynix_school_erp/features/classroom/presentation/view/classroom_page.dart';
+import 'package:bravynix_school_erp/features/classroom/presentation/view/classroom_student_page.dart';
 import 'package:bravynix_school_erp/features/gallery/presentation/component_gallery_page.dart';
 import 'package:bravynix_school_erp/features/home/presentation/home_page.dart';
 import 'package:bravynix_school_erp/features/institutions/presentation/view/institution_form_page.dart';
@@ -22,6 +24,7 @@ import 'package:bravynix_school_erp/features/school_setup/presentation/school_se
 import 'package:bravynix_school_erp/features/sections/presentation/view/section_form_page.dart';
 import 'package:bravynix_school_erp/features/sections/presentation/view/sections_page.dart';
 import 'package:bravynix_school_erp/features/staff/presentation/view/staff_form_page.dart';
+import 'package:bravynix_school_erp/features/staff/presentation/view/staff_own_profile_page.dart';
 import 'package:bravynix_school_erp/features/staff/presentation/view/staff_page.dart';
 import 'package:bravynix_school_erp/features/staff/presentation/view/staff_profile_page.dart';
 import 'package:bravynix_school_erp/features/students/presentation/view/student_form_page.dart';
@@ -84,6 +87,9 @@ String? studentPromoteRedirect(Object? extra) => extra is StudentPromoteArgs ? n
 /// The import needs the Institution whose list it was opened from.
 String? studentImportRedirect(Object? extra) => extra is String ? null : AppRoutes.students;
 
+/// A teacher's own record needs the staff member of the role in use; without one it goes back to Profile.
+String? ownStaffRecordRedirect(SessionState session) => session.teacherStaffMemberId == null ? AppRoutes.profile : null;
+
 /// The staff form needs the Institution or the staff member the screen behind it hands over.
 String? staffFormRedirect(Object? extra) => extra is StaffFormArgs ? null : AppRoutes.staff;
 
@@ -114,6 +120,11 @@ GoRouter createRouter(SessionBloc session, {required SessionChanges changes}) {
       GoRoute(path: AppRoutes.home, builder: (_, _) => const HomePage()),
       GoRoute(path: AppRoutes.chooseRole, builder: (_, _) => const RoleChooserPage()),
       GoRoute(path: AppRoutes.profile, builder: (_, _) => const ProfilePage()),
+      GoRoute(
+        path: AppRoutes.ownStaffRecord,
+        redirect: (_, _) => ownStaffRecordRedirect(session.state),
+        builder: (_, _) => StaffOwnProfilePage(staffMemberId: session.state.teacherStaffMemberId!),
+      ),
       GoRoute(path: AppRoutes.platformDues, builder: (_, _) => const PlatformDuesPage()),
       GoRoute(
         path: AppRoutes.platformDuePattern,
@@ -197,6 +208,11 @@ GoRouter createRouter(SessionBloc session, {required SessionChanges changes}) {
       GoRoute(
         path: AppRoutes.studentPattern,
         builder: (_, state) => StudentProfilePage(id: state.pathParameters['id']!),
+      ),
+      GoRoute(path: AppRoutes.classroom, builder: (_, _) => const ClassroomPage()),
+      GoRoute(
+        path: AppRoutes.classroomStudentPattern,
+        builder: (_, state) => ClassroomStudentPage(id: state.pathParameters['id']!),
       ),
       GoRoute(path: AppRoutes.updateRequired, builder: (_, _) => const UpdateRequiredPage()),
       if (!kReleaseMode) GoRoute(path: AppRoutes.gallery, builder: (_, _) => const ComponentGalleryPage()),

@@ -1114,6 +1114,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get staffProfileTitle => 'Teacher profile';
 
   @override
+  String get staffOwnTitle => 'My details';
+
+  @override
+  String get staffOwnDetail => 'Your staff record and documents';
+
+  @override
   String get personFormContact => 'Contact';
 
   @override
@@ -1735,6 +1741,24 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get errorDocumentOpen => 'This phone could not open the file.';
+
+  @override
+  String get classroomTitle => 'My students';
+
+  @override
+  String get classroomDetail => 'The students of the sections you lead or teach';
+
+  @override
+  String get classroomSearchHint => 'Search name or roll';
+
+  @override
+  String get classroomEmptyTitle => 'No students in your sections yet';
+
+  @override
+  String get classroomEmptyMessage => 'Students of the sections you lead or teach this year appear here.';
+
+  @override
+  String get classroomNoMatchMessage => 'Check the spelling, or search by roll number.';
 
   @override
   String get studentsTitle => 'Students';
@@ -2382,6 +2406,55 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get errorImportNotFound => 'The file or the academic year could not be found.';
+
+  @override
+  String get starSilver => 'Silver';
+
+  @override
+  String get starGold => 'Gold';
+
+  @override
+  String get starPlatinum => 'Platinum';
+
+  @override
+  String get achievementsTitle => 'Stars';
+
+  @override
+  String achievementsTotal(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count stars',
+      one: '1 star',
+      zero: 'No stars yet',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get achievementsGiveTitle => 'Give a star';
+
+  @override
+  String get achievementsDescription => 'Why the student earned it';
+
+  @override
+  String get achievementsGive => 'Give star';
+
+  @override
+  String get achievementsRemove => 'Take back';
+
+  @override
+  String get achievementsRemoveTitle => 'Take back this star?';
+
+  @override
+  String get achievementsRemoveMessage => 'The star leaves the student\'s list and their count.';
+
+  @override
+  String get errorNotAssigned => 'This student is not in one of your sections.';
+
+  @override
+  String get errorAchievementNotFound =>
+      'The student or the star could not be found. The student may have been deactivated.';
 
   @override
   String get errorImportRunGone =>

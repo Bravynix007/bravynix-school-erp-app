@@ -104,4 +104,13 @@ void main() {
       expect(await redirectOf('i1'), isNull);
     });
   });
+
+  group('the own staff record screen', () {
+    test('is a route of its own, and sends a role with no staff record of their own to the profile', () async {
+      final route = router.configuration.findMatch(Uri.parse(AppRoutes.ownStaffRecord)).matches.last.route as GoRoute;
+      expect(match(AppRoutes.ownStaffRecord).pattern, AppRoutes.ownStaffRecord);
+      // The signed-in role of this router is an Owner, who has none.
+      expect(await route.redirect!(_MockContext(), _MockRouterState()), AppRoutes.profile);
+    });
+  });
 }

@@ -276,19 +276,14 @@ class StaffProfileView extends StatelessWidget {
                           child: AppSegmentedControl<StaffProfileTab>(
                             options: StaffProfileTab.values,
                             scrollable: true,
-                            labelOf: (tab) => switch (tab) {
-                              StaffProfileTab.personal => l10n.staffTabPersonal,
-                              StaffProfileTab.access => l10n.staffTabAccess,
-                              StaffProfileTab.documents => l10n.staffTabDocuments,
-                              StaffProfileTab.settings => l10n.staffTabSettings,
-                            },
+                            labelOf: (tab) => staffProfileTabLabel(l10n, tab),
                             selected: tab,
                             onChanged: (tab) => context.read<StaffProfileBloc>().add(StaffProfileTabChosen(tab)),
                           ),
                         ),
                         Expanded(
                           child: switch (tab) {
-                            StaffProfileTab.personal => _Details(profile: profile),
+                            StaffProfileTab.personal => StaffDetails(profile: profile),
                             StaffProfileTab.access => StaffAccessView(
                               below: [
                                 const StaffClassTeacherSection(),
@@ -313,10 +308,22 @@ class StaffProfileView extends StatelessWidget {
   }
 }
 
-class _Details extends StatelessWidget {
-  const new({required this.profile});
+/// The words on a tab of a staff profile.
+String staffProfileTabLabel(AppLocalizations l10n, StaffProfileTab tab) => switch (tab) {
+  StaffProfileTab.personal => l10n.staffTabPersonal,
+  StaffProfileTab.access => l10n.staffTabAccess,
+  StaffProfileTab.documents => l10n.staffTabDocuments,
+  StaffProfileTab.settings => l10n.staffTabSettings,
+};
+
+/// The personal tab: who the staff member is, how to reach them, their identity number, employment, education and
+/// emergency contacts. [own] is a staff member reading their own record (a teacher, STF-03): the API leaves the Aadhaar
+/// number out, so there is no identity card.
+class StaffDetails extends StatelessWidget {
+  const new({required this.profile, this.own = false, super.key});
 
   final StaffProfile profile;
+  final bool own;
 
   @override
   Widget build(BuildContext context) {
@@ -372,14 +379,16 @@ class _Details extends StatelessWidget {
             ],
           ),
         ),
-        const SizedBox(height: AppSpacing.md),
-        SectionHeader(title: l10n.identityTitle),
-        const SizedBox(height: AppSpacing.xs),
-        AadhaarCard(
-          personName: member.fullName,
-          protection: getIt<ScreenProtection>(),
-          errorText: staffIdentityErrorText,
-        ),
+        if (!own) ...[
+          const SizedBox(height: AppSpacing.md),
+          SectionHeader(title: l10n.identityTitle),
+          const SizedBox(height: AppSpacing.xs),
+          AadhaarCard(
+            personName: member.fullName,
+            protection: getIt<ScreenProtection>(),
+            errorText: staffIdentityErrorText,
+          ),
+        ],
         if (member.joiningDate != null || member.resignationDate != null || member.employmentType != null) ...[
           const SizedBox(height: AppSpacing.md),
           SectionHeader(title: l10n.staffSectionEmployment),
