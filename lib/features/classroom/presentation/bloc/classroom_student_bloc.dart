@@ -60,8 +60,8 @@ class ClassroomStudentBloc extends Bloc<ClassroomStudentEvent, ClassroomStudentS
     try {
       final student = await _classroom.student(id);
       final options = await _options.read(student.institutionId);
-      final place = options.sections.where((section) => section.id == student.placement.sectionId).firstOrNull;
-      emit(ClassroomStudentLoaded(ClassroomEntry(student, placeName: place?.name)));
+      final place = options.sections.nameOf(student.placement.sectionId);
+      emit(ClassroomStudentLoaded(ClassroomEntry(student, placeName: place)));
     } on ApiFailure catch (failure) {
       emit(ClassroomStudentFailed(failure));
     }

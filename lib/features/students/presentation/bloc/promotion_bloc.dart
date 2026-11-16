@@ -219,7 +219,7 @@ class PromotionReady extends PromotionState {
   }
 
   /// The name of the section the students go to, as the done message says it.
-  String? get targetName => sections.where((section) => section.id == targetSectionId).firstOrNull?.name;
+  String? get targetName => sections.nameOf(targetSectionId);
 
   bool get canSubmit => !saving && (completes || target != null) && (sourceClassId != null && sourceYearId != null);
 

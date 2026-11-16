@@ -43,12 +43,12 @@ void main() {
     test('reads the counts and the stars, newest first as the server sends them', () async {
       final (:repository, :adapter) = build(
         () => okReply({
-          'stars': {'total': 2, 'silver': 1, 'gold': 1, 'platinum': 0},
+          'stars': {'total': 6, 'silver': 3, 'gold': 1, 'platinum': 2},
           'achievements': [star('a2', 2, 'Won the quiz', 'u2'), star('a1', 1, 'Helped', 't1')],
         }),
       );
       final stars = await repository.stars('p1');
-      expect([stars.total, stars.silver, stars.gold, stars.platinum], [2, 1, 1, 0]);
+      expect([stars.total, stars.silver, stars.gold, stars.platinum], [6, 3, 1, 2]);
       expect(
         [for (final a in stars.achievements) (a.id, a.tier, a.description, a.createdBy)],
         [
@@ -59,6 +59,17 @@ void main() {
       expect(stars.achievements.first.createdAt, DateTime.utc(2026, 11, 12, 8));
       final request = adapter.requests.single;
       expect([request.method, request.uri.path], ['GET', '/v1/students/p1/achievements']);
+    });
+
+    test('encodes the ID of the student in the path', () async {
+      final (:repository, :adapter) = build(
+        () => okReply({
+          'stars': {'total': 0, 'silver': 0, 'gold': 0, 'platinum': 0},
+          'achievements': <Object?>[],
+        }),
+      );
+      await repository.stars('p/1');
+      expect(adapter.requests.single.uri.path, '/v1/students/p%2F1/achievements');
     });
 
     test('keeps the code of a refusal', () async {
@@ -82,6 +93,14 @@ void main() {
       expect(bodyOf(request), {'tier': 3, 'description': 'Led the assembly'});
     });
 
+    test('encodes the ID of the student in the path', () async {
+      final (:repository, :adapter) = build(
+        () => okReply(star('a3', 1, 'Helped', 't1'), code: 'CREATED', status: 201),
+      );
+      await repository.give('p/1', tier: StarTier.silver, description: 'Helped');
+      expect(adapter.requests.single.uri.path, '/v1/students/p%2F1/achievements');
+    });
+
     test('keeps the code of a refusal', () async {
       final (:repository, adapter: _) = build(() => errorReply(422, 'NO_CURRENT_PLACEMENT'));
       await expectLater(
@@ -97,6 +116,12 @@ void main() {
       await repository.remove('a1');
       final request = adapter.requests.single;
       expect([request.method, request.uri.path], ['DELETE', '/v1/achievements/a1']);
+    });
+
+    test('encodes the ID of the star in the path', () async {
+      final (:repository, :adapter) = build(() => okReply(null));
+      await repository.remove('a/1');
+      expect(adapter.requests.single.uri.path, '/v1/achievements/a%2F1');
     });
 
     test('keeps the code of a refusal', () async {

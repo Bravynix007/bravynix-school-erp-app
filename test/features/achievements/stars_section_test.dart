@@ -1,6 +1,9 @@
+import 'dart:async';
+
 import 'package:bloc_test/bloc_test.dart';
 import 'package:bravynix_school_erp/core/network/api_failure.dart';
 import 'package:bravynix_school_erp/core/widgets/app_button.dart';
+import 'package:bravynix_school_erp/core/widgets/app_segmented_control.dart';
 import 'package:bravynix_school_erp/features/achievements/domain/achievement.dart';
 import 'package:bravynix_school_erp/features/achievements/presentation/bloc/achievements_bloc.dart';
 import 'package:bravynix_school_erp/features/achievements/presentation/view/stars_section.dart';
@@ -49,6 +52,7 @@ void main() {
   }
 
   final ready = AchievementsReady(stars: twoStars);
+  final field = find.descendant(of: find.byKey(const Key('stars.description')), matching: find.byType(TextField));
 
   group('before the stars are read', () {
     testWidgets('shows a placeholder while they load', (tester) async {
@@ -113,7 +117,75 @@ void main() {
     });
   });
 
+  group('a star that is being taken back', () {
+    final removing = ready.copyWith(removing: () => 'a1');
+
+    testWidgets('shows a spinner on that star only, and offers nothing else to take back', (tester) async {
+      await pump(tester, removing);
+      expect(tester.widget<AppButton>(find.byKey(const ValueKey('stars.remove.a1'))).loading, isTrue);
+      expect(tester.widget<AppButton>(find.byKey(const ValueKey('stars.remove.a2'))).loading, isFalse);
+      expect(tester.widget<AppButton>(find.byKey(const ValueKey('stars.remove.a1'))).onPressed, isNull);
+      expect(tester.widget<AppButton>(find.byKey(const ValueKey('stars.remove.a2'))).onPressed, isNull);
+    });
+
+    testWidgets('leaves the words closed, so nothing typed is lost', (tester) async {
+      await pump(tester, removing);
+      expect(tester.widget<TextField>(field).enabled, isFalse);
+    });
+  });
+
+  group('a star of an unknown kind', () {
+    testWidgets('shows its date and words, and does not call it Silver', (tester) async {
+      final unknown = Achievement(
+        id: 'a9',
+        tier: null,
+        description: 'Tidy desk',
+        createdBy: 't1',
+        createdAt: DateTime.utc(2026, 11, 10, 8),
+      );
+      await pump(
+        tester,
+        AchievementsReady(stars: Stars(total: 1, silver: 0, gold: 0, platinum: 0, achievements: [unknown])),
+      );
+      expect(find.text('Tidy desk'), findsOneWidget);
+      expect(
+        find.descendant(of: find.byKey(const ValueKey('stars.item.a9')), matching: find.textContaining('Silver')),
+        findsNothing,
+      );
+    });
+  });
+
   group('giving a star', () {
+    testWidgets('chooses Silver at first', (tester) async {
+      await pump(tester, ready);
+      expect(
+        tester.widget<AppSegmentedControl<StarTier>>(find.byType(AppSegmentedControl<StarTier>)).selected,
+        StarTier.silver,
+      );
+    });
+
+    testWidgets('takes at most 500 characters', (tester) async {
+      await pump(tester, ready);
+      expect(tester.widget<TextField>(field).maxLength, 500);
+    });
+
+    testWidgets('empties the words once the star was given', (tester) async {
+      final states = StreamController<AchievementsState>();
+      addTearDown(states.close);
+      whenListen(bloc, states.stream, initialState: ready.copyWith(description: 'Kind'));
+      await pump(tester, ready.copyWith(description: 'Kind'));
+      await tester.enterText(field, 'Kind');
+      expect(tester.widget<TextField>(field).controller!.text, 'Kind');
+      states.add(ready);
+      await tester.pump();
+      expect(tester.widget<TextField>(field).controller!.text, isEmpty);
+    });
+
+    testWidgets('leaves the words closed while the star is on its way', (tester) async {
+      await pump(tester, ready.copyWith(description: 'Kind', giving: true));
+      expect(tester.widget<TextField>(field).enabled, isFalse);
+    });
+
     testWidgets('cannot be given without words', (tester) async {
       await pump(tester, ready);
       expect(tester.widget<AppButton>(find.byKey(const Key('stars.give'))).onPressed, isNull);

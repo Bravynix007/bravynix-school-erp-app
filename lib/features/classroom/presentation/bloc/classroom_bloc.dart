@@ -17,9 +17,11 @@ class ClassroomBloc extends PagedListBloc<ClassroomEntry> {
     final read = await _classroom.students(institutionId, page: page, query: query);
     // The rows carry IDs only; the options hold the teacher's own sections, read once for the screen.
     final options = await _options.read(institutionId);
-    final places = {for (final section in options.sections) section.id: section.name};
     return ItemsPage(
-      [for (final student in read.items) ClassroomEntry(student, placeName: places[student.placement.sectionId])],
+      [
+        for (final student in read.items)
+          ClassroomEntry(student, placeName: options.sections.nameOf(student.placement.sectionId)),
+      ],
       page: read.page,
       totalPages: read.totalPages,
     );

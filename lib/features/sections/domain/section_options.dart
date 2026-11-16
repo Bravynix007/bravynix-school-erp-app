@@ -28,6 +28,9 @@ extension SectionsInClass on List<SectionChoice> {
     for (final section in this)
       if (section.classId == classId) section,
   ];
+
+  /// The name of the section [id], such as "Class 5 · A"; null when there is no such section in the list.
+  String? nameOf(String? id) => where((section) => section.id == id).firstOrNull?.name;
 }
 
 /// A class that has sections, as it is shown to choose from.

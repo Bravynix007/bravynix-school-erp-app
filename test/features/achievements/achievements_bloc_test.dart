@@ -52,6 +52,13 @@ void main() {
     );
   });
 
+  test('starts with Silver chosen', () async {
+    final bloc = build()..add(const AchievementsStarted());
+    final state = await bloc.stream.firstWhere((state) => state is AchievementsReady);
+    expect((state as AchievementsReady).tier, StarTier.silver);
+    await bloc.close();
+  });
+
   group('the star being given', () {
     blocTest<AchievementsBloc, AchievementsState>(
       'takes the kind and the words, and cannot be given without words',
@@ -103,7 +110,8 @@ void main() {
           description: any(named: 'description'),
         ),
       ).thenThrow(const ApiFailure(statusCode: 422, code: 'NO_CURRENT_PLACEMENT', message: 'x')),
-      seed: () => ready.copyWith(description: 'Kind'),
+      // The last refusal is gone once the next give is on its way.
+      seed: () => ready.copyWith(description: 'Kind', failure: () => _down),
       build: build,
       act: (bloc) => bloc.add(const AchievementsGiven()),
       expect: () => [

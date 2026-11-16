@@ -117,5 +117,11 @@ void main() {
       expect(choices.inClass('k9'), isEmpty);
       expect(choices.inClass(null), isEmpty);
     });
+
+    test('have their name found by ID, and none for an ID that is not there or not chosen', () {
+      expect(choices.nameOf('e2'), 'Class 1 · B');
+      expect(choices.nameOf('e9'), isNull);
+      expect(choices.nameOf(null), isNull);
+    });
   });
 }

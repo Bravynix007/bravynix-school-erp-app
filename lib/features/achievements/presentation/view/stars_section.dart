@@ -213,7 +213,7 @@ class _Ready extends StatelessWidget {
                 label: l10n.achievementsDescription,
                 maxLength: 500,
                 maxLines: 3,
-                enabled: !state.giving,
+                enabled: !state.busy,
                 onChanged: (value) => bloc.add(AchievementsDescriptionChanged(value)),
               ),
               const SizedBox(height: AppSpacing.sm),

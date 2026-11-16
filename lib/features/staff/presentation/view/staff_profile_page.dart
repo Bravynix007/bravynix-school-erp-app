@@ -276,12 +276,7 @@ class StaffProfileView extends StatelessWidget {
                           child: AppSegmentedControl<StaffProfileTab>(
                             options: StaffProfileTab.values,
                             scrollable: true,
-                            labelOf: (tab) => switch (tab) {
-                              StaffProfileTab.personal => l10n.staffTabPersonal,
-                              StaffProfileTab.access => l10n.staffTabAccess,
-                              StaffProfileTab.documents => l10n.staffTabDocuments,
-                              StaffProfileTab.settings => l10n.staffTabSettings,
-                            },
+                            labelOf: (tab) => staffProfileTabLabel(l10n, tab),
                             selected: tab,
                             onChanged: (tab) => context.read<StaffProfileBloc>().add(StaffProfileTabChosen(tab)),
                           ),
@@ -312,6 +307,14 @@ class StaffProfileView extends StatelessWidget {
     );
   }
 }
+
+/// The words on a tab of a staff profile.
+String staffProfileTabLabel(AppLocalizations l10n, StaffProfileTab tab) => switch (tab) {
+  StaffProfileTab.personal => l10n.staffTabPersonal,
+  StaffProfileTab.access => l10n.staffTabAccess,
+  StaffProfileTab.documents => l10n.staffTabDocuments,
+  StaffProfileTab.settings => l10n.staffTabSettings,
+};
 
 /// The personal tab: who the staff member is, how to reach them, their identity number, employment, education and
 /// emergency contacts. [own] is a staff member reading their own record (a teacher, STF-03): the API leaves the Aadhaar

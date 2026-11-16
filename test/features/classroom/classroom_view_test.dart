@@ -96,6 +96,11 @@ void main() {
     verify(() => bloc.add(const PagedListRequested())).called(1);
   });
 
+  testWidgets('says in the words of the classroom when the list is refused as not assigned', (tester) async {
+    await pump(tester, PagedListFailed<ClassroomEntry>(_failure(403, 'NOT_ASSIGNED')));
+    expect(find.text('This student is not in one of your sections.'), findsOneWidget);
+  });
+
   testWidgets('says there is no access', (tester) async {
     await pump(tester, PagedListFailed<ClassroomEntry>(_failure(403, 'FORBIDDEN')));
     expect(find.byType(StatePanel), findsOneWidget);

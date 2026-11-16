@@ -90,10 +90,7 @@ class StaffOwnProfileView extends StatelessWidget {
                       child: AppSegmentedControl<StaffProfileTab>(
                         options: _tabs,
                         scrollable: true,
-                        labelOf: (tab) => switch (tab) {
-                          StaffProfileTab.documents => l10n.staffTabDocuments,
-                          _ => l10n.staffTabPersonal,
-                        },
+                        labelOf: (tab) => staffProfileTabLabel(l10n, tab),
                         selected: tab,
                         onChanged: (tab) => context.read<StaffProfileBloc>().add(StaffProfileTabChosen(tab)),
                       ),
@@ -101,7 +98,10 @@ class StaffOwnProfileView extends StatelessWidget {
                     Expanded(
                       child: switch (tab) {
                         StaffProfileTab.documents => const StaffDocumentsView(),
-                        _ => StaffDetails(profile: profile, own: true),
+                        // The Admin's tabs are not offered here, so only the personal one is ever chosen.
+                        StaffProfileTab.personal ||
+                        StaffProfileTab.access ||
+                        StaffProfileTab.settings => StaffDetails(profile: profile, own: true),
                       },
                     ),
                   ],

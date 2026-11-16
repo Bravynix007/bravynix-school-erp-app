@@ -73,6 +73,12 @@ void main() {
       expect(adapter.requests.single.uri.path, '/v1/students/p1');
     });
 
+    test('encodes the ID of the student in the path', () async {
+      final (:repository, :adapter) = build(() => okReply(classroomJson()));
+      await repository.student('p/1');
+      expect(adapter.requests.single.uri.path, '/v1/students/p%2F1');
+    });
+
     test('keeps the code of a refusal', () async {
       final (:repository, adapter: _) = build(() => errorReply(403, 'NOT_ASSIGNED'));
       await expectLater(

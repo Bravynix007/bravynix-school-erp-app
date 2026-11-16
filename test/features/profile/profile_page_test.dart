@@ -1,10 +1,13 @@
 import 'package:bloc_test/bloc_test.dart';
+import 'package:bravynix_school_erp/app/router/app_routes.dart';
 import 'package:bravynix_school_erp/features/auth/domain/auth_entities.dart';
 import 'package:bravynix_school_erp/features/auth/presentation/session/session_bloc.dart';
 import 'package:bravynix_school_erp/features/profile/presentation/profile_page.dart';
+import 'package:bravynix_school_erp/l10n/gen/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:go_router/go_router.dart';
 import 'package:mocktail/mocktail.dart';
 
 import '../../helpers/mocks.dart';
@@ -119,6 +122,50 @@ void main() {
     await pump(tester, const AuthSession(person: testPerson, contexts: [teacher], activeContext: teacher));
     expect(find.byKey(const Key('profile.staffRecord')), findsOneWidget);
     expect(find.text('My details'), findsOneWidget);
+  });
+
+  group('opens', () {
+    /// The profile at `/`, with a page that says where a tile went at each place it may go.
+    Future<void> pumpRouted(WidgetTester tester, AuthSession value) {
+      when(() => session.state).thenReturn(SessionAuthenticated(value));
+      tester.view
+        ..physicalSize = const Size(400, 900)
+        ..devicePixelRatio = 1;
+      addTearDown(tester.view.reset);
+      final router = GoRouter(
+        routes: [
+          GoRoute(
+            path: '/',
+            builder: (_, _) => BlocProvider<SessionBloc>.value(value: session, child: const ProfilePage()),
+          ),
+          for (final path in [AppRoutes.classroom, AppRoutes.ownStaffRecord])
+            GoRoute(path: path, builder: (_, _) => Text('went to $path')),
+        ],
+      );
+      addTearDown(router.dispose);
+      return tester.pumpWidget(
+        MaterialApp.router(
+          routerConfig: router,
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+        ),
+      );
+    }
+
+    testWidgets('the classroom from My students', (tester) async {
+      await pumpRouted(tester, testSession);
+      await tester.tap(find.byKey(const Key('profile.classroom')));
+      await tester.pumpAndSettle();
+      expect(find.text('went to ${AppRoutes.classroom}'), findsOneWidget);
+    });
+
+    testWidgets('the own staff record from My details', (tester) async {
+      const teacher = AuthContext(role: RoleCode.teacherStaff, societyId: 's1', staffMemberId: 'f1');
+      await pumpRouted(tester, const AuthSession(person: testPerson, contexts: [teacher], activeContext: teacher));
+      await tester.tap(find.byKey(const Key('profile.staffRecord')));
+      await tester.pumpAndSettle();
+      expect(find.text('went to ${AppRoutes.ownStaffRecord}'), findsOneWidget);
+    });
   });
 
   testWidgets('offers no My details to a role that is not a teacher, or a teacher with no staff record', (
