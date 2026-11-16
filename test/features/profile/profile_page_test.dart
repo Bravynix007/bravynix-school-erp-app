@@ -100,6 +100,20 @@ void main() {
     });
   }
 
+  testWidgets('offers My students to a teacher', (tester) async {
+    await pump(tester, testSession);
+    expect(find.byKey(const Key('profile.classroom')), findsOneWidget);
+    expect(find.text('My students'), findsOneWidget);
+  });
+
+  for (final role in [RoleCode.societyOwner, RoleCode.institutionAdmin, RoleCode.studentParent]) {
+    testWidgets('offers no My students to a ${role.name}', (tester) async {
+      final context = AuthContext(role: role, societyId: 's1', societyName: 'Sunrise Education Trust');
+      await pump(tester, AuthSession(person: testPerson, contexts: [context], activeContext: context));
+      expect(find.byKey(const Key('profile.classroom')), findsNothing);
+    });
+  }
+
   testWidgets('Log out ends the session', (tester) async {
     await pump(tester, testSession);
     await tester.tap(find.byKey(const Key('profile.logOut')));

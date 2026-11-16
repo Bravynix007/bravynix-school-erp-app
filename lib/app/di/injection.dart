@@ -11,6 +11,8 @@ import 'package:bravynix_school_erp/core/storage/institution_choice_store.dart';
 import 'package:bravynix_school_erp/core/storage/token_storage.dart';
 import 'package:bravynix_school_erp/features/academic_years/data/academic_years_repository_impl.dart';
 import 'package:bravynix_school_erp/features/academic_years/domain/academic_years_repository.dart';
+import 'package:bravynix_school_erp/features/achievements/data/achievements_repository_impl.dart';
+import 'package:bravynix_school_erp/features/achievements/domain/achievements_repository.dart';
 import 'package:bravynix_school_erp/features/auth/data/auth_repository_impl.dart';
 import 'package:bravynix_school_erp/features/auth/domain/auth_repository.dart';
 import 'package:bravynix_school_erp/features/blocks/data/blocks_repository_impl.dart';
@@ -18,6 +20,8 @@ import 'package:bravynix_school_erp/features/blocks/domain/blocks_repository.dar
 import 'package:bravynix_school_erp/features/classes/data/classes_repository_impl.dart';
 import 'package:bravynix_school_erp/features/classes/domain/class_catalogue.dart';
 import 'package:bravynix_school_erp/features/classes/domain/classes_repository.dart';
+import 'package:bravynix_school_erp/features/classroom/data/classroom_repository_impl.dart';
+import 'package:bravynix_school_erp/features/classroom/domain/classroom.dart';
 import 'package:bravynix_school_erp/features/documents/data/documents_repository_impl.dart';
 import 'package:bravynix_school_erp/features/documents/domain/documents_repository.dart';
 import 'package:bravynix_school_erp/features/files/data/device_file_picking.dart';
@@ -90,6 +94,8 @@ Future<void> configureDependencies(
     ..registerLazySingleton<ClassesRepository>(() => ClassesRepositoryImpl(api: getIt()))
     ..registerLazySingleton(() => ClassCatalogue(getIt(), getIt()))
     ..registerLazySingleton<SectionsRepository>(() => SectionsRepositoryImpl(api: getIt()))
+    ..registerLazySingleton<ClassroomRepository>(() => ClassroomRepositoryImpl(api: getIt()))
+    ..registerLazySingleton<AchievementsRepository>(() => AchievementsRepositoryImpl(api: getIt()))
     ..registerLazySingleton<StaffRepository>(() => StaffRepositoryImpl(api: getIt()))
     ..registerLazySingleton<StudentsRepository>(() => StudentsRepositoryImpl(api: getIt()))
     ..registerLazySingleton<StudentImportsRepository>(() => StudentImportsRepositoryImpl(api: getIt()))

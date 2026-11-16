@@ -71,6 +71,15 @@ class ProfilePage extends StatelessWidget {
                     subtitle: l10n.schoolSetupDetail,
                     onTap: () => context.push(AppRoutes.schoolSetup),
                   ),
+                // A teacher sees the students of their own sections; the API checks every call.
+                if (active?.role == RoleCode.teacherStaff)
+                  MenuListTile(
+                    key: const Key('profile.classroom'),
+                    icon: Icons.groups_outlined,
+                    title: l10n.classroomTitle,
+                    subtitle: l10n.classroomDetail,
+                    onTap: () => context.push(AppRoutes.classroom),
+                  ),
                 // Only the Owners of a Society are charged for it; the API refuses every other role (API design 10.22).
                 if (active?.role == RoleCode.societyOwner)
                   MenuListTile(

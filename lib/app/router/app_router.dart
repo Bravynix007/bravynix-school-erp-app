@@ -10,6 +10,8 @@ import 'package:bravynix_school_erp/features/auth/presentation/splash/splash_pag
 import 'package:bravynix_school_erp/features/classes/presentation/view/class_bulk_page.dart';
 import 'package:bravynix_school_erp/features/classes/presentation/view/class_form_page.dart';
 import 'package:bravynix_school_erp/features/classes/presentation/view/classes_page.dart';
+import 'package:bravynix_school_erp/features/classroom/presentation/view/classroom_page.dart';
+import 'package:bravynix_school_erp/features/classroom/presentation/view/classroom_student_page.dart';
 import 'package:bravynix_school_erp/features/gallery/presentation/component_gallery_page.dart';
 import 'package:bravynix_school_erp/features/home/presentation/home_page.dart';
 import 'package:bravynix_school_erp/features/institutions/presentation/view/institution_form_page.dart';
@@ -197,6 +199,11 @@ GoRouter createRouter(SessionBloc session, {required SessionChanges changes}) {
       GoRoute(
         path: AppRoutes.studentPattern,
         builder: (_, state) => StudentProfilePage(id: state.pathParameters['id']!),
+      ),
+      GoRoute(path: AppRoutes.classroom, builder: (_, _) => const ClassroomPage()),
+      GoRoute(
+        path: AppRoutes.classroomStudentPattern,
+        builder: (_, state) => ClassroomStudentPage(id: state.pathParameters['id']!),
       ),
       GoRoute(path: AppRoutes.updateRequired, builder: (_, _) => const UpdateRequiredPage()),
       if (!kReleaseMode) GoRoute(path: AppRoutes.gallery, builder: (_, _) => const ComponentGalleryPage()),
