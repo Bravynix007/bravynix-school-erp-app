@@ -210,6 +210,17 @@ void main() {
     });
   });
 
+  group('when the import is gone', () {
+    testWidgets('says the import is no longer available, not that a file or year was not found', (tester) async {
+      await pump(
+        tester,
+        const StudentImportLost('m1', ApiFailure(statusCode: 404, code: 'NOT_FOUND', message: 'x')),
+      );
+      expect(find.textContaining('This import is no longer available'), findsOneWidget);
+      expect(find.textContaining('could not be found'), findsNothing);
+    });
+  });
+
   group('when it is done', () {
     testWidgets('says how many students came in, how many rows were skipped, and which', (tester) async {
       await pump(tester, const StudentImportFinished(importDone));
@@ -264,6 +275,32 @@ void main() {
       expect(find.text('Showing the first 1 of 1500 skipped rows.'), findsOneWidget);
     });
 
+    testWidgets('says how many rows an import added before the worker gave up, and to import only the rest', (
+      tester,
+    ) async {
+      await pump(
+        tester,
+        const StudentImportFinished(
+          StudentImport(
+            id: 'm',
+            status: ImportStatus.failed,
+            totalRows: 500,
+            processedRows: 300,
+            importedRows: 200,
+            skippedRows: 100,
+            overCapacity: false,
+            errorCode: 'IMPORT_FAILED',
+            rowErrors: [ImportRowError(row: 7, message: 'The class was not found.')],
+          ),
+        ),
+      );
+      expect(find.text('The import stopped part-way'), findsOneWidget);
+      expect(find.textContaining('200 students were imported and 100 rows were skipped'), findsOneWidget);
+      expect(find.textContaining('Import only the rows of the file that were not added'), findsOneWidget);
+      expect(find.text('Row 7: The class was not found.'), findsOneWidget);
+      expect(find.text('The import could not run'), findsNothing);
+    });
+
     for (final (code, words) in [
       ('CSV_HEADER_INVALID', 'The first row of the file is not the columns above. Fix it and choose the file again.'),
       (
@@ -272,7 +309,7 @@ void main() {
       ),
       ('CSV_UNREADABLE', 'The file could not be read. Save it as a CSV file in UTF-8 and choose it again.'),
       (
-        'IMPORT_FAILED',
+        'NOT_A_CODE_WE_KNOW',
         'The import stopped because of a problem on our side. Check the students list, then try again.',
       ),
     ]) {
@@ -349,6 +386,21 @@ void main() {
       ('the form', _filled.copyWith(failure: () => _failure(409, 'IMPORT_ALREADY_RUNNING'), sample: 'Name,RollNumber')),
       ('the progress', StudentImportLost('m1', const ApiFailure.network(), importRunning(processed: 4))),
       ('the result', const StudentImportFinished(importDone)),
+      (
+        'the result of an import that stopped part-way',
+        const StudentImportFinished(
+          StudentImport(
+            id: 'm',
+            status: ImportStatus.failed,
+            totalRows: 500,
+            processedRows: 300,
+            importedRows: 200,
+            skippedRows: 100,
+            overCapacity: true,
+            errorCode: 'IMPORT_FAILED',
+          ),
+        ),
+      ),
     ]) {
       testWidgets('$name reads whole', (tester) async {
         await pump(tester, state, textScale: 2, size: const Size(320, 3000));

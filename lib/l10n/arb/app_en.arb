@@ -776,6 +776,9 @@
   "@importRowErrorsMore": { "placeholders": { "shown": { "type": "int" }, "total": { "type": "int" } } },
   "importDoneAction": "Done",
   "importFailedTitle": "The import could not run",
+  "importStoppedTitle": "The import stopped part-way",
+  "importStoppedSummary": "{imported, plural, =1{1 student was imported} other{{imported} students were imported}} and {skipped, plural, =1{1 row was skipped} other{{skipped} rows were skipped}} before it stopped. Import only the rows of the file that were not added, or you will get the same students skipped again.",
+  "@importStoppedSummary": { "placeholders": { "imported": { "type": "int" }, "skipped": { "type": "int" } } },
   "errorImportHeaderInvalid": "The first row of the file is not the columns above. Fix it and choose the file again.",
   "errorImportTooLarge": "The file has more than 5,000 students. Split it into parts and import them one after the other.",
   "errorImportUnreadable": "The file could not be read. Save it as a CSV file in UTF-8 and choose it again.",
@@ -783,6 +786,7 @@
   "errorImportFileNotReady": "The file is not ready. Choose it again.",
   "errorImportAlreadyRunning": "Another import of this school is still running. Try again when it has finished.",
   "errorImportNotFound": "The file or the academic year could not be found.",
+<<<<<<< HEAD
   "starSilver": "Silver",
   "starGold": "Gold",
   "starPlatinum": "Platinum",
@@ -797,4 +801,7 @@
   "achievementsRemoveMessage": "The star leaves the student's list and their count.",
   "errorNotAssigned": "This student is not in one of your sections.",
   "errorAchievementNotFound": "The student or the star could not be found. The student may have been deactivated."
+=======
+  "errorImportRunGone": "This import is no longer available. Imports are kept for 7 days. Check the students list for what was added."
+>>>>>>> origin/feat/app-student-import
 }
