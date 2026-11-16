@@ -4243,7 +4243,6 @@ abstract class AppLocalizations {
   /// **'The file or the academic year could not be found.'**
   String get errorImportNotFound;
 
-<<<<<<< HEAD
   /// No description provided for @starSilver.
   ///
   /// In en, this message translates to:
@@ -4321,13 +4320,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'The student or the star could not be found. The student may have been deactivated.'**
   String get errorAchievementNotFound;
-=======
+
   /// No description provided for @errorImportRunGone.
   ///
   /// In en, this message translates to:
   /// **'This import is no longer available. Imports are kept for 7 days. Check the students list for what was added.'**
   String get errorImportRunGone;
->>>>>>> origin/feat/app-student-import
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {
