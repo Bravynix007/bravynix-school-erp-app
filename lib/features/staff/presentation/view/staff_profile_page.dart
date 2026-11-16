@@ -25,6 +25,9 @@ import 'package:bravynix_school_erp/features/files/domain/files_repository.dart'
 import 'package:bravynix_school_erp/features/files/presentation/bloc/file_upload_bloc.dart';
 import 'package:bravynix_school_erp/features/institutions/domain/institutions_repository.dart';
 import 'package:bravynix_school_erp/features/masters/domain/masters_repository.dart';
+import 'package:bravynix_school_erp/features/people/presentation/bloc/access_block_bloc.dart';
+import 'package:bravynix_school_erp/features/people/presentation/bloc/identity_number_bloc.dart';
+import 'package:bravynix_school_erp/features/people/presentation/view/aadhaar_card.dart';
 import 'package:bravynix_school_erp/features/people/presentation/view/person_names.dart';
 import 'package:bravynix_school_erp/features/people/presentation/view/personal_rows.dart';
 import 'package:bravynix_school_erp/features/sections/domain/section_options.dart';
@@ -34,10 +37,8 @@ import 'package:bravynix_school_erp/features/staff/domain/staff_profile.dart';
 import 'package:bravynix_school_erp/features/staff/domain/staff_repository.dart';
 import 'package:bravynix_school_erp/features/staff/presentation/bloc/staff_access_bloc.dart';
 import 'package:bravynix_school_erp/features/staff/presentation/bloc/staff_admin_access_bloc.dart';
-import 'package:bravynix_school_erp/features/staff/presentation/bloc/staff_block_bloc.dart';
 import 'package:bravynix_school_erp/features/staff/presentation/bloc/staff_class_teacher_bloc.dart';
 import 'package:bravynix_school_erp/features/staff/presentation/bloc/staff_documents_bloc.dart';
-import 'package:bravynix_school_erp/features/staff/presentation/bloc/staff_identity_bloc.dart';
 import 'package:bravynix_school_erp/features/staff/presentation/bloc/staff_profile_bloc.dart';
 import 'package:bravynix_school_erp/features/staff/presentation/bloc/staff_teaching_bloc.dart';
 import 'package:bravynix_school_erp/features/staff/presentation/view/staff_access_view.dart';
@@ -46,7 +47,6 @@ import 'package:bravynix_school_erp/features/staff/presentation/view/staff_class
 import 'package:bravynix_school_erp/features/staff/presentation/view/staff_documents_view.dart';
 import 'package:bravynix_school_erp/features/staff/presentation/view/staff_error_text.dart';
 import 'package:bravynix_school_erp/features/staff/presentation/view/staff_form_page.dart';
-import 'package:bravynix_school_erp/features/staff/presentation/view/staff_identity_section.dart';
 import 'package:bravynix_school_erp/features/staff/presentation/view/staff_names.dart';
 import 'package:bravynix_school_erp/features/staff/presentation/view/staff_settings_view.dart';
 import 'package:bravynix_school_erp/features/staff/presentation/view/staff_teaching_section.dart';
@@ -158,10 +158,13 @@ class StaffProfileView extends StatelessWidget {
                       )..add(const StaffClassTeacherStarted()),
                     ),
                     BlocProvider(
-                      create: (_) => StaffIdentityBloc(
-                        getIt<StaffRepository>(),
-                        staffMemberId: profile.member.id,
-                        masked: profile.member.aadhaarMasked,
+                      create: (_) => IdentityNumberBloc(
+                        save: (aadhaar) async => (
+                          number: await getIt<StaffRepository>().setAadhaar(profile.member.id, aadhaar),
+                          elsewhere: false,
+                        ),
+                        reveal: (reason) => getIt<StaffRepository>().revealAadhaar(profile.member.id, reason: reason),
+                        number: profile.member.aadhaarMasked,
                       ),
                     ),
                     BlocProvider(
@@ -196,7 +199,15 @@ class StaffProfileView extends StatelessWidget {
                         institutionId: profile.member.homeInstitutionId,
                       ),
                     ),
-                    BlocProvider(create: (_) => StaffBlockBloc(getIt<StaffRepository>(), profile.member)),
+                    BlocProvider(
+                      create: (_) => AccessBlockBloc<StaffMember>(
+                        profile.member,
+                        isBlocked: (member) => member.isBlocked,
+                        block: (member) => getIt<StaffRepository>().block(member.id),
+                        unblock: (member) => getIt<StaffRepository>().unblock(member.id),
+                        read: (member) => getIt<StaffRepository>().member(member.id),
+                      ),
+                    ),
                   ],
                   // The Admin part reads again when the extra Institutions are saved, as those are the ones an Admin can
                   // be made at, and the teaching part offers the subjects as saved. They are told here and not made again,
@@ -362,7 +373,13 @@ class _Details extends StatelessWidget {
           ),
         ),
         const SizedBox(height: AppSpacing.md),
-        StaffIdentitySection(memberName: member.fullName, protection: getIt<ScreenProtection>()),
+        SectionHeader(title: l10n.identityTitle),
+        const SizedBox(height: AppSpacing.xs),
+        AadhaarCard(
+          personName: member.fullName,
+          protection: getIt<ScreenProtection>(),
+          errorText: staffIdentityErrorText,
+        ),
         if (member.joiningDate != null || member.resignationDate != null || member.employmentType != null) ...[
           const SizedBox(height: AppSpacing.md),
           SectionHeader(title: l10n.staffSectionEmployment),

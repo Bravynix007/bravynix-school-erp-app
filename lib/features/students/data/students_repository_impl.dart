@@ -1,5 +1,6 @@
 import 'package:bravynix_school_erp/core/network/api_client.dart';
 import 'package:bravynix_school_erp/core/network/api_envelope.dart';
+import 'package:bravynix_school_erp/core/network/json_shape.dart';
 import 'package:bravynix_school_erp/core/paging/items_page.dart';
 import 'package:bravynix_school_erp/features/students/data/student_models.dart';
 import 'package:bravynix_school_erp/features/students/domain/student.dart';
@@ -46,6 +47,39 @@ class StudentsRepositoryImpl implements StudentsRepository {
     method: HttpMethod.patch,
     body: StudentModels.updateBody(draft, version),
     parse: StudentModels.record,
+  );
+
+  @override
+  Future<StudentRecord> block(String id) =>
+      _api.data('students/${Uri.encodeComponent(id)}/block', method: HttpMethod.post, parse: StudentModels.record);
+
+  @override
+  Future<StudentRecord> unblock(String id) =>
+      _api.data('students/${Uri.encodeComponent(id)}/unblock', method: HttpMethod.post, parse: StudentModels.record);
+
+  Future<IdentitySaved> _setIdentity(String id, Map<String, Object?> body) async {
+    final answer = await _api.request(
+      'students/${Uri.encodeComponent(id)}/identity',
+      method: HttpMethod.put,
+      body: body,
+      parse: StudentModels.identity,
+    );
+    return IdentitySaved(answer.data, warnings: answer.warnings);
+  }
+
+  @override
+  Future<IdentitySaved> setAadhaar(String id, String? aadhaar) => _setIdentity(id, {'aadhaarNumber': aadhaar});
+
+  @override
+  Future<IdentitySaved> setBirthCertificate(String id, String? number) =>
+      _setIdentity(id, {'birthCertificateNumber': number});
+
+  @override
+  Future<String> revealAadhaar(String id, {required String reason}) => _api.data(
+    'students/${Uri.encodeComponent(id)}/identity/reveal',
+    method: HttpMethod.post,
+    body: {'field': 'aadhaar', 'reason': reason},
+    parse: (raw) => jsonObject(raw)['value'] as String,
   );
 
   @override

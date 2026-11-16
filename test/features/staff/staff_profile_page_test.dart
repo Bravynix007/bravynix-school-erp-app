@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:bloc_test/bloc_test.dart';
 import 'package:bravynix_school_erp/app/di/injection.dart';
 import 'package:bravynix_school_erp/core/device/screen_protection.dart';
+import 'package:bravynix_school_erp/core/network/api_failure.dart';
 import 'package:bravynix_school_erp/core/paging/items_page.dart';
 import 'package:bravynix_school_erp/core/widgets/app_button.dart';
 import 'package:bravynix_school_erp/features/academic_years/domain/academic_years_repository.dart';
@@ -332,10 +333,10 @@ void main() {
         await pumpAs(tester, role);
         await tester.ensureVisible(find.text('XXXX XXXX 1234'));
         expect(find.text('Identity'), findsOneWidget);
-        await tester.tap(find.byKey(const Key('staffIdentity.reveal')));
+        await tester.tap(find.byKey(const Key('aadhaar.reveal')));
         await tester.pumpAndSettle();
-        await tester.enterText(find.byKey(const Key('staffIdentity.reason')), 'Checking the records');
-        await tester.tap(find.byKey(const Key('staffIdentity.show')));
+        await tester.enterText(find.byKey(const Key('aadhaar.reason')), 'Checking the records');
+        await tester.tap(find.byKey(const Key('aadhaar.show')));
         await tester.pumpAndSettle();
         expect(find.text('2345 6789 0123'), findsOneWidget);
       });
@@ -344,8 +345,8 @@ void main() {
     testWidgets('keeps the number it holds when the person goes to another tab and back', (tester) async {
       when(() => staff.setAadhaar('f1', null)).thenAnswer((_) async => null);
       await pumpAs(tester, RoleCode.societyOwner);
-      await tester.ensureVisible(find.byKey(const Key('staffIdentity.clear')));
-      await tester.tap(find.byKey(const Key('staffIdentity.clear')));
+      await tester.ensureVisible(find.byKey(const Key('aadhaar.clear')));
+      await tester.tap(find.byKey(const Key('aadhaar.clear')));
       await tester.pumpAndSettle();
       await tester.tap(find.descendant(of: find.byType(Dialog), matching: find.text('Clear number')));
       await tester.pumpAndSettle();
@@ -727,5 +728,22 @@ void main() {
     expect(find.text('Mathematics Teacher'), findsOneWidget);
     expect(find.text('Lower Primary'), findsOneWidget);
     expect(find.text('12 Lake Road\nNear the park\nBengaluru, Karnataka, India\n560066'), findsOneWidget);
+  });
+
+  testWidgets('reads the staff member again from the API when the block was already made, and shows them blocked', (
+    tester,
+  ) async {
+    when(() => staff.block('f1')).thenThrow(const ApiFailure(statusCode: 409, code: 'INVALID_STATE', message: 'x'));
+    await pumpAs(tester, RoleCode.societyOwner);
+    await openTab(tester, 'Settings');
+    clearInteractions(staff);
+    when(() => staff.member('f1')).thenAnswer((_) async => kavyaWith(isBlocked: true, version: 5));
+    await tester.tap(find.byKey(const Key('staffSettings.toggle')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.descendant(of: find.byType(Dialog), matching: find.text('Block access')));
+    await tester.pumpAndSettle();
+    verify(() => staff.member('f1')).called(1);
+    expect(find.text('Blocked'), findsOneWidget);
+    expect(find.text('Unblock access'), findsOneWidget);
   });
 }

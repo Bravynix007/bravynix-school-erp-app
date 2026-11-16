@@ -2845,131 +2845,137 @@ abstract class AppLocalizations {
   /// **'The assignment, the section or the subject could not be found. It may have been ended or deactivated.'**
   String get errorTeachingNotFound;
 
-  /// No description provided for @staffIdentityTitle.
+  /// No description provided for @identityTitle.
   ///
   /// In en, this message translates to:
   /// **'Identity'**
-  String get staffIdentityTitle;
+  String get identityTitle;
 
-  /// No description provided for @staffAadhaar.
+  /// No description provided for @aadhaar.
   ///
   /// In en, this message translates to:
   /// **'Aadhaar number'**
-  String get staffAadhaar;
+  String get aadhaar;
 
-  /// No description provided for @staffAadhaarNotSet.
+  /// No description provided for @aadhaarNotSet.
   ///
   /// In en, this message translates to:
   /// **'Not set'**
-  String get staffAadhaarNotSet;
+  String get aadhaarNotSet;
 
-  /// No description provided for @staffAadhaarShow.
+  /// No description provided for @aadhaarShow.
   ///
   /// In en, this message translates to:
   /// **'Show full number'**
-  String get staffAadhaarShow;
+  String get aadhaarShow;
 
-  /// No description provided for @staffAadhaarSet.
+  /// No description provided for @aadhaarSet.
   ///
   /// In en, this message translates to:
   /// **'Set number'**
-  String get staffAadhaarSet;
+  String get aadhaarSet;
 
-  /// No description provided for @staffAadhaarChange.
+  /// No description provided for @aadhaarChange.
   ///
   /// In en, this message translates to:
   /// **'Change number'**
-  String get staffAadhaarChange;
+  String get aadhaarChange;
 
-  /// No description provided for @staffAadhaarClear.
+  /// No description provided for @aadhaarClear.
   ///
   /// In en, this message translates to:
   /// **'Clear number'**
-  String get staffAadhaarClear;
+  String get aadhaarClear;
 
-  /// No description provided for @staffAadhaarSetHelper.
+  /// No description provided for @aadhaarSetHelper.
   ///
   /// In en, this message translates to:
   /// **'Twelve digits, the first one from 2 to 9. It is kept sealed and shown masked.'**
-  String get staffAadhaarSetHelper;
+  String get aadhaarSetHelper;
 
-  /// No description provided for @staffAadhaarInvalid.
+  /// No description provided for @aadhaarInvalid.
   ///
   /// In en, this message translates to:
   /// **'Check the twelve digits.'**
-  String get staffAadhaarInvalid;
+  String get aadhaarInvalid;
 
-  /// No description provided for @staffAadhaarSave.
+  /// No description provided for @aadhaarSave.
   ///
   /// In en, this message translates to:
   /// **'Save number'**
-  String get staffAadhaarSave;
+  String get aadhaarSave;
 
-  /// No description provided for @staffAadhaarSaved.
+  /// No description provided for @aadhaarSaved.
   ///
   /// In en, this message translates to:
   /// **'Aadhaar number saved'**
-  String get staffAadhaarSaved;
+  String get aadhaarSaved;
 
-  /// No description provided for @staffAadhaarCleared.
+  /// No description provided for @aadhaarSavedElsewhere.
+  ///
+  /// In en, this message translates to:
+  /// **'Aadhaar number saved. Another Institution of the Society holds this number too.'**
+  String get aadhaarSavedElsewhere;
+
+  /// No description provided for @aadhaarCleared.
   ///
   /// In en, this message translates to:
   /// **'Aadhaar number cleared'**
-  String get staffAadhaarCleared;
+  String get aadhaarCleared;
 
-  /// No description provided for @staffAadhaarClearTitle.
+  /// No description provided for @aadhaarClearTitle.
   ///
   /// In en, this message translates to:
   /// **'Clear the Aadhaar number of {name}?'**
-  String staffAadhaarClearTitle(String name);
+  String aadhaarClearTitle(String name);
 
-  /// No description provided for @staffAadhaarClearMessage.
+  /// No description provided for @aadhaarClearMessage.
   ///
   /// In en, this message translates to:
   /// **'The number is removed. You can set it again later.'**
-  String get staffAadhaarClearMessage;
+  String get aadhaarClearMessage;
 
-  /// No description provided for @staffAadhaarRevealTitle.
+  /// No description provided for @aadhaarRevealTitle.
   ///
   /// In en, this message translates to:
   /// **'Show Aadhaar number'**
-  String get staffAadhaarRevealTitle;
+  String get aadhaarRevealTitle;
 
-  /// No description provided for @staffAadhaarReason.
+  /// No description provided for @aadhaarReason.
   ///
   /// In en, this message translates to:
   /// **'Reason (at least 10 characters)'**
-  String get staffAadhaarReason;
+  String get aadhaarReason;
 
-  /// No description provided for @staffAadhaarReasonHelper.
+  /// No description provided for @aadhaarReasonHelper.
   ///
   /// In en, this message translates to:
   /// **'It is kept in the audit log with your name.'**
-  String get staffAadhaarReasonHelper;
+  String get aadhaarReasonHelper;
 
-  /// No description provided for @staffAadhaarReasonShort.
+  /// No description provided for @aadhaarReasonShort.
   ///
   /// In en, this message translates to:
   /// **'At least 10 characters.'**
-  String get staffAadhaarReasonShort;
+  String get aadhaarReasonShort;
 
-  /// No description provided for @staffAadhaarRevealAction.
+  /// No description provided for @aadhaarRevealAction.
   ///
   /// In en, this message translates to:
   /// **'Show number'**
-  String get staffAadhaarRevealAction;
+  String get aadhaarRevealAction;
 
-  /// No description provided for @staffAadhaarRevealed.
+  /// No description provided for @aadhaarRevealed.
   ///
   /// In en, this message translates to:
   /// **'This is hidden again when you close it.'**
-  String get staffAadhaarRevealed;
+  String get aadhaarRevealed;
 
-  /// No description provided for @staffAadhaarDone.
+  /// No description provided for @aadhaarDone.
   ///
   /// In en, this message translates to:
   /// **'Done'**
-  String get staffAadhaarDone;
+  String get aadhaarDone;
 
   /// No description provided for @errorAadhaarInvalid.
   ///
@@ -3516,6 +3522,126 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Birth certificate number'**
   String get studentBirthCertificate;
+
+  /// No description provided for @studentCertificateSet.
+  ///
+  /// In en, this message translates to:
+  /// **'Set number'**
+  String get studentCertificateSet;
+
+  /// No description provided for @studentCertificateChange.
+  ///
+  /// In en, this message translates to:
+  /// **'Change number'**
+  String get studentCertificateChange;
+
+  /// No description provided for @studentCertificateClear.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear number'**
+  String get studentCertificateClear;
+
+  /// No description provided for @studentCertificateRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter the number as it is written on the certificate.'**
+  String get studentCertificateRequired;
+
+  /// No description provided for @studentCertificateSaved.
+  ///
+  /// In en, this message translates to:
+  /// **'Birth certificate number saved'**
+  String get studentCertificateSaved;
+
+  /// No description provided for @studentCertificateCleared.
+  ///
+  /// In en, this message translates to:
+  /// **'Birth certificate number cleared'**
+  String get studentCertificateCleared;
+
+  /// No description provided for @studentCertificateClearTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear the birth certificate number of {name}?'**
+  String studentCertificateClearTitle(String name);
+
+  /// No description provided for @studentCertificateClearMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'The number is removed. You can set it again later.'**
+  String get studentCertificateClearMessage;
+
+  /// No description provided for @studentAccessTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Parent access'**
+  String get studentAccessTitle;
+
+  /// No description provided for @studentAccessActive.
+  ///
+  /// In en, this message translates to:
+  /// **'Parents and guardians can see this child.'**
+  String get studentAccessActive;
+
+  /// No description provided for @studentAccessBlockedMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Parent access is blocked. Parents and guardians cannot see this child. Their other children are not affected.'**
+  String get studentAccessBlockedMessage;
+
+  /// No description provided for @studentBlockAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Block parent access'**
+  String get studentBlockAction;
+
+  /// No description provided for @studentUnblockAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Restore parent access'**
+  String get studentUnblockAction;
+
+  /// No description provided for @studentBlockTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Block parent access to {name}?'**
+  String studentBlockTitle(String name);
+
+  /// No description provided for @studentBlockMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Parents and guardians will not see this child until you restore access. Their other children and their accounts are not affected.'**
+  String get studentBlockMessage;
+
+  /// No description provided for @studentUnblockTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Restore parent access to {name}?'**
+  String studentUnblockTitle(String name);
+
+  /// No description provided for @studentUnblockMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Parents and guardians will see this child again.'**
+  String get studentUnblockMessage;
+
+  /// No description provided for @studentBlockDone.
+  ///
+  /// In en, this message translates to:
+  /// **'Parent access to {name} blocked'**
+  String studentBlockDone(String name);
+
+  /// No description provided for @studentUnblockDone.
+  ///
+  /// In en, this message translates to:
+  /// **'Parent access to {name} restored'**
+  String studentUnblockDone(String name);
+
+  /// No description provided for @errorStudentAccessState.
+  ///
+  /// In en, this message translates to:
+  /// **'Someone else already changed this child\'s parent access. The screen now shows how it is.'**
+  String get errorStudentAccessState;
 
   /// No description provided for @studentEditTitle.
   ///

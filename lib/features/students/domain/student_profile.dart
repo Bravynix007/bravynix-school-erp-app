@@ -63,6 +63,20 @@ class StudentIdentity extends Equatable {
   List<Object?> get props => [aadhaarMasked, birthCertificateNumber];
 }
 
+/// The numbers as they are after a write of them (STU-10), and the second looks the server asked for:
+/// `AADHAAR_EXISTS_IN_SOCIETY` when another Institution of the Society holds the Aadhaar number.
+class IdentitySaved extends Equatable {
+  const new(this.identity, {this.warnings = const []});
+
+  final StudentIdentity identity;
+  final List<String> warnings;
+
+  bool get aadhaarElsewhere => warnings.contains('AADHAAR_EXISTS_IN_SOCIETY');
+
+  @override
+  List<Object?> get props => [identity, warnings];
+}
+
 /// A student as an Owner or Admin reads them (STU-03): the record, where the child sits and the guardians.
 class StudentRecord extends Equatable {
   const new({

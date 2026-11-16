@@ -49,4 +49,26 @@ void main() {
       l10n.errorStudentNotFound,
     );
   });
+
+  testWidgets('studentIdentityErrorText has its own words for the codes of the identity numbers', (tester) async {
+    late AppLocalizations l10n;
+    await tester.pumpApp(
+      Builder(
+        builder: (context) {
+          l10n = AppLocalizations.of(context);
+          return const SizedBox();
+        },
+      ),
+    );
+    final expected = {
+      'INVALID_AADHAAR': l10n.errorAadhaarInvalid,
+      'AADHAAR_DUPLICATE_IN_INSTITUTION': l10n.errorAadhaarDuplicateInInstitution,
+      'NOT_SET': l10n.errorAadhaarNotSet,
+      'REVEAL_LIMIT': l10n.errorRevealLimit,
+    };
+    for (final MapEntry(:key, :value) in expected.entries) {
+      expect(studentIdentityErrorText(l10n, _code(key)), value, reason: key);
+    }
+    expect(studentIdentityErrorText(l10n, _code('NOT_FOUND', status: 404)), l10n.errorStudentNotFound);
+  });
 }
