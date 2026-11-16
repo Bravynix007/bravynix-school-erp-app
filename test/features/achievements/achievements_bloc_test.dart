@@ -208,7 +208,8 @@ void main() {
   });
 
   test('counts each kind of star', () {
-    expect([for (final tier in StarTier.values) twoStars.countOf(tier)], [1, 1, 0]);
+    const stars = Stars(total: 6, silver: 1, gold: 2, platinum: 3, achievements: <Achievement>[]);
+    expect([for (final tier in StarTier.values) stars.countOf(tier)], [1, 2, 3]);
     expect(StarTier.fromCode(3), StarTier.platinum);
     expect(StarTier.fromCode(9), isNull);
   });
