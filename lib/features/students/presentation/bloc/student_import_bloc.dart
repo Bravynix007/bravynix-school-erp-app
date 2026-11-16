@@ -239,6 +239,10 @@ class StudentImportBloc extends Bloc<StudentImportEvent, StudentImportState> {
           idempotencyKey: _key ??= _newKey(),
         );
       } on ApiFailure catch (failure) {
+        // The server keeps a business refusal under its key for a day and answers a repeat with it (API design 14.2),
+        // so after one the next try is a new attempt: another import may have finished by then. A failure with no
+        // answer kept (no answer, 5xx, try later) keeps the key, so the repeat finds an import that did start.
+        if (_isKeptRefusal(failure)) _key = null;
         if (state case final StudentImportReady now) emit(now.copyWith(starting: false, failure: () => failure));
         return;
       }
@@ -246,6 +250,12 @@ class StudentImportBloc extends Bloc<StudentImportEvent, StudentImportState> {
       await _follow(importId, emit);
     }
   }
+
+  /// A 409 or 422 the server keeps under the key and sends again for it (API design 14.2, rules 4 and 7).
+  static bool _isKeptRefusal(ApiFailure failure) =>
+      (failure.statusCode == 409 || failure.statusCode == 422) &&
+      !failure.code.startsWith('IDEMPOTENCY_') &&
+      failure.retryAfter == null;
 
   Future<void> _onChecked(StudentImportChecked event, Emitter<StudentImportState> emit) async {
     if (state case final StudentImportLost lost) {

@@ -13,6 +13,13 @@ import '../../helpers/students.dart';
 
 const _down = ApiFailure(statusCode: 503, code: 'UNAVAILABLE', message: 'x');
 const _running = ApiFailure(statusCode: 409, code: 'IMPORT_ALREADY_RUNNING', message: 'x');
+const _keyBusy = ApiFailure(statusCode: 409, code: 'IDEMPOTENCY_IN_PROGRESS', message: 'x');
+const _busyLater = ApiFailure(
+  statusCode: 409,
+  code: 'IMPORT_ALREADY_RUNNING',
+  message: 'x',
+  retryAfter: Duration(seconds: 5),
+);
 
 const _ready = StudentImportReady(years: [currentYear, earlierYear], yearId: 'y1');
 const _filled = StudentImportReady(years: [currentYear, earlierYear], yearId: 'y1', fileId: 'f1');
@@ -217,7 +224,7 @@ void main() {
     });
 
     blocTest<StudentImportBloc, StudentImportState>(
-      'keeps the form, with why, when the import is refused, and a second try is the same attempt',
+      'keeps the form, with why, when the import is refused, and a second try is a new attempt (the refusal is kept under its key)',
       setUp: () => when(
         () => imports.start(
           institutionId: any(named: 'institutionId'),
@@ -248,7 +255,7 @@ void main() {
             idempotencyKey: captureAny(named: 'idempotencyKey'),
           ),
         ).captured,
-        ['key-1', 'key-1'],
+        ['key-1', 'key-2'],
       ),
     );
 
@@ -280,6 +287,44 @@ void main() {
         ).called(1);
       },
     );
+
+    // The server keeps no answer for these (no answer, 5xx, a key still being worked on, a refusal to retry later), so
+    // a repeat must carry the same key to find an import that did start.
+    for (final (name, failure) in <(String, ApiFailure)>[
+      ('a 503', _down),
+      ('an IDEMPOTENCY_IN_PROGRESS 409', _keyBusy),
+      ('a 409 with a retry time', _busyLater),
+    ]) {
+      blocTest<StudentImportBloc, StudentImportState>(
+        'a try after $name is the same attempt, with the same key',
+        setUp: () => when(
+          () => imports.start(
+            institutionId: any(named: 'institutionId'),
+            fileId: any(named: 'fileId'),
+            academicYearId: any(named: 'academicYearId'),
+            idempotencyKey: any(named: 'idempotencyKey'),
+          ),
+        ).thenThrow(failure),
+        seed: () => _filled,
+        build: build,
+        act: (bloc) async {
+          bloc.add(const StudentImportSubmitted());
+          await Future<void>.delayed(Duration.zero);
+          bloc.add(const StudentImportSubmitted());
+        },
+        verify: (_) => expect(
+          verify(
+            () => imports.start(
+              institutionId: any(named: 'institutionId'),
+              fileId: any(named: 'fileId'),
+              academicYearId: any(named: 'academicYearId'),
+              idempotencyKey: captureAny(named: 'idempotencyKey'),
+            ),
+          ).captured,
+          ['key-1', 'key-1'],
+        ),
+      );
+    }
 
     test('stops following when the screen goes', () async {
       startsAs('m1');
