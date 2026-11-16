@@ -65,6 +65,12 @@ class StudentImport extends Equatable {
   /// Why a failed import read no row (`CSV_HEADER_INVALID`, `CSV_TOO_LARGE`, `CSV_UNREADABLE`, `IMPORT_FAILED`).
   final String? errorCode;
 
+  /// The worker gave up part-way: the rows it added are kept, so only the rest is to be imported again.
+  bool get stoppedPartWay => errorCode == stoppedCode;
+
+  /// The `errorCode` of an import the worker gave up on after it had read the file.
+  static const stoppedCode = 'IMPORT_FAILED';
+
   /// How far the worker has got, from 0 to 1; null while the rows are not counted yet.
   double? get progress {
     final total = totalRows;
@@ -91,10 +97,10 @@ abstract class StudentImportsRepository {
   /// IMP-01: the sample file, as text.
   Future<String> template();
 
-  /// IMP-02: starts the import of the uploaded file [fileId] into the academic year [academicYearId] of the Institution,
-  /// and answers with the ID of the import to follow. [idempotencyKey] makes a repeat of the same attempt, after a lost
-  /// answer, find the first one. 404 for a file or year that is not found; 400 `INVALID_VALUE` on `fileId` for a file
-  /// that is not an import file of this Institution; 422 `FILE_NOT_READY` and `YEAR_NOT_ACTIVE`; 409
+  /// IMP-02: starts the import of the uploaded file [fileId] into the academic year [academicYearId] of the
+  /// Institution, and answers with the ID of the import to follow. [idempotencyKey] makes a repeat of the same attempt,
+  /// after a lost answer, find the first one. 404 for a file or year that is not found; 400 `INVALID_VALUE` on `fileId`
+  /// for a file that is not an import file of this Institution; 422 `FILE_NOT_READY` and `YEAR_NOT_ACTIVE`; 409
   /// `IMPORT_ALREADY_RUNNING` while another import of the Institution is on.
   Future<String> start({
     required String institutionId,

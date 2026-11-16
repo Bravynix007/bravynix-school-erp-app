@@ -4141,6 +4141,18 @@ abstract class AppLocalizations {
   /// **'The import could not run'**
   String get importFailedTitle;
 
+  /// No description provided for @importStoppedTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'The import stopped part-way'**
+  String get importStoppedTitle;
+
+  /// No description provided for @importStoppedSummary.
+  ///
+  /// In en, this message translates to:
+  /// **'{imported, plural, =1{1 student was imported} other{{imported} students were imported}} and {skipped, plural, =1{1 row was skipped} other{{skipped} rows were skipped}} before it stopped. Import only the rows of the file that were not added, or you will get the same students skipped again.'**
+  String importStoppedSummary(int imported, int skipped);
+
   /// No description provided for @errorImportHeaderInvalid.
   ///
   /// In en, this message translates to:
@@ -4182,6 +4194,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'The file or the academic year could not be found.'**
   String get errorImportNotFound;
+
+  /// No description provided for @errorImportRunGone.
+  ///
+  /// In en, this message translates to:
+  /// **'This import is no longer available. Imports are kept for 7 days. Check the students list for what was added.'**
+  String get errorImportRunGone;
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {

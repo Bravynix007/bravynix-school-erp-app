@@ -250,13 +250,14 @@ class StudentImportBloc extends Bloc<StudentImportEvent, StudentImportState> {
   Future<void> _onChecked(StudentImportChecked event, Emitter<StudentImportState> emit) async {
     if (state case final StudentImportLost lost) {
       emit(StudentImportRunning(lost.importId, lost.run));
-      await _follow(lost.importId, emit);
+      await _follow(lost.importId, emit, lost.run);
     }
   }
 
-  /// Asks how the import is until it is settled, the screen goes, or the connection fails.
-  Future<void> _follow(String importId, Emitter<StudentImportState> emit) async {
-    StudentImport? run;
+  /// Asks how the import is until it is settled, the screen goes, or the connection fails. `last` is the last answer
+  /// there was (null before the first), which a failed look keeps.
+  Future<void> _follow(String importId, Emitter<StudentImportState> emit, [StudentImport? last]) async {
+    var run = last;
     for (var looks = 0; !emit.isDone; looks++) {
       try {
         run = await _imports.status(importId);

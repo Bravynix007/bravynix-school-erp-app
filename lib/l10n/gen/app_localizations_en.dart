@@ -2339,6 +2339,26 @@ class AppLocalizationsEn extends AppLocalizations {
   String get importFailedTitle => 'The import could not run';
 
   @override
+  String get importStoppedTitle => 'The import stopped part-way';
+
+  @override
+  String importStoppedSummary(int imported, int skipped) {
+    String _temp0 = intl.Intl.pluralLogic(
+      imported,
+      locale: localeName,
+      other: '$imported students were imported',
+      one: '1 student was imported',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      skipped,
+      locale: localeName,
+      other: '$skipped rows were skipped',
+      one: '1 row was skipped',
+    );
+    return '$_temp0 and $_temp1 before it stopped. Import only the rows of the file that were not added, or you will get the same students skipped again.';
+  }
+
+  @override
   String get errorImportHeaderInvalid =>
       'The first row of the file is not the columns above. Fix it and choose the file again.';
 
@@ -2362,4 +2382,8 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get errorImportNotFound => 'The file or the academic year could not be found.';
+
+  @override
+  String get errorImportRunGone =>
+      'This import is no longer available. Imports are kept for 7 days. Check the students list for what was added.';
 }

@@ -28,8 +28,8 @@ import 'package:go_router/go_router.dart';
 /// The columns the file starts with, as IMP-02 requires them (API design 10.8).
 const _columns = 'Name,RollNumber,Class,Section,GuardianName,GuardianPhone,GuardianEmail';
 
-/// School setup → Students → Import (IMP-01 to IMP-03). Closes with `true` once an import was started, so the list reads
-/// again: the import carries on at the server whether or not the screen stays.
+/// School setup → Students → Import (IMP-01 to IMP-03). Closes with `true` once an import was started, so the list
+/// reads again: the import carries on at the server whether or not the screen stays.
 class StudentImportPage extends StatelessWidget {
   const new({required this.institutionId, super.key});
 
@@ -255,7 +255,7 @@ class _Progress extends StatelessWidget {
           if (lost != null) ...[
             const SizedBox(height: AppSpacing.sm),
             InlineMessage.error(
-              studentImportErrorText(l10n, lost),
+              studentImportStatusErrorText(l10n, lost),
               key: const Key('import.lost'),
               actionLabel: l10n.importCheckAgain,
               onAction: () => context.read<StudentImportBloc>().add(const StudentImportChecked()),
@@ -295,15 +295,21 @@ class _Result extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    errorCode == null ? l10n.importDoneTitle : l10n.importFailedTitle,
+                    switch (errorCode) {
+                      null => l10n.importDoneTitle,
+                      _ when run.stoppedPartWay => l10n.importStoppedTitle,
+                      _ => l10n.importFailedTitle,
+                    },
                     key: const Key('import.done'),
                     style: text.titleMedium,
                   ),
                   const SizedBox(height: AppSpacing.xs),
                   Text(
-                    errorCode == null
-                        ? l10n.importDoneSummary(run.importedRows, run.skippedRows)
-                        : studentImportFailureText(l10n, errorCode),
+                    switch (errorCode) {
+                      null => l10n.importDoneSummary(run.importedRows, run.skippedRows),
+                      _ when run.stoppedPartWay => l10n.importStoppedSummary(run.importedRows, run.skippedRows),
+                      _ => studentImportFailureText(l10n, errorCode),
+                    },
                     key: const Key('import.summary'),
                     style: text.bodyMedium,
                   ),

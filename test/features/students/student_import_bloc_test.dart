@@ -335,6 +335,89 @@ void main() {
     });
   });
 
+  group('what a repeat or a missing choice does not do', () {
+    test('does not start without a year, even with a file', () async {
+      when(() => years.years('i1')).thenAnswer((_) async => [earlierYear]);
+      final bloc = await filled();
+      expect(bloc.state, isA<StudentImportReady>().having((ready) => ready.canStart, 'canStart', isFalse));
+      bloc.add(const StudentImportSubmitted());
+      await Future<void>.delayed(Duration.zero);
+      verifyNever(
+        () => imports.start(
+          institutionId: any(named: 'institutionId'),
+          fileId: any(named: 'fileId'),
+          academicYearId: any(named: 'academicYearId'),
+          idempotencyKey: any(named: 'idempotencyKey'),
+        ),
+      );
+      await bloc.close();
+    });
+
+    test('does not start a second import while the first is on its way', () async {
+      final answer = Completer<String>();
+      when(
+        () => imports.start(
+          institutionId: 'i1',
+          fileId: 'f1',
+          academicYearId: any(named: 'academicYearId'),
+          idempotencyKey: any(named: 'idempotencyKey'),
+        ),
+      ).thenAnswer((_) => answer.future);
+      final bloc = await filled();
+      bloc
+        ..add(const StudentImportSubmitted())
+        ..add(const StudentImportSubmitted());
+      await Future<void>.delayed(Duration.zero);
+      verify(
+        () => imports.start(
+          institutionId: 'i1',
+          fileId: 'f1',
+          academicYearId: any(named: 'academicYearId'),
+          idempotencyKey: any(named: 'idempotencyKey'),
+        ),
+      ).called(1);
+      answer.complete('m1');
+      when(() => imports.status('m1')).thenAnswer((_) async => importDone);
+      await bloc.stream.firstWhere((state) => state is StudentImportFinished);
+    });
+
+    test('does not ask for the sample again while it is on its way', () async {
+      final answer = Completer<String>();
+      when(() => imports.template()).thenAnswer((_) => answer.future);
+      final bloc = build()..add(const StudentImportStarted());
+      await bloc.stream.firstWhere((state) => state is StudentImportReady);
+      bloc
+        ..add(const StudentImportSampleRequested())
+        ..add(const StudentImportSampleRequested());
+      await Future<void>.delayed(Duration.zero);
+      verify(() => imports.template()).called(1);
+      answer.complete('Name,RollNumber\n');
+      await bloc.stream.firstWhere((state) => state is StudentImportReady && state.sample != null);
+    });
+
+    test('keeps the last answer through Check again, also when the next look is lost as well', () async {
+      startsAs('m1');
+      var looks = 0;
+      when(() => imports.status('m1')).thenAnswer((_) async {
+        looks++;
+        if (looks == 1) return importRunning(processed: 3);
+        throw _down;
+      });
+      final bloc = await filled();
+      bloc.add(const StudentImportSubmitted());
+      await bloc.stream.firstWhere((state) => state is StudentImportLost);
+      final after = <StudentImportState>[];
+      final seen = bloc.stream.listen(after.add);
+      bloc.add(const StudentImportChecked());
+      await bloc.stream.firstWhere((state) => state is StudentImportLost);
+      await seen.cancel();
+      expect(after, [
+        StudentImportRunning('m1', importRunning(processed: 3)),
+        StudentImportLost('m1', _down, importRunning(processed: 3)),
+      ]);
+    });
+  });
+
   test('says how far an import is, once its rows are counted', () {
     expect(importRunning().progress, isNull);
     expect(importRunning(processed: 4).progress, 0.4);

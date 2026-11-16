@@ -10,9 +10,9 @@ import 'package:bravynix_school_erp/l10n/gen/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-/// Picks a PDF or a picture (a CSV file when [csv]) from the phone's files and sends it, with progress, an error that says what to do, and a way
-/// to send it again. The [FileUploadBloc] comes from the context, so the screen owns the upload, and tells its form of
-/// the file's ID once the server has checked it: this field only shows and asks.
+/// Picks a PDF or a picture (a CSV file when [csv]) from the phone's files and sends it, with progress, an error that
+/// says what to do, and a way to send it again. The [FileUploadBloc] comes from the context, so the screen owns the
+/// upload, and tells its form of the file's ID once the server has checked it: this field only shows and asks.
 class DocumentUploadField extends StatefulWidget {
   const new({required this.picking, this.csv = false, super.key});
 

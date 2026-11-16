@@ -73,14 +73,19 @@ String studentFormErrorText(AppLocalizations l10n, ApiFailure failure, {String? 
   _ => apiErrorText(l10n, failure, notFound: notFound ?? l10n.errorStudentFormNotFound),
 };
 
-/// Copy for the codes IMP-02 adds (API design 10.8): 422 FILE_NOT_READY and YEAR_NOT_ACTIVE, 409 IMPORT_ALREADY_RUNNING,
-/// and 404 for a file or year that is not found. The rest reads as everywhere else.
+/// Copy for the codes IMP-02 adds (API design 10.8): 422 FILE_NOT_READY and YEAR_NOT_ACTIVE, 409
+/// IMPORT_ALREADY_RUNNING, and 404 for a file or year that is not found. The rest reads as everywhere else.
 String studentImportErrorText(AppLocalizations l10n, ApiFailure failure) => switch (failure.code) {
   'FILE_NOT_READY' => l10n.errorImportFileNotReady,
   'IMPORT_ALREADY_RUNNING' => l10n.errorImportAlreadyRunning,
   'YEAR_NOT_ACTIVE' => l10n.errorStudentYearNotActive,
   _ => apiErrorText(l10n, failure, notFound: l10n.errorImportNotFound),
 };
+
+/// Copy for a look at a running import (IMP-03): the same as [studentImportErrorText], except that a 404 means the
+/// import itself is gone (runs are removed 7 days after they finish), not a file or year.
+String studentImportStatusErrorText(AppLocalizations l10n, ApiFailure failure) =>
+    failure.code == 'NOT_FOUND' ? l10n.errorImportRunGone : studentImportErrorText(l10n, failure);
 
 /// Why an import that read no row stopped (API design 10.8): the codes of a failed import.
 String studentImportFailureText(AppLocalizations l10n, String code) => switch (code) {

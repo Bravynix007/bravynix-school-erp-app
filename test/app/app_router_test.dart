@@ -82,4 +82,26 @@ void main() {
       expect(await redirectOf(const StudentPromoteArgs.group('i1')), isNull);
     });
   });
+
+  group('the import screen', () {
+    FutureOr<String?> redirectOf(Object? extra) {
+      final route = router.configuration.findMatch(Uri.parse(AppRoutes.studentImport)).matches.last.route as GoRoute;
+      final state = _MockRouterState();
+      when(() => state.extra).thenReturn(extra);
+      return route.redirect!(_MockContext(), state);
+    }
+
+    test('is a route of its own', () {
+      expect(match(AppRoutes.studentImport).pattern, AppRoutes.studentImport);
+    });
+
+    test('sends a visit with no Institution from the list behind it back to the students', () async {
+      expect(await redirectOf(null), AppRoutes.students);
+      expect(await redirectOf(const StudentPromoteArgs.group('i1')), AppRoutes.students);
+    });
+
+    test('stays when the list passes the Institution', () async {
+      expect(await redirectOf('i1'), isNull);
+    });
+  });
 }
