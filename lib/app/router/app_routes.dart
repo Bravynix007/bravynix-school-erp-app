@@ -73,6 +73,9 @@ abstract final class AppRoutes {
   /// Promotes one student, or a class or section (STU-09, PRM-01); takes who as the route's `extra`.
   static const studentPromote = '/school-setup/students/promote';
 
+  /// Imports students from a CSV file (IMP-01 to IMP-03); takes the Institution's ID as the route's `extra`.
+  static const studentImport = '/school-setup/students/import';
+
   /// One student's profile (STU-03). The `:id` pattern is for the router and comes after the form's and the move's own
   /// locations; [student] builds the location of one student.
   static const studentPattern = '/school-setup/students/:id';

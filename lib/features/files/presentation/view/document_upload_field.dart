@@ -10,13 +10,16 @@ import 'package:bravynix_school_erp/l10n/gen/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-/// Picks a PDF or a picture from the phone's files and sends it, with progress, an error that says what to do, and a way
-/// to send it again. The [FileUploadBloc] comes from the context, so the screen owns the upload, and tells its form of
-/// the file's ID once the server has checked it: this field only shows and asks.
+/// Picks a PDF or a picture (a CSV file when [csv]) from the phone's files and sends it, with progress, an error that
+/// says what to do, and a way to send it again. The [FileUploadBloc] comes from the context, so the screen owns the
+/// upload, and tells its form of the file's ID once the server has checked it: this field only shows and asks.
 class DocumentUploadField extends StatefulWidget {
-  const new({required this.picking, super.key});
+  const new({required this.picking, this.csv = false, super.key});
 
   final FilePicking picking;
+
+  /// The file is a CSV, for an import, not a document.
+  final bool csv;
 
   @override
   State<DocumentUploadField> createState() => _DocumentUploadFieldState();
@@ -29,7 +32,7 @@ class _DocumentUploadFieldState extends State<DocumentUploadField> {
   Future<void> _choose() async {
     final bloc = context.read<FileUploadBloc>();
     try {
-      final file = await widget.picking.document();
+      final file = await (widget.csv ? widget.picking.csv() : widget.picking.document());
       // The screen may have gone while the phone's file browser was open, and its upload with it.
       if (!mounted) return;
       setState(() => _pickFailure = null);
@@ -70,7 +73,7 @@ class _DocumentUploadFieldState extends State<DocumentUploadField> {
                 style: text.bodyMedium,
               )
             else
-              Text(l10n.filesDocumentHint, style: text.bodySmall),
+              Text(widget.csv ? l10n.filesCsvHint : l10n.filesDocumentHint, style: text.bodySmall),
             const SizedBox(height: AppSpacing.xs),
             AppButton(
               key: const Key('document.pick'),

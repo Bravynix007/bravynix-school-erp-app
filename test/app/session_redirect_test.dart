@@ -125,4 +125,10 @@ void main() {
     expect(studentPromoteRedirect(null), AppRoutes.students);
     expect(studentPromoteRedirect('i1'), AppRoutes.students);
   });
+
+  test('the import opens only with the Institution the list passes, else back to the list', () {
+    expect(studentImportRedirect('i1'), isNull);
+    expect(studentImportRedirect(null), AppRoutes.students);
+    expect(studentImportRedirect(const StudentPromoteArgs.group('i1')), AppRoutes.students);
+  });
 }

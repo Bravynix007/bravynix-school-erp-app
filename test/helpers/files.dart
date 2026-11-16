@@ -20,6 +20,12 @@ final pdf = ChosenFile(
   bytes: Uint8List.fromList([...'%PDF-1.4'.codeUnits, ...List.filled(900, 2)]),
 );
 
+final csvFile = ChosenFile(
+  name: 'students.csv',
+  contentType: 'text/csv',
+  bytes: Uint8List.fromList('Name,RollNumber,Class,Section,GuardianName,GuardianPhone,GuardianEmail\r\n'.codeUnits),
+);
+
 final uploadedPhoto = UploadedFile(id: 'f1', contentType: 'image/png', sizeBytes: photo.sizeBytes);
 
 final uploadedPdf = UploadedFile(id: 'f9', contentType: 'application/pdf', sizeBytes: pdf.sizeBytes);
@@ -50,6 +56,7 @@ class FakeFilePicking implements FilePicking {
   FilePickFailure? failure;
   final List<PhotoSource> asked = [];
   int documents = 0;
+  int csvs = 0;
 
   @override
   Future<ChosenFile?> photo(PhotoSource source) async {
@@ -61,6 +68,13 @@ class FakeFilePicking implements FilePicking {
   @override
   Future<ChosenFile?> document() async {
     documents++;
+    if (failure != null) throw failure!;
+    return result;
+  }
+
+  @override
+  Future<ChosenFile?> csv() async {
+    csvs++;
     if (failure != null) throw failure!;
     return result;
   }

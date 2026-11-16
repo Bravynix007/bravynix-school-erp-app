@@ -402,7 +402,7 @@ void main() {
       await bloc.close();
     });
 
-    test('repeats the same attempt with the same key after a refusal, and a changed attempt with a new one', () async {
+    test('a try after a refusal the server keeps is a new attempt, with a new key', () async {
       var refuse = true;
       when(
         () => students.promote(
@@ -415,7 +415,7 @@ void main() {
           keepRollNumbers: any(named: 'keepRollNumbers'),
         ),
       ).thenAnswer((_) async {
-        if (refuse) throw const ApiFailure.network();
+        if (refuse) throw _below;
         return const PromotionResult(promotedCount: 1);
       });
       final bloc = await opened(const PromoteGroup('i1'));
@@ -423,11 +423,6 @@ void main() {
         ..add(const PromotionTargetSectionChosen('e3'))
         ..add(const PromotionSubmitted());
       await bloc.stream.firstWhere((state) => state is PromotionReady && state.failure != null);
-      bloc.add(const PromotionSubmitted());
-      await bloc.stream.firstWhere((state) => state is PromotionReady && state.failure != null && !state.saving);
-      // A change of the attempt is another attempt.
-      bloc.add(const PromotionKeepRollNumbersToggled(value: false));
-      await bloc.stream.firstWhere((state) => state is PromotionReady && !state.keepRollNumbers);
       refuse = false;
       bloc.add(const PromotionSubmitted());
       await bloc.stream.firstWhere((state) => state is PromotionDone);
@@ -442,9 +437,56 @@ void main() {
           keepRollNumbers: any(named: 'keepRollNumbers'),
         ),
       ).captured;
-      expect(used, ['key-1', 'key-1', 'key-2']);
+      expect(used, ['key-1', 'key-2']);
       await bloc.close();
     });
+
+    test(
+      'repeats the same attempt with the same key after a failure with no answer, and a changed one with a new',
+      () async {
+        var refuse = true;
+        when(
+          () => students.promote(
+            institutionId: any(named: 'institutionId'),
+            fromAcademicYearId: any(named: 'fromAcademicYearId'),
+            fromClassId: any(named: 'fromClassId'),
+            idempotencyKey: any(named: 'idempotencyKey'),
+            fromSectionId: any(named: 'fromSectionId'),
+            target: any(named: 'target'),
+            keepRollNumbers: any(named: 'keepRollNumbers'),
+          ),
+        ).thenAnswer((_) async {
+          if (refuse) throw const ApiFailure.network();
+          return const PromotionResult(promotedCount: 1);
+        });
+        final bloc = await opened(const PromoteGroup('i1'));
+        bloc
+          ..add(const PromotionTargetSectionChosen('e3'))
+          ..add(const PromotionSubmitted());
+        await bloc.stream.firstWhere((state) => state is PromotionReady && state.failure != null);
+        bloc.add(const PromotionSubmitted());
+        await bloc.stream.firstWhere((state) => state is PromotionReady && state.failure != null && !state.saving);
+        // A change of the attempt is another attempt.
+        bloc.add(const PromotionKeepRollNumbersToggled(value: false));
+        await bloc.stream.firstWhere((state) => state is PromotionReady && !state.keepRollNumbers);
+        refuse = false;
+        bloc.add(const PromotionSubmitted());
+        await bloc.stream.firstWhere((state) => state is PromotionDone);
+        final used = verify(
+          () => students.promote(
+            institutionId: any(named: 'institutionId'),
+            fromAcademicYearId: any(named: 'fromAcademicYearId'),
+            fromClassId: any(named: 'fromClassId'),
+            idempotencyKey: captureAny(named: 'idempotencyKey'),
+            fromSectionId: any(named: 'fromSectionId'),
+            target: any(named: 'target'),
+            keepRollNumbers: any(named: 'keepRollNumbers'),
+          ),
+        ).captured;
+        expect(used, ['key-1', 'key-1', 'key-2']);
+        await bloc.close();
+      },
+    );
 
     test('is not started twice while one is on its way', () async {
       final reply = Completer<PromotionResult>();

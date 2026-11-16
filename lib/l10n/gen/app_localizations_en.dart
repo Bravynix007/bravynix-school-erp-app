@@ -1669,6 +1669,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get filesDocumentHint => 'PDF, JPG, PNG or WebP, up to 5 MB.';
 
   @override
+  String get filesCsvHint => 'A CSV file, up to 5 MB.';
+
+  @override
   String get staffTabDocuments => 'Documents';
 
   @override
@@ -2247,4 +2250,140 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get errorPromotionNotFound =>
       'The student, class, year or section could not be found. It may have been deactivated.';
+
+  @override
+  String get importTitle => 'Import students';
+
+  @override
+  String get studentsImport => 'Import from a file';
+
+  @override
+  String get importIntro =>
+      'Add many students at once from a CSV file. Each row is one student with one guardian. Rows that cannot be added are skipped, and listed when the import is done.';
+
+  @override
+  String get importColumns => 'The first row of the file must be exactly these columns, in this order:';
+
+  @override
+  String get importShowSample => 'Show a sample file';
+
+  @override
+  String get importSampleTitle => 'Sample file';
+
+  @override
+  String get importYear => 'Add the students to the year';
+
+  @override
+  String get importFile => 'The file';
+
+  @override
+  String get importStart => 'Start import';
+
+  @override
+  String get importRunningTitle => 'Importing students';
+
+  @override
+  String get importWaiting => 'Waiting for the import to start.';
+
+  @override
+  String importReading(int done, int total) {
+    return '$done of $total rows done';
+  }
+
+  @override
+  String get importLeave => 'You can leave this screen. The import carries on, and the students appear in the list.';
+
+  @override
+  String get importCheckAgain => 'Check again';
+
+  @override
+  String get importDoneTitle => 'Import finished';
+
+  @override
+  String importDoneSummary(int imported, int skipped) {
+    String _temp0 = intl.Intl.pluralLogic(
+      imported,
+      locale: localeName,
+      other: '$imported students imported',
+      one: '1 student imported',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      skipped,
+      locale: localeName,
+      other: '$skipped rows skipped',
+      one: '1 row skipped',
+    );
+    return '$_temp0, $_temp1';
+  }
+
+  @override
+  String get importOverCapacity => 'Some sections now hold more students than their capacity.';
+
+  @override
+  String get importRowErrorsTitle => 'Rows that were skipped';
+
+  @override
+  String importRowError(int row, String message) {
+    return 'Row $row: $message';
+  }
+
+  @override
+  String importRowErrorsMore(int shown, int total) {
+    return 'Showing the first $shown of $total skipped rows.';
+  }
+
+  @override
+  String get importDoneAction => 'Done';
+
+  @override
+  String get importFailedTitle => 'The import could not run';
+
+  @override
+  String get importStoppedTitle => 'The import stopped part-way';
+
+  @override
+  String importStoppedSummary(int imported, int skipped) {
+    String _temp0 = intl.Intl.pluralLogic(
+      imported,
+      locale: localeName,
+      other: '$imported students were imported',
+      one: '1 student was imported',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      skipped,
+      locale: localeName,
+      other: '$skipped rows were skipped',
+      one: '1 row was skipped',
+    );
+    return '$_temp0 and $_temp1 before it stopped. Import only the rows of the file that were not added, or you will get the same students skipped again.';
+  }
+
+  @override
+  String get errorImportHeaderInvalid =>
+      'The first row of the file is not the columns above. Fix it and choose the file again.';
+
+  @override
+  String get errorImportTooLarge =>
+      'The file has more than 5,000 students. Split it into parts and import them one after the other.';
+
+  @override
+  String get errorImportUnreadable => 'The file could not be read. Save it as a CSV file in UTF-8 and choose it again.';
+
+  @override
+  String get errorImportFailed =>
+      'The import stopped because of a problem on our side. Check the students list, then try again.';
+
+  @override
+  String get errorImportFileNotReady => 'The file is not ready. Choose it again.';
+
+  @override
+  String get errorImportAlreadyRunning =>
+      'Another import of this school is still running. Try again when it has finished.';
+
+  @override
+  String get errorImportNotFound => 'The file or the academic year could not be found.';
+
+  @override
+  String get errorImportRunGone =>
+      'This import is no longer available. Imports are kept for 7 days. Check the students list for what was added.';
 }

@@ -10,6 +10,9 @@ abstract class FilePicking {
 
   /// A PDF or a picture from the phone's files.
   Future<ChosenFile?> document();
+
+  /// A CSV file from the phone's files, for an import.
+  Future<ChosenFile?> csv();
 }
 
 /// The phone would not open the camera, the gallery or the files (a permission refused, no camera).

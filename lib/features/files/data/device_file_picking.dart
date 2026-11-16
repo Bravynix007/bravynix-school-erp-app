@@ -15,6 +15,7 @@ class DeviceFilePicking implements FilePicking {
   static const _photoQuality = 85;
 
   static const _documentExtensions = ['pdf', 'jpg', 'jpeg', 'png', 'webp'];
+  static const _csvExtensions = ['csv'];
 
   @override
   Future<ChosenFile?> photo(PhotoSource source) async {
@@ -36,10 +37,15 @@ class DeviceFilePicking implements FilePicking {
   }
 
   @override
-  Future<ChosenFile?> document() async {
+  Future<ChosenFile?> document() => _file(_documentExtensions);
+
+  @override
+  Future<ChosenFile?> csv() => _file(_csvExtensions);
+
+  Future<ChosenFile?> _file(List<String> extensions) async {
     final PlatformFile? file;
     try {
-      file = await FilePicker.pickFile(type: FileType.custom, allowedExtensions: _documentExtensions);
+      file = await FilePicker.pickFile(type: FileType.custom, allowedExtensions: extensions);
     } on PlatformException {
       throw const FilePickFailure(null);
     }

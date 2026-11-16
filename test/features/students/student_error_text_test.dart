@@ -100,4 +100,42 @@ void main() {
     expect(expected.values.toSet(), hasLength(expected.length));
     expect(promotionErrorText(l10n, _code('NOT_FOUND', status: 404)), l10n.errorPromotionNotFound);
   });
+
+  testWidgets(
+    'studentImportErrorText has its own words for the codes of an import, and studentImportFailureText for a failed one',
+    (
+      tester,
+    ) async {
+      late AppLocalizations l10n;
+      await tester.pumpApp(
+        Builder(
+          builder: (context) {
+            l10n = AppLocalizations.of(context);
+            return const SizedBox();
+          },
+        ),
+      );
+      final expected = {
+        'FILE_NOT_READY': l10n.errorImportFileNotReady,
+        'IMPORT_ALREADY_RUNNING': l10n.errorImportAlreadyRunning,
+        'YEAR_NOT_ACTIVE': l10n.errorStudentYearNotActive,
+      };
+      for (final MapEntry(:key, :value) in expected.entries) {
+        expect(studentImportErrorText(l10n, _code(key)), value, reason: key);
+      }
+      expect(studentImportErrorText(l10n, _code('NOT_FOUND', status: 404)), l10n.errorImportNotFound);
+      final failures = {
+        'CSV_HEADER_INVALID': l10n.errorImportHeaderInvalid,
+        'CSV_TOO_LARGE': l10n.errorImportTooLarge,
+        'CSV_UNREADABLE': l10n.errorImportUnreadable,
+        'IMPORT_FAILED': l10n.errorImportFailed,
+      };
+      for (final MapEntry(:key, :value) in failures.entries) {
+        expect(studentImportFailureText(l10n, key), value, reason: key);
+      }
+      expect({...expected.values, ...failures.values}, hasLength(expected.length + failures.length));
+      // A code the app does not know reads as a failure of the import, not as nothing.
+      expect(studentImportFailureText(l10n, 'SOMETHING_NEW'), l10n.errorImportFailed);
+    },
+  );
 }
