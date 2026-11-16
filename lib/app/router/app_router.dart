@@ -27,6 +27,7 @@ import 'package:bravynix_school_erp/features/staff/presentation/view/staff_profi
 import 'package:bravynix_school_erp/features/students/presentation/view/student_form_page.dart';
 import 'package:bravynix_school_erp/features/students/presentation/view/student_move_page.dart';
 import 'package:bravynix_school_erp/features/students/presentation/view/student_profile_page.dart';
+import 'package:bravynix_school_erp/features/students/presentation/view/student_promote_page.dart';
 import 'package:bravynix_school_erp/features/students/presentation/view/students_page.dart';
 import 'package:bravynix_school_erp/features/subjects/presentation/view/subject_form_page.dart';
 import 'package:bravynix_school_erp/features/subjects/presentation/view/subjects_page.dart';
@@ -75,6 +76,9 @@ String? studentFormRedirect(Object? extra) => extra is StudentFormArgs ? null : 
 
 /// The move form needs the student the list hands over.
 String? studentMoveRedirect(Object? extra) => extra is StudentMoveArgs ? null : AppRoutes.students;
+
+/// The promotion form needs who is promoted, which the list hands over.
+String? studentPromoteRedirect(Object? extra) => extra is StudentPromoteArgs ? null : AppRoutes.students;
 
 /// The staff form needs the Institution or the staff member the screen behind it hands over.
 String? staffFormRedirect(Object? extra) => extra is StaffFormArgs ? null : AppRoutes.staff;
@@ -175,6 +179,11 @@ GoRouter createRouter(SessionBloc session, {required SessionChanges changes}) {
         path: AppRoutes.studentMove,
         redirect: (_, state) => studentMoveRedirect(state.extra),
         builder: (_, state) => StudentMovePage(args: state.extra! as StudentMoveArgs),
+      ),
+      GoRoute(
+        path: AppRoutes.studentPromote,
+        redirect: (_, state) => studentPromoteRedirect(state.extra),
+        builder: (_, state) => StudentPromotePage(args: state.extra! as StudentPromoteArgs),
       ),
       GoRoute(
         path: AppRoutes.studentPattern,

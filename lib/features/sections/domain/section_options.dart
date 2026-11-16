@@ -19,6 +19,15 @@ class SectionChoice extends Equatable {
   List<Object?> get props => [id, name, classId];
 }
 
+/// The sections of one class, out of the sections of an Institution.
+extension SectionsInClass on List<SectionChoice> {
+  /// The sections of the class [classId]; none while no class is chosen.
+  List<SectionChoice> inClass(String? classId) => [
+    for (final section in this)
+      if (section.classId == classId) section,
+  ];
+}
+
 /// A class that has sections, as it is shown to choose from.
 class ClassChoice extends Equatable {
   const new({required this.id, required this.name});

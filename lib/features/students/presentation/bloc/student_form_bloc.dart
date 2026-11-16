@@ -356,10 +356,7 @@ class StudentFormReady extends StudentFormState {
   bool get canAddGuardian => guardians.length < maxGuardians;
 
   /// The sections of the class chosen; none until a class is.
-  List<SectionChoice> get sections => [
-    for (final section in options?.sections ?? const <SectionChoice>[])
-      if (section.classId == classId) section,
-  ];
+  List<SectionChoice> get sections => (options?.sections ?? const <SectionChoice>[]).inClass(classId);
 
   StudentFormReady copyWith({
     Gender? Function()? gender,

@@ -2,6 +2,7 @@ import 'package:bravynix_school_erp/core/model/address.dart';
 import 'package:bravynix_school_erp/core/model/gender.dart';
 import 'package:bravynix_school_erp/core/model/phone.dart';
 import 'package:bravynix_school_erp/core/network/json_shape.dart';
+import 'package:bravynix_school_erp/features/students/domain/promotion.dart';
 import 'package:bravynix_school_erp/features/students/domain/student.dart';
 import 'package:bravynix_school_erp/features/students/domain/student_draft.dart';
 import 'package:bravynix_school_erp/features/students/domain/student_profile.dart';
@@ -125,6 +126,26 @@ abstract final class StudentModels {
         if (identity.birthCertificateNumber != null) 'birthCertificateNumber': identity.birthCertificateNumber,
       },
   };
+
+  /// The target of STU-09 and PRM-01: all three parts, or all three `null` to complete the final class (a part left out
+  /// is 400).
+  static Map<String, Object?> promotionTarget(PromotionTarget? target) => {
+    'toAcademicYearId': target?.academicYearId,
+    'toClassId': target?.classId,
+    'toSectionId': target?.sectionId,
+  };
+
+  /// What PRM-01 answers: the count, and why each student left behind was. A reason this version does not know is left
+  /// out of the list, not of the count.
+  static ({int promotedCount, List<SkipReason> skipped}) promotionResult(Object? raw) {
+    final json = jsonObject(raw);
+    return (
+      promotedCount: (json['promotedCount'] as num).toInt(),
+      skipped: [
+        for (final item in jsonList(json['skipped'])) ?SkipReason.fromCode(jsonObject(item)['reason']),
+      ],
+    );
+  }
 
   /// STU-04: every personal and contact field, with `null` for what the form left empty, so clearing a field clears it
   /// (an omitted one stays). The photo is sent only when a new one was uploaded, and the placement, guardians and

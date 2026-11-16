@@ -31,6 +31,24 @@ String studentIdentityErrorText(AppLocalizations l10n, ApiFailure failure) => sw
   _ => apiErrorText(l10n, failure, notFound: l10n.errorStudentNotFound),
 };
 
+/// Copy for the codes STU-09 and PRM-01 add (API design 10.7): 422 TARGET_YEAR_NOT_AFTER_SOURCE, TARGET_CLASS_BELOW_SOURCE
+/// (the same class is a repeat), NOT_FINAL_CLASS, SECTION_NOT_IN_CLASS, INACTIVE_SECTION, YEAR_NOT_ACTIVE and
+/// NO_CURRENT_PLACEMENT; 409 ALREADY_ENROLLED and ROLL_NUMBER_TAKEN; 413 BATCH_TOO_LARGE; and 404 for a student, class,
+/// year or section that is not found. The rest reads as everywhere else.
+String promotionErrorText(AppLocalizations l10n, ApiFailure failure) => switch (failure.code) {
+  'TARGET_YEAR_NOT_AFTER_SOURCE' => l10n.errorPromotionYearNotAfter,
+  'TARGET_CLASS_BELOW_SOURCE' => l10n.errorPromotionClassBelow,
+  'NOT_FINAL_CLASS' => l10n.errorPromotionNotFinalClass,
+  'ALREADY_ENROLLED' => l10n.errorPromotionAlreadyEnrolled,
+  'BATCH_TOO_LARGE' => l10n.errorPromotionTooLarge,
+  'ROLL_NUMBER_TAKEN' => l10n.errorRollNumberTaken,
+  'SECTION_NOT_IN_CLASS' => l10n.errorSectionNotInClass,
+  'YEAR_NOT_ACTIVE' => l10n.errorStudentYearNotActive,
+  'INACTIVE_SECTION' => l10n.errorInactiveSection,
+  'NO_CURRENT_PLACEMENT' => l10n.errorNoCurrentPlacement,
+  _ => apiErrorText(l10n, failure, notFound: l10n.errorPromotionNotFound),
+};
+
 /// Copy for the codes STU-02 adds (API design 10.6): 409 ADMISSION_NO_TAKEN, ROLL_NUMBER_TAKEN,
 /// AADHAAR_DUPLICATE_IN_INSTITUTION and ROLE_CONFLICT (a guardian's email that is a platform account); 422
 /// SECTION_NOT_IN_CLASS, YEAR_NOT_ACTIVE, INACTIVE_SECTION, INVALID_AADHAAR, PRIMARY_GUARDIAN_REQUIRED and

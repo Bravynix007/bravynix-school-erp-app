@@ -3,6 +3,7 @@ import 'package:bravynix_school_erp/core/network/api_envelope.dart';
 import 'package:bravynix_school_erp/core/network/json_shape.dart';
 import 'package:bravynix_school_erp/core/paging/items_page.dart';
 import 'package:bravynix_school_erp/features/students/data/student_models.dart';
+import 'package:bravynix_school_erp/features/students/domain/promotion.dart';
 import 'package:bravynix_school_erp/features/students/domain/student.dart';
 import 'package:bravynix_school_erp/features/students/domain/student_draft.dart';
 import 'package:bravynix_school_erp/features/students/domain/student_profile.dart';
@@ -81,6 +82,49 @@ class StudentsRepositoryImpl implements StudentsRepository {
     body: {'field': 'aadhaar', 'reason': reason},
     parse: (raw) => jsonObject(raw)['value'] as String,
   );
+
+  @override
+  Future<Promoted> promoteStudent(String id, {PromotionTarget? target, String? rollNumber}) async {
+    final answer = await _api.request(
+      'students/${Uri.encodeComponent(id)}/promote',
+      method: HttpMethod.post,
+      body: {...StudentModels.promotionTarget(target), 'rollNumber': ?rollNumber},
+      parse: StudentModels.record,
+    );
+    return Promoted(answer.data, warnings: answer.warnings);
+  }
+
+  @override
+  Future<PromotionResult> promote({
+    required String institutionId,
+    required String fromAcademicYearId,
+    required String fromClassId,
+    required String idempotencyKey,
+    String? fromSectionId,
+    PromotionTarget? target,
+    bool keepRollNumbers = true,
+  }) async {
+    final answer = await _api.request(
+      'promotions',
+      method: HttpMethod.post,
+      idempotencyKey: idempotencyKey,
+      body: {
+        'institutionId': institutionId,
+        'fromAcademicYearId': fromAcademicYearId,
+        'fromClassId': fromClassId,
+        // `null` is an answer, a missing key is not: it means every section.
+        'fromSectionId': fromSectionId,
+        ...StudentModels.promotionTarget(target),
+        'keepRollNumbers': keepRollNumbers,
+      },
+      parse: StudentModels.promotionResult,
+    );
+    return PromotionResult(
+      promotedCount: answer.data.promotedCount,
+      skipped: answer.data.skipped,
+      warnings: answer.warnings,
+    );
+  }
 
   @override
   Future<void> deactivate(String id, LeavingReason reason) => _api.data(
