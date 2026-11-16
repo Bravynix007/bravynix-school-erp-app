@@ -131,6 +131,14 @@ void main() {
       expect(find.text('Aadhaar number saved'), findsOneWidget);
     });
 
+    testWidgets('is asked for from an empty field, never from the masked number it is shown as', (tester) async {
+      await pump(tester);
+      expect(find.text(masked), findsOneWidget);
+      await open(tester, 'aadhaar.set');
+      expect(field(tester, 'aadhaar.field').controller!.text, isEmpty);
+      expect(find.text(masked), findsOneWidget);
+    });
+
     testWidgets('says when another Institution of the Society holds it too', (tester) async {
       when(() => students.setAadhaar('p3', number)).thenAnswer(
         (_) async => const IdentitySaved(
