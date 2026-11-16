@@ -328,8 +328,8 @@ class PromotionBloc extends Bloc<PromotionEvent, PromotionState> {
   final PromotionScope scope;
   final String Function() _newKey;
 
-  /// The key of the class attempt that is on its way or was refused, kept so a repeat of it is the same attempt; null
-  /// once anything it would send changes.
+  /// The key of the class attempt that is on its way or failed without an answer the server keeps, so a repeat of it is
+  /// the same attempt; null once anything it would send changes, or a refusal the server keeps came back.
   String? _key;
 
   /// A choice changed by the person: it is made when nothing is on its way, and the attempt is a new one.
@@ -388,6 +388,8 @@ class PromotionBloc extends Bloc<PromotionEvent, PromotionState> {
         };
         emit(PromotionDone(result, targetName: ready.completes ? null : ready.targetName));
       } on ApiFailure catch (failure) {
+        // After a refusal the server keeps, the next try is a new attempt: what it rests on may have changed elsewhere.
+        if (failure.isStoredRefusal) _key = null;
         if (state case final PromotionReady now) emit(now.copyWith(saving: false, failure: () => failure));
       }
     }
