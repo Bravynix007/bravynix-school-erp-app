@@ -9,7 +9,9 @@ abstract final class AchievementModels {
       id: json['id'] as String,
       tier: StarTier.fromCode(json['tier']),
       description: json['description'] as String,
-      createdBy: json['createdBy'] as String,
+      // The author stamp is a person (API design 7.6): the ID is what a teacher's own stars are told by; a star a
+      // background job made has none.
+      createdBy: jsonObject(json['createdBy'])['id'] as String?,
       createdAt: DateTime.parse(json['createdAt'] as String),
     );
   }

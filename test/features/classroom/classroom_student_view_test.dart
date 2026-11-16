@@ -1,6 +1,7 @@
 import 'package:bloc_test/bloc_test.dart';
 import 'package:bravynix_school_erp/app/di/injection.dart';
 import 'package:bravynix_school_erp/core/network/api_failure.dart';
+import 'package:bravynix_school_erp/features/achievements/domain/achievement.dart';
 import 'package:bravynix_school_erp/features/achievements/domain/achievements_repository.dart';
 import 'package:bravynix_school_erp/features/auth/domain/auth_entities.dart';
 import 'package:bravynix_school_erp/features/auth/presentation/session/session_bloc.dart';
@@ -86,6 +87,16 @@ void main() {
     expect(find.text('Won the quiz'), findsOneWidget);
     expect(find.byKey(const ValueKey('stars.remove.a1')), findsOneWidget);
     expect(find.byKey(const ValueKey('stars.remove.a2')), findsNothing);
+  });
+
+  testWidgets('never offers to take back a star no person gave', (tester) async {
+    when(() => achievements.stars('p1')).thenAnswer(
+      (_) async => Stars(total: 1, silver: 1, gold: 0, platinum: 0, achievements: [systemStar]),
+    );
+    await pump(tester, const ClassroomStudentLoaded(ashaEntry));
+    await tester.pumpAndSettle();
+    expect(find.text('Seeded'), findsOneWidget);
+    expect(find.byKey(const ValueKey('stars.remove.a3')), findsNothing);
   });
 
   testWidgets('says the student is not in the teacher’s sections, with no retry', (tester) async {

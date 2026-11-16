@@ -27,14 +27,17 @@ void main() {
     return (repository: AchievementsRepositoryImpl(api: api), adapter: adapter);
   }
 
-  Map<String, Object?> star(String id, int tier, String description, String by) => {
+  Map<String, Object?> star(String id, int tier, String description, String? by) => {
     'id': id,
     'studentId': 'p1',
     'academicYearId': 'y1',
     'tier': tier,
     'description': description,
     'awardedByStaffMemberId': 't1',
-    'createdBy': by,
+    // The person shape of API design 7.6; a background job's row is "System" with no ID.
+    'createdBy': by == null
+        ? {'id': null, 'displayName': 'System', 'roleName': null}
+        : {'id': by, 'displayName': 'R. Nair', 'roleName': 'Teacher'},
     'createdAt': '2026-11-12T08:00:00.000Z',
     'version': 1,
   };
@@ -44,7 +47,11 @@ void main() {
       final (:repository, :adapter) = build(
         () => okReply({
           'stars': {'total': 6, 'silver': 3, 'gold': 1, 'platinum': 2},
-          'achievements': [star('a2', 2, 'Won the quiz', 'u2'), star('a1', 1, 'Helped', 't1')],
+          'achievements': [
+            star('a2', 2, 'Won the quiz', 'u2'),
+            star('a1', 1, 'Helped', 't1'),
+            star('a0', 1, 'Seeded', null),
+          ],
         }),
       );
       final stars = await repository.stars('p1');
@@ -54,6 +61,7 @@ void main() {
         [
           ('a2', StarTier.gold, 'Won the quiz', 'u2'),
           ('a1', StarTier.silver, 'Helped', 't1'),
+          ('a0', StarTier.silver, 'Seeded', null),
         ],
       );
       expect(stars.achievements.first.createdAt, DateTime.utc(2026, 11, 12, 8));

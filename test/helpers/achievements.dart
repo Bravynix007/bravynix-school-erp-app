@@ -18,6 +18,15 @@ final goldStar = Achievement(
   createdAt: DateTime.utc(2026, 11, 12, 8),
 );
 
+/// A silver star no person gave (API design 7.6: the author is "System", with no ID).
+final systemStar = Achievement(
+  id: 'a3',
+  tier: StarTier.silver,
+  description: 'Seeded',
+  createdBy: null,
+  createdAt: DateTime.utc(2026, 11, 9, 8),
+);
+
 /// The two stars, as ACH-01 counts them.
 final twoStars = Stars(total: 2, silver: 1, gold: 1, platinum: 0, achievements: [goldStar, silverStar]);
 

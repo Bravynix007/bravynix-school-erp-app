@@ -35,8 +35,9 @@ class Achievement extends Equatable {
   final StarTier? tier;
   final String description;
 
-  /// The person who gave the star: a teacher may take back only their own.
-  final String createdBy;
+  /// The ID of the person who gave the star, null for one a background job made: a teacher may take back only their
+  /// own.
+  final String? createdBy;
   final DateTime createdAt;
 
   @override
