@@ -80,6 +80,14 @@ class ProfilePage extends StatelessWidget {
                     subtitle: l10n.classroomDetail,
                     onTap: () => context.push(AppRoutes.classroom),
                   ),
+                if (state.teacherStaffMemberId != null)
+                  MenuListTile(
+                    key: const Key('profile.staffRecord'),
+                    icon: Icons.badge_outlined,
+                    title: l10n.staffOwnTitle,
+                    subtitle: l10n.staffOwnDetail,
+                    onTap: () => context.push(AppRoutes.ownStaffRecord),
+                  ),
                 // Only the Owners of a Society are charged for it; the API refuses every other role (API design 10.22).
                 if (active?.role == RoleCode.societyOwner)
                   MenuListTile(

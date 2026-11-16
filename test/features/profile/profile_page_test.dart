@@ -114,6 +114,24 @@ void main() {
     });
   }
 
+  testWidgets('offers My details to a teacher who has a staff record', (tester) async {
+    const teacher = AuthContext(role: RoleCode.teacherStaff, societyId: 's1', staffMemberId: 'f1');
+    await pump(tester, const AuthSession(person: testPerson, contexts: [teacher], activeContext: teacher));
+    expect(find.byKey(const Key('profile.staffRecord')), findsOneWidget);
+    expect(find.text('My details'), findsOneWidget);
+  });
+
+  testWidgets('offers no My details to a role that is not a teacher, or a teacher with no staff record', (
+    tester,
+  ) async {
+    await pump(tester, testSession);
+    expect(find.byKey(const Key('profile.staffRecord')), findsNothing);
+    const admin = AuthContext(role: RoleCode.institutionAdmin, societyId: 's1', staffMemberId: 'f1');
+    await tester.pumpWidget(const SizedBox());
+    await pump(tester, const AuthSession(person: testPerson, contexts: [admin], activeContext: admin));
+    expect(find.byKey(const Key('profile.staffRecord')), findsNothing);
+  });
+
   testWidgets('Log out ends the session', (tester) async {
     await pump(tester, testSession);
     await tester.tap(find.byKey(const Key('profile.logOut')));

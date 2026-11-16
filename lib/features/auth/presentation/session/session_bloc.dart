@@ -92,6 +92,14 @@ sealed class SessionState extends Equatable {
     _ => false,
   };
 
+  /// The staff member of a teacher at work, whose own record and documents they read; null for any other role, and when
+  /// signed out.
+  String? get teacherStaffMemberId => switch (this) {
+    SessionAuthenticated(:final session) when session.activeContext?.role == RoleCode.teacherStaff =>
+      session.activeContext?.staffMemberId,
+    _ => null,
+  };
+
   @override
   List<Object?> get props => [];
 }

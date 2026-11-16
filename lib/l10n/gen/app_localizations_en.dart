@@ -1114,6 +1114,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get staffProfileTitle => 'Teacher profile';
 
   @override
+  String get staffOwnTitle => 'My details';
+
+  @override
+  String get staffOwnDetail => 'Your staff record and documents';
+
+  @override
   String get personFormContact => 'Contact';
 
   @override

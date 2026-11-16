@@ -131,4 +131,22 @@ void main() {
     expect(studentImportRedirect(null), AppRoutes.students);
     expect(studentImportRedirect(const StudentPromoteArgs.group('i1')), AppRoutes.students);
   });
+
+  group('a teacher’s own staff record', () {
+    const teacher = AuthContext(role: RoleCode.teacherStaff, societyId: 's1', staffMemberId: 'f1');
+    const teacherSession = AuthSession(person: person, contexts: [teacher], activeContext: teacher);
+
+    test('opens for a teacher with a staff member, else back to Profile', () {
+      expect(ownStaffRecordRedirect(const SessionAuthenticated(teacherSession)), isNull);
+      expect(ownStaffRecordRedirect(const SessionAuthenticated(session)), AppRoutes.profile);
+      expect(ownStaffRecordRedirect(const SessionUnauthenticated()), AppRoutes.profile);
+    });
+
+    test('is a teacher’s alone, even when another role carries a staff member', () {
+      const admin = AuthContext(role: RoleCode.institutionAdmin, societyId: 's1', staffMemberId: 'f1');
+      const adminSession = AuthSession(person: person, contexts: [admin], activeContext: admin);
+      expect(const SessionAuthenticated(teacherSession).teacherStaffMemberId, 'f1');
+      expect(const SessionAuthenticated(adminSession).teacherStaffMemberId, isNull);
+    });
+  });
 }

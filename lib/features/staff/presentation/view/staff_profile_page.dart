@@ -288,7 +288,7 @@ class StaffProfileView extends StatelessWidget {
                         ),
                         Expanded(
                           child: switch (tab) {
-                            StaffProfileTab.personal => _Details(profile: profile),
+                            StaffProfileTab.personal => StaffDetails(profile: profile),
                             StaffProfileTab.access => StaffAccessView(
                               below: [
                                 const StaffClassTeacherSection(),
@@ -313,10 +313,14 @@ class StaffProfileView extends StatelessWidget {
   }
 }
 
-class _Details extends StatelessWidget {
-  const new({required this.profile});
+/// The personal tab: who the staff member is, how to reach them, their identity number, employment, education and
+/// emergency contacts. [own] is a staff member reading their own record (a teacher, STF-03): the API leaves the Aadhaar
+/// number out, so there is no identity card.
+class StaffDetails extends StatelessWidget {
+  const new({required this.profile, this.own = false, super.key});
 
   final StaffProfile profile;
+  final bool own;
 
   @override
   Widget build(BuildContext context) {
@@ -372,14 +376,16 @@ class _Details extends StatelessWidget {
             ],
           ),
         ),
-        const SizedBox(height: AppSpacing.md),
-        SectionHeader(title: l10n.identityTitle),
-        const SizedBox(height: AppSpacing.xs),
-        AadhaarCard(
-          personName: member.fullName,
-          protection: getIt<ScreenProtection>(),
-          errorText: staffIdentityErrorText,
-        ),
+        if (!own) ...[
+          const SizedBox(height: AppSpacing.md),
+          SectionHeader(title: l10n.identityTitle),
+          const SizedBox(height: AppSpacing.xs),
+          AadhaarCard(
+            personName: member.fullName,
+            protection: getIt<ScreenProtection>(),
+            errorText: staffIdentityErrorText,
+          ),
+        ],
         if (member.joiningDate != null || member.resignationDate != null || member.employmentType != null) ...[
           const SizedBox(height: AppSpacing.md),
           SectionHeader(title: l10n.staffSectionEmployment),

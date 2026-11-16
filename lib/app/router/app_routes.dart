@@ -7,6 +7,9 @@ abstract final class AppRoutes {
   static const chooseRole = '/choose-role';
   static const profile = '/profile';
 
+  /// A teacher's own staff record and documents (STF-03, STF-14), read only.
+  static const ownStaffRecord = '/profile/staff-record';
+
   /// BIL-01: what BravyNix has charged the Owner's Society. View only.
   static const platformDues = '/platform-dues';
 

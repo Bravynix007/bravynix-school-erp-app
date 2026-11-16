@@ -20,10 +20,13 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 /// to take one off (DOC-03) and to open its file (FIL-03). Its blocs are provided above the tabs, and what joins them
 /// is there too (the profile page), so another tab does not lose a file that is on its way up, a title that is half
 /// written, or the word that a document was added. Showing the tab is what reads the list, the first time.
+///
+/// Without [picking] the view is the staff member's own (STF-14 for a teacher): the list and Open, with nothing to add and
+/// nothing to take off.
 class StaffDocumentsView extends StatefulWidget {
-  const new({required this.picking, super.key});
+  const new({this.picking, super.key});
 
-  final FilePicking picking;
+  final FilePicking? picking;
 
   @override
   State<StaffDocumentsView> createState() => _StaffDocumentsViewState();
@@ -70,7 +73,7 @@ class _Ready extends StatelessWidget {
   const new({required this.state, required this.picking});
 
   final StaffDocumentsReady state;
-  final FilePicking picking;
+  final FilePicking? picking;
 
   @override
   Widget build(BuildContext context) {
@@ -78,7 +81,7 @@ class _Ready extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        _Documents(state: state),
+        _Documents(state: state, canRemove: picking != null),
         // What was refused or could not be opened, whether it was an add, a removal or a link.
         if (state.failure case final failure?) ...[
           const SizedBox(height: AppSpacing.sm),
@@ -88,19 +91,22 @@ class _Ready extends StatelessWidget {
           const SizedBox(height: AppSpacing.sm),
           InlineMessage.error(l10n.errorDocumentOpen, key: const Key('staffDocuments.phoneRefused')),
         ],
-        const SizedBox(height: AppSpacing.md),
-        SectionHeader(title: l10n.staffDocumentAddTitle),
-        const SizedBox(height: AppSpacing.xs),
-        _Add(state: state, picking: picking),
+        if (picking case final picking?) ...[
+          const SizedBox(height: AppSpacing.md),
+          SectionHeader(title: l10n.staffDocumentAddTitle),
+          const SizedBox(height: AppSpacing.xs),
+          _Add(state: state, picking: picking),
+        ],
       ],
     );
   }
 }
 
 class _Documents extends StatelessWidget {
-  const new({required this.state});
+  const new({required this.state, required this.canRemove});
 
   final StaffDocumentsReady state;
+  final bool canRemove;
 
   Future<void> _confirmRemove(BuildContext context, Document document) async {
     final l10n = AppLocalizations.of(context);
@@ -148,14 +154,16 @@ class _Documents extends StatelessWidget {
                     loading: state.opening == document.id,
                     onPressed: state.busy ? null : () => bloc.add(StaffDocumentsOpened(document.id)),
                   ),
-                  const SizedBox(height: AppSpacing.xs),
-                  AppButton(
-                    key: Key('staffDocuments.remove.${document.id}'),
-                    label: l10n.staffDocumentRemove,
-                    variant: AppButtonVariant.secondary,
-                    loading: state.removing == document.id,
-                    onPressed: state.busy ? null : () => _confirmRemove(context, document),
-                  ),
+                  if (canRemove) ...[
+                    const SizedBox(height: AppSpacing.xs),
+                    AppButton(
+                      key: Key('staffDocuments.remove.${document.id}'),
+                      label: l10n.staffDocumentRemove,
+                      variant: AppButtonVariant.secondary,
+                      loading: state.removing == document.id,
+                      onPressed: state.busy ? null : () => _confirmRemove(context, document),
+                    ),
+                  ],
                 ],
               ],
             ),

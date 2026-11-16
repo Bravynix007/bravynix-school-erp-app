@@ -43,6 +43,7 @@ void main() {
     Stream<StaffDocumentsState>? later,
     double textScale = 1,
     Size size = const Size(400, 1800),
+    bool own = false,
   }) {
     if (later == null) {
       when(() => bloc.state).thenReturn(state);
@@ -55,7 +56,7 @@ void main() {
           BlocProvider<StaffDocumentsBloc>.value(value: bloc),
           BlocProvider<FileUploadBloc>.value(value: upload),
         ],
-        child: Scaffold(body: StaffDocumentsView(picking: FakeFilePicking())),
+        child: Scaffold(body: StaffDocumentsView(picking: own ? null : FakeFilePicking())),
       ),
       textScale: textScale,
       size: size,
@@ -69,6 +70,22 @@ void main() {
   }
 
   AppButton button(WidgetTester tester, String key) => tester.widget<AppButton>(find.byKey(Key(key)));
+
+  group("a staff member's own list (no picking)", () {
+    testWidgets('shows each document and Open, with nothing to take off and nothing to add', (tester) async {
+      await pump(tester, ready, own: true);
+      expect(find.text('Appointment letter'), findsOneWidget);
+      expect(find.byKey(const Key('staffDocuments.open.o1')), findsOneWidget);
+      expect(find.byKey(const Key('staffDocuments.remove.o1')), findsNothing);
+      expect(find.byKey(const Key('staffDocuments.title')), findsNothing);
+      expect(find.byKey(const Key('staffDocuments.attach')), findsNothing);
+    });
+
+    testWidgets('still says there are no documents', (tester) async {
+      await pump(tester, const StaffDocumentsReady(documents: []), own: true);
+      expect(find.byKey(const Key('staffDocuments.none')), findsOneWidget);
+    });
+  });
 
   group('the list', () {
     testWidgets('shows each document with its file, its size and the day it was added', (tester) async {

@@ -365,6 +365,8 @@
   "errorStaffNotFound": "This staff member could not be found. They may have been deactivated.",
   "errorCannotActOnSelf": "You can't do this to your own record.",
   "staffProfileTitle": "Teacher profile",
+  "staffOwnTitle": "My details",
+  "staffOwnDetail": "Your staff record and documents",
   "personFormContact": "Contact",
   "staffSectionEmployment": "Employment",
   "staffSectionEducation": "Education",

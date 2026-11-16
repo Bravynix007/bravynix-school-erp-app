@@ -2023,6 +2023,18 @@ abstract class AppLocalizations {
   /// **'Teacher profile'**
   String get staffProfileTitle;
 
+  /// No description provided for @staffOwnTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'My details'**
+  String get staffOwnTitle;
+
+  /// No description provided for @staffOwnDetail.
+  ///
+  /// In en, this message translates to:
+  /// **'Your staff record and documents'**
+  String get staffOwnDetail;
+
   /// No description provided for @personFormContact.
   ///
   /// In en, this message translates to:

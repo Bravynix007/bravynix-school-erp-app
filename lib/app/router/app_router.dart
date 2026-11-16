@@ -24,6 +24,7 @@ import 'package:bravynix_school_erp/features/school_setup/presentation/school_se
 import 'package:bravynix_school_erp/features/sections/presentation/view/section_form_page.dart';
 import 'package:bravynix_school_erp/features/sections/presentation/view/sections_page.dart';
 import 'package:bravynix_school_erp/features/staff/presentation/view/staff_form_page.dart';
+import 'package:bravynix_school_erp/features/staff/presentation/view/staff_own_profile_page.dart';
 import 'package:bravynix_school_erp/features/staff/presentation/view/staff_page.dart';
 import 'package:bravynix_school_erp/features/staff/presentation/view/staff_profile_page.dart';
 import 'package:bravynix_school_erp/features/students/presentation/view/student_form_page.dart';
@@ -86,6 +87,9 @@ String? studentPromoteRedirect(Object? extra) => extra is StudentPromoteArgs ? n
 /// The import needs the Institution whose list it was opened from.
 String? studentImportRedirect(Object? extra) => extra is String ? null : AppRoutes.students;
 
+/// A teacher's own record needs the staff member of the role in use; without one it goes back to Profile.
+String? ownStaffRecordRedirect(SessionState session) => session.teacherStaffMemberId == null ? AppRoutes.profile : null;
+
 /// The staff form needs the Institution or the staff member the screen behind it hands over.
 String? staffFormRedirect(Object? extra) => extra is StaffFormArgs ? null : AppRoutes.staff;
 
@@ -116,6 +120,11 @@ GoRouter createRouter(SessionBloc session, {required SessionChanges changes}) {
       GoRoute(path: AppRoutes.home, builder: (_, _) => const HomePage()),
       GoRoute(path: AppRoutes.chooseRole, builder: (_, _) => const RoleChooserPage()),
       GoRoute(path: AppRoutes.profile, builder: (_, _) => const ProfilePage()),
+      GoRoute(
+        path: AppRoutes.ownStaffRecord,
+        redirect: (_, _) => ownStaffRecordRedirect(session.state),
+        builder: (_, _) => StaffOwnProfilePage(staffMemberId: session.state.teacherStaffMemberId!),
+      ),
       GoRoute(path: AppRoutes.platformDues, builder: (_, _) => const PlatformDuesPage()),
       GoRoute(
         path: AppRoutes.platformDuePattern,
