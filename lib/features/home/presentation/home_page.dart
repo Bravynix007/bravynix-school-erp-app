@@ -3,6 +3,7 @@ import 'package:bravynix_school_erp/features/auth/domain/auth_entities.dart';
 import 'package:bravynix_school_erp/features/auth/presentation/session/session_bloc.dart';
 import 'package:bravynix_school_erp/features/blocks/presentation/view/blocked_access_notice.dart';
 import 'package:bravynix_school_erp/features/blocks/presentation/view/society_blocks_section.dart';
+import 'package:bravynix_school_erp/features/notifications/presentation/view/notification_bell_button.dart';
 import 'package:bravynix_school_erp/l10n/gen/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -23,6 +24,7 @@ class HomePage extends StatelessWidget {
       appBar: AppBar(
         title: Text(l10n.homeTitle),
         actions: [
+          const NotificationBellButton(),
           IconButton(
             key: const Key('home.profile'),
             tooltip: l10n.openProfile,

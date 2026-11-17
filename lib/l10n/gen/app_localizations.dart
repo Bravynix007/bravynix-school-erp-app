@@ -361,6 +361,108 @@ abstract class AppLocalizations {
   /// **'Your home screen arrives with the next modules of the build plan.'**
   String get homeComingSoon;
 
+  /// No description provided for @inboxTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Notifications'**
+  String get inboxTitle;
+
+  /// No description provided for @inboxTabOnlyForYou.
+  ///
+  /// In en, this message translates to:
+  /// **'Only for you'**
+  String get inboxTabOnlyForYou;
+
+  /// No description provided for @inboxTabAll.
+  ///
+  /// In en, this message translates to:
+  /// **'All'**
+  String get inboxTabAll;
+
+  /// No description provided for @inboxTabAllTeachers.
+  ///
+  /// In en, this message translates to:
+  /// **'All teachers'**
+  String get inboxTabAllTeachers;
+
+  /// No description provided for @inboxTabAllStudents.
+  ///
+  /// In en, this message translates to:
+  /// **'All students'**
+  String get inboxTabAllStudents;
+
+  /// No description provided for @inboxMarkAllRead.
+  ///
+  /// In en, this message translates to:
+  /// **'Mark all as read'**
+  String get inboxMarkAllRead;
+
+  /// No description provided for @inboxClear.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear all'**
+  String get inboxClear;
+
+  /// No description provided for @inboxClearTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear notifications?'**
+  String get inboxClearTitle;
+
+  /// No description provided for @inboxClearMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Every notification in \"{tab}\" is deleted for good.'**
+  String inboxClearMessage(String tab);
+
+  /// No description provided for @inboxClearConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear'**
+  String get inboxClearConfirm;
+
+  /// No description provided for @inboxEmptyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing here yet'**
+  String get inboxEmptyTitle;
+
+  /// No description provided for @inboxEmptyMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'New notifications about your school show up here.'**
+  String get inboxEmptyMessage;
+
+  /// No description provided for @inboxLoadMore.
+  ///
+  /// In en, this message translates to:
+  /// **'Load more'**
+  String get inboxLoadMore;
+
+  /// No description provided for @inboxUnread.
+  ///
+  /// In en, this message translates to:
+  /// **'Unread'**
+  String get inboxUnread;
+
+  /// No description provided for @inboxFrom.
+  ///
+  /// In en, this message translates to:
+  /// **'From: {sender} · {when}'**
+  String inboxFrom(String sender, String when);
+
+  /// No description provided for @bellTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Notifications'**
+  String get bellTooltip;
+
+  /// No description provided for @bellUnread.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} unread'**
+  String bellUnread(int count);
+
   /// No description provided for @logOut.
   ///
   /// In en, this message translates to:

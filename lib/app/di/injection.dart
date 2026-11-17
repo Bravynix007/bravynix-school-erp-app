@@ -35,8 +35,14 @@ import 'package:bravynix_school_erp/features/institutions/data/institutions_repo
 import 'package:bravynix_school_erp/features/institutions/domain/institutions_repository.dart';
 import 'package:bravynix_school_erp/features/masters/data/masters_repository_impl.dart';
 import 'package:bravynix_school_erp/features/masters/domain/masters_repository.dart';
+import 'package:bravynix_school_erp/features/notifications/data/notifications_repository_impl.dart';
+import 'package:bravynix_school_erp/features/notifications/domain/notifications_repository.dart';
 import 'package:bravynix_school_erp/features/platform_dues/data/platform_dues_repository_impl.dart';
 import 'package:bravynix_school_erp/features/platform_dues/domain/platform_dues_repository.dart';
+import 'package:bravynix_school_erp/features/push/data/push_device_repository_impl.dart';
+import 'package:bravynix_school_erp/features/push/domain/push_device_repository.dart';
+import 'package:bravynix_school_erp/features/push/domain/push_messaging.dart';
+import 'package:bravynix_school_erp/features/push/domain/push_registrar.dart';
 import 'package:bravynix_school_erp/features/sections/data/sections_repository_impl.dart';
 import 'package:bravynix_school_erp/features/sections/domain/sections_repository.dart';
 import 'package:bravynix_school_erp/features/staff/data/staff_repository_impl.dart';
@@ -120,6 +126,12 @@ Future<void> configureDependencies(
         events: events,
       ),
     )
+    ..registerLazySingleton<NotificationsRepository>(() => NotificationsRepositoryImpl(api: getIt()))
+    ..registerLazySingleton<PushMessaging>(UnavailablePushMessaging.new)
+    ..registerLazySingleton<PushDeviceRepository>(
+      () => PushDeviceRepositoryImpl(api: getIt(), device: appDevice, language: () => language.value),
+    )
+    ..registerLazySingleton(() => PushRegistrar(getIt(), getIt()))
     ..registerLazySingleton<BlocksRepository>(() => BlocksRepositoryImpl(api: getIt()))
     ..registerLazySingleton<InstitutionsRepository>(() => InstitutionsRepositoryImpl(api: getIt()))
     ..registerLazySingleton<InstitutionChoiceStore>(PreferencesInstitutionChoiceStore.new)

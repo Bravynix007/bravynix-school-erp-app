@@ -10,6 +10,8 @@ import 'package:bravynix_school_erp/core/theme/app_theme.dart';
 import 'package:bravynix_school_erp/core/widgets/app_snackbar.dart';
 import 'package:bravynix_school_erp/features/auth/domain/auth_repository.dart';
 import 'package:bravynix_school_erp/features/auth/presentation/session/session_bloc.dart';
+import 'package:bravynix_school_erp/features/push/domain/push_messaging.dart';
+import 'package:bravynix_school_erp/features/push/domain/push_registrar.dart';
 import 'package:bravynix_school_erp/l10n/gen/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -35,19 +37,25 @@ class AppView extends StatefulWidget {
 }
 
 class _AppViewState extends State<AppView> {
-  late final SessionChanges _sessionChanges = SessionChanges(context.read<SessionBloc>().stream);
-  late final GoRouter _router = createRouter(context.read<SessionBloc>(), changes: _sessionChanges);
+  late final SessionBloc _session = context.read<SessionBloc>();
+  late final SessionChanges _sessionChanges = SessionChanges(_session.stream);
+  late final GoRouter _router = createRouter(_session, changes: _sessionChanges);
   late final StreamSubscription<ApiFailure> _updates;
+  late final StreamSubscription<String> _pushTokens;
 
   @override
   void initState() {
     super.initState();
     _updates = getIt<ApiEvents>().updateRequired.listen((_) => _router.go(AppRoutes.updateRequired));
+    _pushTokens = getIt<PushMessaging>().tokenRefreshes.listen((_) {
+      if (_session.state is SessionAuthenticated) unawaited(getIt<PushRegistrar>().register());
+    });
   }
 
   @override
   void dispose() {
     unawaited(_updates.cancel());
+    unawaited(_pushTokens.cancel());
     _router.dispose();
     _sessionChanges.dispose();
     super.dispose();

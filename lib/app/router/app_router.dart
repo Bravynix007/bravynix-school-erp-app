@@ -17,6 +17,7 @@ import 'package:bravynix_school_erp/features/home/presentation/home_page.dart';
 import 'package:bravynix_school_erp/features/institutions/presentation/view/institution_form_page.dart';
 import 'package:bravynix_school_erp/features/institutions/presentation/view/institution_page.dart';
 import 'package:bravynix_school_erp/features/institutions/presentation/view/institutions_page.dart';
+import 'package:bravynix_school_erp/features/notifications/presentation/view/inbox_page.dart';
 import 'package:bravynix_school_erp/features/platform_dues/presentation/view/platform_due_page.dart';
 import 'package:bravynix_school_erp/features/platform_dues/presentation/view/platform_dues_page.dart';
 import 'package:bravynix_school_erp/features/profile/presentation/profile_page.dart';
@@ -120,6 +121,7 @@ GoRouter createRouter(SessionBloc session, {required SessionChanges changes}) {
       GoRoute(path: AppRoutes.home, builder: (_, _) => const HomePage()),
       GoRoute(path: AppRoutes.chooseRole, builder: (_, _) => const RoleChooserPage()),
       GoRoute(path: AppRoutes.profile, builder: (_, _) => const ProfilePage()),
+      GoRoute(path: AppRoutes.inbox, builder: (_, _) => const InboxPage()),
       GoRoute(
         path: AppRoutes.ownStaffRecord,
         redirect: (_, _) => ownStaffRecordRedirect(session.state),

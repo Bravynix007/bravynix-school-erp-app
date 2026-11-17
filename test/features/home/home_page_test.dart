@@ -4,6 +4,7 @@ import 'package:bravynix_school_erp/features/auth/domain/auth_entities.dart';
 import 'package:bravynix_school_erp/features/auth/presentation/session/session_bloc.dart';
 import 'package:bravynix_school_erp/features/blocks/domain/blocks_repository.dart';
 import 'package:bravynix_school_erp/features/blocks/domain/section_block.dart';
+import 'package:bravynix_school_erp/features/notifications/domain/notifications_repository.dart';
 import 'package:bravynix_school_erp/features/home/presentation/home_page.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -15,6 +16,15 @@ import '../../helpers/pump_app.dart';
 class _MockSessionBloc extends MockBloc<SessionEvent, SessionState> implements SessionBloc;
 
 void main() {
+  // Every home has the bell, which reads the unread count.
+  late MockNotificationsRepository notifications;
+  setUp(() {
+    notifications = MockNotificationsRepository();
+    when(notifications.unreadCount).thenAnswer((_) async => 0);
+    getIt.registerSingleton<NotificationsRepository>(notifications);
+  });
+  tearDown(getIt.reset);
+
   Future<void> pumpHome(WidgetTester tester, Person person) {
     final session = _MockSessionBloc();
     when(() => session.state).thenReturn(SessionAuthenticated(AuthSession(person: person, contexts: const [])));
@@ -24,6 +34,13 @@ void main() {
   testWidgets('greets the person by first name', (tester) async {
     await pumpHome(tester, testPerson);
     expect(find.text('Welcome, Asha'), findsOneWidget);
+  });
+
+  testWidgets('the bell shows how many notices are unread', (tester) async {
+    when(notifications.unreadCount).thenAnswer((_) async => 3);
+    await pumpHome(tester, testPerson);
+    await tester.pumpAndSettle();
+    expect(find.bySemanticsLabel('Notifications, 3 unread'), findsOneWidget);
   });
 
   testWidgets('greets a person with no name yet by their email', (tester) async {

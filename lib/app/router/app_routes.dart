@@ -7,6 +7,9 @@ abstract final class AppRoutes {
   static const chooseRole = '/choose-role';
   static const profile = '/profile';
 
+  /// The bell's screen: the person's notices by tab (NTF-01).
+  static const inbox = '/inbox';
+
   /// A teacher's own staff record and documents (STF-03, STF-14), read only.
   static const ownStaffRecord = '/profile/staff-record';
 

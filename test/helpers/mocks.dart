@@ -11,6 +11,7 @@ import 'package:bravynix_school_erp/features/files/domain/file_opening.dart';
 import 'package:bravynix_school_erp/features/files/domain/files_repository.dart';
 import 'package:bravynix_school_erp/features/institutions/domain/institutions_repository.dart';
 import 'package:bravynix_school_erp/features/masters/domain/masters_repository.dart';
+import 'package:bravynix_school_erp/features/notifications/domain/notifications_repository.dart';
 import 'package:bravynix_school_erp/features/platform_dues/domain/platform_dues_repository.dart';
 import 'package:bravynix_school_erp/features/sections/domain/sections_repository.dart';
 import 'package:bravynix_school_erp/features/staff/domain/staff_repository.dart';
@@ -33,6 +34,8 @@ class MockAchievementsRepository extends Mock implements AchievementsRepository;
 class MockAuthRepository extends Mock implements AuthRepository;
 
 class MockBlocksRepository extends Mock implements BlocksRepository;
+
+class MockNotificationsRepository extends Mock implements NotificationsRepository;
 
 class MockDocumentsRepository extends Mock implements DocumentsRepository;
 

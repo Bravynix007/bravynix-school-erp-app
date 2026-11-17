@@ -184,6 +184,63 @@ class AppLocalizationsEn extends AppLocalizations {
   String get homeComingSoon => 'Your home screen arrives with the next modules of the build plan.';
 
   @override
+  String get inboxTitle => 'Notifications';
+
+  @override
+  String get inboxTabOnlyForYou => 'Only for you';
+
+  @override
+  String get inboxTabAll => 'All';
+
+  @override
+  String get inboxTabAllTeachers => 'All teachers';
+
+  @override
+  String get inboxTabAllStudents => 'All students';
+
+  @override
+  String get inboxMarkAllRead => 'Mark all as read';
+
+  @override
+  String get inboxClear => 'Clear all';
+
+  @override
+  String get inboxClearTitle => 'Clear notifications?';
+
+  @override
+  String inboxClearMessage(String tab) {
+    return 'Every notification in \"$tab\" is deleted for good.';
+  }
+
+  @override
+  String get inboxClearConfirm => 'Clear';
+
+  @override
+  String get inboxEmptyTitle => 'Nothing here yet';
+
+  @override
+  String get inboxEmptyMessage => 'New notifications about your school show up here.';
+
+  @override
+  String get inboxLoadMore => 'Load more';
+
+  @override
+  String get inboxUnread => 'Unread';
+
+  @override
+  String inboxFrom(String sender, String when) {
+    return 'From: $sender · $when';
+  }
+
+  @override
+  String get bellTooltip => 'Notifications';
+
+  @override
+  String bellUnread(int count) {
+    return '$count unread';
+  }
+
+  @override
   String get logOut => 'Log out';
 
   @override
