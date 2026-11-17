@@ -242,6 +242,25 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String blockedChildNotice(String child) {
+    return 'Access to $child\'s information is blocked. Contact the school.';
+  }
+
+  @override
+  String get childSwitchHint => 'Change child';
+
+  @override
+  String get childSwitchTitle => 'Choose a child';
+
+  @override
+  String childDetail(String classSection, String institution) {
+    return '$classSection, $institution';
+  }
+
+  @override
+  String get childNoClass => 'Not placed in a class yet';
+
+  @override
   String get blockedParentNotice => 'Access to your children\'s information is blocked. Contact the school.';
 
   @override

@@ -6,10 +6,13 @@ import 'package:bravynix_school_erp/app/router/app_routes.dart';
 import 'package:bravynix_school_erp/core/l10n/app_language.dart';
 import 'package:bravynix_school_erp/core/network/api_events.dart';
 import 'package:bravynix_school_erp/core/network/api_failure.dart';
+import 'package:bravynix_school_erp/core/storage/child_choice_store.dart';
 import 'package:bravynix_school_erp/core/theme/app_theme.dart';
 import 'package:bravynix_school_erp/core/widgets/app_snackbar.dart';
+import 'package:bravynix_school_erp/features/auth/domain/auth_entities.dart';
 import 'package:bravynix_school_erp/features/auth/domain/auth_repository.dart';
 import 'package:bravynix_school_erp/features/auth/presentation/session/session_bloc.dart';
+import 'package:bravynix_school_erp/features/children/presentation/bloc/active_child_bloc.dart';
 import 'package:bravynix_school_erp/l10n/gen/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -20,8 +23,12 @@ class App extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (_) => SessionBloc(getIt<AuthRepository>())..add(const SessionStarted()),
+    return MultiBlocProvider(
+      providers: [
+        BlocProvider(create: (_) => SessionBloc(getIt<AuthRepository>())..add(const SessionStarted())),
+        // Above the router, so every screen a parent opens reads the same child.
+        BlocProvider(create: (_) => ActiveChildBloc(getIt<ChildChoiceStore>())),
+      ],
       child: const AppView(),
     );
   }
@@ -53,13 +60,26 @@ class _AppViewState extends State<AppView> {
     super.dispose();
   }
 
+  /// The children a parent guards in the role they are acting in; none for any other role or when signed out.
+  static List<LinkedChild> _childrenOf(SessionState state) =>
+      state is SessionAuthenticated ? state.session.activeContext?.children ?? const [] : const [];
+
   @override
   Widget build(BuildContext context) {
-    return BlocListener<SessionBloc, SessionState>(
-      listenWhen: (previous, current) => current is SessionAuthenticated,
-      // Messages from the API follow the person's language once signed in (PRD 11.3).
-      listener: (context, state) =>
-          getIt<AppLanguage>().use((state as SessionAuthenticated).session.person.preferredLanguage),
+    return MultiBlocListener(
+      listeners: [
+        BlocListener<SessionBloc, SessionState>(
+          listenWhen: (previous, current) => current is SessionAuthenticated,
+          // Messages from the API follow the person's language once signed in (PRD 11.3).
+          listener: (context, state) =>
+              getIt<AppLanguage>().use((state as SessionAuthenticated).session.person.preferredLanguage),
+        ),
+        BlocListener<SessionBloc, SessionState>(
+          listenWhen: (previous, current) => _childrenOf(previous) != _childrenOf(current),
+          listener: (context, state) =>
+              context.read<ActiveChildBloc>().add(ActiveChildChildrenChanged(_childrenOf(state))),
+        ),
+      ],
       child: ValueListenableBuilder<String>(
         valueListenable: getIt<AppLanguage>(),
         builder: (context, language, _) => MaterialApp.router(

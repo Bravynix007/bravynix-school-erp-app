@@ -6,6 +6,8 @@ import 'package:bravynix_school_erp/core/storage/install_marker.dart';
 import 'package:bravynix_school_erp/core/storage/token_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:shared_preferences_platform_interface/in_memory_shared_preferences_async.dart';
+import 'package:shared_preferences_platform_interface/shared_preferences_async_platform_interface.dart';
 
 import '../helpers/fake_http.dart';
 
@@ -26,6 +28,8 @@ void main() {
     AuthTokens? tokens,
   }) async {
     final adapter = FakeHttpAdapter((options) => reply(options.path));
+    // The app keeps the child a parent chose in the preferences; here they stay in memory.
+    SharedPreferencesAsyncPlatform.instance = InMemorySharedPreferencesAsync.empty();
     await configureDependencies(
       config,
       device: device,
@@ -59,6 +63,49 @@ void main() {
     // An Owner's home also asks what is blocked in the Society (SOC-02).
     expect(adapter.paths, ['/v1/me', '/v1/society/access-blocks']);
     expect(find.text('Welcome, Asha'), findsOneWidget);
+  });
+
+  testWidgets('a parent opens on their first child and can switch to a sibling, and logging out clears it', (
+    tester,
+  ) async {
+    Map<String, Object?> child(String id, String name) => {
+      'studentId': id,
+      'firstName': name,
+      'lastName': 'Shetty',
+      'institutionName': 'Green Valley School',
+      'className': '7th',
+      'sectionName': 'A',
+      'isBlocked': false,
+    };
+    await start(
+      tester,
+      tokens: const AuthTokens(accessToken: 'a', refreshToken: 'r'),
+      reply: (path) async => path == 'auth/logout'
+          ? okReply(null)
+          : okReply({
+              'person': {'id': 'p1', 'email': 'asha.rao@example.com', 'firstName': 'Asha', 'preferredLanguage': 'en'},
+              'contexts': [
+                {
+                  'roleCode': 5,
+                  'isBlocked': false,
+                  'children': [child('s1', 'Diya'), child('s2', 'Arun')],
+                },
+              ],
+            }),
+    );
+    expect(find.text('Diya Shetty'), findsOneWidget);
+
+    await tester.tap(find.byKey(const Key('child.switcher')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('child.option.s2')));
+    await tester.pumpAndSettle();
+    expect(find.text('Arun Shetty'), findsOneWidget);
+    expect(find.text('Diya Shetty'), findsNothing);
+
+    await tester.tap(find.byKey(const Key('home.logout')));
+    await tester.pumpAndSettle();
+    expect(find.text('Sign in'), findsOneWidget);
+    expect(find.byKey(const Key('child.switcher')), findsNothing);
   });
 
   testWidgets('a 426 shows the update screen', (tester) async {

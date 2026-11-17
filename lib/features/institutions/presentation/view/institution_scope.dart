@@ -1,11 +1,9 @@
 import 'package:bravynix_school_erp/app/di/injection.dart';
 import 'package:bravynix_school_erp/core/storage/institution_choice_store.dart';
 import 'package:bravynix_school_erp/core/theme/app_spacing.dart';
-import 'package:bravynix_school_erp/core/widgets/app_bottom_sheet.dart';
-import 'package:bravynix_school_erp/core/widgets/app_card.dart';
-import 'package:bravynix_school_erp/core/widgets/selection_tile.dart';
 import 'package:bravynix_school_erp/core/widgets/skeleton.dart';
 import 'package:bravynix_school_erp/core/widgets/state_panel.dart';
+import 'package:bravynix_school_erp/core/widgets/switcher_card.dart';
 import 'package:bravynix_school_erp/features/auth/presentation/role/view/role_error_text.dart';
 import 'package:bravynix_school_erp/features/institutions/domain/institution.dart';
 import 'package:bravynix_school_erp/features/institutions/domain/institutions_repository.dart';
@@ -95,43 +93,18 @@ class _Switcher extends StatelessWidget {
         child: Text(selected.name, style: Theme.of(context).textTheme.titleMedium),
       );
     }
-    final text = Theme.of(context).textTheme;
-    return AppCard(
-      key: const Key('institutionScope.switcher'),
-      onTap: () => _choose(context),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(selected.name, style: text.titleMedium),
-          Text(
-            l10n.institutionSwitchHint,
-            style: text.bodySmall?.copyWith(color: Theme.of(context).colorScheme.primary),
-          ),
-        ],
-      ),
-    );
-  }
-
-  /// A sheet rather than a dropdown, so a long name wraps at large text sizes instead of being cut.
-  Future<void> _choose(BuildContext context) async {
     final bloc = context.read<InstitutionScopeBloc>();
-    final id = await showAppBottomSheet<String>(
-      context: context,
-      title: AppLocalizations.of(context).institutionSwitchTitle,
-      builder: (sheet) => Column(
-        children: [
-          for (final institution in institutions)
-            AppRadioTile<String>(
-              key: ValueKey('institutionScope.option.${institution.id}'),
-              title: institution.name,
-              subtitle: institution.code,
-              value: institution.id,
-              groupValue: selected.id,
-              onChanged: (id) => Navigator.of(sheet).pop(id),
-            ),
-        ],
-      ),
+    return SwitcherCard<InstitutionSummary>(
+      key: const Key('institutionScope.switcher'),
+      options: institutions,
+      selected: selected,
+      idOf: (institution) => institution.id,
+      titleOf: (institution) => institution.name,
+      subtitleOf: (institution) => institution.code,
+      hint: l10n.institutionSwitchHint,
+      sheetTitle: l10n.institutionSwitchTitle,
+      optionKeyPrefix: 'institutionScope.option',
+      onSelected: (institution) => bloc.add(InstitutionScopeChosen(institution.id)),
     );
-    if (id != null) bloc.add(InstitutionScopeChosen(id));
   }
 }
