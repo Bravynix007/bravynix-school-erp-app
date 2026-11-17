@@ -14,9 +14,20 @@ import 'package:bravynix_school_erp/features/auth/domain/auth_repository.dart';
 import 'package:bravynix_school_erp/features/auth/presentation/session/session_bloc.dart';
 import 'package:bravynix_school_erp/features/children/presentation/bloc/active_child_bloc.dart';
 import 'package:bravynix_school_erp/l10n/gen/app_localizations.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+
+/// The children a parent guards in the role they are acting in; none for any other role or when signed out.
+List<LinkedChild> _childrenOf(SessionState state) =>
+    state is SessionAuthenticated ? state.session.activeContext?.children ?? const [] : const [];
+
+/// Whether the children changed between two states, compared by value: a session read again builds new lists that are
+/// equal, and the child chosen must not be reconsidered for them.
+@visibleForTesting
+bool childrenChanged(SessionState previous, SessionState current) =>
+    !listEquals(_childrenOf(previous), _childrenOf(current));
 
 class App extends StatelessWidget {
   const new({super.key});
@@ -60,10 +71,6 @@ class _AppViewState extends State<AppView> {
     super.dispose();
   }
 
-  /// The children a parent guards in the role they are acting in; none for any other role or when signed out.
-  static List<LinkedChild> _childrenOf(SessionState state) =>
-      state is SessionAuthenticated ? state.session.activeContext?.children ?? const [] : const [];
-
   @override
   Widget build(BuildContext context) {
     return MultiBlocListener(
@@ -75,7 +82,7 @@ class _AppViewState extends State<AppView> {
               getIt<AppLanguage>().use((state as SessionAuthenticated).session.person.preferredLanguage),
         ),
         BlocListener<SessionBloc, SessionState>(
-          listenWhen: (previous, current) => _childrenOf(previous) != _childrenOf(current),
+          listenWhen: childrenChanged,
           listener: (context, state) =>
               context.read<ActiveChildBloc>().add(ActiveChildChildrenChanged(_childrenOf(state))),
         ),
