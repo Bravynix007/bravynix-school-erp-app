@@ -130,7 +130,9 @@ void main() {
     },
     seed: () => InboxLoaded(InboxTab.all, [first]),
     act: (bloc) => bloc.add(const InboxItemOpened('n1')),
-    expect: () => [InboxLoaded(InboxTab.all, [first], actionFailure: refused)],
+    expect: () => [
+      InboxLoaded(InboxTab.all, [first], actionFailure: refused),
+    ],
   );
 
   blocTest<InboxBloc, InboxState>(

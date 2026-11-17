@@ -46,8 +46,10 @@ abstract final class AuthModels {
             LinkedChild(
               studentId: child['studentId'] as String,
               firstName: child['firstName'] as String,
+              lastName: child['lastName'] as String?,
               institutionName: child['institutionName'] as String? ?? '',
-              classSection: child['classSection'] as String? ?? '',
+              className: child['className'] as String?,
+              sectionName: child['sectionName'] as String?,
               isBlocked: child['isBlocked'] as bool? ?? false,
             ),
       ],

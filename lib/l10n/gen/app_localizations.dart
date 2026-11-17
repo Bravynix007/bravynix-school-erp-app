@@ -571,6 +571,36 @@ abstract class AppLocalizations {
   /// **'Your access to {society} is blocked. Contact your Society.'**
   String blockedStaffNotice(String society);
 
+  /// No description provided for @blockedChildNotice.
+  ///
+  /// In en, this message translates to:
+  /// **'Access to {child}\'s information is blocked. Contact the school.'**
+  String blockedChildNotice(String child);
+
+  /// No description provided for @childSwitchHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Change child'**
+  String get childSwitchHint;
+
+  /// No description provided for @childSwitchTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a child'**
+  String get childSwitchTitle;
+
+  /// No description provided for @childDetail.
+  ///
+  /// In en, this message translates to:
+  /// **'{classSection}, {institution}'**
+  String childDetail(String classSection, String institution);
+
+  /// No description provided for @childNoClass.
+  ///
+  /// In en, this message translates to:
+  /// **'Not placed in a class yet'**
+  String get childNoClass;
+
   /// No description provided for @blockedParentNotice.
   ///
   /// In en, this message translates to:

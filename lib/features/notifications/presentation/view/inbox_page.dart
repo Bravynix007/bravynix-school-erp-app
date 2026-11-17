@@ -9,6 +9,7 @@ import 'package:bravynix_school_erp/core/widgets/app_top_bar.dart';
 import 'package:bravynix_school_erp/core/widgets/inline_message.dart';
 import 'package:bravynix_school_erp/core/widgets/skeleton.dart';
 import 'package:bravynix_school_erp/core/widgets/state_panel.dart';
+import 'package:bravynix_school_erp/core/widgets/text_measure.dart';
 import 'package:bravynix_school_erp/features/auth/presentation/role/view/role_error_text.dart';
 import 'package:bravynix_school_erp/features/auth/presentation/session/session_bloc.dart';
 import 'package:bravynix_school_erp/features/notifications/domain/inbox_item.dart';
@@ -214,20 +215,35 @@ class _ItemCard extends StatelessWidget {
           ExcludeSemantics(child: Icon(_icon(item.category), color: theme.colorScheme.primary)),
           const SizedBox(width: AppSpacing.sm),
           Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  item.title,
-                  style: theme.textTheme.titleSmall?.copyWith(fontWeight: item.isRead ? null : FontWeight.w700),
-                ),
-                if (item.body.isNotEmpty) Text(item.body, style: theme.textTheme.bodyMedium),
-                const SizedBox(height: AppSpacing.xxs),
-                Text(
-                  sender == null ? when : l10n.inboxFrom(sender, when),
-                  style: theme.textTheme.bodySmall,
-                ),
-              ],
+            // A word wider than the line is shrunk to fit it rather than broken in half.
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                final text = theme.textTheme;
+                final titleStyle = text.titleSmall?.copyWith(fontWeight: item.isRead ? null : FontWeight.w700);
+                final byline = sender == null ? when : l10n.inboxFrom(sender, when);
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      item.title,
+                      style: titleStyle,
+                      textScaler: fitWordScaler(context, item.title, titleStyle, constraints.maxWidth),
+                    ),
+                    if (item.body.isNotEmpty)
+                      Text(
+                        item.body,
+                        style: text.bodyMedium,
+                        textScaler: fitWordScaler(context, item.body, text.bodyMedium, constraints.maxWidth),
+                      ),
+                    const SizedBox(height: AppSpacing.xxs),
+                    Text(
+                      byline,
+                      style: text.bodySmall,
+                      textScaler: fitWordScaler(context, byline, text.bodySmall, constraints.maxWidth),
+                    ),
+                  ],
+                );
+              },
             ),
           ),
           if (!item.isRead)

@@ -40,16 +40,20 @@ void main() {
         ),
         GoRoute(
           path: '/inbox',
-          builder: (context, _) => Scaffold(body: TextButton(onPressed: context.pop, child: const Text('back'))),
+          builder: (context, _) => Scaffold(
+            body: TextButton(onPressed: context.pop, child: const Text('back')),
+          ),
         ),
       ],
     );
     addTearDown(router.dispose);
-    await tester.pumpWidget(MaterialApp.router(
+    await tester.pumpWidget(
+      MaterialApp.router(
         routerConfig: router,
         localizationsDelegates: AppLocalizations.localizationsDelegates,
         supportedLocales: AppLocalizations.supportedLocales,
-      ));
+      ),
+    );
     await tester.tap(find.byKey(const Key('home.bell')));
     await tester.pumpAndSettle();
     expect(find.text('back'), findsOneWidget);

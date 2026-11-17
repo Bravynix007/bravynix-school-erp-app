@@ -39,7 +39,7 @@ void main() {
     expect(find.text('Diya is absent today'), findsOneWidget);
     expect(find.text('From: Green Valley School · 17-11-2026 10:15'), findsOneWidget);
     expect(find.text('17-11-2026 10:15'), findsOneWidget);
-    expect(find.bySemanticsLabel('Unread'), findsOneWidget);
+    expect(find.bySemanticsLabel(RegExp('Unread')), findsOneWidget);
   });
 
   testWidgets('a tap on a notice opens it', (tester) async {
@@ -52,15 +52,18 @@ void main() {
     await pump(tester, InboxLoaded(InboxTab.onlyForYou, [unread]));
     expect(find.text('All students'), findsOneWidget);
     expect(find.text('All teachers'), findsNothing);
+    await tester.ensureVisible(find.text('All students'));
     await tester.tap(find.text('All students'));
     verify(() => bloc.add(const InboxRequested(InboxTab.allStudents))).called(1);
   });
 
-  testWidgets('Mark all read is offered only while something is unread', (tester) async {
+  testWidgets('Mark all read marks the tab', (tester) async {
     await pump(tester, InboxLoaded(InboxTab.onlyForYou, [unread]));
     await tester.tap(find.byKey(const Key('inbox.markAllRead')));
     verify(() => bloc.add(const InboxMarkedAllRead())).called(1);
+  });
 
+  testWidgets('Mark all read is not offered when everything is read', (tester) async {
     await pump(tester, InboxLoaded(InboxTab.onlyForYou, [read]));
     expect(tester.widget<IconButton>(find.byKey(const Key('inbox.markAllRead'))).onPressed, isNull);
   });
@@ -81,11 +84,13 @@ void main() {
     verify(() => bloc.add(const InboxCleared())).called(1);
   });
 
-  testWidgets('both change buttons wait while a change is on its way, and for an empty tab', (tester) async {
+  testWidgets('both change buttons wait while a change is on its way', (tester) async {
     await pump(tester, InboxLoaded(InboxTab.all, [unread], working: true));
     expect(tester.widget<IconButton>(find.byKey(const Key('inbox.markAllRead'))).onPressed, isNull);
     expect(tester.widget<IconButton>(find.byKey(const Key('inbox.clear'))).onPressed, isNull);
+  });
 
+  testWidgets('there is nothing to clear in an empty tab', (tester) async {
     await pump(tester, const InboxLoaded(InboxTab.all, []));
     expect(tester.widget<IconButton>(find.byKey(const Key('inbox.clear'))).onPressed, isNull);
   });

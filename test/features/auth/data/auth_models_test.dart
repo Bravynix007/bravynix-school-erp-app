@@ -32,8 +32,10 @@ void main() {
           {
             'studentId': '0192f4c2-5f60-7172-8d83-5e6f708192a3',
             'firstName': 'Diya',
+            'lastName': 'Shetty',
             'institutionName': 'Green Valley School',
-            'classSection': '7th - A',
+            'className': '7th',
+            'sectionName': 'A',
             'isBlocked': false,
           },
         ],
@@ -58,8 +60,24 @@ void main() {
     expect(session.person.preferredLanguage, 'kn');
     expect(session.contexts.map((c) => c.role), [RoleCode.teacherStaff, RoleCode.studentParent]);
     expect(session.contexts.first.societyName, 'Sunrise Education Trust');
-    expect(session.contexts.last.children.single.classSection, '7th - A');
+    final child = session.contexts.last.children.single;
+    expect(child.fullName, 'Diya Shetty');
+    expect(child.classSection, '7th - A');
     expect(session.activeContext, isNull);
+  });
+
+  test('a child with no placement yet has no class, and one with no section shows the class alone', () {
+    const unplaced = LinkedChild(studentId: 's1', firstName: 'Diya', institutionName: 'GV', isBlocked: false);
+    const noSection = LinkedChild(
+      studentId: 's1',
+      firstName: 'Diya',
+      institutionName: 'GV',
+      isBlocked: false,
+      className: '7th',
+    );
+    expect(unplaced.classSection, isEmpty);
+    expect(unplaced.fullName, 'Diya');
+    expect(noSection.classSection, '7th');
   });
 
   test('a person added by email alone has no name: the email stands in', () {
