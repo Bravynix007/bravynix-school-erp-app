@@ -45,4 +45,22 @@ abstract final class TimetableModels {
     OwnWeek(:final institutionId) => {'staffMemberId': 'me', 'institutionId': institutionId},
     ChildWeek(:final studentId) => {'studentId': studentId},
   };
+
+  static Map<String, Object?> _fields(EntryInput input) => {
+    'dayOfWeek': input.dayOfWeek,
+    'timeSlotId': input.timeSlotId,
+    'isBreak': input.isBreak,
+    // A break names neither, and the server refuses one that does.
+    if (!input.isBreak) ...{'subjectId': input.subjectId, 'staffMemberId': input.staffMemberId},
+  };
+
+  static Map<String, Object?> createBody(String sectionId, EntryInput input) => {
+    'sectionId': sectionId,
+    ..._fields(input),
+  };
+
+  static Map<String, Object?> updateBody(TimetableEntry entry, EntryInput input) => {
+    'version': entry.version,
+    ..._fields(input),
+  };
 }

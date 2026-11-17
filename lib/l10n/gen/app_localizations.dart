@@ -1789,6 +1789,156 @@ abstract class AppLocalizations {
   /// **'No current academic year has been set up yet, so there is no timetable to show.'**
   String get errorTimetableNoYear;
 
+  /// No description provided for @timetableEntryAdd.
+  ///
+  /// In en, this message translates to:
+  /// **'Add entry'**
+  String get timetableEntryAdd;
+
+  /// No description provided for @timetableEntryAddTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Add entry'**
+  String get timetableEntryAddTitle;
+
+  /// No description provided for @timetableEntryEditTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit entry'**
+  String get timetableEntryEditTitle;
+
+  /// No description provided for @timetableEntryEdit.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit'**
+  String get timetableEntryEdit;
+
+  /// No description provided for @timetableEntryDelete.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete'**
+  String get timetableEntryDelete;
+
+  /// No description provided for @timetableEntryDeleteTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete this entry?'**
+  String get timetableEntryDeleteTitle;
+
+  /// No description provided for @timetableEntryDeleteMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'It leaves the timetable, and its period is free again for the section and the teacher.'**
+  String get timetableEntryDeleteMessage;
+
+  /// No description provided for @timetableEntryDeleted.
+  ///
+  /// In en, this message translates to:
+  /// **'Entry deleted'**
+  String get timetableEntryDeleted;
+
+  /// No description provided for @timetableEntrySaved.
+  ///
+  /// In en, this message translates to:
+  /// **'Entry saved'**
+  String get timetableEntrySaved;
+
+  /// No description provided for @timetableEntrySave.
+  ///
+  /// In en, this message translates to:
+  /// **'Save'**
+  String get timetableEntrySave;
+
+  /// No description provided for @timetableEntryDay.
+  ///
+  /// In en, this message translates to:
+  /// **'Day'**
+  String get timetableEntryDay;
+
+  /// No description provided for @timetableEntryPeriod.
+  ///
+  /// In en, this message translates to:
+  /// **'Period'**
+  String get timetableEntryPeriod;
+
+  /// No description provided for @timetableEntryBreak.
+  ///
+  /// In en, this message translates to:
+  /// **'This is a break'**
+  String get timetableEntryBreak;
+
+  /// No description provided for @timetableEntryBreakHelper.
+  ///
+  /// In en, this message translates to:
+  /// **'A break has no subject or teacher.'**
+  String get timetableEntryBreakHelper;
+
+  /// No description provided for @timetableEntrySubject.
+  ///
+  /// In en, this message translates to:
+  /// **'Subject'**
+  String get timetableEntrySubject;
+
+  /// No description provided for @timetableEntryTeacher.
+  ///
+  /// In en, this message translates to:
+  /// **'Teacher'**
+  String get timetableEntryTeacher;
+
+  /// No description provided for @timetableEntryNoPeriodsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'No periods yet'**
+  String get timetableEntryNoPeriodsTitle;
+
+  /// No description provided for @timetableEntryNoPeriodsMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Add the periods of the school day under Period timings first.'**
+  String get timetableEntryNoPeriodsMessage;
+
+  /// No description provided for @errorTimetableSlotTaken.
+  ///
+  /// In en, this message translates to:
+  /// **'This section already has an entry in that period on that day.'**
+  String get errorTimetableSlotTaken;
+
+  /// No description provided for @errorTimetableTeacherBusy.
+  ///
+  /// In en, this message translates to:
+  /// **'That teacher already has a lesson in that period on that day.'**
+  String get errorTimetableTeacherBusy;
+
+  /// No description provided for @errorTimetableTeacherBusyIn.
+  ///
+  /// In en, this message translates to:
+  /// **'That teacher is already teaching {section} in that period on that day.'**
+  String errorTimetableTeacherBusyIn(String section);
+
+  /// No description provided for @errorTimetableInvalidSlot.
+  ///
+  /// In en, this message translates to:
+  /// **'That period cannot take this entry. A break period takes only a break.'**
+  String get errorTimetableInvalidSlot;
+
+  /// No description provided for @errorTimetableSubjectNotTaught.
+  ///
+  /// In en, this message translates to:
+  /// **'That teacher does not teach this subject. Add it to their subjects first.'**
+  String get errorTimetableSubjectNotTaught;
+
+  /// No description provided for @errorTimetableTeacherElsewhere.
+  ///
+  /// In en, this message translates to:
+  /// **'That teacher is based at another Institution.'**
+  String get errorTimetableTeacherElsewhere;
+
+  /// No description provided for @errorTimetableTeacherBlocked.
+  ///
+  /// In en, this message translates to:
+  /// **'That teacher\'s access is blocked.'**
+  String get errorTimetableTeacherBlocked;
+
   /// No description provided for @errorCurrentYearRequired.
   ///
   /// In en, this message translates to:

@@ -81,3 +81,24 @@ class TimetableEntry extends Equatable {
     version,
   ];
 }
+
+/// What an admin sets on an entry (TT-02, TT-03): the day, the period, and for a lesson its subject and teacher. A break
+/// names neither.
+class EntryInput extends Equatable {
+  const new({
+    required this.dayOfWeek,
+    required this.timeSlotId,
+    required this.isBreak,
+    this.subjectId,
+    this.staffMemberId,
+  });
+
+  final int dayOfWeek;
+  final String timeSlotId;
+  final bool isBreak;
+  final String? subjectId;
+  final String? staffMemberId;
+
+  @override
+  List<Object?> get props => [dayOfWeek, timeSlotId, isBreak, subjectId, staffMemberId];
+}

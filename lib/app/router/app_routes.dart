@@ -51,6 +51,7 @@ abstract final class AppRoutes {
   /// its name as the route's `extra`.
   static const timetable = '/timetable';
   static const sectionTimetable = '/timetable/section';
+  static const timetableEntryForm = '/timetable/entry';
 
   /// Period timings of the chosen Institution's current year (TTS-01), and the form that adds or edits one (TTS-02,
   /// TTS-03), which takes the Institution and the period as the route's `extra`: no endpoint reads one period, so the

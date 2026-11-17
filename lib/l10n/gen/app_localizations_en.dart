@@ -981,6 +981,85 @@ class AppLocalizationsEn extends AppLocalizations {
   String get errorTimetableNoYear => 'No current academic year has been set up yet, so there is no timetable to show.';
 
   @override
+  String get timetableEntryAdd => 'Add entry';
+
+  @override
+  String get timetableEntryAddTitle => 'Add entry';
+
+  @override
+  String get timetableEntryEditTitle => 'Edit entry';
+
+  @override
+  String get timetableEntryEdit => 'Edit';
+
+  @override
+  String get timetableEntryDelete => 'Delete';
+
+  @override
+  String get timetableEntryDeleteTitle => 'Delete this entry?';
+
+  @override
+  String get timetableEntryDeleteMessage =>
+      'It leaves the timetable, and its period is free again for the section and the teacher.';
+
+  @override
+  String get timetableEntryDeleted => 'Entry deleted';
+
+  @override
+  String get timetableEntrySaved => 'Entry saved';
+
+  @override
+  String get timetableEntrySave => 'Save';
+
+  @override
+  String get timetableEntryDay => 'Day';
+
+  @override
+  String get timetableEntryPeriod => 'Period';
+
+  @override
+  String get timetableEntryBreak => 'This is a break';
+
+  @override
+  String get timetableEntryBreakHelper => 'A break has no subject or teacher.';
+
+  @override
+  String get timetableEntrySubject => 'Subject';
+
+  @override
+  String get timetableEntryTeacher => 'Teacher';
+
+  @override
+  String get timetableEntryNoPeriodsTitle => 'No periods yet';
+
+  @override
+  String get timetableEntryNoPeriodsMessage => 'Add the periods of the school day under Period timings first.';
+
+  @override
+  String get errorTimetableSlotTaken => 'This section already has an entry in that period on that day.';
+
+  @override
+  String get errorTimetableTeacherBusy => 'That teacher already has a lesson in that period on that day.';
+
+  @override
+  String errorTimetableTeacherBusyIn(String section) {
+    return 'That teacher is already teaching $section in that period on that day.';
+  }
+
+  @override
+  String get errorTimetableInvalidSlot => 'That period cannot take this entry. A break period takes only a break.';
+
+  @override
+  String get errorTimetableSubjectNotTaught =>
+      'That teacher does not teach this subject. Add it to their subjects first.';
+
+  @override
+  String get errorTimetableTeacherElsewhere => 'That teacher is based at another Institution.';
+
+  @override
+  String get errorTimetableTeacherBlocked => 'That teacher\'s access is blocked.';
+
+  @override
   String get errorCurrentYearRequired =>
       'This Institution has no current academic year. Make one current under Academic years first.';
 

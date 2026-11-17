@@ -210,6 +210,7 @@ void main() {
     await tester.pumpAndSettle();
     final args = opened.single! as SectionTimetableArgs;
     expect(args.sectionId, 'e2');
+    expect(args.institutionId, 'i1');
     expect(args.title, 'Class 1 - Blue');
     expect(find.text('timetable'), findsOneWidget);
   });

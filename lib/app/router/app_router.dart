@@ -40,6 +40,7 @@ import 'package:bravynix_school_erp/features/subjects/presentation/view/subject_
 import 'package:bravynix_school_erp/features/subjects/presentation/view/subjects_page.dart';
 import 'package:bravynix_school_erp/features/time_slots/presentation/view/time_slot_form_page.dart';
 import 'package:bravynix_school_erp/features/time_slots/presentation/view/time_slots_page.dart';
+import 'package:bravynix_school_erp/features/timetable/presentation/view/entry_form_page.dart';
 import 'package:bravynix_school_erp/features/timetable/presentation/view/timetable_page.dart';
 import 'package:bravynix_school_erp/features/update_required/presentation/update_required_page.dart';
 import 'package:flutter/foundation.dart';
@@ -72,6 +73,9 @@ String? timeSlotFormRedirect(Object? extra) => extra is TimeSlotFormArgs ? null 
 
 /// The section timetable needs the section the list passes as `extra`; opened any other way it goes back home.
 String? sectionTimetableRedirect(Object? extra) => extra is SectionTimetableArgs ? null : AppRoutes.home;
+
+/// The entry form needs the section and Institution the week passes as `extra`; opened any other way it goes home.
+String? timetableEntryFormRedirect(Object? extra) => extra is EntryFormArgs ? null : AppRoutes.home;
 
 /// The class forms need the Institution the list passes as `extra`; opened any other way they go back to the list.
 String? classFormRedirect(Object? extra) => extra is ClassFormArgs ? null : AppRoutes.classes;
@@ -171,6 +175,11 @@ GoRouter createRouter(SessionBloc session, {required SessionChanges changes}) {
         path: AppRoutes.sectionTimetable,
         redirect: (_, state) => sectionTimetableRedirect(state.extra),
         builder: (_, state) => SectionTimetablePage(args: state.extra! as SectionTimetableArgs),
+      ),
+      GoRoute(
+        path: AppRoutes.timetableEntryForm,
+        redirect: (_, state) => timetableEntryFormRedirect(state.extra),
+        builder: (_, state) => EntryFormPage(args: state.extra! as EntryFormArgs),
       ),
       GoRoute(path: AppRoutes.timeSlots, builder: (_, _) => const TimeSlotsPage()),
       GoRoute(

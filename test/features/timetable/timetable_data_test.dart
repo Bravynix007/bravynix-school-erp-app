@@ -6,6 +6,7 @@ import 'package:bravynix_school_erp/core/network/dio_factory.dart';
 import 'package:bravynix_school_erp/core/storage/token_storage.dart';
 import 'package:bravynix_school_erp/features/timetable/data/timetable_models.dart';
 import 'package:bravynix_school_erp/features/timetable/data/timetable_repository_impl.dart';
+import 'package:bravynix_school_erp/features/timetable/domain/timetable_entry.dart';
 import 'package:bravynix_school_erp/features/timetable/domain/timetable_week.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -64,6 +65,48 @@ void main() {
     });
   });
 
+  group('bodies', () {
+    const lesson = EntryInput(dayOfWeek: 2, timeSlotId: 't1', isBreak: false, subjectId: 'u1', staffMemberId: 'f1');
+    const aBreak = EntryInput(dayOfWeek: 2, timeSlotId: 't2', isBreak: true, subjectId: 'u1', staffMemberId: 'f1');
+
+    test('add a lesson to a section, with its subject and teacher', () {
+      expect(TimetableModels.createBody('sec1', lesson), {
+        'sectionId': 'sec1',
+        'dayOfWeek': 2,
+        'timeSlotId': 't1',
+        'isBreak': false,
+        'subjectId': 'u1',
+        'staffMemberId': 'f1',
+      });
+    });
+
+    test('name no subject and no teacher for a break, even if the form still held them', () {
+      expect(TimetableModels.createBody('sec1', aBreak), {
+        'sectionId': 'sec1',
+        'dayOfWeek': 2,
+        'timeSlotId': 't2',
+        'isBreak': true,
+      });
+    });
+
+    test('change an entry with the version it was read at, and leave its section alone', () {
+      expect(TimetableModels.updateBody(mathsMonday, lesson), {
+        'version': 1,
+        'dayOfWeek': 2,
+        'timeSlotId': 't1',
+        'isBreak': false,
+        'subjectId': 'u1',
+        'staffMemberId': 'f1',
+      });
+      expect(TimetableModels.updateBody(lunchMonday, aBreak), {
+        'version': 3,
+        'dayOfWeek': 2,
+        'timeSlotId': 't2',
+        'isBreak': true,
+      });
+    });
+  });
+
   group('repository', () {
     test('reads the week of a section, of a teacher and of a child from TT-01', () async {
       final (:repository, :adapter) = build(() => okReply([entryJson()]));
@@ -78,6 +121,27 @@ void main() {
           'http://api.test/v1/timetable/entries?studentId=s1',
         ],
       );
+    });
+
+    test('adds an entry with TT-02', () async {
+      final (:repository, :adapter) = build(() => okReply(entryJson(), status: 201));
+      const input = EntryInput(dayOfWeek: 1, timeSlotId: 't1', isBreak: false, subjectId: 'u1', staffMemberId: 'f1');
+      expect(await repository.add('sec1', input), mathsMonday);
+      expect(adapter.requests.single.method, 'POST');
+      expect(adapter.paths, ['/v1/timetable/entries']);
+      expect(adapter.requests.single.data, containsPair('sectionId', 'sec1'));
+    });
+
+    test('changes an entry with TT-03, and removes one with TT-04, encoding the ID it puts in the path', () async {
+      final (:repository, :adapter) = build(() => okReply(entryJson(version: 2)));
+      const input = EntryInput(dayOfWeek: 3, timeSlotId: 't1', isBreak: false, subjectId: 'u1', staffMemberId: 'f1');
+      await repository.change(mathsMonday, input);
+      expect(adapter.paths, ['/v1/timetable/entries/x1']);
+      expect(adapter.requests.single.method, 'PATCH');
+      expect(adapter.requests.single.data, containsPair('version', 1));
+      await repository.remove('a/b');
+      expect(adapter.paths.last, '/v1/timetable/entries/a%2Fb');
+      expect(adapter.requests.last.method, 'DELETE');
     });
 
     test('turns a refusal into an ApiFailure for the screen', () async {

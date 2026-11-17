@@ -141,6 +141,7 @@ class SectionsView extends StatelessWidget {
                     AppRoutes.sectionTimetable,
                     extra: SectionTimetableArgs(
                       sectionId: section.id,
+                      institutionId: schoolClass.institutionId,
                       title: '${schoolClass.displayName} - ${section.displayName}',
                     ),
                   ),
