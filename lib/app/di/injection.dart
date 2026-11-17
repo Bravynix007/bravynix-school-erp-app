@@ -25,6 +25,8 @@ import 'package:bravynix_school_erp/features/classroom/data/classroom_repository
 import 'package:bravynix_school_erp/features/classroom/domain/classroom.dart';
 import 'package:bravynix_school_erp/features/documents/data/documents_repository_impl.dart';
 import 'package:bravynix_school_erp/features/documents/domain/documents_repository.dart';
+import 'package:bravynix_school_erp/features/events/data/events_repository_impl.dart';
+import 'package:bravynix_school_erp/features/events/domain/events_repository.dart';
 import 'package:bravynix_school_erp/features/files/data/device_file_picking.dart';
 import 'package:bravynix_school_erp/features/files/data/files_repository_impl.dart';
 import 'package:bravynix_school_erp/features/files/data/object_uploader.dart';
@@ -127,6 +129,7 @@ Future<void> configureDependencies(
         events: events,
       ),
     )
+    ..registerLazySingleton<EventsRepository>(() => EventsRepositoryImpl(api: getIt()))
     ..registerLazySingleton<NotificationsRepository>(() => NotificationsRepositoryImpl(api: getIt()))
     ..registerLazySingleton<PushMessaging>(UnavailablePushMessaging.new)
     ..registerLazySingleton<PushDeviceRepository>(

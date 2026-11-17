@@ -241,6 +241,126 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get quickAccessTitle => 'Quick Access';
+
+  @override
+  String get eventsTitle => 'Events';
+
+  @override
+  String get eventsPreviousMonth => 'Previous month';
+
+  @override
+  String get eventsNextMonth => 'Next month';
+
+  @override
+  String get eventsFilterAll => 'All';
+
+  @override
+  String get eventsFilterHolidays => 'Holidays';
+
+  @override
+  String get eventsEmptyTitle => 'No events this month';
+
+  @override
+  String get eventsEmptyMessage => 'Events and holidays your school adds show up here.';
+
+  @override
+  String get eventsEmptyHolidaysTitle => 'No holidays this month';
+
+  @override
+  String get eventHolidayTag => 'Holiday';
+
+  @override
+  String get eventWhen => 'When';
+
+  @override
+  String eventOneDay(String date) {
+    return '$date';
+  }
+
+  @override
+  String eventDays(String start, String end) {
+    return '$start to $end';
+  }
+
+  @override
+  String get eventVenue => 'Venue';
+
+  @override
+  String get eventAbout => 'About';
+
+  @override
+  String get eventAudience => 'Told to';
+
+  @override
+  String get eventAudienceEveryone => 'Everyone';
+
+  @override
+  String get eventAudienceStudents => 'Students and parents';
+
+  @override
+  String get eventAudienceStaff => 'Staff';
+
+  @override
+  String get eventScope => 'Belongs to';
+
+  @override
+  String get eventScopeSociety => 'The whole Society';
+
+  @override
+  String get eventScopeInstitution => 'One Institution';
+
+  @override
+  String get eventHolidayType => 'Kind of holiday';
+
+  @override
+  String get eventHolidayPublic => 'Public holiday';
+
+  @override
+  String get eventHolidayVacation => 'Vacation';
+
+  @override
+  String get eventHolidayEvent => 'Event holiday';
+
+  @override
+  String get eventHolidayOptional => 'Optional';
+
+  @override
+  String get eventHolidayFor => 'Holiday for';
+
+  @override
+  String get eventHolidayForStudents => 'Students';
+
+  @override
+  String get eventHolidayForStaff => 'Staff';
+
+  @override
+  String get eventHolidayForBoth => 'Students and staff';
+
+  @override
+  String get eventHolidayClasses => 'Classes';
+
+  @override
+  String get eventHolidayEveryClass => 'Every class';
+
+  @override
+  String eventHolidaySomeClasses(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count classes',
+      one: '1 class',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get errorEventNotFound => 'This event is no longer available.';
+
+  @override
+  String get errorChildAccessBlocked => 'Access to this child\'s information is blocked. Contact the school.';
+
+  @override
   String get logOut => 'Log out';
 
   @override

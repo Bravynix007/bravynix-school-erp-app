@@ -10,6 +10,11 @@ abstract final class AppRoutes {
   /// The bell's screen: the person's notices by tab (NTF-01).
   static const inbox = '/inbox';
 
+  /// Events and holidays (EVT-01), and one of them (EVT-03), which a notice opens by its ID.
+  static const events = '/events';
+  static const eventPattern = '/events/:id';
+  static String event(String id) => '$events/${Uri.encodeComponent(id)}';
+
   /// A teacher's own staff record and documents (STF-03, STF-14), read only.
   static const ownStaffRecord = '/profile/staff-record';
 

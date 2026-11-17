@@ -12,6 +12,8 @@ import 'package:bravynix_school_erp/features/classes/presentation/view/class_for
 import 'package:bravynix_school_erp/features/classes/presentation/view/classes_page.dart';
 import 'package:bravynix_school_erp/features/classroom/presentation/view/classroom_page.dart';
 import 'package:bravynix_school_erp/features/classroom/presentation/view/classroom_student_page.dart';
+import 'package:bravynix_school_erp/features/events/presentation/view/event_page.dart';
+import 'package:bravynix_school_erp/features/events/presentation/view/events_page.dart';
 import 'package:bravynix_school_erp/features/gallery/presentation/component_gallery_page.dart';
 import 'package:bravynix_school_erp/features/home/presentation/home_page.dart';
 import 'package:bravynix_school_erp/features/institutions/presentation/view/institution_form_page.dart';
@@ -122,6 +124,11 @@ GoRouter createRouter(SessionBloc session, {required SessionChanges changes}) {
       GoRoute(path: AppRoutes.chooseRole, builder: (_, _) => const RoleChooserPage()),
       GoRoute(path: AppRoutes.profile, builder: (_, _) => const ProfilePage()),
       GoRoute(path: AppRoutes.inbox, builder: (_, _) => const InboxPage()),
+      GoRoute(path: AppRoutes.events, builder: (_, _) => const EventsPage()),
+      GoRoute(
+        path: AppRoutes.eventPattern,
+        builder: (_, state) => EventPage(id: state.pathParameters['id']!),
+      ),
       GoRoute(
         path: AppRoutes.ownStaffRecord,
         redirect: (_, _) => ownStaffRecordRedirect(session.state),

@@ -1,4 +1,7 @@
+import 'dart:async';
+
 import 'package:bravynix_school_erp/app/di/injection.dart';
+import 'package:bravynix_school_erp/app/router/app_routes.dart';
 import 'package:bravynix_school_erp/core/format/formatters.dart';
 import 'package:bravynix_school_erp/core/theme/app_spacing.dart';
 import 'package:bravynix_school_erp/core/widgets/app_button.dart';
@@ -164,7 +167,14 @@ class _List extends StatelessWidget {
           const SizedBox(height: AppSpacing.sm),
         ],
         for (final item in state.items) ...[
-          _ItemCard(item: item, onTap: () => bloc.add(InboxItemOpened(item.id))),
+          _ItemCard(
+            item: item,
+            onTap: () {
+              bloc.add(InboxItemOpened(item.id));
+              final location = _locationOf(item.target);
+              if (location != null) unawaited(context.push(location));
+            },
+          ),
           const SizedBox(height: AppSpacing.xs),
         ],
         if (state.moreFailure case final failure?) ...[
@@ -186,6 +196,12 @@ class _List extends StatelessWidget {
     );
   }
 }
+
+/// The screen a notice opens. Attendance and diary notices open theirs when those screens are built.
+String? _locationOf(NotificationTarget? target) => switch (target?.type) {
+  NotificationTargetType.event => AppRoutes.event(target!.id),
+  _ => null,
+};
 
 class _ItemCard extends StatelessWidget {
   const new({required this.item, required this.onTap});

@@ -12,7 +12,9 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences_platform_interface/in_memory_shared_preferences_async.dart';
 import 'package:shared_preferences_platform_interface/shared_preferences_async_platform_interface.dart';
 
+import '../helpers/events.dart';
 import '../helpers/fake_http.dart';
+import '../helpers/notifications.dart';
 
 /// The whole app wired as in production, with only the phone and the network faked.
 Map<String, Object?> _owner(String societyId, {String? name}) => {
@@ -133,6 +135,53 @@ void main() {
     expect(find.byKey(const Key('child.switcher')), findsNothing);
   });
 
+  testWidgets('a parent reads the events of the child shown, and of the sibling after switching', (tester) async {
+    Map<String, Object?> child(String id, String name) => {
+      'studentId': id,
+      'firstName': name,
+      'institutionName': 'Green Valley School',
+      'isBlocked': false,
+    };
+    final adapter = await start(
+      tester,
+      tokens: const AuthTokens(accessToken: 'a', refreshToken: 'r'),
+      reply: (path) async => switch (path) {
+        'events' => okReply([eventJson()]),
+        'events/e1' => okReply(eventJson()),
+        _ => okReply({
+          'person': {'id': 'p1', 'email': 'asha.rao@example.com', 'firstName': 'Asha', 'preferredLanguage': 'en'},
+          'contexts': [
+            {
+              'roleCode': 5,
+              'isBlocked': false,
+              'children': [child('s1', 'Diya'), child('s2', 'Arun')],
+            },
+          ],
+        }),
+      },
+    );
+    List<String?> asked() => [
+      for (final request in adapter.requests.where((request) => request.uri.path == '/v1/events'))
+        request.uri.queryParameters['studentId'],
+    ];
+
+    await tester.tap(find.byKey(const Key('home.quick.events')));
+    await tester.pumpAndSettle();
+    expect(find.text('Annual Day'), findsOneWidget);
+    expect(asked(), ['s1']);
+
+    await tester.tap(find.byKey(const Key('child.switcher')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('child.option.s2')));
+    await tester.pumpAndSettle();
+    expect(asked(), ['s1', 's2']);
+
+    await tester.tap(find.text('Annual Day'));
+    await tester.pumpAndSettle();
+    expect(find.text('20-11-2026 to 22-11-2026'), findsOneWidget);
+    expect(adapter.requests.last.uri.queryParameters, {'studentId': 's2'});
+  });
+
   group('notifications', () {
     const tokens = AuthTokens(accessToken: 'a', refreshToken: 'r');
     Future<FakeReply> owner(String path) async => switch (path) {
@@ -163,6 +212,30 @@ void main() {
       await tester.tap(find.byType(BackButton).evaluate().isEmpty ? find.byTooltip('Back') : find.byType(BackButton));
       await tester.pumpAndSettle();
       expect(adapter.paths.where((path) => path == '/v1/notifications/unread-count'), hasLength(2));
+    });
+
+    testWidgets('a notice about an event opens the event', (tester) async {
+      final adapter = await start(
+        tester,
+        tokens: tokens,
+        reply: (path) async => switch (path) {
+          'notifications' => okReply(
+            [
+              inboxItemJson(target: {'type': 3, 'id': 'e1'}),
+            ],
+            meta: {'limit': 20, 'nextCursor': null, 'hasMore': false},
+          ),
+          'notifications/n1/read' => okReply(inboxItemJson(isRead: true)),
+          'events/e1' => okReply(eventJson()),
+          _ => await owner(path),
+        },
+      );
+      await tester.tap(find.byKey(const Key('home.bell')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const ValueKey('inbox.item.n1')));
+      await tester.pumpAndSettle();
+      expect(adapter.paths, containsAll(['/v1/notifications/n1/read', '/v1/events/e1']));
+      expect(find.text('Annual Day'), findsOneWidget);
     });
 
     testWidgets('signing in registers the phone’s push token, and a new token is registered again', (tester) async {

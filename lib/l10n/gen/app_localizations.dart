@@ -463,6 +463,222 @@ abstract class AppLocalizations {
   /// **'{count} unread'**
   String bellUnread(int count);
 
+  /// No description provided for @quickAccessTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Quick Access'**
+  String get quickAccessTitle;
+
+  /// No description provided for @eventsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Events'**
+  String get eventsTitle;
+
+  /// No description provided for @eventsPreviousMonth.
+  ///
+  /// In en, this message translates to:
+  /// **'Previous month'**
+  String get eventsPreviousMonth;
+
+  /// No description provided for @eventsNextMonth.
+  ///
+  /// In en, this message translates to:
+  /// **'Next month'**
+  String get eventsNextMonth;
+
+  /// No description provided for @eventsFilterAll.
+  ///
+  /// In en, this message translates to:
+  /// **'All'**
+  String get eventsFilterAll;
+
+  /// No description provided for @eventsFilterHolidays.
+  ///
+  /// In en, this message translates to:
+  /// **'Holidays'**
+  String get eventsFilterHolidays;
+
+  /// No description provided for @eventsEmptyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'No events this month'**
+  String get eventsEmptyTitle;
+
+  /// No description provided for @eventsEmptyMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Events and holidays your school adds show up here.'**
+  String get eventsEmptyMessage;
+
+  /// No description provided for @eventsEmptyHolidaysTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'No holidays this month'**
+  String get eventsEmptyHolidaysTitle;
+
+  /// No description provided for @eventHolidayTag.
+  ///
+  /// In en, this message translates to:
+  /// **'Holiday'**
+  String get eventHolidayTag;
+
+  /// No description provided for @eventWhen.
+  ///
+  /// In en, this message translates to:
+  /// **'When'**
+  String get eventWhen;
+
+  /// No description provided for @eventOneDay.
+  ///
+  /// In en, this message translates to:
+  /// **'{date}'**
+  String eventOneDay(String date);
+
+  /// No description provided for @eventDays.
+  ///
+  /// In en, this message translates to:
+  /// **'{start} to {end}'**
+  String eventDays(String start, String end);
+
+  /// No description provided for @eventVenue.
+  ///
+  /// In en, this message translates to:
+  /// **'Venue'**
+  String get eventVenue;
+
+  /// No description provided for @eventAbout.
+  ///
+  /// In en, this message translates to:
+  /// **'About'**
+  String get eventAbout;
+
+  /// No description provided for @eventAudience.
+  ///
+  /// In en, this message translates to:
+  /// **'Told to'**
+  String get eventAudience;
+
+  /// No description provided for @eventAudienceEveryone.
+  ///
+  /// In en, this message translates to:
+  /// **'Everyone'**
+  String get eventAudienceEveryone;
+
+  /// No description provided for @eventAudienceStudents.
+  ///
+  /// In en, this message translates to:
+  /// **'Students and parents'**
+  String get eventAudienceStudents;
+
+  /// No description provided for @eventAudienceStaff.
+  ///
+  /// In en, this message translates to:
+  /// **'Staff'**
+  String get eventAudienceStaff;
+
+  /// No description provided for @eventScope.
+  ///
+  /// In en, this message translates to:
+  /// **'Belongs to'**
+  String get eventScope;
+
+  /// No description provided for @eventScopeSociety.
+  ///
+  /// In en, this message translates to:
+  /// **'The whole Society'**
+  String get eventScopeSociety;
+
+  /// No description provided for @eventScopeInstitution.
+  ///
+  /// In en, this message translates to:
+  /// **'One Institution'**
+  String get eventScopeInstitution;
+
+  /// No description provided for @eventHolidayType.
+  ///
+  /// In en, this message translates to:
+  /// **'Kind of holiday'**
+  String get eventHolidayType;
+
+  /// No description provided for @eventHolidayPublic.
+  ///
+  /// In en, this message translates to:
+  /// **'Public holiday'**
+  String get eventHolidayPublic;
+
+  /// No description provided for @eventHolidayVacation.
+  ///
+  /// In en, this message translates to:
+  /// **'Vacation'**
+  String get eventHolidayVacation;
+
+  /// No description provided for @eventHolidayEvent.
+  ///
+  /// In en, this message translates to:
+  /// **'Event holiday'**
+  String get eventHolidayEvent;
+
+  /// No description provided for @eventHolidayOptional.
+  ///
+  /// In en, this message translates to:
+  /// **'Optional'**
+  String get eventHolidayOptional;
+
+  /// No description provided for @eventHolidayFor.
+  ///
+  /// In en, this message translates to:
+  /// **'Holiday for'**
+  String get eventHolidayFor;
+
+  /// No description provided for @eventHolidayForStudents.
+  ///
+  /// In en, this message translates to:
+  /// **'Students'**
+  String get eventHolidayForStudents;
+
+  /// No description provided for @eventHolidayForStaff.
+  ///
+  /// In en, this message translates to:
+  /// **'Staff'**
+  String get eventHolidayForStaff;
+
+  /// No description provided for @eventHolidayForBoth.
+  ///
+  /// In en, this message translates to:
+  /// **'Students and staff'**
+  String get eventHolidayForBoth;
+
+  /// No description provided for @eventHolidayClasses.
+  ///
+  /// In en, this message translates to:
+  /// **'Classes'**
+  String get eventHolidayClasses;
+
+  /// No description provided for @eventHolidayEveryClass.
+  ///
+  /// In en, this message translates to:
+  /// **'Every class'**
+  String get eventHolidayEveryClass;
+
+  /// No description provided for @eventHolidaySomeClasses.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 class} other{{count} classes}}'**
+  String eventHolidaySomeClasses(int count);
+
+  /// No description provided for @errorEventNotFound.
+  ///
+  /// In en, this message translates to:
+  /// **'This event is no longer available.'**
+  String get errorEventNotFound;
+
+  /// No description provided for @errorChildAccessBlocked.
+  ///
+  /// In en, this message translates to:
+  /// **'Access to this child\'s information is blocked. Contact the school.'**
+  String get errorChildAccessBlocked;
+
   /// No description provided for @logOut.
   ///
   /// In en, this message translates to:

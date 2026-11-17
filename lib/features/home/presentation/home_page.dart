@@ -1,4 +1,7 @@
 import 'package:bravynix_school_erp/app/router/app_routes.dart';
+import 'package:bravynix_school_erp/core/theme/app_spacing.dart';
+import 'package:bravynix_school_erp/core/widgets/quick_access_tile.dart';
+import 'package:bravynix_school_erp/core/widgets/section_header.dart';
 import 'package:bravynix_school_erp/features/auth/domain/auth_entities.dart';
 import 'package:bravynix_school_erp/features/auth/presentation/session/session_bloc.dart';
 import 'package:bravynix_school_erp/features/blocks/presentation/view/blocked_access_notice.dart';
@@ -56,6 +59,19 @@ class HomePage extends StatelessWidget {
               ),
             const SizedBox(height: 8),
           ],
+          SectionHeader(title: l10n.quickAccessTitle),
+          const SizedBox(height: AppSpacing.xs),
+          QuickAccessGrid(
+            tiles: [
+              QuickAccessTile(
+                key: const Key('home.quick.events'),
+                icon: Icons.event_outlined,
+                label: l10n.eventsTitle,
+                onTap: () => context.push(AppRoutes.events),
+              ),
+            ],
+          ),
+          const SizedBox(height: AppSpacing.md),
           Text(l10n.homeComingSoon, style: Theme.of(context).textTheme.bodyMedium),
         ],
       ),
