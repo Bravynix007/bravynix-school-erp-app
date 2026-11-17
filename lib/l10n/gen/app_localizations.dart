@@ -1561,6 +1561,186 @@ abstract class AppLocalizations {
   /// **'Another academic year of this Institution has this name.'**
   String get errorYearDuplicate;
 
+  /// No description provided for @timeSlotsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Period timings'**
+  String get timeSlotsTitle;
+
+  /// No description provided for @timeSlotsDetail.
+  ///
+  /// In en, this message translates to:
+  /// **'The periods of the school day, for the current academic year'**
+  String get timeSlotsDetail;
+
+  /// No description provided for @timeSlotsEmptyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'No periods yet'**
+  String get timeSlotsEmptyTitle;
+
+  /// No description provided for @timeSlotsEmptyMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Add the periods and breaks of the school day. The class timetable is built from them.'**
+  String get timeSlotsEmptyMessage;
+
+  /// No description provided for @timeSlotAdd.
+  ///
+  /// In en, this message translates to:
+  /// **'Add period'**
+  String get timeSlotAdd;
+
+  /// No description provided for @timeSlotAddTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Add period'**
+  String get timeSlotAddTitle;
+
+  /// No description provided for @timeSlotEditTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit period'**
+  String get timeSlotEditTitle;
+
+  /// No description provided for @timeSlotEdit.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit'**
+  String get timeSlotEdit;
+
+  /// No description provided for @timeSlotDeactivate.
+  ///
+  /// In en, this message translates to:
+  /// **'Deactivate'**
+  String get timeSlotDeactivate;
+
+  /// No description provided for @timeSlotDeactivateTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Deactivate {name}?'**
+  String timeSlotDeactivateTitle(String name);
+
+  /// No description provided for @timeSlotDeactivateMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'It leaves the list and its number and times are free again. Nothing is deleted.'**
+  String get timeSlotDeactivateMessage;
+
+  /// No description provided for @timeSlotDeactivated.
+  ///
+  /// In en, this message translates to:
+  /// **'Period deactivated'**
+  String get timeSlotDeactivated;
+
+  /// No description provided for @timeSlotSaved.
+  ///
+  /// In en, this message translates to:
+  /// **'Period saved'**
+  String get timeSlotSaved;
+
+  /// No description provided for @timeSlotName.
+  ///
+  /// In en, this message translates to:
+  /// **'Period {number}'**
+  String timeSlotName(int number);
+
+  /// No description provided for @timeSlotTimes.
+  ///
+  /// In en, this message translates to:
+  /// **'{start} to {end}'**
+  String timeSlotTimes(String start, String end);
+
+  /// No description provided for @timeSlotBreakChip.
+  ///
+  /// In en, this message translates to:
+  /// **'Break'**
+  String get timeSlotBreakChip;
+
+  /// No description provided for @timeSlotNumber.
+  ///
+  /// In en, this message translates to:
+  /// **'Period number'**
+  String get timeSlotNumber;
+
+  /// No description provided for @timeSlotNumberHelper.
+  ///
+  /// In en, this message translates to:
+  /// **'1 to 30'**
+  String get timeSlotNumberHelper;
+
+  /// No description provided for @timeSlotLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Name (optional)'**
+  String get timeSlotLabel;
+
+  /// No description provided for @timeSlotLabelHelper.
+  ///
+  /// In en, this message translates to:
+  /// **'For example Lunch'**
+  String get timeSlotLabelHelper;
+
+  /// No description provided for @timeSlotStart.
+  ///
+  /// In en, this message translates to:
+  /// **'Starts at'**
+  String get timeSlotStart;
+
+  /// No description provided for @timeSlotEnd.
+  ///
+  /// In en, this message translates to:
+  /// **'Ends at'**
+  String get timeSlotEnd;
+
+  /// No description provided for @timeSlotBreak.
+  ///
+  /// In en, this message translates to:
+  /// **'This is a break'**
+  String get timeSlotBreak;
+
+  /// No description provided for @timeSlotBreakHelper.
+  ///
+  /// In en, this message translates to:
+  /// **'No lesson is given in a break. It cannot be changed once the period is added.'**
+  String get timeSlotBreakHelper;
+
+  /// No description provided for @timeSlotSave.
+  ///
+  /// In en, this message translates to:
+  /// **'Save'**
+  String get timeSlotSave;
+
+  /// No description provided for @errorTimeSlotDuplicate.
+  ///
+  /// In en, this message translates to:
+  /// **'Another period of this year has this number.'**
+  String get errorTimeSlotDuplicate;
+
+  /// No description provided for @errorTimeSlotOverlap.
+  ///
+  /// In en, this message translates to:
+  /// **'These times overlap another period of this year. A period may end when the next begins.'**
+  String get errorTimeSlotOverlap;
+
+  /// No description provided for @errorTimeSlotInUse.
+  ///
+  /// In en, this message translates to:
+  /// **'A timetable entry sits in this period. Remove it from the timetable first.'**
+  String get errorTimeSlotInUse;
+
+  /// No description provided for @errorTimeSlotNotFound.
+  ///
+  /// In en, this message translates to:
+  /// **'This period could not be found. It may have been deactivated.'**
+  String get errorTimeSlotNotFound;
+
+  /// No description provided for @errorCurrentYearRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'This Institution has no current academic year. Make one current under Academic years first.'**
+  String get errorCurrentYearRequired;
+
   /// No description provided for @errorCurrentYearLocked.
   ///
   /// In en, this message translates to:

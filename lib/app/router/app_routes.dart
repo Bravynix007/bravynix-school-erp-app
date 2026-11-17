@@ -47,6 +47,12 @@ abstract final class AppRoutes {
   static const academicYears = '/school-setup/academic-years';
   static const academicYearForm = '/school-setup/academic-years/form';
 
+  /// Period timings of the chosen Institution's current year (TTS-01), and the form that adds or edits one (TTS-02,
+  /// TTS-03), which takes the Institution and the period as the route's `extra`: no endpoint reads one period, so the
+  /// list hands it over.
+  static const timeSlots = '/school-setup/period-timings';
+  static const timeSlotForm = '/school-setup/period-timings/form';
+
   /// Subjects of the Society (SUB-01), and the form that adds or edits one (SUB-02, SUB-03), which takes the subject to
   /// edit as the route's `extra` (null to add): no endpoint reads one subject, so the list hands it over.
   static const subjects = '/school-setup/subjects';

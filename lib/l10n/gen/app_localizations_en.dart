@@ -849,6 +849,106 @@ class AppLocalizationsEn extends AppLocalizations {
   String get errorYearDuplicate => 'Another academic year of this Institution has this name.';
 
   @override
+  String get timeSlotsTitle => 'Period timings';
+
+  @override
+  String get timeSlotsDetail => 'The periods of the school day, for the current academic year';
+
+  @override
+  String get timeSlotsEmptyTitle => 'No periods yet';
+
+  @override
+  String get timeSlotsEmptyMessage =>
+      'Add the periods and breaks of the school day. The class timetable is built from them.';
+
+  @override
+  String get timeSlotAdd => 'Add period';
+
+  @override
+  String get timeSlotAddTitle => 'Add period';
+
+  @override
+  String get timeSlotEditTitle => 'Edit period';
+
+  @override
+  String get timeSlotEdit => 'Edit';
+
+  @override
+  String get timeSlotDeactivate => 'Deactivate';
+
+  @override
+  String timeSlotDeactivateTitle(String name) {
+    return 'Deactivate $name?';
+  }
+
+  @override
+  String get timeSlotDeactivateMessage =>
+      'It leaves the list and its number and times are free again. Nothing is deleted.';
+
+  @override
+  String get timeSlotDeactivated => 'Period deactivated';
+
+  @override
+  String get timeSlotSaved => 'Period saved';
+
+  @override
+  String timeSlotName(int number) {
+    return 'Period $number';
+  }
+
+  @override
+  String timeSlotTimes(String start, String end) {
+    return '$start to $end';
+  }
+
+  @override
+  String get timeSlotBreakChip => 'Break';
+
+  @override
+  String get timeSlotNumber => 'Period number';
+
+  @override
+  String get timeSlotNumberHelper => '1 to 30';
+
+  @override
+  String get timeSlotLabel => 'Name (optional)';
+
+  @override
+  String get timeSlotLabelHelper => 'For example Lunch';
+
+  @override
+  String get timeSlotStart => 'Starts at';
+
+  @override
+  String get timeSlotEnd => 'Ends at';
+
+  @override
+  String get timeSlotBreak => 'This is a break';
+
+  @override
+  String get timeSlotBreakHelper => 'No lesson is given in a break. It cannot be changed once the period is added.';
+
+  @override
+  String get timeSlotSave => 'Save';
+
+  @override
+  String get errorTimeSlotDuplicate => 'Another period of this year has this number.';
+
+  @override
+  String get errorTimeSlotOverlap =>
+      'These times overlap another period of this year. A period may end when the next begins.';
+
+  @override
+  String get errorTimeSlotInUse => 'A timetable entry sits in this period. Remove it from the timetable first.';
+
+  @override
+  String get errorTimeSlotNotFound => 'This period could not be found. It may have been deactivated.';
+
+  @override
+  String get errorCurrentYearRequired =>
+      'This Institution has no current academic year. Make one current under Academic years first.';
+
+  @override
   String get errorCurrentYearLocked => 'The current year can\'t be deactivated. Make another year current first.';
 
   @override

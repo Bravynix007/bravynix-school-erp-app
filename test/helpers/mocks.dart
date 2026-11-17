@@ -20,9 +20,12 @@ import 'package:bravynix_school_erp/features/students/domain/student_import.dart
 import 'package:bravynix_school_erp/features/students/domain/students_repository.dart';
 import 'package:bravynix_school_erp/features/subjects/domain/subjects_repository.dart';
 import 'package:bravynix_school_erp/features/teaching_assignments/domain/teaching_assignments_repository.dart';
+import 'package:bravynix_school_erp/features/time_slots/domain/time_slots_repository.dart';
 import 'package:mocktail/mocktail.dart';
 
 class MockAcademicYearsRepository extends Mock implements AcademicYearsRepository;
+
+class MockTimeSlotsRepository extends Mock implements TimeSlotsRepository;
 
 class MockClassCatalogue extends Mock implements ClassCatalogue;
 

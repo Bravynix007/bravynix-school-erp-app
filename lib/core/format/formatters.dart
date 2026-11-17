@@ -15,6 +15,9 @@ abstract final class Formatters {
   /// A day chosen on a calendar → `2026-10-23`, with no time zone shift: the day is the one that was picked.
   static String isoDay(DateTime day) => '${day.year.toString().padLeft(4, '0')}-${_two(day.month)}-${_two(day.day)}';
 
+  /// A time of day chosen on a clock → `09:05`, 24 hours: what the API takes and shows for a period's start and end.
+  static String clockTime(int hour, int minute) => '${_two(hour)}:${_two(minute)}';
+
   /// The school day an instant falls on in IST, `2026-10-23`: what a due date is compared with.
   static String schoolDay(DateTime value) {
     final ist = value.toUtc().add(_ist);

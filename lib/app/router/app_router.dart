@@ -38,6 +38,8 @@ import 'package:bravynix_school_erp/features/students/presentation/view/student_
 import 'package:bravynix_school_erp/features/students/presentation/view/students_page.dart';
 import 'package:bravynix_school_erp/features/subjects/presentation/view/subject_form_page.dart';
 import 'package:bravynix_school_erp/features/subjects/presentation/view/subjects_page.dart';
+import 'package:bravynix_school_erp/features/time_slots/presentation/view/time_slot_form_page.dart';
+import 'package:bravynix_school_erp/features/time_slots/presentation/view/time_slots_page.dart';
 import 'package:bravynix_school_erp/features/update_required/presentation/update_required_page.dart';
 import 'package:flutter/foundation.dart';
 import 'package:go_router/go_router.dart';
@@ -62,6 +64,10 @@ String? sessionRedirect(SessionState session, String location) {
 /// The academic year form needs the Institution and year the list passes as `extra`; opened any other way there is
 /// nothing to show, so it goes back to the list. Pure, like [sessionRedirect].
 String? academicYearFormRedirect(Object? extra) => extra is AcademicYearFormArgs ? null : AppRoutes.academicYears;
+
+/// The period form needs the Institution and period the list passes as `extra`; opened any other way it goes back to
+/// the list.
+String? timeSlotFormRedirect(Object? extra) => extra is TimeSlotFormArgs ? null : AppRoutes.timeSlots;
 
 /// The class forms need the Institution the list passes as `extra`; opened any other way they go back to the list.
 String? classFormRedirect(Object? extra) => extra is ClassFormArgs ? null : AppRoutes.classes;
@@ -155,6 +161,12 @@ GoRouter createRouter(SessionBloc session, {required SessionChanges changes}) {
         path: AppRoutes.academicYearForm,
         redirect: (_, state) => academicYearFormRedirect(state.extra),
         builder: (_, state) => AcademicYearFormPage(args: state.extra! as AcademicYearFormArgs),
+      ),
+      GoRoute(path: AppRoutes.timeSlots, builder: (_, _) => const TimeSlotsPage()),
+      GoRoute(
+        path: AppRoutes.timeSlotForm,
+        redirect: (_, state) => timeSlotFormRedirect(state.extra),
+        builder: (_, state) => TimeSlotFormPage(args: state.extra! as TimeSlotFormArgs),
       ),
       GoRoute(path: AppRoutes.subjects, builder: (_, _) => const SubjectsPage()),
       GoRoute(

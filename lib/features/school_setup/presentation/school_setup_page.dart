@@ -45,6 +45,16 @@ class SchoolSetupPage extends StatelessWidget {
                 const SizedBox(height: AppSpacing.xs),
                 AppCard(
                   child: MenuListTile(
+                    key: const Key('schoolSetup.timeSlots'),
+                    icon: Icons.schedule_outlined,
+                    title: l10n.timeSlotsTitle,
+                    subtitle: l10n.timeSlotsDetail,
+                    onTap: () => context.push(AppRoutes.timeSlots),
+                  ),
+                ),
+                const SizedBox(height: AppSpacing.xs),
+                AppCard(
+                  child: MenuListTile(
                     key: const Key('schoolSetup.subjects'),
                     icon: Icons.menu_book_outlined,
                     title: l10n.subjectsTitle,
