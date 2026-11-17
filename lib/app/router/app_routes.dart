@@ -47,6 +47,11 @@ abstract final class AppRoutes {
   static const academicYears = '/school-setup/academic-years';
   static const academicYearForm = '/school-setup/academic-years/form';
 
+  /// Timetable: a teacher's own week, or a parent's child's (TT-01), and one section's week, which takes the section and
+  /// its name as the route's `extra`.
+  static const timetable = '/timetable';
+  static const sectionTimetable = '/timetable/section';
+
   /// Period timings of the chosen Institution's current year (TTS-01), and the form that adds or edits one (TTS-02,
   /// TTS-03), which takes the Institution and the period as the route's `extra`: no endpoint reads one period, so the
   /// list hands it over.

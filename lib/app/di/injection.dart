@@ -60,6 +60,8 @@ import 'package:bravynix_school_erp/features/teaching_assignments/data/teaching_
 import 'package:bravynix_school_erp/features/teaching_assignments/domain/teaching_assignments_repository.dart';
 import 'package:bravynix_school_erp/features/time_slots/data/time_slots_repository_impl.dart';
 import 'package:bravynix_school_erp/features/time_slots/domain/time_slots_repository.dart';
+import 'package:bravynix_school_erp/features/timetable/data/timetable_repository_impl.dart';
+import 'package:bravynix_school_erp/features/timetable/domain/timetable_repository.dart';
 import 'package:dio/dio.dart';
 import 'package:get_it/get_it.dart';
 
@@ -103,6 +105,7 @@ Future<void> configureDependencies(
     )
     ..registerLazySingleton<AcademicYearsRepository>(() => AcademicYearsRepositoryImpl(api: getIt()))
     ..registerLazySingleton<TimeSlotsRepository>(() => TimeSlotsRepositoryImpl(api: getIt()))
+    ..registerLazySingleton<TimetableRepository>(() => TimetableRepositoryImpl(api: getIt()))
     ..registerLazySingleton<ClassesRepository>(() => ClassesRepositoryImpl(api: getIt()))
     ..registerLazySingleton(() => ClassCatalogue(getIt(), getIt()))
     ..registerLazySingleton<SectionsRepository>(() => SectionsRepositoryImpl(api: getIt()))

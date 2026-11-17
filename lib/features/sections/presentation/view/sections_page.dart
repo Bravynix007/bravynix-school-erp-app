@@ -16,6 +16,7 @@ import 'package:bravynix_school_erp/features/sections/domain/sections_repository
 import 'package:bravynix_school_erp/features/sections/presentation/bloc/sections_bloc.dart';
 import 'package:bravynix_school_erp/features/sections/presentation/view/section_error_text.dart';
 import 'package:bravynix_school_erp/features/sections/presentation/view/section_form_page.dart';
+import 'package:bravynix_school_erp/features/timetable/presentation/view/timetable_page.dart';
 import 'package:bravynix_school_erp/l10n/gen/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -136,6 +137,13 @@ class SectionsView extends StatelessWidget {
                   busy: state.busyId == section.id,
                   locked: state.busyId != null,
                   onEdit: () => _open(context, SectionFormArgs(classId: schoolClass.id, section: section)),
+                  onTimetable: () => context.push(
+                    AppRoutes.sectionTimetable,
+                    extra: SectionTimetableArgs(
+                      sectionId: section.id,
+                      title: '${schoolClass.displayName} - ${section.displayName}',
+                    ),
+                  ),
                 ),
                 const SizedBox(height: AppSpacing.xs),
               ],
@@ -148,7 +156,13 @@ class SectionsView extends StatelessWidget {
 }
 
 class _SectionCard extends StatelessWidget {
-  const new({required this.section, required this.busy, required this.locked, required this.onEdit});
+  const new({
+    required this.section,
+    required this.busy,
+    required this.locked,
+    required this.onEdit,
+    required this.onTimetable,
+  });
 
   final Section section;
 
@@ -158,6 +172,7 @@ class _SectionCard extends StatelessWidget {
   /// A change to any section is on its way, so no card starts another.
   final bool locked;
   final VoidCallback onEdit;
+  final VoidCallback onTimetable;
 
   @override
   Widget build(BuildContext context) {
@@ -177,26 +192,37 @@ class _SectionCard extends StatelessWidget {
           Text(section.displayName, style: text.titleMedium),
           Text(detail, style: text.bodySmall),
           const SizedBox(height: AppSpacing.xs),
-          Wrap(
-            spacing: AppSpacing.xs,
-            runSpacing: AppSpacing.xs,
-            children: [
-              AppButton(
-                key: ValueKey('section.edit.${section.id}'),
-                label: l10n.sectionEdit,
-                variant: AppButtonVariant.secondary,
-                size: AppButtonSize.medium,
-                onPressed: locked ? null : onEdit,
-              ),
-              AppButton(
-                key: ValueKey('section.deactivate.${section.id}'),
-                label: l10n.sectionDeactivate,
-                variant: AppButtonVariant.text,
-                size: AppButtonSize.medium,
-                loading: busy,
-                onPressed: locked ? null : () => _confirmDeactivate(context),
-              ),
-            ],
+          // The label has the card's width less the button's own padding; a longer word is drawn smaller, not broken.
+          LayoutBuilder(
+            builder: (context, constraints) => Wrap(
+              spacing: AppSpacing.xs,
+              runSpacing: AppSpacing.xs,
+              children: [
+                AppButton(
+                  key: ValueKey('section.timetable.${section.id}'),
+                  label: l10n.timetableTitle,
+                  variant: AppButtonVariant.secondary,
+                  size: AppButtonSize.medium,
+                  labelRoom: constraints.maxWidth - 2 * AppSpacing.md,
+                  onPressed: locked ? null : onTimetable,
+                ),
+                AppButton(
+                  key: ValueKey('section.edit.${section.id}'),
+                  label: l10n.sectionEdit,
+                  variant: AppButtonVariant.secondary,
+                  size: AppButtonSize.medium,
+                  onPressed: locked ? null : onEdit,
+                ),
+                AppButton(
+                  key: ValueKey('section.deactivate.${section.id}'),
+                  label: l10n.sectionDeactivate,
+                  variant: AppButtonVariant.text,
+                  size: AppButtonSize.medium,
+                  loading: busy,
+                  onPressed: locked ? null : () => _confirmDeactivate(context),
+                ),
+              ],
+            ),
           ),
         ],
       ),

@@ -945,6 +945,42 @@ class AppLocalizationsEn extends AppLocalizations {
   String get errorTimeSlotNotFound => 'This period could not be found. It may have been deactivated.';
 
   @override
+  String get timetableTitle => 'Timetable';
+
+  @override
+  String get timetableEmptyTitle => 'No timetable yet';
+
+  @override
+  String get timetableEmptyMessage => 'No lessons have been added to the week yet.';
+
+  @override
+  String timetableDayCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count periods',
+      one: '1 period',
+      zero: 'No periods',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get timetableDayEmpty => 'Nothing is planned for this day.';
+
+  @override
+  String get timetableBreak => 'Break';
+
+  @override
+  String get errorTimetableNotAssigned => 'You can see the timetable of a section you lead or teach.';
+
+  @override
+  String get errorTimetableNotFound => 'This timetable could not be found.';
+
+  @override
+  String get errorTimetableNoYear => 'No current academic year has been set up yet, so there is no timetable to show.';
+
+  @override
   String get errorCurrentYearRequired =>
       'This Institution has no current academic year. Make one current under Academic years first.';
 

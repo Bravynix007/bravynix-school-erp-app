@@ -63,6 +63,14 @@ class HomePage extends StatelessWidget {
           const SizedBox(height: AppSpacing.xs),
           QuickAccessGrid(
             tiles: [
+              // A teacher reads their own week and a parent their child's; an Owner or an Admin opens a section's.
+              if (active?.role == RoleCode.teacherStaff || active?.role == RoleCode.studentParent)
+                QuickAccessTile(
+                  key: const Key('home.quick.timetable'),
+                  icon: Icons.calendar_view_week_outlined,
+                  label: l10n.timetableTitle,
+                  onTap: () => context.push(AppRoutes.timetable),
+                ),
               QuickAccessTile(
                 key: const Key('home.quick.events'),
                 icon: Icons.event_outlined,

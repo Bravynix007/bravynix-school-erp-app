@@ -14,7 +14,9 @@ import 'package:shared_preferences_platform_interface/shared_preferences_async_p
 
 import '../helpers/events.dart';
 import '../helpers/fake_http.dart';
+import '../helpers/institutions.dart';
 import '../helpers/notifications.dart';
+import '../helpers/timetable.dart';
 
 /// The whole app wired as in production, with only the phone and the network faked.
 Map<String, Object?> _owner(String societyId, {String? name}) => {
@@ -180,6 +182,69 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('20-11-2026 to 22-11-2026'), findsOneWidget);
     expect(adapter.requests.last.uri.queryParameters, {'studentId': 's2'});
+  });
+
+  testWidgets('a parent reads the timetable of the child shown, and of the sibling after switching', (tester) async {
+    Map<String, Object?> child(String id, String name) => {
+      'studentId': id,
+      'firstName': name,
+      'institutionName': 'Green Valley School',
+      'isBlocked': false,
+    };
+    final adapter = await start(
+      tester,
+      tokens: const AuthTokens(accessToken: 'a', refreshToken: 'r'),
+      reply: (path) async => switch (path) {
+        'timetable/entries' => okReply([entryJson()]),
+        _ => okReply({
+          'person': {'id': 'p1', 'email': 'asha.rao@example.com', 'firstName': 'Asha', 'preferredLanguage': 'en'},
+          'contexts': [
+            {
+              'roleCode': 5,
+              'isBlocked': false,
+              'children': [child('s1', 'Diya'), child('s2', 'Arun')],
+            },
+          ],
+        }),
+      },
+    );
+    List<String?> asked() => [
+      for (final request in adapter.requests.where((request) => request.uri.path == '/v1/timetable/entries'))
+        request.uri.queryParameters['studentId'],
+    ];
+
+    await tester.tap(find.byKey(const Key('home.quick.timetable')));
+    await tester.pumpAndSettle();
+    expect(find.text('Monday'), findsOneWidget);
+    expect(asked(), ['s1']);
+
+    await tester.tap(find.byKey(const Key('child.switcher')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('child.option.s2')));
+    await tester.pumpAndSettle();
+    expect(asked(), ['s1', 's2']);
+  });
+
+  testWidgets('a teacher reads their own week at the Institution chosen', (tester) async {
+    final adapter = await start(
+      tester,
+      tokens: const AuthTokens(accessToken: 'a', refreshToken: 'r'),
+      reply: (path) async => switch (path) {
+        'institutions' => okReply([summaryJson()]),
+        'timetable/entries' => okReply([entryJson(dayOfWeek: 2)]),
+        _ => okReply({
+          'person': {'id': 'p1', 'email': 'asha.rao@example.com', 'firstName': 'Asha', 'preferredLanguage': 'en'},
+          'contexts': [
+            {'roleCode': 4, 'isBlocked': false, 'societyId': 's1', 'societyName': 'North Trust', 'staffMemberId': 'f1'},
+          ],
+        }),
+      },
+    );
+    await tester.tap(find.byKey(const Key('home.quick.timetable')));
+    await tester.pumpAndSettle();
+    expect(find.text('Tuesday'), findsOneWidget);
+    final read = adapter.requests.singleWhere((request) => request.uri.path == '/v1/timetable/entries');
+    expect(read.uri.queryParameters, {'staffMemberId': 'me', 'institutionId': 'i1'});
   });
 
   group('notifications', () {

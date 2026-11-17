@@ -40,6 +40,7 @@ import 'package:bravynix_school_erp/features/subjects/presentation/view/subject_
 import 'package:bravynix_school_erp/features/subjects/presentation/view/subjects_page.dart';
 import 'package:bravynix_school_erp/features/time_slots/presentation/view/time_slot_form_page.dart';
 import 'package:bravynix_school_erp/features/time_slots/presentation/view/time_slots_page.dart';
+import 'package:bravynix_school_erp/features/timetable/presentation/view/timetable_page.dart';
 import 'package:bravynix_school_erp/features/update_required/presentation/update_required_page.dart';
 import 'package:flutter/foundation.dart';
 import 'package:go_router/go_router.dart';
@@ -68,6 +69,9 @@ String? academicYearFormRedirect(Object? extra) => extra is AcademicYearFormArgs
 /// The period form needs the Institution and period the list passes as `extra`; opened any other way it goes back to
 /// the list.
 String? timeSlotFormRedirect(Object? extra) => extra is TimeSlotFormArgs ? null : AppRoutes.timeSlots;
+
+/// The section timetable needs the section the list passes as `extra`; opened any other way it goes back home.
+String? sectionTimetableRedirect(Object? extra) => extra is SectionTimetableArgs ? null : AppRoutes.home;
 
 /// The class forms need the Institution the list passes as `extra`; opened any other way they go back to the list.
 String? classFormRedirect(Object? extra) => extra is ClassFormArgs ? null : AppRoutes.classes;
@@ -161,6 +165,12 @@ GoRouter createRouter(SessionBloc session, {required SessionChanges changes}) {
         path: AppRoutes.academicYearForm,
         redirect: (_, state) => academicYearFormRedirect(state.extra),
         builder: (_, state) => AcademicYearFormPage(args: state.extra! as AcademicYearFormArgs),
+      ),
+      GoRoute(path: AppRoutes.timetable, builder: (_, _) => const TimetablePage()),
+      GoRoute(
+        path: AppRoutes.sectionTimetable,
+        redirect: (_, state) => sectionTimetableRedirect(state.extra),
+        builder: (_, state) => SectionTimetablePage(args: state.extra! as SectionTimetableArgs),
       ),
       GoRoute(path: AppRoutes.timeSlots, builder: (_, _) => const TimeSlotsPage()),
       GoRoute(

@@ -1735,6 +1735,60 @@ abstract class AppLocalizations {
   /// **'This period could not be found. It may have been deactivated.'**
   String get errorTimeSlotNotFound;
 
+  /// No description provided for @timetableTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Timetable'**
+  String get timetableTitle;
+
+  /// No description provided for @timetableEmptyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'No timetable yet'**
+  String get timetableEmptyTitle;
+
+  /// No description provided for @timetableEmptyMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'No lessons have been added to the week yet.'**
+  String get timetableEmptyMessage;
+
+  /// No description provided for @timetableDayCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =0{No periods} =1{1 period} other{{count} periods}}'**
+  String timetableDayCount(int count);
+
+  /// No description provided for @timetableDayEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing is planned for this day.'**
+  String get timetableDayEmpty;
+
+  /// No description provided for @timetableBreak.
+  ///
+  /// In en, this message translates to:
+  /// **'Break'**
+  String get timetableBreak;
+
+  /// No description provided for @errorTimetableNotAssigned.
+  ///
+  /// In en, this message translates to:
+  /// **'You can see the timetable of a section you lead or teach.'**
+  String get errorTimetableNotAssigned;
+
+  /// No description provided for @errorTimetableNotFound.
+  ///
+  /// In en, this message translates to:
+  /// **'This timetable could not be found.'**
+  String get errorTimetableNotFound;
+
+  /// No description provided for @errorTimetableNoYear.
+  ///
+  /// In en, this message translates to:
+  /// **'No current academic year has been set up yet, so there is no timetable to show.'**
+  String get errorTimetableNoYear;
+
   /// No description provided for @errorCurrentYearRequired.
   ///
   /// In en, this message translates to:
