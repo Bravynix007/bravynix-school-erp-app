@@ -104,7 +104,7 @@ void main() {
           _ => okReply(me([_owner('s1', name: 'North Trust'), _owner('s2', name: 'South Trust')])),
         },
       );
-      expect(find.text('Choose how to continue'), findsOneWidget);
+      expect(find.text('Choose a role'), findsOneWidget);
       expect(find.text('North Trust'), findsOneWidget);
       expect(find.text('Welcome, Asha'), findsNothing);
 

@@ -28,7 +28,7 @@ class AppConfig extends Equatable {
   );
 
   /// The local API, for a debug run started without a config file.
-  static const localApiBaseUrl = 'http://10.0.2.2:3000/v1';
+  static const localApiBaseUrl = kIsWeb ? 'http://localhost:3000/v1' : 'http://10.0.2.2:3000/v1';
 
   /// Checks the compiled-in values. A release build must come with its config
   /// file, and the file's `APP_FLAVOR` must match the `--flavor` it was built
