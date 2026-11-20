@@ -27,6 +27,7 @@ class AppButton extends StatelessWidget {
     this.variant = AppButtonVariant.primary,
     this.size = AppButtonSize.large,
     this.icon,
+    this.iconAlignment = IconAlignment.start,
     this.loading = false,
     this.expand,
     this.labelRoom,
@@ -38,6 +39,7 @@ class AppButton extends StatelessWidget {
   final AppButtonVariant variant;
   final AppButtonSize size;
   final IconData? icon;
+  final IconAlignment iconAlignment;
   final bool loading;
 
   /// Fill the available width. Defaults to true for large buttons only.
@@ -61,7 +63,7 @@ class AppButton extends StatelessWidget {
     final callback = loading && onPressed != null ? () {} : onPressed;
     final child = loading
         ? Semantics(label: label, excludeSemantics: true, child: const _Spinner())
-        : _Label(label: label, icon: icon, style: textStyle, room: labelRoom);
+        : _Label(label: label, icon: icon, iconAlignment: iconAlignment, fill: fill, style: textStyle, room: labelRoom);
 
     return switch (variant) {
       AppButtonVariant.primary => FilledButton(
@@ -102,27 +104,45 @@ class AppButton extends StatelessWidget {
 }
 
 class _Label extends StatelessWidget {
-  const new({required this.label, required this.style, this.icon, this.room});
+  const new({
+    required this.label,
+    required this.style,
+    required this.iconAlignment,
+    required this.fill,
+    this.icon,
+    this.room,
+  });
 
   final String label;
   final TextStyle? style;
   final IconData? icon;
+  final IconAlignment iconAlignment;
+  final bool fill;
   final double? room;
 
   @override
   Widget build(BuildContext context) {
+    final trailing = icon != null && iconAlignment == IconAlignment.end;
     final text = Text(
       label,
-      textAlign: TextAlign.center,
+      textAlign: trailing ? TextAlign.start : TextAlign.center,
       textScaler: room == null ? null : fitWordScaler(context, label, style, room!),
     );
     if (icon == null) return text;
+    final spread = fill && trailing;
+    final glyph = Padding(
+      padding: trailing
+          ? const EdgeInsetsDirectional.only(start: AppSpacing.xs)
+          : const EdgeInsetsDirectional.only(end: AppSpacing.xs),
+      child: Icon(icon, size: 20),
+    );
     return Row(
-      mainAxisSize: MainAxisSize.min,
+      mainAxisSize: spread ? MainAxisSize.max : MainAxisSize.min,
+      mainAxisAlignment: spread ? MainAxisAlignment.spaceBetween : MainAxisAlignment.start,
       children: [
-        Icon(icon, size: 20),
-        const SizedBox(width: AppSpacing.xs),
+        if (!trailing) glyph,
         Flexible(child: text),
+        if (trailing) glyph,
       ],
     );
   }

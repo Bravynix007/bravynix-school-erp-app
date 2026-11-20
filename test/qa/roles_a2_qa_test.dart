@@ -66,7 +66,7 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(find.byKey(const Key('profile.switchRole')));
     await tester.pumpAndSettle();
-    expect(find.text('Choose how to continue'), findsOneWidget);
+    expect(find.text('Choose a role'), findsOneWidget);
     await tester.tap(find.byTooltip('Back'));
     await tester.pumpAndSettle();
     expect(find.byKey(const Key('profile.switchRole')), findsOneWidget);
@@ -96,7 +96,7 @@ void main() {
 
   testWidgets('without an active role, /profile is not reachable', (tester) async {
     await start(tester);
-    expect(find.text('Choose how to continue'), findsOneWidget);
+    expect(find.text('Choose a role'), findsOneWidget);
     expect(find.byKey(const Key('home.profile')), findsNothing);
     expect(find.byTooltip('Back'), findsNothing);
   });

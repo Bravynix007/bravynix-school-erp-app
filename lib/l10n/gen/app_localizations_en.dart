@@ -13,13 +13,34 @@ class AppLocalizationsEn extends AppLocalizations {
   String get appName => 'BravyNix';
 
   @override
+  String get authProductName => 'School ERP';
+
+  @override
+  String get authTaglineLead => 'School life,';
+
+  @override
+  String get authTaglineEmphasis => 'connected.';
+
+  @override
+  String get authEmailExample => 'you@example.com';
+
+  @override
+  String get authSignInHelp => 'Need help? Contact your school office.';
+
+  @override
+  String get authCheckingSession => 'Checking your sign-in…';
+
+  @override
+  String get authRestoreTitle => 'Couldn\'t open the app';
+
+  @override
   String get loginTitle => 'Sign in';
 
   @override
-  String get loginSubtitle => 'Enter your email and we\'ll send you a 6-digit code.';
+  String get loginSubtitle => 'Use the email address you shared with your school.';
 
   @override
-  String get emailLabel => 'Email';
+  String get emailLabel => 'Email address';
 
   @override
   String get emailRequired => 'Enter your email address.';
@@ -28,21 +49,22 @@ class AppLocalizationsEn extends AppLocalizations {
   String get emailInvalid => 'Enter a valid email address.';
 
   @override
-  String get sendCode => 'Send code';
+  String get sendCode => 'Send sign-in code';
 
   @override
   String get codeTitle => 'Check your email';
 
   @override
-  String codeSubtitle(String email) {
-    return 'Enter the 6-digit code sent to $email';
-  }
+  String get codeSubtitle => 'If this email is registered, a code has been sent.';
 
   @override
   String get codeLabel => '6-digit code';
 
   @override
-  String get verify => 'Verify';
+  String get codeRequired => 'Enter all six digits.';
+
+  @override
+  String get verify => 'Verify code';
 
   @override
   String resendIn(String time) {
@@ -208,10 +230,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get roleBlocked => 'Blocked';
 
   @override
-  String get chooseRoleTitle => 'Choose how to continue';
+  String get chooseRoleTitle => 'Choose a role';
 
   @override
-  String get chooseRoleSubtitle => 'Your email has more than one role. You can change this later from Profile.';
+  String get chooseRoleSubtitle => 'You can switch roles later from Profile.';
+
+  @override
+  String get roleCurrent => 'Current role';
 
   @override
   String get noRoleTitle => 'No role available';
