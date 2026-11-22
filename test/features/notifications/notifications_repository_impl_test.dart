@@ -56,6 +56,22 @@ void main() {
     expect(page.hasMore, isFalse);
   });
 
+  test('a cursor sent with hasMore false is not followed', () async {
+    final (:repository, adapter: _) = build(
+      () => okReply([inboxItemJson()], meta: {'limit': 20, 'nextCursor': 'c9', 'hasMore': false}),
+    );
+    final page = await repository.inbox(InboxTab.onlyForYou);
+    expect(page.nextCursor, isNull);
+    expect(page.hasMore, isFalse);
+  });
+
+  test('reads the child and the Institution a notice is about', () async {
+    final (:repository, adapter: _) = build(() => okReply([inboxItemJson()]));
+    final item = (await repository.inbox(InboxTab.onlyForYou)).items.single;
+    expect(item.studentId, 's1');
+    expect(item.institutionId, 'i1');
+  });
+
   test('reads the unread count', () async {
     final (:repository, :adapter) = build(() => okReply({'count': 7}));
     expect(await repository.unreadCount(), 7);

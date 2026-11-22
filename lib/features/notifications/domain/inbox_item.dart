@@ -79,6 +79,8 @@ class InboxItem extends Equatable {
     required this.body,
     required this.isRead,
     this.senderDisplayName,
+    this.institutionId,
+    this.studentId,
     this.target,
   });
 
@@ -88,6 +90,10 @@ class InboxItem extends Equatable {
   final String title;
   final String body;
   final String? senderDisplayName;
+
+  /// The Institution the notice comes from, and for a guardian the child it is about; null when it is for no one child.
+  final String? institutionId;
+  final String? studentId;
 
   /// Null for a notice that is only to read, or about something this app version cannot open.
   final NotificationTarget? target;
@@ -101,11 +107,24 @@ class InboxItem extends Equatable {
     body: body,
     isRead: true,
     senderDisplayName: senderDisplayName,
+    institutionId: institutionId,
+    studentId: studentId,
     target: target,
   );
 
   @override
-  List<Object?> get props => [id, createdAt, category, title, body, senderDisplayName, target, isRead];
+  List<Object?> get props => [
+    id,
+    createdAt,
+    category,
+    title,
+    body,
+    senderDisplayName,
+    institutionId,
+    studentId,
+    target,
+    isRead,
+  ];
 }
 
 /// One page of the inbox, newest first, read by cursor (API design 7.5).
