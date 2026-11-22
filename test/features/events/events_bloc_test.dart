@@ -49,6 +49,20 @@ void main() {
     );
 
     blocTest<EventsBloc, EventsState>(
+      'stepping to another month keeps the holidays filter',
+      build: () {
+        answer(december, DateTime(2026, 12, 31), [], holidaysOnly: true);
+        return EventsBloc(repository, today: today);
+      },
+      seed: () => EventsLoaded(november, const [], holidaysOnly: true),
+      act: (bloc) => bloc.add(EventsMonthChosen(DateTime(2026, 12, 15))),
+      expect: () => [
+        EventsLoading(december, holidaysOnly: true),
+        EventsLoaded(december, const [], holidaysOnly: true),
+      ],
+    );
+
+    blocTest<EventsBloc, EventsState>(
       'the holidays filter keeps the month and reads only holidays',
       build: () {
         answer(november, DateTime(2026, 11, 30), [], holidaysOnly: true);

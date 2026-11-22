@@ -22,17 +22,21 @@ import 'package:go_router/go_router.dart';
 /// One event or holiday (EVT-03), opened from the list or from a notice. A parent reads it for the child they are
 /// viewing.
 class EventPage extends StatelessWidget {
-  const new({required this.id, super.key});
+  const new({required this.id, this.studentId, super.key});
 
   final String id;
+
+  /// The child a notice is about, when it was opened from one: a parent of children at two Institutions reads the event
+  /// for that child, not for the one shown at the top.
+  final String? studentId;
 
   @override
   Widget build(BuildContext context) {
     final parent = context.read<SessionBloc>().state.activeRole == RoleCode.studentParent;
     final child = context.read<ActiveChildBloc>().state;
-    final studentId = parent && child is ActiveChildReady ? child.selected.studentId : null;
+    final readFor = parent ? studentId ?? (child is ActiveChildReady ? child.selected.studentId : null) : null;
     return BlocProvider(
-      create: (_) => EventBloc(getIt<EventsRepository>(), id, studentId: studentId)..add(const EventRequested()),
+      create: (_) => EventBloc(getIt<EventsRepository>(), id, studentId: readFor)..add(const EventRequested()),
       child: const EventView(),
     );
   }
