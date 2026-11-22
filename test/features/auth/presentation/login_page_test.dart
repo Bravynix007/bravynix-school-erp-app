@@ -43,6 +43,84 @@ void main() {
     verifyNever(() => auth.requestOtp(any()));
   });
 
+  testWidgets('clears the required error as soon as a valid email is entered', (tester) async {
+    when(() => auth.requestOtp(any())).thenAnswer(
+      (_) async => const OtpRequested(resendAfter: Duration(seconds: 60), expiresIn: Duration(minutes: 10)),
+    );
+    await pumpLogin(tester);
+
+    final email = find.byKey(const Key('login.email'));
+    final sendCode = find.byKey(const Key('login.sendCode'));
+
+    await tester.tap(sendCode);
+    await tester.pumpAndSettle();
+    expect(find.text('Enter your email address.'), findsOneWidget);
+
+    await tester.enterText(email, 'asha.rao@example.com');
+    await tester.pumpAndSettle();
+    expect(find.text('Enter your email address.'), findsNothing);
+    verifyNever(() => auth.requestOtp(any()));
+
+    await tester.tap(sendCode);
+    await tester.pumpAndSettle();
+    verify(() => auth.requestOtp('asha.rao@example.com')).called(1);
+    expect(find.text('Check your email'), findsOneWidget);
+  });
+
+  testWidgets('keeps email input and focus when the keyboard collapses the tablet layout', (tester) async {
+    tester.view
+      ..physicalSize = const Size(900, 700)
+      ..devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    await pumpLogin(tester);
+    expect(find.textContaining('School life,'), findsOneWidget);
+
+    final email = find.byKey(const Key('login.email'));
+    await tester.enterText(email, 'asha.rao@example.com');
+    final input = find.descendant(of: email, matching: find.byType(EditableText));
+
+    tester.view.viewInsets = const FakeViewPadding(bottom: 320);
+    await tester.pumpAndSettle();
+
+    expect(tester.widget<EditableText>(input).controller.text, 'asha.rao@example.com');
+    expect(tester.widget<EditableText>(input).focusNode.hasFocus, isTrue);
+    expect(find.textContaining('School life,'), findsNothing);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('adapts the same sign-in form across wide and narrow browser layouts', (tester) async {
+    tester.view
+      ..physicalSize = const Size(1440, 900)
+      ..devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    when(() => auth.requestOtp(any())).thenAnswer(
+      (_) async => const OtpRequested(resendAfter: Duration(seconds: 60), expiresIn: Duration(minutes: 10)),
+    );
+    await pumpLogin(tester);
+
+    final email = find.byKey(const Key('login.email'));
+    final hero = find.textContaining('School life,');
+    final input = find.descendant(of: email, matching: find.byType(EditableText));
+    expect(tester.getRect(hero).right, lessThan(tester.getRect(email).left));
+    await tester.enterText(email, 'asha.rao@example.com');
+
+    tester.view.physicalSize = const Size(390, 780);
+    await tester.pumpAndSettle();
+    expect(tester.getRect(email).right, lessThanOrEqualTo(390));
+    expect(tester.widget<EditableText>(input).controller.text, 'asha.rao@example.com');
+    expect(tester.widget<EditableText>(input).focusNode.hasFocus, isTrue);
+
+    tester.view.physicalSize = const Size(1120, 460);
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('login.sendCode')));
+    await tester.pumpAndSettle();
+
+    final verifyTitle = find.text('Check your email');
+    expect(tester.getRect(hero).right, lessThan(tester.getRect(verifyTitle).left));
+    expect(find.byKey(const Key('login.code')), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
   testWidgets('email → code → signed in', (tester) async {
     when(() => auth.requestOtp(any())).thenAnswer(
       (_) async => const OtpRequested(resendAfter: Duration(seconds: 60), expiresIn: Duration(minutes: 10)),
@@ -60,6 +138,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Check your email'), findsOneWidget);
+    expect(find.textContaining('School life,'), findsNothing);
     expect(find.textContaining('Resend code in'), findsOneWidget);
 
     // Typing the sixth digit submits.
@@ -113,6 +192,7 @@ void main() {
             ),
       );
       await tester.enterText(find.byKey(const Key('login.email')), 'asha.rao@example.com');
+      await tester.ensureVisible(find.byKey(const Key('login.sendCode')));
       await tester.tap(find.byKey(const Key('login.sendCode')));
       await tester.pumpAndSettle();
       await tester.enterText(find.byKey(const Key('login.code')), '111111');
