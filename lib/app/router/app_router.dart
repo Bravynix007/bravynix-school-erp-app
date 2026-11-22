@@ -127,7 +127,8 @@ GoRouter createRouter(SessionBloc session, {required SessionChanges changes}) {
       GoRoute(path: AppRoutes.events, builder: (_, _) => const EventsPage()),
       GoRoute(
         path: AppRoutes.eventPattern,
-        builder: (_, state) => EventPage(id: state.pathParameters['id']!),
+        builder: (_, state) =>
+            EventPage(id: state.pathParameters['id']!, studentId: state.uri.queryParameters['studentId']),
       ),
       GoRoute(
         path: AppRoutes.ownStaffRecord,

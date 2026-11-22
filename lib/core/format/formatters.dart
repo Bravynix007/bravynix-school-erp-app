@@ -6,9 +6,18 @@ abstract final class Formatters {
 
   static String _two(int value) => value.toString().padLeft(2, '0');
 
+  static final _schoolDay = RegExp(r'^(\d{4})-(\d{2})-(\d{2})$');
+
+  /// A school day `2026-10-23` as a local date with no time of day, so no time zone shifts it; null when [day] is not
+  /// written `YYYY-MM-DD` (the API's day, API design 5.4).
+  static DateTime? parseDay(String day) {
+    final match = _schoolDay.firstMatch(day);
+    return match == null ? null : DateTime(int.parse(match[1]!), int.parse(match[2]!), int.parse(match[3]!));
+  }
+
   /// A school day `2026-10-23` → `23-10-2026`, with no time zone shift.
   static String schoolDate(String day) {
-    final match = RegExp(r'^(\d{4})-(\d{2})-(\d{2})$').firstMatch(day);
+    final match = _schoolDay.firstMatch(day);
     return match == null ? day : '${match[3]}-${match[2]}-${match[1]}';
   }
 

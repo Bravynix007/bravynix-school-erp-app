@@ -2,6 +2,16 @@ import 'package:bravynix_school_erp/core/format/formatters.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
+  group('Formatters.parseDay', () {
+    test('reads the API day as a local date, and nothing else', () {
+      expect(Formatters.parseDay('2026-11-17'), DateTime(2026, 11, 17));
+      expect(Formatters.parseDay('2026-11-17')!.isUtc, isFalse);
+      for (final bad in ['17-11-2026', '2026-11-17T00:00:00Z', '2026-1-7', '', 'x']) {
+        expect(Formatters.parseDay(bad), isNull, reason: bad);
+      }
+    });
+  });
+
   group('Formatters.schoolDay', () {
     test('is the day in India, which is already tomorrow late in the evening UTC', () {
       expect(Formatters.schoolDay(DateTime.utc(2026, 10, 23, 12)), '2026-10-23');

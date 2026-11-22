@@ -182,6 +182,48 @@ void main() {
     expect(adapter.requests.last.uri.queryParameters, {'studentId': 's2'});
   });
 
+  testWidgets('a notice about an event opens it for the child the notice is about, not the one shown', (tester) async {
+    Map<String, Object?> child(String id, String name, String school) => {
+      'studentId': id,
+      'firstName': name,
+      'institutionName': school,
+      'isBlocked': false,
+    };
+    final adapter = await start(
+      tester,
+      tokens: const AuthTokens(accessToken: 'a', refreshToken: 'r'),
+      reply: (path) async => switch (path) {
+        'notifications' => okReply(
+          [
+            inboxItemJson(target: {'type': 3, 'id': 'e1'})..['studentId'] = 's2',
+          ],
+          meta: {'limit': 20, 'nextCursor': null, 'hasMore': false},
+        ),
+        'notifications/n1/read' => okReply(inboxItemJson(isRead: true)),
+        'events/e1' => okReply(eventJson()),
+        _ => okReply({
+          'person': {'id': 'p1', 'email': 'asha.rao@example.com', 'firstName': 'Asha', 'preferredLanguage': 'en'},
+          'contexts': [
+            {
+              'roleCode': 5,
+              'isBlocked': false,
+              'children': [child('s1', 'Diya', 'Green Valley School'), child('s2', 'Arun', 'Lake View School')],
+            },
+          ],
+        }),
+      },
+    );
+    // Diya, the first child, is the one shown on the home.
+    expect(find.text('Diya'), findsOneWidget);
+    await tester.tap(find.byKey(const Key('home.bell')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('inbox.item.n1')));
+    await tester.pumpAndSettle();
+    expect(find.text('Annual Day'), findsOneWidget);
+    expect(adapter.requests.last.uri.path, '/v1/events/e1');
+    expect(adapter.requests.last.uri.queryParameters, {'studentId': 's2'});
+  });
+
   group('notifications', () {
     const tokens = AuthTokens(accessToken: 'a', refreshToken: 'r');
     Future<FakeReply> owner(String path) async => switch (path) {
