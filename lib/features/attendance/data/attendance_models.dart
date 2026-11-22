@@ -4,8 +4,8 @@ import 'package:bravynix_school_erp/features/attendance/domain/attendance_reposi
 import 'package:bravynix_school_erp/features/attendance/domain/attendance_roster.dart';
 import 'package:bravynix_school_erp/features/sections/domain/section_options.dart';
 
-/// JSON → domain for ATT-01, ATT-02, ATT-05, ATT-07, ATT-08 and ATT-09. Unknown fields are ignored, as /v1 only ever adds fields (API
-/// design 5.2).
+/// JSON → domain for ATT-01, ATT-02, ATT-05, ATT-07, ATT-08 and ATT-09. Unknown fields are ignored, as /v1 only ever
+/// adds fields (API design 5.2).
 abstract final class AttendanceModels {
   static MarkingSections sections(Object? raw) {
     final classes = [for (final item in jsonList(raw)) jsonObject(item)];
@@ -82,8 +82,11 @@ abstract final class AttendanceModels {
     final json = jsonObject(raw);
     final summary = jsonObject(json['summary']);
     int count(String key) => (summary[key] as num).toInt();
+    final month = json['month'] as String;
+    final days = [for (final item in jsonList(json['days'])) _day(jsonObject(item))];
+    _requireEveryDay(month, days);
     return AttendanceCalendar(
-      month: json['month'] as String,
+      month: month,
       summary: MonthSummary(
         presentDays: count('presentDays'),
         absentDays: count('absentDays'),
@@ -95,8 +98,21 @@ abstract final class AttendanceModels {
         percentage: (summary['attendancePercentage'] as num?)?.toDouble(),
       ),
       yearToDatePercentage: (jsonObject(json['yearToDate'])['attendancePercentage'] as num?)?.toDouble(),
-      days: [for (final item in jsonList(json['days'])) _day(jsonObject(item))],
+      days: days,
     );
+  }
+
+  /// The screen reads `days[day - 1]`, so an answer without every day of the month in order is refused.
+  static void _requireEveryDay(String month, List<CalendarDay> days) {
+    final first = DateTime.parse('$month-01');
+    final count = DateTime(first.year, first.month + 1, 0).day;
+    final complete =
+        days.length == count &&
+        [
+          for (var i = 0; i < count; i++)
+            if (days[i].day != '$month-${(i + 1).toString().padLeft(2, '0')}') i,
+        ].isEmpty;
+    if (!complete) throw FormatException('The days of $month are not every day in order');
   }
 
   static DayDetail dayDetail(Object? raw) {

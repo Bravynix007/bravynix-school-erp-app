@@ -113,6 +113,40 @@ void main() {
       expect(calendar.summary.count(DayStatus.notEnrolled), 0);
     });
 
+    test('read the half days and the leave days each from its own count', () {
+      final json = calendarJson();
+      final summary = {...(json['summary']! as Map<String, Object?>), 'halfDays': 3, 'leaveDays': 4};
+      final calendar = AttendanceModels.calendar({...json, 'summary': summary});
+      expect(calendar.summary.halfDays, 3);
+      expect(calendar.summary.leaveDays, 4);
+      expect(calendar.summary.count(DayStatus.halfDay), 3);
+      expect(calendar.summary.count(DayStatus.leave), 4);
+    });
+
+    test('refuse a month whose days are not every day of it in order, which the screen reads by position', () {
+      final days = (calendarJson()['days']! as List<Object?>).cast<Map<String, Object?>>();
+      for (final wrong in [
+        days.take(29).toList(),
+        [...days, dayJson('2026-11-31', 'not_marked')],
+        [days[1], days[0], ...days.skip(2)],
+        const <Map<String, Object?>>[],
+      ]) {
+        expect(() => AttendanceModels.calendar({...calendarJson(), 'days': wrong}), throwsFormatException);
+      }
+    });
+
+    test('read a February of 28 days and of 29', () {
+      Map<String, Object?> february(String month, int length) => {
+        ...calendarJson(month: month),
+        'days': [
+          for (var day = 1; day <= length; day++) dayJson('$month-${day.toString().padLeft(2, '0')}', 'not_marked'),
+        ],
+      };
+      expect(AttendanceModels.calendar(february('2027-02', 28)).days, hasLength(28));
+      expect(AttendanceModels.calendar(february('2028-02', 29)).days, hasLength(29));
+      expect(() => AttendanceModels.calendar(february('2027-02', 29)), throwsFormatException);
+    });
+
     test('read a month with no day marked, which has no percentage', () {
       final calendar = AttendanceModels.calendar({
         ...calendarJson(percentage: null),

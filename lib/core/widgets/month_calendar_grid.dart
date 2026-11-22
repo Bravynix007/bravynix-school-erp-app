@@ -132,7 +132,7 @@ class MonthCalendarGrid extends StatelessWidget {
   }
 }
 
-/// One line of a legend: what a colour of the calendar means, with the days of the month under it written in.
+/// One line of a legend: the [label] a colour of the calendar goes by, and the [fill] it is drawn in, null for no colour.
 class CalendarLegendEntry {
   const new({required this.label, required this.fill});
 
