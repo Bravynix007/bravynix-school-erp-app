@@ -247,6 +247,37 @@ void main() {
     expect(read.uri.queryParameters, {'staffMemberId': 'me', 'institutionId': 'i1'});
   });
 
+  testWidgets('a teacher at two Institutions reads the week of the one switched to, not the first', (tester) async {
+    final adapter = await start(
+      tester,
+      tokens: const AuthTokens(accessToken: 'a', refreshToken: 'r'),
+      reply: (path) async => switch (path) {
+        'institutions' => okReply([summaryJson(), summaryJson(id: 'i2')]),
+        'timetable/entries' => okReply([entryJson(dayOfWeek: 2)]),
+        _ => okReply({
+          'person': {'id': 'p1', 'email': 'asha.rao@example.com', 'firstName': 'Asha', 'preferredLanguage': 'en'},
+          'contexts': [
+            {'roleCode': 4, 'isBlocked': false, 'societyId': 's1', 'societyName': 'North Trust', 'staffMemberId': 'f1'},
+          ],
+        }),
+      },
+    );
+    List<String?> asked() => [
+      for (final request in adapter.requests.where((request) => request.uri.path == '/v1/timetable/entries'))
+        request.uri.queryParameters['institutionId'],
+    ];
+
+    await tester.tap(find.byKey(const Key('home.quick.timetable')));
+    await tester.pumpAndSettle();
+    expect(asked(), ['i1']);
+
+    await tester.tap(find.byKey(const Key('institutionScope.switcher')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('institutionScope.option.i2')));
+    await tester.pumpAndSettle();
+    expect(asked(), ['i1', 'i2']);
+  });
+
   testWidgets('a notice about an event opens it for the child the notice is about, not the one shown', (tester) async {
     Map<String, Object?> child(String id, String name, String school) => {
       'studentId': id,

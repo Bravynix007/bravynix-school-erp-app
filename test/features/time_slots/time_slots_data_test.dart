@@ -68,7 +68,14 @@ void main() {
           isBreak: true,
           label: 'Lunch',
         ),
-        containsPair('label', 'Lunch'),
+        {
+          'institutionId': 'i1',
+          'periodNo': 4,
+          'startTime': '12:00',
+          'endTime': '12:30',
+          'isBreak': true,
+          'label': 'Lunch',
+        },
       );
     });
 

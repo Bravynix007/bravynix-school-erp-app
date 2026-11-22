@@ -5,6 +5,8 @@ import 'package:bravynix_school_erp/app/router/app_routes.dart';
 import 'package:bravynix_school_erp/features/auth/domain/auth_entities.dart';
 import 'package:bravynix_school_erp/features/auth/presentation/session/session_bloc.dart';
 import 'package:bravynix_school_erp/features/students/presentation/view/student_promote_page.dart';
+import 'package:bravynix_school_erp/features/time_slots/presentation/view/time_slot_form_page.dart';
+import 'package:bravynix_school_erp/features/timetable/presentation/view/timetable_page.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
@@ -80,6 +82,45 @@ void main() {
 
     test('stays when the list passes what it promotes', () async {
       expect(await redirectOf(const StudentPromoteArgs.group('i1')), isNull);
+    });
+  });
+
+  group('the period form screen', () {
+    FutureOr<String?> redirectOf(Object? extra) {
+      final route = router.configuration.findMatch(Uri.parse(AppRoutes.timeSlotForm)).matches.last.route as GoRoute;
+      final state = _MockRouterState();
+      when(() => state.extra).thenReturn(extra);
+      return route.redirect!(_MockContext(), state);
+    }
+
+    test('sends a visit with nothing from the list behind it back to the list', () async {
+      expect(await redirectOf(null), AppRoutes.timeSlots);
+      expect(await redirectOf('i1'), AppRoutes.timeSlots);
+    });
+
+    test('stays when the list passes the Institution', () async {
+      expect(await redirectOf(const TimeSlotFormArgs(institutionId: 'i1')), isNull);
+    });
+  });
+
+  group('the section timetable screen', () {
+    FutureOr<String?> redirectOf(Object? extra) {
+      final route = router.configuration.findMatch(Uri.parse(AppRoutes.sectionTimetable)).matches.last.route as GoRoute;
+      final state = _MockRouterState();
+      when(() => state.extra).thenReturn(extra);
+      return route.redirect!(_MockContext(), state);
+    }
+
+    test('sends a visit with no section from the list behind it home', () async {
+      expect(await redirectOf(null), AppRoutes.home);
+      expect(await redirectOf('sec1'), AppRoutes.home);
+    });
+
+    test('stays when the list passes the section', () async {
+      expect(
+        await redirectOf(const SectionTimetableArgs(sectionId: 'sec1', institutionId: 'i1', title: '7th - A')),
+        isNull,
+      );
     });
   });
 
