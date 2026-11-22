@@ -105,6 +105,11 @@ void main() {
       expect(find.byKey(const Key('home.quick.attendance')), findsOneWidget);
     });
 
+    testWidgets("a parent's home has the diary tile, which reads their child's diary", (tester) async {
+      await pumpParent(tester, parent, const ActiveChildReady(children: [diya], selected: diya));
+      expect(find.byKey(const Key('home.quick.diary')), findsOneWidget);
+    });
+
     testWidgets('an owner sees no child panel', (tester) async {
       final blocks = MockBlocksRepository();
       when(blocks.societyBlocks).thenAnswer((_) async => []);
@@ -152,6 +157,20 @@ void main() {
       testWidgets('is there for ${role.name}, who takes registers', (tester) async {
         await pumpAs(tester, AuthContext(role: role, societyId: 's1', societyName: 'North Trust'));
         expect(find.byKey(const Key('home.quick.attendance')), findsOneWidget);
+      });
+    }
+  });
+
+  group('the diary tile', () {
+    for (final role in [RoleCode.teacherStaff, RoleCode.institutionAdmin]) {
+      testWidgets('is there for ${role.name}, who writes the diary', (tester) async {
+        final session = _MockSessionBloc();
+        final active = AuthContext(role: role, societyId: 's1', societyName: 'North Trust');
+        when(() => session.state).thenReturn(
+          SessionAuthenticated(AuthSession(person: testPerson, contexts: [active], activeContext: active)),
+        );
+        await tester.pumpApp(BlocProvider<SessionBloc>.value(value: session, child: const HomePage()));
+        expect(find.byKey(const Key('home.quick.diary')), findsOneWidget);
       });
     }
   });

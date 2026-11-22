@@ -15,6 +15,7 @@ import 'package:bravynix_school_erp/features/classes/presentation/view/class_for
 import 'package:bravynix_school_erp/features/classes/presentation/view/classes_page.dart';
 import 'package:bravynix_school_erp/features/classroom/presentation/view/classroom_page.dart';
 import 'package:bravynix_school_erp/features/classroom/presentation/view/classroom_student_page.dart';
+import 'package:bravynix_school_erp/features/diary/presentation/view/diary_page.dart';
 import 'package:bravynix_school_erp/features/events/presentation/view/event_page.dart';
 import 'package:bravynix_school_erp/features/events/presentation/view/events_page.dart';
 import 'package:bravynix_school_erp/features/gallery/presentation/component_gallery_page.dart';
@@ -188,6 +189,7 @@ GoRouter createRouter(SessionBloc session, {required SessionChanges changes}) {
         redirect: (_, state) => studentAttendanceRedirect(state.extra),
         builder: (_, state) => StudentAttendancePage(args: state.extra! as StudentAttendanceArgs),
       ),
+      GoRoute(path: AppRoutes.diary, builder: (_, _) => const DiaryPage()),
       GoRoute(path: AppRoutes.timetable, builder: (_, _) => const TimetablePage()),
       GoRoute(
         path: AppRoutes.sectionTimetable,

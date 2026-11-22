@@ -5550,6 +5550,198 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'This student could not be found.'**
   String get errorAttendanceCalendarNotFound;
+
+  /// No description provided for @diaryTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Diary'**
+  String get diaryTitle;
+
+  /// No description provided for @diaryDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Date'**
+  String get diaryDate;
+
+  /// No description provided for @diarySubject.
+  ///
+  /// In en, this message translates to:
+  /// **'Subject'**
+  String get diarySubject;
+
+  /// No description provided for @diaryDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Description'**
+  String get diaryDescription;
+
+  /// No description provided for @diaryBy.
+  ///
+  /// In en, this message translates to:
+  /// **'By: {teacher}'**
+  String diaryBy(String teacher);
+
+  /// No description provided for @diaryAdd.
+  ///
+  /// In en, this message translates to:
+  /// **'Add entry'**
+  String get diaryAdd;
+
+  /// No description provided for @diaryAddTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Add diary entry'**
+  String get diaryAddTitle;
+
+  /// No description provided for @diaryEditTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit diary entry'**
+  String get diaryEditTitle;
+
+  /// No description provided for @diarySave.
+  ///
+  /// In en, this message translates to:
+  /// **'Save'**
+  String get diarySave;
+
+  /// No description provided for @diarySaved.
+  ///
+  /// In en, this message translates to:
+  /// **'Diary entry saved'**
+  String get diarySaved;
+
+  /// No description provided for @diaryEdit.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit entry'**
+  String get diaryEdit;
+
+  /// No description provided for @diaryDelete.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete entry'**
+  String get diaryDelete;
+
+  /// No description provided for @diaryDeleteTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete this entry?'**
+  String get diaryDeleteTitle;
+
+  /// No description provided for @diaryDeleteMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'The entry leaves the diary of the section, and its parents no longer see it.'**
+  String get diaryDeleteMessage;
+
+  /// No description provided for @diaryDeleteConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete'**
+  String get diaryDeleteConfirm;
+
+  /// No description provided for @diaryDeleted.
+  ///
+  /// In en, this message translates to:
+  /// **'Diary entry deleted'**
+  String get diaryDeleted;
+
+  /// No description provided for @diaryChooseSectionTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a section'**
+  String get diaryChooseSectionTitle;
+
+  /// No description provided for @diaryChooseSectionMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a class and a section to read its diary.'**
+  String get diaryChooseSectionMessage;
+
+  /// No description provided for @diaryEmptyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'No diary entries'**
+  String get diaryEmptyTitle;
+
+  /// No description provided for @diaryEmptyMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing was written in the diary for this day.'**
+  String get diaryEmptyMessage;
+
+  /// No description provided for @diaryNoSectionsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'No classes yet'**
+  String get diaryNoSectionsTitle;
+
+  /// No description provided for @diaryNoSectionsMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Add classes and sections in School setup, and their diary appears here.'**
+  String get diaryNoSectionsMessage;
+
+  /// No description provided for @diaryNoChildMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'A child linked to you appears here, with their diary.'**
+  String get diaryNoChildMessage;
+
+  /// No description provided for @errorDiaryNotAssigned.
+  ///
+  /// In en, this message translates to:
+  /// **'You can read the diary of a section you lead or teach.'**
+  String get errorDiaryNotAssigned;
+
+  /// No description provided for @errorDiaryNotAssignedAdd.
+  ///
+  /// In en, this message translates to:
+  /// **'You can write the diary for a subject you teach in a section, or any subject of a section you lead.'**
+  String get errorDiaryNotAssignedAdd;
+
+  /// No description provided for @errorDiaryNotAssignedChange.
+  ///
+  /// In en, this message translates to:
+  /// **'Only the teacher who wrote this entry, an Owner or an Admin can change it.'**
+  String get errorDiaryNotAssignedChange;
+
+  /// No description provided for @errorDiaryNoYear.
+  ///
+  /// In en, this message translates to:
+  /// **'No current academic year has been set up yet, so there is no diary.'**
+  String get errorDiaryNoYear;
+
+  /// No description provided for @errorDiaryNotFound.
+  ///
+  /// In en, this message translates to:
+  /// **'The diary could not be found. The section may have been closed, or the child is no longer linked to you.'**
+  String get errorDiaryNotFound;
+
+  /// No description provided for @errorDiaryEntryGone.
+  ///
+  /// In en, this message translates to:
+  /// **'This entry could not be found. It may have been deleted.'**
+  String get errorDiaryEntryGone;
+
+  /// No description provided for @errorDiaryFuture.
+  ///
+  /// In en, this message translates to:
+  /// **'This date has not come yet.'**
+  String get errorDiaryFuture;
+
+  /// No description provided for @errorDiaryTooOld.
+  ///
+  /// In en, this message translates to:
+  /// **'An entry can be dated at most 7 days back.'**
+  String get errorDiaryTooOld;
+
+  /// No description provided for @errorDiaryOutsideYear.
+  ///
+  /// In en, this message translates to:
+  /// **'This date is outside the current academic year.'**
+  String get errorDiaryOutsideYear;
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {

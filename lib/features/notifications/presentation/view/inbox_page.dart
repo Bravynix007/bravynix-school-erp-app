@@ -15,6 +15,7 @@ import 'package:bravynix_school_erp/core/widgets/state_panel.dart';
 import 'package:bravynix_school_erp/core/widgets/text_measure.dart';
 import 'package:bravynix_school_erp/features/auth/presentation/role/view/role_error_text.dart';
 import 'package:bravynix_school_erp/features/auth/presentation/session/session_bloc.dart';
+import 'package:bravynix_school_erp/features/children/presentation/bloc/active_child_bloc.dart';
 import 'package:bravynix_school_erp/features/notifications/domain/inbox_item.dart';
 import 'package:bravynix_school_erp/features/notifications/domain/notifications_repository.dart';
 import 'package:bravynix_school_erp/features/notifications/presentation/bloc/inbox_bloc.dart';
@@ -172,7 +173,13 @@ class _List extends StatelessWidget {
             onTap: () {
               bloc.add(InboxItemOpened(item.id));
               final location = _locationOf(item);
-              if (location != null) unawaited(context.push(location));
+              if (location == null) return;
+              // A notice about one child opens the screens of that child, which read the child shown at the top; an
+              // event names its child itself.
+              if (item.target?.type != NotificationTargetType.event && item.studentId != null) {
+                context.read<ActiveChildBloc>().add(ActiveChildChosen(item.studentId!));
+              }
+              unawaited(context.push(location));
             },
           ),
           const SizedBox(height: AppSpacing.xs),
@@ -197,10 +204,13 @@ class _List extends StatelessWidget {
   }
 }
 
-/// The screen a notice opens. Attendance and diary notices open theirs when those screens are built.
+/// The screen a notice opens: an absent alert the child's attendance (it goes to guardians, who read the calendar), a
+/// diary entry the diary, an event the event.
 String? _locationOf(InboxItem item) => switch (item.target?.type) {
+  NotificationTargetType.attendance => AppRoutes.attendanceCalendar,
+  NotificationTargetType.diary => AppRoutes.diary,
   NotificationTargetType.event => AppRoutes.event(item.target!.id, studentId: item.studentId),
-  _ => null,
+  null => null,
 };
 
 class _ItemCard extends StatelessWidget {

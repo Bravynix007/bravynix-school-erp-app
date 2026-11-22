@@ -64,6 +64,10 @@ abstract final class AppRoutes {
   static const attendanceCalendar = '/attendance/calendar';
   static const studentAttendance = '/attendance/student';
 
+  /// The diary of a section for a day, written by staff and read by a parent for the child shown at the top (DIA-01 to
+  /// DIA-04).
+  static const diary = '/diary';
+
   /// Period timings of the chosen Institution's current year (TTS-01), and the form that adds or edits one (TTS-02,
   /// TTS-03), which takes the Institution and the period as the route's `extra`: no endpoint reads one period, so the
   /// list hands it over.
