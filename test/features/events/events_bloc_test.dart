@@ -153,5 +153,82 @@ void main() {
         const EventFailed(ApiFailure(statusCode: 404, code: 'NOT_FOUND', message: 'x')),
       ],
     );
+
+    group('deleting', () {
+      blocTest<EventBloc, EventState>(
+        'deletes the event, which is then gone',
+        build: () {
+          when(() => repository.event('e1')).thenAnswer((_) async => annual);
+          when(() => repository.remove('e1')).thenAnswer((_) async {});
+          return EventBloc(repository, 'e1');
+        },
+        act: (bloc) async {
+          bloc.add(const EventRequested());
+          await bloc.stream.firstWhere((state) => state is EventLoaded);
+          bloc.add(const EventRemoved());
+        },
+        expect: () => [
+          const EventLoading(),
+          EventLoaded(annual),
+          EventLoaded(annual, removing: true),
+          const EventGone(),
+        ],
+      );
+
+      blocTest<EventBloc, EventState>(
+        'says why a delete was refused, with the event still shown',
+        build: () {
+          when(() => repository.event('e1')).thenAnswer((_) async => annual);
+          when(() => repository.remove('e1')).thenThrow(
+            const ApiFailure(statusCode: 403, code: 'SCOPE_NOT_ALLOWED', message: 'x'),
+          );
+          return EventBloc(repository, 'e1');
+        },
+        act: (bloc) async {
+          bloc.add(const EventRequested());
+          await bloc.stream.firstWhere((state) => state is EventLoaded);
+          bloc.add(const EventRemoved());
+        },
+        expect: () => [
+          const EventLoading(),
+          EventLoaded(annual),
+          EventLoaded(annual, removing: true),
+          EventLoaded(
+            annual,
+            failure: const ApiFailure(statusCode: 403, code: 'SCOPE_NOT_ALLOWED', message: 'x'),
+          ),
+        ],
+      );
+
+      blocTest<EventBloc, EventState>(
+        'shows an event already deleted as gone from the lists',
+        build: () {
+          when(() => repository.event('e1')).thenAnswer((_) async => annual);
+          when(() => repository.remove('e1')).thenThrow(
+            const ApiFailure(statusCode: 404, code: 'NOT_FOUND', message: 'x'),
+          );
+          return EventBloc(repository, 'e1');
+        },
+        act: (bloc) async {
+          bloc.add(const EventRequested());
+          await bloc.stream.firstWhere((state) => state is EventLoaded);
+          bloc.add(const EventRemoved());
+        },
+        expect: () => [
+          const EventLoading(),
+          EventLoaded(annual),
+          EventLoaded(annual, removing: true),
+          const EventFailed(ApiFailure(statusCode: 404, code: 'NOT_FOUND', message: 'x')),
+        ],
+      );
+
+      blocTest<EventBloc, EventState>(
+        'deletes nothing before the event is shown',
+        build: () => EventBloc(repository, 'e1'),
+        act: (bloc) => bloc.add(const EventRemoved()),
+        expect: () => const <EventState>[],
+        verify: (_) => verifyNever(() => repository.remove(any())),
+      );
+    });
   });
 }

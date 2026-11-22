@@ -1,18 +1,25 @@
 import 'package:bravynix_school_erp/app/di/injection.dart';
+import 'package:bravynix_school_erp/app/router/app_routes.dart';
+import 'package:bravynix_school_erp/core/network/api_failure.dart';
 import 'package:bravynix_school_erp/core/theme/app_spacing.dart';
+import 'package:bravynix_school_erp/core/widgets/app_button.dart';
 import 'package:bravynix_school_erp/core/widgets/app_card.dart';
+import 'package:bravynix_school_erp/core/widgets/app_dialog.dart';
+import 'package:bravynix_school_erp/core/widgets/app_snackbar.dart';
 import 'package:bravynix_school_erp/core/widgets/app_top_bar.dart';
+import 'package:bravynix_school_erp/core/widgets/inline_message.dart';
 import 'package:bravynix_school_erp/core/widgets/key_value_row.dart';
 import 'package:bravynix_school_erp/core/widgets/skeleton.dart';
 import 'package:bravynix_school_erp/core/widgets/state_panel.dart';
 import 'package:bravynix_school_erp/core/widgets/status_chip.dart';
 import 'package:bravynix_school_erp/features/auth/domain/auth_entities.dart';
-import 'package:bravynix_school_erp/features/auth/presentation/role/view/role_error_text.dart';
 import 'package:bravynix_school_erp/features/auth/presentation/session/session_bloc.dart';
 import 'package:bravynix_school_erp/features/children/presentation/bloc/active_child_bloc.dart';
 import 'package:bravynix_school_erp/features/events/domain/event.dart';
 import 'package:bravynix_school_erp/features/events/domain/events_repository.dart';
 import 'package:bravynix_school_erp/features/events/presentation/bloc/event_bloc.dart';
+import 'package:bravynix_school_erp/features/events/presentation/view/event_error_text.dart';
+import 'package:bravynix_school_erp/features/events/presentation/view/event_form_page.dart';
 import 'package:bravynix_school_erp/features/events/presentation/view/event_text.dart';
 import 'package:bravynix_school_erp/l10n/gen/app_localizations.dart';
 import 'package:flutter/material.dart';
@@ -53,12 +60,18 @@ class EventView extends StatelessWidget {
         children: [
           AppTopBar(title: l10n.eventsTitle, onBack: () => context.pop(), backTooltip: l10n.back),
           Expanded(
-            child: BlocBuilder<EventBloc, EventState>(
+            child: BlocConsumer<EventBloc, EventState>(
+              listenWhen: (previous, current) => current is EventGone,
+              listener: (context, _) {
+                AppSnackbar.show(context, message: l10n.eventDeleted, kind: AppSnackbarKind.success);
+                // The list behind this reads again.
+                context.pop(true);
+              },
               builder: (context, state) => switch (state) {
-                EventLoading() => SkeletonCards(semanticLabel: l10n.loading, heights: const [120, 160]),
+                EventLoading() || EventGone() => SkeletonCards(semanticLabel: l10n.loading, heights: const [120, 160]),
                 EventFailed(:final failure) when failure.code == 'FORBIDDEN' => StatePanel.forbidden(
                   key: const Key('event.forbidden'),
-                  title: apiErrorText(l10n, failure, notFound: l10n.errorEventNotFound),
+                  title: eventErrorText(l10n, failure),
                 ),
                 EventFailed(:final failure) when failure.code == 'NOT_FOUND' => StatePanel.empty(
                   key: const Key('event.notFound'),
@@ -66,11 +79,15 @@ class EventView extends StatelessWidget {
                 ),
                 EventFailed(:final failure) => StatePanel.error(
                   key: const Key('event.failed'),
-                  title: apiErrorText(l10n, failure, notFound: l10n.errorEventNotFound),
+                  title: eventErrorText(l10n, failure),
                   actionLabel: l10n.retry,
                   onAction: () => context.read<EventBloc>().add(const EventRequested()),
                 ),
-                EventLoaded(:final event) => _Detail(event: event),
+                EventLoaded(:final event, :final removing, :final failure) => _Detail(
+                  event: event,
+                  removing: removing,
+                  failure: failure,
+                ),
               },
             ),
           ),
@@ -81,9 +98,36 @@ class EventView extends StatelessWidget {
 }
 
 class _Detail extends StatelessWidget {
-  const new({required this.event});
+  const new({required this.event, required this.removing, this.failure});
 
   final SchoolEvent event;
+
+  /// The delete is on its way.
+  final bool removing;
+
+  /// Why the last delete was refused.
+  final ApiFailure? failure;
+
+  Future<void> _edit(BuildContext context) async {
+    final bloc = context.read<EventBloc>();
+    final saved = await context.push<bool>(AppRoutes.eventForm, extra: EventFormArgs(event: event));
+    if (saved ?? false) bloc.add(const EventRequested());
+  }
+
+  Future<void> _confirmDelete(BuildContext context) async {
+    final l10n = AppLocalizations.of(context);
+    final bloc = context.read<EventBloc>();
+    final confirmed = await showConfirmDialog(
+      context: context,
+      title: l10n.eventDeleteTitle,
+      message: l10n.eventDeleteMessage,
+      confirmLabel: l10n.eventDeleteConfirm,
+      cancelLabel: l10n.cancel,
+      destructive: true,
+      icon: Icons.delete_outline,
+    );
+    if (confirmed ?? false) bloc.add(const EventRemoved());
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -93,6 +137,10 @@ class _Detail extends StatelessWidget {
     return ListView(
       padding: const EdgeInsets.all(AppSpacing.screenMargin),
       children: [
+        if (failure case final failure?) ...[
+          InlineMessage.error(eventErrorText(l10n, failure), key: const Key('event.actionFailed')),
+          const SizedBox(height: AppSpacing.sm),
+        ],
         AppCard(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -146,6 +194,23 @@ class _Detail extends StatelessWidget {
             ],
           ),
         ),
+        if (event.canEdit) ...[
+          const SizedBox(height: AppSpacing.md),
+          AppButton(
+            key: const Key('event.edit'),
+            label: l10n.eventEdit,
+            variant: AppButtonVariant.secondary,
+            onPressed: removing ? null : () => _edit(context),
+          ),
+          const SizedBox(height: AppSpacing.xs),
+          AppButton(
+            key: const Key('event.delete'),
+            label: l10n.eventDelete,
+            variant: AppButtonVariant.danger,
+            loading: removing,
+            onPressed: removing ? null : () => _confirmDelete(context),
+          ),
+        ],
       ],
     );
   }

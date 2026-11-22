@@ -5742,6 +5742,234 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'This date is outside the current academic year.'**
   String get errorDiaryOutsideYear;
+
+  /// No description provided for @eventAdd.
+  ///
+  /// In en, this message translates to:
+  /// **'Add event'**
+  String get eventAdd;
+
+  /// No description provided for @eventAddTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Add event'**
+  String get eventAddTitle;
+
+  /// No description provided for @eventEditTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit event'**
+  String get eventEditTitle;
+
+  /// No description provided for @eventEdit.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit event'**
+  String get eventEdit;
+
+  /// No description provided for @eventDelete.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete event'**
+  String get eventDelete;
+
+  /// No description provided for @eventDeleteTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete this event?'**
+  String get eventDeleteTitle;
+
+  /// No description provided for @eventDeleteMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'It leaves the calendar for everyone it was told to, and a holiday no longer blocks attendance.'**
+  String get eventDeleteMessage;
+
+  /// No description provided for @eventDeleteConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete'**
+  String get eventDeleteConfirm;
+
+  /// No description provided for @eventDeleted.
+  ///
+  /// In en, this message translates to:
+  /// **'Event deleted'**
+  String get eventDeleted;
+
+  /// No description provided for @eventSave.
+  ///
+  /// In en, this message translates to:
+  /// **'Save'**
+  String get eventSave;
+
+  /// No description provided for @eventSaved.
+  ///
+  /// In en, this message translates to:
+  /// **'Event saved'**
+  String get eventSaved;
+
+  /// No description provided for @eventFieldTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Title'**
+  String get eventFieldTitle;
+
+  /// No description provided for @eventFieldDuration.
+  ///
+  /// In en, this message translates to:
+  /// **'Duration'**
+  String get eventFieldDuration;
+
+  /// No description provided for @eventFieldDurationHint.
+  ///
+  /// In en, this message translates to:
+  /// **'For example, 3 Days Holiday'**
+  String get eventFieldDurationHint;
+
+  /// No description provided for @eventFieldStart.
+  ///
+  /// In en, this message translates to:
+  /// **'Starts'**
+  String get eventFieldStart;
+
+  /// No description provided for @eventFieldEnd.
+  ///
+  /// In en, this message translates to:
+  /// **'Ends'**
+  String get eventFieldEnd;
+
+  /// No description provided for @eventFieldDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Description'**
+  String get eventFieldDescription;
+
+  /// No description provided for @eventFieldVenue.
+  ///
+  /// In en, this message translates to:
+  /// **'Venue'**
+  String get eventFieldVenue;
+
+  /// No description provided for @eventFieldPicture.
+  ///
+  /// In en, this message translates to:
+  /// **'Picture'**
+  String get eventFieldPicture;
+
+  /// No description provided for @eventFieldInstitution.
+  ///
+  /// In en, this message translates to:
+  /// **'Institution'**
+  String get eventFieldInstitution;
+
+  /// No description provided for @eventPictureNone.
+  ///
+  /// In en, this message translates to:
+  /// **'None'**
+  String get eventPictureNone;
+
+  /// No description provided for @eventPictureAssembly.
+  ///
+  /// In en, this message translates to:
+  /// **'Assembly'**
+  String get eventPictureAssembly;
+
+  /// No description provided for @eventPictureCelebration.
+  ///
+  /// In en, this message translates to:
+  /// **'Celebration'**
+  String get eventPictureCelebration;
+
+  /// No description provided for @eventPictureCultural.
+  ///
+  /// In en, this message translates to:
+  /// **'Cultural'**
+  String get eventPictureCultural;
+
+  /// No description provided for @eventPictureExam.
+  ///
+  /// In en, this message translates to:
+  /// **'Exam'**
+  String get eventPictureExam;
+
+  /// No description provided for @eventPictureFestival.
+  ///
+  /// In en, this message translates to:
+  /// **'Festival'**
+  String get eventPictureFestival;
+
+  /// No description provided for @eventPictureHoliday.
+  ///
+  /// In en, this message translates to:
+  /// **'Holiday'**
+  String get eventPictureHoliday;
+
+  /// No description provided for @eventPictureMeeting.
+  ///
+  /// In en, this message translates to:
+  /// **'Meeting'**
+  String get eventPictureMeeting;
+
+  /// No description provided for @eventPictureScience.
+  ///
+  /// In en, this message translates to:
+  /// **'Science'**
+  String get eventPictureScience;
+
+  /// No description provided for @eventPictureSports.
+  ///
+  /// In en, this message translates to:
+  /// **'Sports'**
+  String get eventPictureSports;
+
+  /// No description provided for @eventPictureTrip.
+  ///
+  /// In en, this message translates to:
+  /// **'Trip'**
+  String get eventPictureTrip;
+
+  /// No description provided for @eventIsHoliday.
+  ///
+  /// In en, this message translates to:
+  /// **'This is a holiday'**
+  String get eventIsHoliday;
+
+  /// No description provided for @eventIsHolidayHelper.
+  ///
+  /// In en, this message translates to:
+  /// **'A holiday blocks attendance on its days for the classes it covers.'**
+  String get eventIsHolidayHelper;
+
+  /// No description provided for @eventHolidayClassesHelper.
+  ///
+  /// In en, this message translates to:
+  /// **'Leave every class unticked for all classes.'**
+  String get eventHolidayClassesHelper;
+
+  /// No description provided for @errorEventEndBeforeStart.
+  ///
+  /// In en, this message translates to:
+  /// **'The end cannot be before the start.'**
+  String get errorEventEndBeforeStart;
+
+  /// No description provided for @errorEventHolidayWho.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose who the holiday is for.'**
+  String get errorEventHolidayWho;
+
+  /// No description provided for @errorEventScopeNotAllowed.
+  ///
+  /// In en, this message translates to:
+  /// **'Only an Owner can add or change an event of the whole Society. An Admin works with the events of their Institution.'**
+  String get errorEventScopeNotAllowed;
+
+  /// No description provided for @errorEventNoInstitutions.
+  ///
+  /// In en, this message translates to:
+  /// **'There is no Institution to add an event to.'**
+  String get errorEventNoInstitutions;
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {

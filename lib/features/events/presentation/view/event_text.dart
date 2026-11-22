@@ -23,6 +23,20 @@ abstract final class EventText {
     HolidayType.optional => l10n.eventHolidayOptional,
   };
 
+  static String presetName(AppLocalizations l10n, String? code) => switch (code) {
+    'assembly' => l10n.eventPictureAssembly,
+    'celebration' => l10n.eventPictureCelebration,
+    'cultural' => l10n.eventPictureCultural,
+    'exam' => l10n.eventPictureExam,
+    'festival' => l10n.eventPictureFestival,
+    'holiday' => l10n.eventPictureHoliday,
+    'meeting' => l10n.eventPictureMeeting,
+    'science' => l10n.eventPictureScience,
+    'sports' => l10n.eventPictureSports,
+    'trip' => l10n.eventPictureTrip,
+    _ => l10n.eventPictureNone,
+  };
+
   /// "17-11-2026", or "17-11-2026 to 19-11-2026" for an event of several days.
   static String days(AppLocalizations l10n, SchoolEvent event) {
     final start = Formatters.schoolDate(Formatters.isoDay(event.startDate));
@@ -30,18 +44,21 @@ abstract final class EventText {
     return start == end ? l10n.eventOneDay(start) : l10n.eventDays(start, end);
   }
 
-  /// The picture of an event that has none of its own: the preset it was given (API design 10.26), else a calendar.
-  static IconData icon(SchoolEvent event) => switch (event.presetImageCode) {
-    'assembly' => Icons.groups_outlined,
-    'celebration' => Icons.celebration_outlined,
-    'cultural' => Icons.theater_comedy_outlined,
-    'exam' => Icons.edit_note_outlined,
-    'festival' => Icons.festival_outlined,
-    'holiday' => Icons.beach_access_outlined,
-    'meeting' => Icons.handshake_outlined,
-    'science' => Icons.science_outlined,
-    'sports' => Icons.sports_soccer_outlined,
-    'trip' => Icons.directions_bus_outlined,
-    _ => event.isHoliday ? Icons.beach_access_outlined : Icons.event_outlined,
+  /// The pictures an event can be given without uploading one, by the code the server takes (API design 10.26).
+  static const Map<String, IconData> presetIcons = {
+    'assembly': Icons.groups_outlined,
+    'celebration': Icons.celebration_outlined,
+    'cultural': Icons.theater_comedy_outlined,
+    'exam': Icons.edit_note_outlined,
+    'festival': Icons.festival_outlined,
+    'holiday': Icons.beach_access_outlined,
+    'meeting': Icons.handshake_outlined,
+    'science': Icons.science_outlined,
+    'sports': Icons.sports_soccer_outlined,
+    'trip': Icons.directions_bus_outlined,
   };
+
+  /// The picture of an event that has none of its own: the preset it was given, else a calendar.
+  static IconData icon(SchoolEvent event) =>
+      presetIcons[event.presetImageCode] ?? (event.isHoliday ? Icons.beach_access_outlined : Icons.event_outlined);
 }

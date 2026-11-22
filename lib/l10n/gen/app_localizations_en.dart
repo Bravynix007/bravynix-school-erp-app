@@ -3253,4 +3253,120 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get errorDiaryOutsideYear => 'This date is outside the current academic year.';
+
+  @override
+  String get eventAdd => 'Add event';
+
+  @override
+  String get eventAddTitle => 'Add event';
+
+  @override
+  String get eventEditTitle => 'Edit event';
+
+  @override
+  String get eventEdit => 'Edit event';
+
+  @override
+  String get eventDelete => 'Delete event';
+
+  @override
+  String get eventDeleteTitle => 'Delete this event?';
+
+  @override
+  String get eventDeleteMessage =>
+      'It leaves the calendar for everyone it was told to, and a holiday no longer blocks attendance.';
+
+  @override
+  String get eventDeleteConfirm => 'Delete';
+
+  @override
+  String get eventDeleted => 'Event deleted';
+
+  @override
+  String get eventSave => 'Save';
+
+  @override
+  String get eventSaved => 'Event saved';
+
+  @override
+  String get eventFieldTitle => 'Title';
+
+  @override
+  String get eventFieldDuration => 'Duration';
+
+  @override
+  String get eventFieldDurationHint => 'For example, 3 Days Holiday';
+
+  @override
+  String get eventFieldStart => 'Starts';
+
+  @override
+  String get eventFieldEnd => 'Ends';
+
+  @override
+  String get eventFieldDescription => 'Description';
+
+  @override
+  String get eventFieldVenue => 'Venue';
+
+  @override
+  String get eventFieldPicture => 'Picture';
+
+  @override
+  String get eventFieldInstitution => 'Institution';
+
+  @override
+  String get eventPictureNone => 'None';
+
+  @override
+  String get eventPictureAssembly => 'Assembly';
+
+  @override
+  String get eventPictureCelebration => 'Celebration';
+
+  @override
+  String get eventPictureCultural => 'Cultural';
+
+  @override
+  String get eventPictureExam => 'Exam';
+
+  @override
+  String get eventPictureFestival => 'Festival';
+
+  @override
+  String get eventPictureHoliday => 'Holiday';
+
+  @override
+  String get eventPictureMeeting => 'Meeting';
+
+  @override
+  String get eventPictureScience => 'Science';
+
+  @override
+  String get eventPictureSports => 'Sports';
+
+  @override
+  String get eventPictureTrip => 'Trip';
+
+  @override
+  String get eventIsHoliday => 'This is a holiday';
+
+  @override
+  String get eventIsHolidayHelper => 'A holiday blocks attendance on its days for the classes it covers.';
+
+  @override
+  String get eventHolidayClassesHelper => 'Leave every class unticked for all classes.';
+
+  @override
+  String get errorEventEndBeforeStart => 'The end cannot be before the start.';
+
+  @override
+  String get errorEventHolidayWho => 'Choose who the holiday is for.';
+
+  @override
+  String get errorEventScopeNotAllowed =>
+      'Only an Owner can add or change an event of the whole Society. An Admin works with the events of their Institution.';
+
+  @override
+  String get errorEventNoInstitutions => 'There is no Institution to add an event to.';
 }

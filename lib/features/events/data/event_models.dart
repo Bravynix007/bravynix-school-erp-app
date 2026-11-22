@@ -2,7 +2,7 @@ import 'package:bravynix_school_erp/core/format/formatters.dart';
 import 'package:bravynix_school_erp/core/network/json_shape.dart';
 import 'package:bravynix_school_erp/features/events/domain/event.dart';
 
-/// JSON → domain for EVT-01 and EVT-03. Unknown fields are ignored, as /v1 only ever adds fields (API design 5.2).
+/// JSON → domain for EVT-01 and EVT-03, and domain → body for EVT-02 and EVT-04. Unknown fields are ignored, as /v1 only ever adds fields (API design 5.2).
 abstract final class EventModels {
   static SchoolEvent event(Object? raw) {
     final json = jsonObject(raw);
@@ -32,4 +32,33 @@ abstract final class EventModels {
 
   static DateTime _day(Object? value) =>
       Formatters.parseDay(value! as String) ?? (throw FormatException('Not a day: $value'));
+
+  /// Every field the form holds: a field left empty is sent as `null`, which clears it on a change, and a plain event
+  /// says no holiday at all, so a holiday that was switched off is cleared whole.
+  static Map<String, Object?> fields(EventInput input) => {
+    'title': input.title,
+    'startDate': Formatters.isoDay(input.startDate),
+    'endDate': Formatters.isoDay(input.endDate),
+    'durationLabel': input.durationLabel,
+    'description': input.description,
+    'venue': input.venue,
+    'audience': input.audience.code,
+    'presetImageCode': input.presetImageCode,
+    'isHoliday': input.isHoliday,
+    'holidayType': input.isHoliday ? input.holidayType?.code : null,
+    'holidayForStudents': input.isHoliday && input.holidayForStudents,
+    'holidayForStaff': input.isHoliday && input.holidayForStaff,
+    'holidayPredefinedClassIds': input.isHoliday && input.holidayForStudents ? input.holidayClassIds : const <String>[],
+  };
+
+  static Map<String, Object?> createBody(EventInput input, {required EventScope scope, String? institutionId}) => {
+    ...fields(input),
+    'scope': scope.code,
+    'institutionId': ?institutionId,
+  };
+
+  static Map<String, Object?> changeBody(SchoolEvent event, EventInput input) => {
+    'version': event.version,
+    ...fields(input),
+  };
 }

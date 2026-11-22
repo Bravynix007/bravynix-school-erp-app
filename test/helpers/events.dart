@@ -12,6 +12,7 @@ SchoolEvent schoolEvent({
   bool forStaff = false,
   DateTime? endDate,
   String? presetImageCode,
+  bool canEdit = false,
 }) => SchoolEvent(
   id: id,
   title: title,
@@ -28,7 +29,7 @@ SchoolEvent schoolEvent({
   holidayForStudents: forStudents,
   holidayForStaff: forStaff,
   holidayClassIds: classIds,
-  canEdit: false,
+  canEdit: canEdit,
   version: 1,
 );
 
@@ -53,3 +54,12 @@ Map<String, Object?> eventJson({String id = 'e1', bool isHoliday = false}) => {
   'status': 1,
   'version': 3,
 };
+
+/// What the form of a plain event holds once it is complete.
+final planEvent = EventInput(
+  title: 'Sports Day',
+  startDate: DateTime(2026, 12, 5),
+  endDate: DateTime(2026, 12, 5),
+  durationLabel: '1 Day Event',
+  audience: EventAudience.everyone,
+);

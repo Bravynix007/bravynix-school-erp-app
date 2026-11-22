@@ -4,6 +4,7 @@ import 'package:bravynix_school_erp/app/router/app_router.dart';
 import 'package:bravynix_school_erp/app/router/app_routes.dart';
 import 'package:bravynix_school_erp/features/auth/domain/auth_entities.dart';
 import 'package:bravynix_school_erp/features/auth/presentation/session/session_bloc.dart';
+import 'package:bravynix_school_erp/features/events/presentation/view/event_form_page.dart';
 import 'package:bravynix_school_erp/features/students/presentation/view/student_promote_page.dart';
 import 'package:bravynix_school_erp/features/time_slots/presentation/view/time_slot_form_page.dart';
 import 'package:bravynix_school_erp/features/timetable/presentation/view/entry_form_page.dart';
@@ -83,6 +84,28 @@ void main() {
 
     test('stays when the list passes what it promotes', () async {
       expect(await redirectOf(const StudentPromoteArgs.group('i1')), isNull);
+    });
+  });
+
+  group('the event form screen', () {
+    FutureOr<String?> redirectOf(Object? extra) {
+      final route = router.configuration.findMatch(Uri.parse(AppRoutes.eventForm)).matches.last.route as GoRoute;
+      final state = _MockRouterState();
+      when(() => state.extra).thenReturn(extra);
+      return route.redirect!(_MockContext(), state);
+    }
+
+    test('is not read as the id of an event', () {
+      expect(match(AppRoutes.eventForm).pattern, AppRoutes.eventForm);
+    });
+
+    test('sends a visit with nothing from the events behind it back to the events', () async {
+      expect(await redirectOf(null), AppRoutes.events);
+      expect(await redirectOf('e1'), AppRoutes.events);
+    });
+
+    test('stays when the events pass the event to change, or none to add', () async {
+      expect(await redirectOf(const EventFormArgs()), isNull);
     });
   });
 
