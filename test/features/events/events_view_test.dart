@@ -181,6 +181,24 @@ void main() {
       expect(find.text('Students'), findsOneWidget);
     });
 
+    testWidgets('a holiday for staff alone has no classes row', (tester) async {
+      await pump(
+        tester,
+        EventLoaded(schoolEvent(isHoliday: true, forStaff: true, holidayType: HolidayType.optional)),
+      );
+      expect(find.text('Staff'), findsWidgets);
+      expect(find.text('Classes'), findsNothing);
+      expect(find.text('Every class'), findsNothing);
+      expect(find.text('Optional'), findsOneWidget);
+    });
+
+    testWidgets('says plainly when the person may not read the event, with no retry', (tester) async {
+      await pump(tester, const EventFailed(ApiFailure(statusCode: 403, code: 'FORBIDDEN', message: 'x')));
+      expect(find.byKey(const Key('event.forbidden')), findsOneWidget);
+      expect(find.byKey(const Key('event.failed')), findsNothing);
+      expect(find.text('Try again'), findsNothing);
+    });
+
     testWidgets('an event that is gone says so', (tester) async {
       await pump(tester, const EventFailed(ApiFailure(statusCode: 404, code: 'NOT_FOUND', message: 'x')));
       expect(find.text('This event is no longer available.'), findsOneWidget);

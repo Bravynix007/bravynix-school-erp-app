@@ -171,7 +171,7 @@ class _List extends StatelessWidget {
             item: item,
             onTap: () {
               bloc.add(InboxItemOpened(item.id));
-              final location = _locationOf(item.target);
+              final location = _locationOf(item);
               if (location != null) unawaited(context.push(location));
             },
           ),
@@ -198,8 +198,8 @@ class _List extends StatelessWidget {
 }
 
 /// The screen a notice opens. Attendance and diary notices open theirs when those screens are built.
-String? _locationOf(NotificationTarget? target) => switch (target?.type) {
-  NotificationTargetType.event => AppRoutes.event(target!.id),
+String? _locationOf(InboxItem item) => switch (item.target?.type) {
+  NotificationTargetType.event => AppRoutes.event(item.target!.id, studentId: item.studentId),
   _ => null,
 };
 

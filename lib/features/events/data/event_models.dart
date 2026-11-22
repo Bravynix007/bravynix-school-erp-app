@@ -1,3 +1,4 @@
+import 'package:bravynix_school_erp/core/format/formatters.dart';
 import 'package:bravynix_school_erp/core/network/json_shape.dart';
 import 'package:bravynix_school_erp/features/events/domain/event.dart';
 
@@ -29,10 +30,6 @@ abstract final class EventModels {
 
   static List<SchoolEvent> events(Object? raw) => [for (final entry in jsonList(raw)) event(entry)];
 
-  /// `2026-11-17`, with no time zone shift.
-  static DateTime _day(Object? value) {
-    final match = RegExp(r'^(\d{4})-(\d{2})-(\d{2})$').firstMatch(value! as String);
-    if (match == null) throw FormatException('Not a day: $value');
-    return DateTime(int.parse(match[1]!), int.parse(match[2]!), int.parse(match[3]!));
-  }
+  static DateTime _day(Object? value) =>
+      Formatters.parseDay(value! as String) ?? (throw FormatException('Not a day: $value'));
 }
