@@ -164,10 +164,13 @@ void main() {
       expect(find.textContaining('sections you lead or teach'), findsOneWidget);
     });
 
-    testWidgets('says a blocked child and a student that is not found in their own words', (tester) async {
+    testWidgets('says a blocked child in its own words', (tester) async {
       when(() => repository.calendar('s1', '2026-11')).thenThrow(refusal('CHILD_ACCESS_BLOCKED', status: 403));
       await pump(tester);
       expect(find.text("Access to this child's information is blocked. Contact the school."), findsOneWidget);
+    });
+
+    testWidgets('says a student that is not found in its own words', (tester) async {
       when(() => repository.calendar('s1', '2026-11')).thenThrow(refusal('NOT_FOUND', status: 404));
       await pump(tester);
       expect(find.text('This student could not be found.'), findsOneWidget);

@@ -39,4 +39,20 @@ void main() {
     expect(attendanceActionErrorText(l10n, _code('FORBIDDEN', status: 403)), l10n.errorAttendanceOlderYear);
     expect(attendanceActionErrorText(l10n, _code('ROSTER_CHANGED')), l10n.errorAttendanceRosterChanged);
   });
+
+  test('the calendar has its own words for a month outside the year and for a child no staff member is assigned', () {
+    expect(attendanceCalendarErrorText(l10n, _code('OUTSIDE_ACADEMIC_YEAR')), l10n.errorAttendanceCalendarOutsideYear);
+    expect(
+      attendanceCalendarErrorText(l10n, _code('NOT_ASSIGNED', status: 403)),
+      l10n.errorAttendanceCalendarNotAssigned,
+    );
+    expect(
+      attendanceCalendarErrorText(l10n, _code('NOT_FOUND', status: 404)),
+      l10n.errorAttendanceCalendarNotFound,
+    );
+    expect(
+      attendanceCalendarErrorText(l10n, _code('CHILD_ACCESS_BLOCKED', status: 403)),
+      l10n.errorChildAccessBlocked,
+    );
+  });
 }
