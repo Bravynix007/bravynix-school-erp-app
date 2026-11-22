@@ -152,6 +152,35 @@ void main() {
     );
 
     blocTest<TimeSlotFormBloc, TimeSlotFormState>(
+      'sends a second Save while the first is on its way once only',
+      build: () => TimeSlotFormBloc(repository, 'i1'),
+      setUp: () =>
+          when(
+            () => repository.create(
+              'i1',
+              periodNo: 4,
+              startTime: '12:00',
+              endTime: '12:30',
+              isBreak: true,
+              label: 'Lunch',
+            ),
+          ).thenAnswer((_) async {
+            await Future<void>.delayed(const Duration(milliseconds: 10));
+            return lunch;
+          }),
+      act: (bloc) {
+        bloc
+          ..add(const TimeSlotFormSubmitted(fields))
+          ..add(const TimeSlotFormSubmitted(fields));
+      },
+      wait: const Duration(milliseconds: 50),
+      expect: () => [const TimeSlotFormEditing(saving: true), const TimeSlotFormSaved(lunch)],
+      verify: (_) => verify(
+        () => repository.create('i1', periodNo: 4, startTime: '12:00', endTime: '12:30', isBreak: true, label: 'Lunch'),
+      ).called(1),
+    );
+
+    blocTest<TimeSlotFormBloc, TimeSlotFormState>(
       'names what is missing without asking the server',
       build: () => TimeSlotFormBloc(repository, 'i1'),
       act: (bloc) => bloc.add(

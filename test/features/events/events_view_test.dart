@@ -115,6 +115,16 @@ void main() {
       verify(() => bloc.add(const EventsRequested())).called(1);
     });
 
+    testWidgets('says plainly when the person may not read the events, with no retry', (tester) async {
+      await pump(
+        tester,
+        EventsFailed(november, const ApiFailure(statusCode: 403, code: 'FORBIDDEN', message: 'x'), holidaysOnly: false),
+      );
+      expect(find.byKey(const Key('events.forbidden')), findsOneWidget);
+      expect(find.byKey(const Key('events.failed')), findsNothing);
+      expect(find.text('Try again'), findsNothing);
+    });
+
     testWidgets('says that a blocked child has no access, with no retry', (tester) async {
       await pump(
         tester,

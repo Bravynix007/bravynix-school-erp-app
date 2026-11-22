@@ -74,7 +74,19 @@ void main() {
     expect(find.text('09:00 to 09:45'), findsOneWidget);
     expect(find.text('Lunch'), findsOneWidget);
     expect(find.text('12:00 to 12:30'), findsOneWidget);
-    expect(find.text('Break'), findsOneWidget);
+    expect(
+      find.descendant(of: find.byKey(const ValueKey('timeSlot.t2')), matching: find.text('Break')),
+      findsOneWidget,
+    );
+    expect(find.descendant(of: find.byKey(const ValueKey('timeSlot.t1')), matching: find.text('Break')), findsNothing);
+  });
+
+  testWidgets('shows the period being deactivated at work, and no other', (tester) async {
+    await pump(tester, const ListLoaded<TimeSlot>([firstPeriod, lunch], busyId: 't2'));
+    Finder spinnerIn(String key) =>
+        find.descendant(of: find.byKey(ValueKey(key)), matching: find.byType(CircularProgressIndicator));
+    expect(spinnerIn('timeSlot.deactivate.t2'), findsOneWidget);
+    expect(spinnerIn('timeSlot.deactivate.t1'), findsNothing);
   });
 
   testWidgets('Deactivate asks first, and does nothing when cancelled', (tester) async {
