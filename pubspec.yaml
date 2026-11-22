@@ -44,7 +44,16 @@ dev_dependencies:
 flutter:
   uses-material-design: true
   generate: true
+  assets:
+    - assets/auth/bravynix-logo.png
+    - assets/auth/campus-sign-in.jpg
+    - assets/fonts/libre_baskerville/OFL.txt
   fonts:
+    - family: LibreBaskerville
+      fonts:
+        - asset: assets/fonts/libre_baskerville/LibreBaskerville-Regular.ttf
+        - asset: assets/fonts/libre_baskerville/LibreBaskerville-Italic.ttf
+          style: italic
     # Static weights cut from the variable font, SIL Open Font License; the licence sits beside them.
     # Static files let Flutter pick the nearest weight, so Bold Text and bold spans work.
     - family: PlusJakartaSans

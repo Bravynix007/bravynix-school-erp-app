@@ -131,16 +131,16 @@ void main() {
         expect(find.byKey(const Key('login.code')), findsOneWidget);
       });
 
-      // The splash Column does not scroll: at 3.0 (iOS's largest accessibility
-      // sizes) it overflows by 212 px. The same happens on main, so it is not
-      // from this PR; skipped until the splash is made scrollable.
-      testWidgets('splash restore-failed state lays out at text scale $scale', skip: scale > 2, (tester) async {
+      testWidgets('splash restore-failed state lays out at text scale $scale', (tester) async {
         when(() => session.state).thenReturn(
           const SessionRestoreFailed(ApiFailure(statusCode: 0, code: ApiFailure.networkError, message: 'offline')),
         );
         await pump(tester, const SplashPage(), scale);
         expect(tester.takeException(), isNull);
-        expect(find.byKey(const Key('splash.retry')), findsOneWidget);
+        final retry = find.byKey(const Key('splash.retry'));
+        await tester.ensureVisible(retry);
+        await tester.tap(retry);
+        verify(() => session.add(const SessionStarted())).called(1);
       });
     }
   });
