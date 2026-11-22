@@ -140,6 +140,7 @@ void main() {
     expect(tester.widget<ButtonStyleButton>(button('section.edit.e1')).onPressed, isNull);
     expect(tester.widget<ButtonStyleButton>(button('section.deactivate.e1')).onPressed, isNull);
     expect(tester.widget<ButtonStyleButton>(button('section.edit.e2')).onPressed, isNull);
+    expect(tester.widget<ButtonStyleButton>(button('section.timetable.e2')).onPressed, isNull);
   });
 
   testWidgets('says why a deactivation was refused, above the list', (tester) async {

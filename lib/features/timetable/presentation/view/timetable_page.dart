@@ -1,5 +1,6 @@
 import 'package:bravynix_school_erp/app/di/injection.dart';
 import 'package:bravynix_school_erp/core/bloc/list_bloc.dart';
+import 'package:bravynix_school_erp/core/format/formatters.dart';
 import 'package:bravynix_school_erp/core/theme/app_spacing.dart';
 import 'package:bravynix_school_erp/core/widgets/app_card.dart';
 import 'package:bravynix_school_erp/core/widgets/app_top_bar.dart';
@@ -28,7 +29,7 @@ import 'package:intl/intl.dart';
 class TimetablePage extends StatelessWidget {
   const new({this.clock = DateTime.now, super.key});
 
-  /// What "today" is, for the day that opens first.
+  /// What "today" is, for the day that opens first: the school day it falls on in IST, as everywhere in the app.
   final DateTime Function() clock;
 
   @override
@@ -59,8 +60,8 @@ class TimetablePage extends StatelessWidget {
                         : const SizedBox.shrink(),
                   )
                 : InstitutionScope(
-                    builder: (context, institution) =>
-                        _WeekOf(key: ValueKey(institution.id), week: OwnWeek(institution.id), today: clock()),
+                    // The scope builds its child again for each Institution, so the week is read for the one chosen.
+                    builder: (context, institution) => _WeekOf(week: OwnWeek(institution.id), today: clock()),
                   ),
           ),
         ],
@@ -132,7 +133,7 @@ class TimetableView extends StatelessWidget {
 
   final TimetableWeek week;
 
-  /// Its weekday is the one that opens first (Sunday, the weekly off, opens none).
+  /// The school day (IST) of this instant is the one that opens first (Sunday, the weekly off, opens none).
   final DateTime today;
 
   static const days = [1, 2, 3, 4, 5, 6];
@@ -141,6 +142,7 @@ class TimetableView extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final locale = Localizations.localeOf(context).toString();
+    final weekday = Formatters.parseDay(Formatters.schoolDay(today))!.weekday;
     return BlocBuilder<TimetableBloc, ListState<TimetableEntry>>(
       builder: (context, state) => switch (state) {
         ListLoading<TimetableEntry>() => SkeletonCards(semanticLabel: l10n.loading, heights: const [72, 72, 72]),
@@ -167,7 +169,7 @@ class TimetableView extends StatelessWidget {
           ),
           children: [
             for (final day in days) ...[
-              _dayCard(context, l10n, locale, day, [
+              _dayCard(context, l10n, locale, weekday, day, [
                 for (final entry in items)
                   if (entry.dayOfWeek == day) entry,
               ]),
@@ -179,14 +181,21 @@ class TimetableView extends StatelessWidget {
     );
   }
 
-  Widget _dayCard(BuildContext context, AppLocalizations l10n, String locale, int day, List<TimetableEntry> entries) {
+  Widget _dayCard(
+    BuildContext context,
+    AppLocalizations l10n,
+    String locale,
+    int weekday,
+    int day,
+    List<TimetableEntry> entries,
+  ) {
     // 1 January 2024 was a Monday, so the day number is the date.
     final name = DateFormat.EEEE(locale).format(DateTime(2024, 1, day));
     return TimetableDayCard(
       key: ValueKey('timetable.day.$day'),
       title: name,
       summary: l10n.timetableDayCount(entries.where((entry) => !entry.isBreak).length),
-      initiallyOpen: today.weekday == day,
+      initiallyOpen: weekday == day,
       child: entries.isEmpty
           ? Text(l10n.timetableDayEmpty, style: Theme.of(context).textTheme.bodyMedium)
           : Column(

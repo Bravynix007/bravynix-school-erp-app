@@ -70,6 +70,12 @@ void main() {
     expect(find.text('Mathematics'), findsNothing);
   });
 
+  testWidgets('opens the day it is in IST, whatever zone the device is in', (tester) async {
+    // 20:00 UTC on Sunday 15 November is 01:30 IST on Monday the 16th.
+    await pump(tester, const ListLoaded<TimetableEntry>([mathsMonday]), today: DateTime.utc(2026, 11, 15, 20));
+    expect(find.text('Mathematics'), findsOneWidget);
+  });
+
   testWidgets('opens no day on a Sunday', (tester) async {
     await pump(tester, const ListLoaded<TimetableEntry>([mathsMonday]), today: sunday);
     expect(find.text('Mathematics'), findsNothing);
