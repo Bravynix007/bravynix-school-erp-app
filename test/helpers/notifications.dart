@@ -35,3 +35,19 @@ Map<String, Object?> inboxItemJson({String id = 'n1', bool isRead = false, Objec
   'isRead': isRead,
   'readAt': null,
 };
+
+extension ReadInboxItem on InboxItem {
+  /// The same notice once it has been read, as NTF-03 answers.
+  InboxItem asRead() => InboxItem(
+    id: id,
+    createdAt: createdAt,
+    category: category,
+    title: title,
+    body: body,
+    isRead: true,
+    senderDisplayName: senderDisplayName,
+    institutionId: institutionId,
+    studentId: studentId,
+    target: target,
+  );
+}
