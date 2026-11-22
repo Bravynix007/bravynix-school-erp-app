@@ -39,4 +39,13 @@ abstract final class AppTextStyles {
 
   /// IDs and references: UID STU-2291, UPI refs.
   static final TextStyle code = _style(13, 18, FontWeight.w500, tabular: true);
+
+  static final TextStyle verificationDigit = _style(24, 32, FontWeight.w700, tabular: true);
+
+  static const authEditorial = TextStyle(
+    fontFamily: 'LibreBaskerville',
+    fontFamilyFallback: ['Noto Serif', 'serif'],
+    fontSize: 40,
+    height: 1.12,
+  );
 }
