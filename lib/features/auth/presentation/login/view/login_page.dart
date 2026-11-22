@@ -1,10 +1,12 @@
 import 'package:bravynix_school_erp/app/di/injection.dart';
+import 'package:bravynix_school_erp/core/theme/app_spacing.dart';
 import 'package:bravynix_school_erp/core/widgets/inline_message.dart';
 import 'package:bravynix_school_erp/features/auth/domain/auth_repository.dart';
 import 'package:bravynix_school_erp/features/auth/presentation/login/bloc/login_bloc.dart';
 import 'package:bravynix_school_erp/features/auth/presentation/login/view/code_form.dart';
 import 'package:bravynix_school_erp/features/auth/presentation/login/view/email_form.dart';
 import 'package:bravynix_school_erp/features/auth/presentation/session/session_bloc.dart';
+import 'package:bravynix_school_erp/features/auth/presentation/widgets/auth_scaffold.dart';
 import 'package:bravynix_school_erp/l10n/gen/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -33,37 +35,22 @@ class LoginView extends StatelessWidget {
     return BlocListener<LoginBloc, LoginState>(
       listenWhen: (previous, current) => current.status == LoginStatus.success && current.session != null,
       listener: (context, state) => context.read<SessionBloc>().add(SessionSignedIn(state.session!)),
-      child: Scaffold(
-        body: SafeArea(
-          child: Center(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.all(24),
-              child: ConstrainedBox(
-                constraints: const BoxConstraints(maxWidth: 420),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    Text(
-                      l10n.appName,
-                      textAlign: TextAlign.center,
-                      style: Theme.of(context).textTheme.headlineLarge,
-                    ),
-                    const SizedBox(height: 32),
-                    if (endReason != null) ...[
-                      InlineMessage.info(_endReasonText(l10n, endReason)),
-                      const SizedBox(height: 16),
-                    ],
-                    BlocBuilder<LoginBloc, LoginState>(
-                      buildWhen: (previous, current) => previous.step != current.step,
-                      builder: (context, state) => AnimatedSwitcher(
-                        duration: const Duration(milliseconds: 200),
-                        child: state.step == LoginStep.email ? const EmailForm() : const CodeForm(),
-                      ),
-                    ),
-                  ],
-                ),
+      child: BlocBuilder<LoginBloc, LoginState>(
+        buildWhen: (previous, current) => previous.step != current.step,
+        builder: (context, state) => AuthScaffold(
+          showCampus: state.step == LoginStep.email,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              if (endReason != null) ...[
+                InlineMessage.info(_endReasonText(l10n, endReason)),
+                const SizedBox(height: AppSpacing.md),
+              ],
+              AnimatedSwitcher(
+                duration: MediaQuery.disableAnimationsOf(context) ? Duration.zero : const Duration(milliseconds: 200),
+                child: state.step == LoginStep.email ? const EmailForm() : const CodeForm(),
               ),
-            ),
+            ],
           ),
         ),
       ),
