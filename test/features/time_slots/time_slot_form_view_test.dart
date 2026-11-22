@@ -89,6 +89,30 @@ void main() {
     await tester.tap(find.byKey(const Key('timeSlotForm.break')));
     await tester.pump();
     expect(tester.widget<Switch>(find.byType(Switch)).value, isTrue);
+    // It does not look tappable either.
+    expect(tester.widget<Switch>(find.byType(Switch)).onChanged, isNull);
+  });
+
+  testWidgets('an add can mark the period a break', (tester) async {
+    await pump(tester, const TimeSlotFormEditing());
+    expect(tester.widget<Switch>(find.byType(Switch)).onChanged, isNotNull);
+  });
+
+  testWidgets('the times open a clock, not a calendar', (tester) async {
+    await pump(tester, const TimeSlotFormEditing());
+    expect(find.byIcon(Icons.schedule_outlined), findsNWidgets(2));
+    expect(find.byIcon(Icons.calendar_today_outlined), findsNothing);
+  });
+
+  testWidgets('the clock opens on the time already chosen', (tester) async {
+    await pump(tester, const TimeSlotFormEditing(), slot: lunch);
+    await tester.tap(find.byKey(const Key('timeSlotForm.end')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byIcon(Icons.keyboard_outlined));
+    await tester.pumpAndSettle();
+    final boxes = find.descendant(of: find.byType(Dialog), matching: find.byType(TextField));
+    expect(tester.widget<TextField>(boxes.at(0)).controller!.text, '12');
+    expect(tester.widget<TextField>(boxes.at(1)).controller!.text, '30');
   });
 
   testWidgets('Save sends what is typed, the times picked on the clock and the break mark', (tester) async {
@@ -136,6 +160,26 @@ void main() {
       ),
     );
     expect(find.text('This field is required.'), findsNWidgets(2));
+    expect(find.byKey(const Key('timeSlotForm.error')), findsNothing);
+  });
+
+  testWidgets('says a refusal of the end time and of the name under their own fields', (tester) async {
+    await pump(
+      tester,
+      TimeSlotFormEditing(
+        failure: _failure(
+          400,
+          'VALIDATION_FAILED',
+          fields: const [
+            FieldError(field: 'endTime', code: 'OUT_OF_RANGE', message: 'End is not after the start.'),
+            FieldError(field: 'label', code: 'INVALID_FORMAT', message: 'Use letters and digits.'),
+          ],
+        ),
+      ),
+    );
+    Finder under(String key, String text) => find.descendant(of: find.byKey(Key(key)), matching: find.text(text));
+    expect(under('timeSlotForm.end', 'End is not after the start.'), findsOneWidget);
+    expect(under('timeSlotForm.label', 'Use letters and digits.'), findsOneWidget);
     expect(find.byKey(const Key('timeSlotForm.error')), findsNothing);
   });
 
