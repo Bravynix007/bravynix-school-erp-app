@@ -99,19 +99,6 @@ class InboxItem extends Equatable {
   final NotificationTarget? target;
   final bool isRead;
 
-  InboxItem asRead() => InboxItem(
-    id: id,
-    createdAt: createdAt,
-    category: category,
-    title: title,
-    body: body,
-    isRead: true,
-    senderDisplayName: senderDisplayName,
-    institutionId: institutionId,
-    studentId: studentId,
-    target: target,
-  );
-
   @override
   List<Object?> get props => [
     id,
