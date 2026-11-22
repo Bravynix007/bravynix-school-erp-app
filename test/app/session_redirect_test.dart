@@ -1,6 +1,7 @@
 import 'package:bravynix_school_erp/app/router/app_router.dart';
 import 'package:bravynix_school_erp/app/router/app_routes.dart';
 import 'package:bravynix_school_erp/features/academic_years/presentation/view/academic_year_form_page.dart';
+import 'package:bravynix_school_erp/features/attendance/presentation/view/attendance_calendar_page.dart';
 import 'package:bravynix_school_erp/features/auth/domain/auth_entities.dart';
 import 'package:bravynix_school_erp/features/auth/presentation/session/session_bloc.dart';
 import 'package:bravynix_school_erp/features/classes/presentation/view/class_bulk_page.dart';
@@ -79,6 +80,12 @@ void main() {
     expect(academicYearFormRedirect(const AcademicYearFormArgs(institutionId: 'i1')), isNull);
     expect(academicYearFormRedirect(null), AppRoutes.academicYears);
     expect(academicYearFormRedirect('i1'), AppRoutes.academicYears);
+  });
+
+  test("a student's attendance opens only with the student the profile passes, else home", () {
+    expect(studentAttendanceRedirect(const StudentAttendanceArgs(studentId: 's1', name: 'Asha Rao')), isNull);
+    expect(studentAttendanceRedirect(null), AppRoutes.home);
+    expect(studentAttendanceRedirect('s1'), AppRoutes.home);
   });
 
   test('the class forms open only with what the list passes, else back to the list', () {

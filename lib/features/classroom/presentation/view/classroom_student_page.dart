@@ -8,6 +8,7 @@ import 'package:bravynix_school_erp/features/academic_years/domain/academic_year
 import 'package:bravynix_school_erp/features/achievements/domain/achievements_repository.dart';
 import 'package:bravynix_school_erp/features/achievements/presentation/bloc/achievements_bloc.dart';
 import 'package:bravynix_school_erp/features/achievements/presentation/view/stars_section.dart';
+import 'package:bravynix_school_erp/features/attendance/presentation/view/student_attendance_tile.dart';
 import 'package:bravynix_school_erp/features/auth/presentation/session/session_bloc.dart';
 import 'package:bravynix_school_erp/features/classes/domain/classes_repository.dart';
 import 'package:bravynix_school_erp/features/classroom/domain/classroom.dart';
@@ -113,6 +114,8 @@ class _Details extends StatelessWidget {
             ],
           ),
         ),
+        const SizedBox(height: AppSpacing.xs),
+        StudentAttendanceTile(studentId: student.id, name: student.fullName),
         const SizedBox(height: AppSpacing.md),
         BlocProvider(
           create: (_) =>

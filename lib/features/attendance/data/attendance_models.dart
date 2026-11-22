@@ -1,9 +1,10 @@
 import 'package:bravynix_school_erp/core/network/json_shape.dart';
+import 'package:bravynix_school_erp/features/attendance/domain/attendance_calendar.dart';
 import 'package:bravynix_school_erp/features/attendance/domain/attendance_repository.dart';
 import 'package:bravynix_school_erp/features/attendance/domain/attendance_roster.dart';
 import 'package:bravynix_school_erp/features/sections/domain/section_options.dart';
 
-/// JSON → domain for ATT-01, ATT-02, ATT-05 and ATT-09. Unknown fields are ignored, as /v1 only ever adds fields (API
+/// JSON → domain for ATT-01, ATT-02, ATT-05, ATT-07, ATT-08 and ATT-09. Unknown fields are ignored, as /v1 only ever adds fields (API
 /// design 5.2).
 abstract final class AttendanceModels {
   static MarkingSections sections(Object? raw) {
@@ -74,6 +75,64 @@ abstract final class AttendanceModels {
       lateCount: count('lateCount'),
       halfDayCount: count('halfDayCount'),
       leaveCount: count('leaveCount'),
+    );
+  }
+
+  static DayStatus _status(String code) {
+    // A status the app does not know would be drawn as another day; refuse the answer rather than show it.
+    return DayStatus.fromCode(code) ?? (throw FormatException('Unknown day status $code'));
+  }
+
+  static CalendarDay _day(Map<String, dynamic> json) => CalendarDay(
+    day: json['date'] as String,
+    status: _status(json['dayStatus'] as String),
+    isWeekend: json['isWeekend'] as bool,
+    holidayTitle: json['holidayTitle'] as String?,
+  );
+
+  static AttendanceCalendar calendar(Object? raw) {
+    final json = jsonObject(raw);
+    final summary = jsonObject(json['summary']);
+    int count(String key) => (summary[key] as num).toInt();
+    return AttendanceCalendar(
+      month: json['month'] as String,
+      summary: MonthSummary(
+        presentDays: count('presentDays'),
+        absentDays: count('absentDays'),
+        lateDays: count('lateDays'),
+        halfDays: count('halfDays'),
+        leaveDays: count('leaveDays'),
+        holidays: count('holidays'),
+        notMarkedDays: count('notMarkedDays'),
+        percentage: (summary['attendancePercentage'] as num?)?.toDouble(),
+      ),
+      yearToDatePercentage: (jsonObject(json['yearToDate'])['attendancePercentage'] as num?)?.toDouble(),
+      days: [for (final item in jsonList(json['days'])) _day(jsonObject(item))],
+    );
+  }
+
+  static DayDetail dayDetail(Object? raw) {
+    final json = jsonObject(raw);
+    final day = _day(json);
+    final section = json['section'];
+    final markedBy = json['markedBy'];
+    final markedAt = json['markedAt'] as String?;
+    final corrected = json['lastCorrectedAt'] as String?;
+    return DayDetail(
+      day: day.day,
+      status: day.status,
+      isWeekend: day.isWeekend,
+      holidayTitle: day.holidayTitle,
+      section: section == null
+          ? null
+          : DaySection(
+              id: jsonObject(section)['id'] as String,
+              name: jsonObject(section)['name'] as String?,
+              className: jsonObject(section)['className'] as String?,
+            ),
+      markedBy: markedBy == null ? null : jsonObject(markedBy)['displayName'] as String,
+      markedAt: markedAt == null ? null : DateTime.parse(markedAt),
+      lastCorrectedAt: corrected == null ? null : DateTime.parse(corrected),
     );
   }
 

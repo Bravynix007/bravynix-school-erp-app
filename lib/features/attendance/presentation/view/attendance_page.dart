@@ -30,7 +30,10 @@ import 'package:go_router/go_router.dart';
 /// (API design 10.10 to 10.12a). Everyone is Present until marked otherwise; a register already taken opens for
 /// correction, and an Owner or an Admin can void it.
 class AttendancePage extends StatelessWidget {
-  const new({this.clock = DateTime.now, super.key});
+  const new({this.focus, this.clock = DateTime.now, super.key});
+
+  /// The register to open on, when another screen sent the person here to correct one.
+  final AttendanceFocus? focus;
 
   /// What "today" is: the school day it falls on in IST, as everywhere in the app.
   final DateTime Function() clock;
@@ -50,7 +53,7 @@ class AttendancePage extends StatelessWidget {
               // The scope builds its child again for each Institution, so the classes are those of the one chosen.
               builder: (context, institution) => BlocProvider(
                 create: (_) =>
-                    AttendanceBloc(getIt<AttendanceRepository>(), institution.id, clock: clock)
+                    AttendanceBloc(getIt<AttendanceRepository>(), institution.id, clock: clock, focus: focus)
                       ..add(const AttendanceStarted()),
                 child: AttendanceView(
                   // An Owner or an Admin marks at every Institution they reach; a teacher at their own only (API design

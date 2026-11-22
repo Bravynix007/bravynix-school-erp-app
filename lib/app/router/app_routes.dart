@@ -59,6 +59,11 @@ abstract final class AppRoutes {
   /// Attendance: the register of one section on one day, taken, corrected or voided (ATT-01 to ATT-06, ATT-09).
   static const attendance = '/attendance';
 
+  /// A parent's calendar of the child shown at the top (ATT-07, ATT-08), and a student's for staff, which takes the
+  /// student and their name as the route's `extra`.
+  static const attendanceCalendar = '/attendance/calendar';
+  static const studentAttendance = '/attendance/student';
+
   /// Period timings of the chosen Institution's current year (TTS-01), and the form that adds or edits one (TTS-02,
   /// TTS-03), which takes the Institution and the period as the route's `extra`: no endpoint reads one period, so the
   /// list hands it over.

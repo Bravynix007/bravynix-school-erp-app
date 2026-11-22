@@ -65,6 +65,8 @@ void main() {
 
   testWidgets('shows everything a full profile has', (tester) async {
     await pump(tester, const StudentProfileLoaded(_ashaProfile));
+    // The attendance calendar is one tap away.
+    expect(find.byKey(const Key('student.attendance')), findsOneWidget);
     for (final text in [
       'Asha Rao',
       'A-2026-014',

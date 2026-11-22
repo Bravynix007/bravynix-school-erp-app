@@ -1,5 +1,6 @@
 import 'package:bravynix_school_erp/core/network/api_client.dart';
 import 'package:bravynix_school_erp/features/attendance/data/attendance_models.dart';
+import 'package:bravynix_school_erp/features/attendance/domain/attendance_calendar.dart';
 import 'package:bravynix_school_erp/features/attendance/domain/attendance_repository.dart';
 import 'package:bravynix_school_erp/features/attendance/domain/attendance_roster.dart';
 
@@ -53,4 +54,14 @@ class AttendanceRepositoryImpl implements AttendanceRepository {
     body: {'version': version, 'reason': reason},
     parse: (_) {},
   );
+
+  static String _student(String id) => 'students/${Uri.encodeComponent(id)}/attendance';
+
+  @override
+  Future<AttendanceCalendar> calendar(String studentId, String month) =>
+      _api.data(_student(studentId), query: {'month': month}, parse: AttendanceModels.calendar);
+
+  @override
+  Future<DayDetail> dayDetail(String studentId, String day) =>
+      _api.data('${_student(studentId)}/days/${Uri.encodeComponent(day)}', parse: AttendanceModels.dayDetail);
 }

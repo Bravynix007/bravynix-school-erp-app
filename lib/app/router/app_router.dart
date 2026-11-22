@@ -3,6 +3,8 @@ import 'dart:async';
 import 'package:bravynix_school_erp/app/router/app_routes.dart';
 import 'package:bravynix_school_erp/features/academic_years/presentation/view/academic_year_form_page.dart';
 import 'package:bravynix_school_erp/features/academic_years/presentation/view/academic_years_page.dart';
+import 'package:bravynix_school_erp/features/attendance/presentation/bloc/attendance_bloc.dart';
+import 'package:bravynix_school_erp/features/attendance/presentation/view/attendance_calendar_page.dart';
 import 'package:bravynix_school_erp/features/attendance/presentation/view/attendance_page.dart';
 import 'package:bravynix_school_erp/features/auth/presentation/login/view/login_page.dart';
 import 'package:bravynix_school_erp/features/auth/presentation/role/view/role_chooser_page.dart';
@@ -96,6 +98,9 @@ String? subjectFormRedirect(Object? extra) => extra is SubjectFormArgs ? null : 
 /// The student form needs the Institution the screen behind it hands over.
 String? studentFormRedirect(Object? extra) => extra is StudentFormArgs ? null : AppRoutes.students;
 
+/// A student's attendance needs the student the profile hands over.
+String? studentAttendanceRedirect(Object? extra) => extra is StudentAttendanceArgs ? null : AppRoutes.home;
+
 /// The move form needs the student the list hands over.
 String? studentMoveRedirect(Object? extra) => extra is StudentMoveArgs ? null : AppRoutes.students;
 
@@ -172,7 +177,17 @@ GoRouter createRouter(SessionBloc session, {required SessionChanges changes}) {
         redirect: (_, state) => academicYearFormRedirect(state.extra),
         builder: (_, state) => AcademicYearFormPage(args: state.extra! as AcademicYearFormArgs),
       ),
-      GoRoute(path: AppRoutes.attendance, builder: (_, _) => const AttendancePage()),
+      GoRoute(
+        path: AppRoutes.attendance,
+        builder: (_, state) =>
+            AttendancePage(focus: state.extra is AttendanceFocus ? state.extra! as AttendanceFocus : null),
+      ),
+      GoRoute(path: AppRoutes.attendanceCalendar, builder: (_, _) => const AttendanceCalendarPage()),
+      GoRoute(
+        path: AppRoutes.studentAttendance,
+        redirect: (_, state) => studentAttendanceRedirect(state.extra),
+        builder: (_, state) => StudentAttendancePage(args: state.extra! as StudentAttendanceArgs),
+      ),
       GoRoute(path: AppRoutes.timetable, builder: (_, _) => const TimetablePage()),
       GoRoute(
         path: AppRoutes.sectionTimetable,

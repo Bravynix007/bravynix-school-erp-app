@@ -1,4 +1,5 @@
 import 'package:bravynix_school_erp/core/widgets/attendance_status_selector.dart';
+import 'package:bravynix_school_erp/features/attendance/domain/attendance_calendar.dart';
 import 'package:bravynix_school_erp/features/attendance/domain/attendance_roster.dart';
 import 'package:bravynix_school_erp/features/sections/domain/section_options.dart';
 import 'package:equatable/equatable.dart';
@@ -49,4 +50,12 @@ abstract interface class AttendanceRepository {
 
   /// ATT-06: voids the register, for a [reason] of 5 to 500 characters, so the day is free to be taken again.
   Future<void> voidRegister(String registerId, int version, String reason);
+
+  /// ATT-07: a month of a student, [month] written `YYYY-MM`. 422 OUTSIDE_ACADEMIC_YEAR when no year of the
+  /// Institution holds the month, 403 NOT_ASSIGNED for a teacher and a student outside their sections, 404 for a student
+  /// out of reach (a parent's other child), 403 CHILD_ACCESS_BLOCKED for a blocked child.
+  Future<AttendanceCalendar> calendar(String studentId, String month);
+
+  /// ATT-08: one day of a student, [day] written `YYYY-MM-DD`. The same refusals as [calendar].
+  Future<DayDetail> dayDetail(String studentId, String day);
 }

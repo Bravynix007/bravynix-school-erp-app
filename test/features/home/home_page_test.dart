@@ -101,8 +101,8 @@ void main() {
     testWidgets("a parent's home has the timetable tile", (tester) async {
       await pumpParent(tester, parent, const ActiveChildReady(children: [diya], selected: diya));
       expect(find.byKey(const Key('home.quick.timetable')), findsOneWidget);
-      // A parent reads the calendar; taking a register is for the school's side.
-      expect(find.byKey(const Key('home.quick.attendance')), findsNothing);
+      // The same tile opens the child's calendar for a parent, and the register for the school's side.
+      expect(find.byKey(const Key('home.quick.attendance')), findsOneWidget);
     });
 
     testWidgets('an owner sees no child panel', (tester) async {
