@@ -13,7 +13,10 @@ abstract final class AppRoutes {
   /// Events and holidays (EVT-01), and one of them (EVT-03), which a notice opens by its ID.
   static const events = '/events';
   static const eventPattern = '/events/:id';
-  static String event(String id) => '$events/${Uri.encodeComponent(id)}';
+
+  /// One event; a notice says which child it is about with [studentId], so a parent of two reads it for that child.
+  static String event(String id, {String? studentId}) =>
+      '$events/${Uri.encodeComponent(id)}${studentId == null ? '' : '?studentId=${Uri.encodeQueryComponent(studentId)}'}';
 
   /// A teacher's own staff record and documents (STF-03, STF-14), read only.
   static const ownStaffRecord = '/profile/staff-record';

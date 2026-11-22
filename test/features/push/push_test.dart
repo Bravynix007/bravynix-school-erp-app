@@ -64,6 +64,12 @@ void main() {
       verifyNever(() => devices.register(any()));
     });
 
+    test('an empty token is no token: the server is asked for nothing', () async {
+      when(messaging.token).thenAnswer((_) async => '');
+      expect(await PushRegistrar(messaging, devices).register(), isFalse);
+      verifyNever(() => devices.register(any()));
+    });
+
     test('a refusal is not shown: the next sign-in tries again', () async {
       when(messaging.token).thenAnswer((_) async => 'tok-1');
       when(() => devices.register(any())).thenThrow(const ApiFailure.network());

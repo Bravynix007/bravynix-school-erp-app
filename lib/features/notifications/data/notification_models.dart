@@ -14,6 +14,8 @@ abstract final class NotificationModels {
       title: json['title'] as String,
       body: json['body'] as String? ?? '',
       senderDisplayName: json['senderDisplayName'] as String?,
+      institutionId: json['institutionId'] as String?,
+      studentId: json['studentId'] as String?,
       isRead: json['isRead'] as bool? ?? false,
       target: type == null
           ? null
