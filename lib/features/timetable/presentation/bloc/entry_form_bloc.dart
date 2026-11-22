@@ -1,5 +1,6 @@
 import 'package:bloc/bloc.dart';
 import 'package:bravynix_school_erp/core/network/api_failure.dart';
+import 'package:bravynix_school_erp/core/paging/items_page.dart';
 import 'package:bravynix_school_erp/core/validation/field_problems.dart';
 import 'package:bravynix_school_erp/features/staff/domain/staff_member.dart';
 import 'package:bravynix_school_erp/features/staff/domain/staff_repository.dart';
@@ -138,16 +139,10 @@ class EntryFormBloc extends Bloc<EntryFormEvent, EntryFormState> {
   }
 
   /// Every active staff member based at the Institution, page by page; one who is blocked cannot be given a lesson.
-  Future<List<StaffSummary>> _allStaff() async {
-    final all = <StaffSummary>[];
-    var page = 1;
-    while (true) {
-      final answer = await _staff.staff(institutionId, page: page);
-      all.addAll(answer.items.where((member) => !member.isBlocked));
-      if (!answer.hasMore) return all;
-      page++;
-    }
-  }
+  Future<List<StaffSummary>> _allStaff() async => [
+    for (final member in await allPages((page) => _staff.staff(institutionId, page: page)))
+      if (!member.isBlocked) member,
+  ];
 
   Future<void> _onSubmitted(EntryFormSubmitted event, Emitter<EntryFormState> emit) async {
     if (state case final EntryFormEditing editing when !editing.saving) {

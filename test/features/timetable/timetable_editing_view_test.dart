@@ -175,6 +175,10 @@ void main() {
       expect(tester.widget<ButtonStyleButton>(button('timetable.delete.x1')).onPressed, isNull);
       expect(tester.widget<ButtonStyleButton>(button('timetable.edit.x2')).onPressed, isNull);
       expect(tester.widget<ButtonStyleButton>(button('timetable.delete.x2')).onPressed, isNull);
+      Finder spinnerIn(String key) =>
+          find.descendant(of: find.byKey(ValueKey(key)), matching: find.byType(CircularProgressIndicator));
+      expect(spinnerIn('timetable.delete.x1'), findsOneWidget);
+      expect(spinnerIn('timetable.delete.x2'), findsNothing);
     });
 
     testWidgets('says why a deletion was refused, above the week', (tester) async {

@@ -135,6 +135,55 @@ void main() {
     expect(submitted().fields, const EntryFields(dayOfWeek: 1, timeSlotId: 't1'));
   });
 
+  testWidgets('an edited break opens as a break, with no subject or teacher, in a lesson period too', (tester) async {
+    await pump(tester, editing, entry: lunchMonday);
+    expect(tester.widget<Switch>(find.byType(Switch)).value, isTrue);
+    expect(find.byKey(const Key('entryForm.subject')), findsNothing);
+    await tester.pumpWidget(const SizedBox());
+    const breakInALessonPeriod = TimetableEntry(
+      id: 'x9',
+      sectionId: 'sec1',
+      dayOfWeek: 1,
+      slot: EntrySlot(id: 't1', periodNo: 1, startTime: '09:00', endTime: '09:45'),
+      isBreak: true,
+      version: 1,
+    );
+    await pump(tester, editing, entry: breakInALessonPeriod);
+    expect(tester.widget<Switch>(find.byType(Switch)).value, isTrue);
+    expect(find.byKey(const Key('entryForm.subject')), findsNothing);
+    await tester.tap(find.text('Save'));
+    expect(submitted().fields, const EntryFields(dayOfWeek: 1, timeSlotId: 't1', isBreak: true));
+  });
+
+  testWidgets('a period that is no longer offered is chosen again, not sent', (tester) async {
+    await pump(
+      tester,
+      const EntryFormEditing(EntryOptions(slots: [lunch], subjects: [maths], teachers: [kavya])),
+      entry: mathsMonday,
+    );
+    await tester.tap(find.text('Save'));
+    expect(submitted().fields.timeSlotId, isNull);
+  });
+
+  testWidgets('says a refused period under the period', (tester) async {
+    await pump(
+      tester,
+      EntryFormEditing(
+        options,
+        failure: _failure(
+          400,
+          'INVALID_SLOT',
+          fields: const [FieldError(field: 'timeSlotId', code: 'INVALID_SLOT', message: 'Not a period of this year.')],
+        ),
+      ),
+    );
+    expect(
+      find.descendant(of: find.byKey(const Key('entryForm.period')), matching: find.text('Not a period of this year.')),
+      findsOneWidget,
+    );
+    expect(find.byKey(const Key('entryForm.error')), findsNothing);
+  });
+
   testWidgets('while saving, Save does nothing', (tester) async {
     await pump(tester, const EntryFormEditing(options, saving: true));
     final save = find.descendant(of: find.byType(StickyBottomActions), matching: find.byType(FilledButton));

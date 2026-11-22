@@ -2,6 +2,7 @@ import 'package:bravynix_school_erp/app/di/injection.dart';
 import 'package:bravynix_school_erp/features/timetable/domain/timetable_repository.dart';
 import 'package:bravynix_school_erp/features/timetable/domain/timetable_week.dart';
 import 'package:bravynix_school_erp/features/timetable/presentation/view/timetable_page.dart';
+import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 
@@ -29,6 +30,10 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('7th - A'), findsOneWidget);
     expect(find.text('Mathematics'), findsOneWidget);
+    // The section's week is the one the person builds, so it offers Add, Edit and Delete.
+    expect(find.byKey(const Key('timetable.add')), findsOneWidget);
+    expect(find.byKey(const ValueKey('timetable.edit.x1')), findsOneWidget);
+    expect(find.byKey(const ValueKey('timetable.delete.x1')), findsOneWidget);
     verify(() => repository.week(const SectionWeek('sec1'))).called(1);
   });
 }
