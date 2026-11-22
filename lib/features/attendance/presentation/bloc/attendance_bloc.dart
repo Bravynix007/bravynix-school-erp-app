@@ -278,7 +278,13 @@ class AttendanceBloc extends Bloc<AttendanceEvent, AttendanceState> {
 
   /// Refusals that mean the roll on screen is out of date: the register was taken or voided, or a student joined or
   /// left, since it was read.
-  static const _outOfDate = {'ROSTER_CHANGED', 'ATTENDANCE_ALREADY_SUBMITTED', 'VERSION_CONFLICT', 'SESSION_VOIDED'};
+  static const _outOfDate = {
+    'ROSTER_CHANGED',
+    'STUDENT_NOT_IN_SECTION',
+    'ATTENDANCE_ALREADY_SUBMITTED',
+    'VERSION_CONFLICT',
+    'SESSION_VOIDED',
+  };
 
   void _ready(void Function(AttendanceReady ready) work) {
     if (state case final AttendanceReady ready) work(ready);
@@ -390,20 +396,20 @@ class AttendanceBloc extends Bloc<AttendanceEvent, AttendanceState> {
   Future<void> _onSubmitted(AttendanceSubmitted event, Emitter<AttendanceState> emit) => _act(
     emit,
     (board) async {
-      final counts = await _attendance.submit(
+      final rosterCount = await _attendance.submit(
         sectionId: board.roster.sectionId,
         day: board.roster.day,
         rosterCount: board.roster.students.length,
         exceptions: board.exceptions,
         idempotencyKey: _key ??= _newKey(),
       );
-      return AttendanceOutcome(AttendanceOutcomeKind.submitted, counts.rosterCount);
+      return AttendanceOutcome(AttendanceOutcomeKind.submitted, rosterCount);
     },
   );
 
   Future<void> _onCorrected(AttendanceCorrected event, Emitter<AttendanceState> emit) => _act(emit, (board) async {
-    final counts = await _attendance.correct(board.roster.taken!.id, board.roster.taken!.version, board.changes);
-    return AttendanceOutcome(AttendanceOutcomeKind.corrected, counts.rosterCount);
+    await _attendance.correct(board.roster.taken!.id, board.roster.taken!.version, board.changes);
+    return AttendanceOutcome(AttendanceOutcomeKind.corrected, board.roster.students.length);
   });
 
   Future<void> _onVoided(AttendanceVoided event, Emitter<AttendanceState> emit) => _act(emit, (board) async {

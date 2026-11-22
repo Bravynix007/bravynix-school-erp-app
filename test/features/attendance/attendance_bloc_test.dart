@@ -175,6 +175,24 @@ void main() {
       await bloc.close();
     });
 
+    test('drops the roll being read when another class is chosen, so it never lands under the new class', () async {
+      final slow = Completer<AttendanceRoster>();
+      when(() => repository.roster('sec3', '2026-11-17')).thenAnswer((_) => slow.future);
+      final bloc = build()..add(const AttendanceStarted());
+      await bloc.stream.firstWhere((state) => state is AttendanceReady);
+      bloc
+        ..add(const AttendanceClassChosen('c8'))
+        ..add(const AttendanceSectionChosen('sec3'));
+      await bloc.stream.firstWhere((state) => state is AttendanceReady && state.board is BoardLoading);
+      // The 7th has two sections, so nothing is chosen in it.
+      bloc.add(const AttendanceClassChosen('c7'));
+      await bloc.stream.firstWhere((state) => state is AttendanceReady && state.classId == 'c7');
+      slow.complete(holidayRoll);
+      await Future<void>.delayed(Duration.zero);
+      expect(bloc.state, ready(classId: 'c7'));
+      await bloc.close();
+    });
+
     test('reads the roll again for another day, and keeps the failure when it cannot be read', () async {
       when(() => repository.roster('sec1', '2026-11-16')).thenThrow(refusal('CURRENT_YEAR_REQUIRED', status: 422));
       final bloc = await open();
@@ -392,35 +410,79 @@ void main() {
       await bloc.close();
     });
 
-    test('reads the roll again, and says why, when the register was taken meanwhile or a student joined', () async {
-      for (final code in ['ATTENDANCE_ALREADY_SUBMITTED', 'ROSTER_CHANGED']) {
-        when(
-          () => repository.submit(
-            sectionId: any(named: 'sectionId'),
-            day: any(named: 'day'),
-            rosterCount: any(named: 'rosterCount'),
-            exceptions: any(named: 'exceptions'),
-            idempotencyKey: any(named: 'idempotencyKey'),
-          ),
-        ).thenThrow(refusal(code));
-        final bloc = await open();
-        when(() => repository.roster('sec1', '2026-11-17')).thenAnswer((_) async => takenRoll);
-        bloc
-          ..add(const AttendanceMarked('e2', AttendanceMark.absent))
-          ..add(const AttendanceSubmitted());
-        await bloc.stream.firstWhere(
-          (state) =>
-              state is AttendanceReady && state.board is BoardLoaded && (state.board as BoardLoaded).failure != null,
-        );
-        // The marks go with the roll they were made on.
-        expect(boardOf(bloc), BoardLoaded(takenRoll, const {}, failure: refusal(code)));
-        await bloc.close();
-        when(() => repository.roster('sec1', '2026-11-17')).thenAnswer((_) async => openRoll);
-      }
+    test(
+      'reads the roll again, and says why, when the register was taken meanwhile or a student joined or left',
+      () async {
+        for (final code in ['ATTENDANCE_ALREADY_SUBMITTED', 'ROSTER_CHANGED', 'STUDENT_NOT_IN_SECTION']) {
+          when(
+            () => repository.submit(
+              sectionId: any(named: 'sectionId'),
+              day: any(named: 'day'),
+              rosterCount: any(named: 'rosterCount'),
+              exceptions: any(named: 'exceptions'),
+              idempotencyKey: any(named: 'idempotencyKey'),
+            ),
+          ).thenThrow(refusal(code));
+          final bloc = await open();
+          when(() => repository.roster('sec1', '2026-11-17')).thenAnswer((_) async => takenRoll);
+          bloc
+            ..add(const AttendanceMarked('e2', AttendanceMark.absent))
+            ..add(const AttendanceSubmitted());
+          await bloc.stream.firstWhere(
+            (state) =>
+                state is AttendanceReady && state.board is BoardLoaded && (state.board as BoardLoaded).failure != null,
+          );
+          // The marks go with the roll they were made on.
+          expect(boardOf(bloc), BoardLoaded(takenRoll, const {}, failure: refusal(code)));
+          await bloc.close();
+          when(() => repository.roster('sec1', '2026-11-17')).thenAnswer((_) async => openRoll);
+        }
+      },
+    );
+
+    test('starts a new attempt when the day is taken again after a void, even with the same marks', () async {
+      var taken = false;
+      when(() => repository.roster('sec1', '2026-11-17')).thenAnswer((_) async => taken ? takenRoll : openRoll);
+      when(
+        () => repository.submit(
+          sectionId: any(named: 'sectionId'),
+          day: any(named: 'day'),
+          rosterCount: any(named: 'rosterCount'),
+          exceptions: any(named: 'exceptions'),
+          idempotencyKey: any(named: 'idempotencyKey'),
+        ),
+      ).thenAnswer((_) async {
+        taken = true;
+        return submitted;
+      });
+      when(() => repository.voidRegister('r1', 2, any())).thenAnswer((_) async => taken = false);
+      final bloc = await open()
+        ..add(const AttendanceSubmitted());
+      await bloc.stream.firstWhere((state) => state is AttendanceReady && state.outcome != null);
+      bloc.add(const AttendanceVoided('Taken for the wrong day'));
+      await bloc.stream.firstWhere(
+        (state) => state is AttendanceReady && state.outcome?.kind == AttendanceOutcomeKind.voided,
+      );
+      bloc.add(const AttendanceSubmitted());
+      await bloc.stream.firstWhere(
+        (state) => state is AttendanceReady && state.outcome?.kind == AttendanceOutcomeKind.submitted && taken,
+      );
+      final keys = verify(
+        () => repository.submit(
+          sectionId: any(named: 'sectionId'),
+          day: any(named: 'day'),
+          rosterCount: any(named: 'rosterCount'),
+          exceptions: any(named: 'exceptions'),
+          idempotencyKey: captureAny(named: 'idempotencyKey'),
+        ),
+      ).captured;
+      // A repeat of the first key would be answered with the register that was voided.
+      expect(keys, ['key-1', 'key-2']);
+      await bloc.close();
     });
 
     test('does nothing twice while a register is on its way', () async {
-      final slow = Completer<RegisterCounts>();
+      final slow = Completer<int>();
       when(
         () => repository.submit(
           sectionId: any(named: 'sectionId'),
@@ -463,7 +525,7 @@ void main() {
     }
 
     test('sends the marks that changed with the version the roll was read at, then reads it again', () async {
-      when(() => repository.correct('r1', 2, any())).thenAnswer((_) async => submitted);
+      when(() => repository.correct('r1', 2, any())).thenAnswer((_) async {});
       final bloc = await openTaken();
       bloc
         ..add(const AttendanceMarked('e2', AttendanceMark.present))

@@ -55,10 +55,20 @@ void main() {
       ),
       l10n.errorStudentMoveAttendanceTaken('17-11-2026'),
     );
-    expect(
-      studentFormErrorText(l10n, _code('ATTENDANCE_TAKEN', status: 409)),
-      l10n.errorStudentMoveAttendanceTakenNoDay,
-    );
+    for (final details in [
+      <String, dynamic>{},
+      {'attendanceDate': 'soon'},
+      {'attendanceDate': 7},
+    ]) {
+      expect(
+        studentFormErrorText(
+          l10n,
+          ApiFailure(statusCode: 409, code: 'ATTENDANCE_TAKEN', message: 'x', details: details),
+        ),
+        l10n.errorStudentMoveAttendanceTakenNoDay,
+        reason: '$details',
+      );
+    }
     // An edit (STU-04) is also refused when the student was changed meanwhile, or is gone.
     expect(studentFormErrorText(l10n, _code('VERSION_CONFLICT', status: 409)), l10n.errorVersionConflict);
     expect(

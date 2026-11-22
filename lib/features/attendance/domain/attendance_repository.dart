@@ -36,8 +36,8 @@ abstract interface class AttendanceRepository {
 
   /// ATT-02: the register of a section for a day. Only the students who are not Present are named; [rosterCount] is
   /// the number of students the screen showed. [idempotencyKey] makes a repeat of the same attempt, after an answer
-  /// that was lost, find the first one done.
-  Future<RegisterCounts> submit({
+  /// that was lost, find the first one done. Answers the number of students the register counts.
+  Future<int> submit({
     required String sectionId,
     required String day,
     required int rosterCount,
@@ -46,7 +46,7 @@ abstract interface class AttendanceRepository {
   });
 
   /// ATT-05: changes marks of the register that [version] was read at. A change to Present is allowed.
-  Future<RegisterCounts> correct(String registerId, int version, List<MarkChange> changes);
+  Future<void> correct(String registerId, int version, List<MarkChange> changes);
 
   /// ATT-06: voids the register, for a [reason] of 5 to 500 characters, so the day is free to be taken again.
   Future<void> voidRegister(String registerId, int version, String reason);

@@ -5,7 +5,6 @@ import 'package:bravynix_school_erp/features/attendance/domain/attendance_roster
 import 'package:bravynix_school_erp/features/sections/domain/section_options.dart';
 
 const asha = RosterStudent(
-  studentId: 's1',
   enrolmentId: 'e1',
   rollNumber: '1',
   firstName: 'Asha',
@@ -13,14 +12,12 @@ const asha = RosterStudent(
   mark: AttendanceMark.present,
 );
 const bea = RosterStudent(
-  studentId: 's2',
   enrolmentId: 'e2',
   rollNumber: '2',
   firstName: 'Bea',
   mark: AttendanceMark.present,
 );
 const cy = RosterStudent(
-  studentId: 's3',
   enrolmentId: 'e3',
   rollNumber: '3',
   firstName: 'Cy',
@@ -47,7 +44,6 @@ final takenRoll = AttendanceRoster(
   students: const [
     asha,
     RosterStudent(
-      studentId: 's2',
       enrolmentId: 'e2',
       rollNumber: '2',
       firstName: 'Bea',
@@ -83,16 +79,8 @@ const oneSection = MarkingSections(
   sections: [sevenA],
 );
 
-const submitted = RegisterCounts(
-  id: 'r1',
-  version: 1,
-  rosterCount: 3,
-  presentCount: 2,
-  absentCount: 1,
-  lateCount: 0,
-  halfDayCount: 0,
-  leaveCount: 0,
-);
+/// What ATT-02 answers for a register of the three students of the roll.
+const submitted = 3;
 
 Map<String, Object?> studentJson({
   String enrolment = 'e1',

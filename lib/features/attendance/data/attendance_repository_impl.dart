@@ -20,7 +20,7 @@ class AttendanceRepositoryImpl implements AttendanceRepository {
       _api.data('attendance/roster', query: {'sectionId': sectionId, 'date': day}, parse: AttendanceModels.roster);
 
   @override
-  Future<RegisterCounts> submit({
+  Future<int> submit({
     required String sectionId,
     required String day,
     required int rosterCount,
@@ -36,15 +36,15 @@ class AttendanceRepositoryImpl implements AttendanceRepository {
       rosterCount: rosterCount,
       exceptions: exceptions,
     ),
-    parse: AttendanceModels.counts,
+    parse: AttendanceModels.rosterCount,
   );
 
   @override
-  Future<RegisterCounts> correct(String registerId, int version, List<MarkChange> changes) => _api.data(
+  Future<void> correct(String registerId, int version, List<MarkChange> changes) => _api.data(
     '${_register(registerId)}/marks',
     method: HttpMethod.patch,
     body: AttendanceModels.correctBody(version, changes),
-    parse: AttendanceModels.counts,
+    parse: (_) {},
   );
 
   @override

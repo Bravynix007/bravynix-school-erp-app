@@ -147,7 +147,8 @@ class _FormState extends State<_Form> {
     final correcting = state.classId != placement.classId;
     final changed =
         correcting || state.sectionId != placement.sectionId || _rollNumber.text.trim() != placement.rollNumber;
-    final today = DateTime.now();
+    // The school day in IST, as the API counts it, and not the device's.
+    final today = Formatters.parseDay(Formatters.schoolDay(DateTime.now()))!;
     final started = DateTime.tryParse(placement.startDate) ?? DateTime(2000);
     // A move can be dated tomorrow, so that a move made after today's register takes effect from the next day.
     final tomorrow = DateTime(today.year, today.month, today.day + 1);
