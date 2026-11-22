@@ -179,4 +179,80 @@ void main() {
       InboxLoaded(InboxTab.all, [first], actionFailure: const ApiFailure.network()),
     ],
   );
+
+  blocTest<InboxBloc, InboxState>(
+    'a second Load more while one is on its way asks for nothing',
+    build: () {
+      when(() => repository.inbox(InboxTab.all, cursor: 'c2')).thenAnswer((_) async {
+        await Future<void>.delayed(const Duration(milliseconds: 10));
+        return InboxPage([second]);
+      });
+      return build();
+    },
+    seed: () => InboxLoaded(InboxTab.all, [first], nextCursor: 'c2'),
+    act: (bloc) => bloc
+      ..add(const InboxMoreRequested())
+      ..add(const InboxMoreRequested()),
+    wait: const Duration(milliseconds: 50),
+    expect: () => [
+      InboxLoaded(InboxTab.all, [first], nextCursor: 'c2', loadingMore: true),
+      InboxLoaded(InboxTab.all, [first, second]),
+    ],
+    verify: (_) => verify(() => repository.inbox(InboxTab.all, cursor: 'c2')).called(1),
+  );
+
+  blocTest<InboxBloc, InboxState>(
+    'a page that was on its way when Mark all read started does not land on the list read again',
+    build: () {
+      when(() => repository.inbox(InboxTab.all, cursor: 'c2')).thenAnswer((_) async {
+        await Future<void>.delayed(const Duration(milliseconds: 20));
+        return InboxPage([second]);
+      });
+      when(() => repository.markAllRead(tab: InboxTab.all)).thenAnswer((_) async {});
+      when(() => repository.inbox(InboxTab.all)).thenAnswer((_) async => InboxPage([first.asRead()]));
+      return build();
+    },
+    seed: () => InboxLoaded(InboxTab.all, [first], nextCursor: 'c2'),
+    act: (bloc) async {
+      bloc.add(const InboxMoreRequested());
+      await Future<void>.delayed(const Duration(milliseconds: 5));
+      bloc.add(const InboxMarkedAllRead());
+    },
+    wait: const Duration(milliseconds: 60),
+    verify: (bloc) => expect(bloc.state, InboxLoaded(InboxTab.all, [first.asRead()])),
+  );
+
+  blocTest<InboxBloc, InboxState>(
+    'Mark all read while one is running asks once',
+    build: () {
+      when(() => repository.markAllRead(tab: InboxTab.all)).thenAnswer((_) async {
+        await Future<void>.delayed(const Duration(milliseconds: 10));
+      });
+      when(() => repository.inbox(InboxTab.all)).thenAnswer((_) async => InboxPage([first.asRead()]));
+      return build();
+    },
+    seed: () => InboxLoaded(InboxTab.all, [first]),
+    act: (bloc) => bloc
+      ..add(const InboxMarkedAllRead())
+      ..add(const InboxMarkedAllRead()),
+    wait: const Duration(milliseconds: 50),
+    verify: (_) => verify(() => repository.markAllRead(tab: InboxTab.all)).called(1),
+  );
+
+  blocTest<InboxBloc, InboxState>(
+    'Clear while one is running asks once',
+    build: () {
+      when(() => repository.clear(tab: InboxTab.all)).thenAnswer((_) async {
+        await Future<void>.delayed(const Duration(milliseconds: 10));
+      });
+      when(() => repository.inbox(InboxTab.all)).thenAnswer((_) async => const InboxPage([]));
+      return build();
+    },
+    seed: () => InboxLoaded(InboxTab.all, [first]),
+    act: (bloc) => bloc
+      ..add(const InboxCleared())
+      ..add(const InboxCleared()),
+    wait: const Duration(milliseconds: 50),
+    verify: (_) => verify(() => repository.clear(tab: InboxTab.all)).called(1),
+  );
 }

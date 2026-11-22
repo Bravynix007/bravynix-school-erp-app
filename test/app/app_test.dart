@@ -184,6 +184,19 @@ void main() {
       expect(registered(), ['tok-1', 'tok-1']);
     });
 
+    testWidgets('a new token while signed out is not registered: there is no one to register it for', (tester) async {
+      final refreshes = StreamController<String>();
+      addTearDown(refreshes.close);
+      final adapter = await start(
+        tester,
+        reply: (_) async => throw StateError('no call expected'),
+        push: _FakePush('tok-1', refreshes.stream),
+      );
+      refreshes.add('tok-2');
+      await tester.pumpAndSettle();
+      expect(adapter.paths, isNot(contains('/v1/me/push-device')));
+    });
+
     testWidgets('with no push token from the phone, nothing is registered', (tester) async {
       final adapter = await start(tester, tokens: tokens, reply: owner);
       expect(adapter.paths, isNot(contains('/v1/me/push-device')));

@@ -7,6 +7,7 @@ InboxItem inboxItem({
   bool isRead = false,
   NotificationCategory category = NotificationCategory.attendance,
   String? sender = 'Green Valley School',
+  String? studentId,
   NotificationTarget? target,
 }) => InboxItem(
   id: id,
@@ -16,6 +17,7 @@ InboxItem inboxItem({
   body: body,
   isRead: isRead,
   senderDisplayName: sender,
+  studentId: studentId,
   target: target,
 );
 
