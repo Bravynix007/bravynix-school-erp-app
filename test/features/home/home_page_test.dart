@@ -101,6 +101,8 @@ void main() {
     testWidgets("a parent's home has the timetable tile", (tester) async {
       await pumpParent(tester, parent, const ActiveChildReady(children: [diya], selected: diya));
       expect(find.byKey(const Key('home.quick.timetable')), findsOneWidget);
+      // A parent reads the calendar; taking a register is for the school's side.
+      expect(find.byKey(const Key('home.quick.attendance')), findsNothing);
     });
 
     testWidgets('an owner sees no child panel', (tester) async {
@@ -135,6 +137,23 @@ void main() {
       );
       expect(find.byKey(const Key('home.quick.timetable')), findsNothing);
     });
+  });
+
+  group('the attendance tile', () {
+    Future<void> pumpAs(WidgetTester tester, AuthContext active) {
+      final session = _MockSessionBloc();
+      when(() => session.state).thenReturn(
+        SessionAuthenticated(AuthSession(person: testPerson, contexts: [active], activeContext: active)),
+      );
+      return tester.pumpApp(BlocProvider<SessionBloc>.value(value: session, child: const HomePage()));
+    }
+
+    for (final role in [RoleCode.teacherStaff, RoleCode.institutionAdmin]) {
+      testWidgets('is there for ${role.name}, who takes registers', (tester) async {
+        await pumpAs(tester, AuthContext(role: role, societyId: 's1', societyName: 'North Trust'));
+        expect(find.byKey(const Key('home.quick.attendance')), findsOneWidget);
+      });
+    }
   });
 
   group('blocked access', () {

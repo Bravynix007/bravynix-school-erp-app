@@ -1,5 +1,6 @@
 import 'package:bravynix_school_erp/features/academic_years/domain/academic_years_repository.dart';
 import 'package:bravynix_school_erp/features/achievements/domain/achievements_repository.dart';
+import 'package:bravynix_school_erp/features/attendance/domain/attendance_repository.dart';
 import 'package:bravynix_school_erp/features/auth/domain/auth_entities.dart';
 import 'package:bravynix_school_erp/features/auth/domain/auth_repository.dart';
 import 'package:bravynix_school_erp/features/blocks/domain/blocks_repository.dart';
@@ -29,6 +30,8 @@ class MockAcademicYearsRepository extends Mock implements AcademicYearsRepositor
 class MockTimeSlotsRepository extends Mock implements TimeSlotsRepository;
 
 class MockTimetableRepository extends Mock implements TimetableRepository;
+
+class MockAttendanceRepository extends Mock implements AttendanceRepository;
 
 class MockClassCatalogue extends Mock implements ClassCatalogue;
 

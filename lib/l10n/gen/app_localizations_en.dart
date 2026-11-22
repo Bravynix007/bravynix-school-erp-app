@@ -2895,4 +2895,185 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get errorImportRunGone =>
       'This import is no longer available. Imports are kept for 7 days. Check the students list for what was added.';
+
+  @override
+  String get attendanceTitle => 'Attendance';
+
+  @override
+  String get attendanceDate => 'Date';
+
+  @override
+  String get attendanceClearTooltip => 'Clear filters';
+
+  @override
+  String get attendanceNoSectionsTitle => 'No classes to mark yet';
+
+  @override
+  String get attendanceNoSectionsMessage =>
+      'Add classes and sections in School setup, and their students appear here to be marked.';
+
+  @override
+  String get attendancePickTitle => 'Choose a class and a section';
+
+  @override
+  String get attendancePickMessage => 'The students of the section appear here for you to mark.';
+
+  @override
+  String get attendanceNoStudentsTitle => 'No students on this day';
+
+  @override
+  String get attendanceNoStudentsMessage => 'No student is placed in this section on this day.';
+
+  @override
+  String attendancePresentCount(int present, int total) {
+    return 'Present: $present / $total';
+  }
+
+  @override
+  String get attendanceMarkPresent => 'Present';
+
+  @override
+  String get attendanceMarkPresentShort => 'P';
+
+  @override
+  String get attendanceMarkAbsent => 'Absent';
+
+  @override
+  String get attendanceMarkAbsentShort => 'A';
+
+  @override
+  String get attendanceMarkLate => 'Late';
+
+  @override
+  String get attendanceMarkLateShort => 'L';
+
+  @override
+  String get attendanceMarkHalfDay => 'Half day';
+
+  @override
+  String get attendanceMarkHalfDayShort => 'HD';
+
+  @override
+  String get attendanceMarkLeave => 'Leave';
+
+  @override
+  String get attendanceMarkLeaveShort => 'LV';
+
+  @override
+  String attendanceStudentMark(String name, String roll) {
+    return '$name, roll $roll';
+  }
+
+  @override
+  String get attendanceSubmit => 'Confirm & Submit Attendance';
+
+  @override
+  String get attendanceSaveCorrections => 'Save corrections';
+
+  @override
+  String get attendanceVoid => 'Void this register';
+
+  @override
+  String attendanceTakenBy(String name, String time) {
+    return 'Taken by $name on $time';
+  }
+
+  @override
+  String attendanceHoliday(String title) {
+    return 'Holiday: $title';
+  }
+
+  @override
+  String get attendanceHolidayUntitled => 'Holiday';
+
+  @override
+  String get attendanceNotYet => 'This day has not come yet, so it cannot be marked.';
+
+  @override
+  String get attendanceViewOnly => 'You can see this register, but you mark attendance only at your own Institution.';
+
+  @override
+  String get attendanceClosed =>
+      'Attendance cannot be taken for this day. It may be outside the current academic year.';
+
+  @override
+  String attendanceSubmitted(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Attendance submitted for $count students',
+      one: 'Attendance submitted for 1 student',
+      zero: 'Attendance submitted',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get attendanceCorrected => 'Attendance corrected';
+
+  @override
+  String get attendanceVoided => 'Register voided. The day can be marked again.';
+
+  @override
+  String get attendanceVoidTitle => 'Void this register?';
+
+  @override
+  String get attendanceVoidMessage =>
+      'The day can then be marked again. Parents who were told about an absence keep that alert.';
+
+  @override
+  String get attendanceVoidReason => 'Reason (at least 5 characters)';
+
+  @override
+  String get attendanceVoidReasonShort => 'At least 5 characters.';
+
+  @override
+  String get attendanceVoidConfirm => 'Void register';
+
+  @override
+  String get errorAttendanceNotFound => 'This section could not be found. It may have been closed.';
+
+  @override
+  String get errorAttendanceNotAssigned => 'You mark attendance only at your own Institution.';
+
+  @override
+  String get errorAttendanceNoYear => 'No current academic year has been set up yet, so attendance cannot be taken.';
+
+  @override
+  String get errorAttendanceFuture => 'This day has not come yet, so it cannot be marked.';
+
+  @override
+  String get errorAttendanceOutsideYear => 'This day is outside the current academic year.';
+
+  @override
+  String get errorAttendanceHoliday => 'This day is a holiday for the class, so it cannot be marked.';
+
+  @override
+  String get errorAttendanceTaken => 'Attendance for this day was taken meanwhile. The register is shown.';
+
+  @override
+  String get errorAttendanceRosterChanged =>
+      'A student joined or left the section meanwhile. The list is read again: check the marks and submit once more.';
+
+  @override
+  String get errorAttendanceNotInSection => 'A student is no longer in this section. The list is read again.';
+
+  @override
+  String get errorAttendanceVersion =>
+      'Someone else changed this register meanwhile. The latest is shown: check it and correct again.';
+
+  @override
+  String get errorAttendanceVoided => 'This register was voided meanwhile. The day is shown as it is now.';
+
+  @override
+  String get errorAttendanceOlderYear => 'Only an Owner or an Admin can correct a register of an earlier year.';
+
+  @override
+  String errorStudentMoveAttendanceTaken(String date) {
+    return 'Attendance was taken for the old section on $date with this student in it. Choose a later day, or void that register and take it again.';
+  }
+
+  @override
+  String get errorStudentMoveAttendanceTakenNoDay =>
+      'Attendance was already taken for the old section with this student in it. Choose a later day, or void that register and take it again.';
 }

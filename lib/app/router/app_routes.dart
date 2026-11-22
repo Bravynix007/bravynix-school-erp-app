@@ -56,6 +56,9 @@ abstract final class AppRoutes {
   static const sectionTimetable = '/timetable/section';
   static const timetableEntryForm = '/timetable/entry';
 
+  /// Attendance: the register of one section on one day, taken, corrected or voided (ATT-01 to ATT-06, ATT-09).
+  static const attendance = '/attendance';
+
   /// Period timings of the chosen Institution's current year (TTS-01), and the form that adds or edits one (TTS-02,
   /// TTS-03), which takes the Institution and the period as the route's `extra`: no endpoint reads one period, so the
   /// list hands it over.

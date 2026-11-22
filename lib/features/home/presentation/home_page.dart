@@ -71,6 +71,14 @@ class HomePage extends StatelessWidget {
                   label: l10n.timetableTitle,
                   onTap: () => context.push(AppRoutes.timetable),
                 ),
+              // Registers are taken by an Owner, an Admin or a teacher; a parent reads the calendar instead.
+              if (active != null && active.role != RoleCode.studentParent)
+                QuickAccessTile(
+                  key: const Key('home.quick.attendance'),
+                  icon: Icons.fact_check_outlined,
+                  label: l10n.attendanceTitle,
+                  onTap: () => context.push(AppRoutes.attendance),
+                ),
               QuickAccessTile(
                 key: const Key('home.quick.events'),
                 icon: Icons.event_outlined,

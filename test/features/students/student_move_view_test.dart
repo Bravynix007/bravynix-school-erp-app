@@ -143,11 +143,11 @@ void main() {
       return (first: calendar.firstDate, last: calendar.lastDate);
     }
 
-    testWidgets('can be any day from the one the placement began to today', (tester) async {
+    testWidgets('can be any day from the one the placement began to tomorrow', (tester) async {
       final today = DateTime.now();
       final (:first, :last) = await limits(tester, 10);
       expect(first, DateTime(today.year, today.month, today.day - 10));
-      expect(last, DateTime(today.year, today.month, today.day));
+      expect(last, DateTime(today.year, today.month, today.day + 1));
     });
 
     testWidgets('can only be the first day of a placement that begins later', (tester) async {
@@ -358,6 +358,24 @@ void main() {
           of: find.byKey(const Key('studentMove.error')),
           matching: find.text('Another student in this section has this roll number.'),
         ),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('says which day a taken register blocks the move over, above the form', (tester) async {
+      await pump(
+        tester,
+        _ready.copyWith(
+          failure: () => const ApiFailure(
+            statusCode: 409,
+            code: 'ATTENDANCE_TAKEN',
+            message: 'x',
+            details: {'attendanceDate': '2026-11-17'},
+          ),
+        ),
+      );
+      expect(
+        find.descendant(of: find.byKey(const Key('studentMove.error')), matching: find.textContaining('17-11-2026')),
         findsOneWidget,
       );
     });

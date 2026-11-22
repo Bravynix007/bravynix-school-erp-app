@@ -149,7 +149,8 @@ class _FormState extends State<_Form> {
         correcting || state.sectionId != placement.sectionId || _rollNumber.text.trim() != placement.rollNumber;
     final today = DateTime.now();
     final started = DateTime.tryParse(placement.startDate) ?? DateTime(2000);
-    final todayOnly = DateTime(today.year, today.month, today.day);
+    // A move can be dated tomorrow, so that a move made after today's register takes effect from the next day.
+    final tomorrow = DateTime(today.year, today.month, today.day + 1);
     return Scaffold(
       body: Column(
         children: [
@@ -227,10 +228,10 @@ class _FormState extends State<_Form> {
                           day: state.effectiveDate,
                           hint: l10n.chooseDate,
                           clearLabel: l10n.clearDate(l10n.studentMoveFrom),
-                          // Not before the placement began, and not after today: a placement that begins later (a
+                          // Not before the placement began, and not after tomorrow: a placement that begins later (a
                           // promoted student's, until the new year starts) takes only its first day.
                           firstDay: started,
-                          lastDay: started.isAfter(todayOnly) ? started : todayOnly,
+                          lastDay: started.isAfter(tomorrow) ? started : tomorrow,
                           error: error('effectiveDate'),
                           onChanged: (day) => bloc.add(StudentMoveDateChosen(day)),
                         ),

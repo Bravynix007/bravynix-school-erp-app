@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:bravynix_school_erp/app/router/app_routes.dart';
 import 'package:bravynix_school_erp/features/academic_years/presentation/view/academic_year_form_page.dart';
 import 'package:bravynix_school_erp/features/academic_years/presentation/view/academic_years_page.dart';
+import 'package:bravynix_school_erp/features/attendance/presentation/view/attendance_page.dart';
 import 'package:bravynix_school_erp/features/auth/presentation/login/view/login_page.dart';
 import 'package:bravynix_school_erp/features/auth/presentation/role/view/role_chooser_page.dart';
 import 'package:bravynix_school_erp/features/auth/presentation/session/session_bloc.dart';
@@ -171,6 +172,7 @@ GoRouter createRouter(SessionBloc session, {required SessionChanges changes}) {
         redirect: (_, state) => academicYearFormRedirect(state.extra),
         builder: (_, state) => AcademicYearFormPage(args: state.extra! as AcademicYearFormArgs),
       ),
+      GoRoute(path: AppRoutes.attendance, builder: (_, _) => const AttendancePage()),
       GoRoute(path: AppRoutes.timetable, builder: (_, _) => const TimetablePage()),
       GoRoute(
         path: AppRoutes.sectionTimetable,

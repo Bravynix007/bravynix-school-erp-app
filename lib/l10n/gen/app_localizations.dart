@@ -5112,6 +5112,318 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'This import is no longer available. Imports are kept for 7 days. Check the students list for what was added.'**
   String get errorImportRunGone;
+
+  /// No description provided for @attendanceTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Attendance'**
+  String get attendanceTitle;
+
+  /// No description provided for @attendanceDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Date'**
+  String get attendanceDate;
+
+  /// No description provided for @attendanceClearTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear filters'**
+  String get attendanceClearTooltip;
+
+  /// No description provided for @attendanceNoSectionsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'No classes to mark yet'**
+  String get attendanceNoSectionsTitle;
+
+  /// No description provided for @attendanceNoSectionsMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Add classes and sections in School setup, and their students appear here to be marked.'**
+  String get attendanceNoSectionsMessage;
+
+  /// No description provided for @attendancePickTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a class and a section'**
+  String get attendancePickTitle;
+
+  /// No description provided for @attendancePickMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'The students of the section appear here for you to mark.'**
+  String get attendancePickMessage;
+
+  /// No description provided for @attendanceNoStudentsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'No students on this day'**
+  String get attendanceNoStudentsTitle;
+
+  /// No description provided for @attendanceNoStudentsMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'No student is placed in this section on this day.'**
+  String get attendanceNoStudentsMessage;
+
+  /// No description provided for @attendancePresentCount.
+  ///
+  /// In en, this message translates to:
+  /// **'Present: {present} / {total}'**
+  String attendancePresentCount(int present, int total);
+
+  /// No description provided for @attendanceMarkPresent.
+  ///
+  /// In en, this message translates to:
+  /// **'Present'**
+  String get attendanceMarkPresent;
+
+  /// No description provided for @attendanceMarkPresentShort.
+  ///
+  /// In en, this message translates to:
+  /// **'P'**
+  String get attendanceMarkPresentShort;
+
+  /// No description provided for @attendanceMarkAbsent.
+  ///
+  /// In en, this message translates to:
+  /// **'Absent'**
+  String get attendanceMarkAbsent;
+
+  /// No description provided for @attendanceMarkAbsentShort.
+  ///
+  /// In en, this message translates to:
+  /// **'A'**
+  String get attendanceMarkAbsentShort;
+
+  /// No description provided for @attendanceMarkLate.
+  ///
+  /// In en, this message translates to:
+  /// **'Late'**
+  String get attendanceMarkLate;
+
+  /// No description provided for @attendanceMarkLateShort.
+  ///
+  /// In en, this message translates to:
+  /// **'L'**
+  String get attendanceMarkLateShort;
+
+  /// No description provided for @attendanceMarkHalfDay.
+  ///
+  /// In en, this message translates to:
+  /// **'Half day'**
+  String get attendanceMarkHalfDay;
+
+  /// No description provided for @attendanceMarkHalfDayShort.
+  ///
+  /// In en, this message translates to:
+  /// **'HD'**
+  String get attendanceMarkHalfDayShort;
+
+  /// No description provided for @attendanceMarkLeave.
+  ///
+  /// In en, this message translates to:
+  /// **'Leave'**
+  String get attendanceMarkLeave;
+
+  /// No description provided for @attendanceMarkLeaveShort.
+  ///
+  /// In en, this message translates to:
+  /// **'LV'**
+  String get attendanceMarkLeaveShort;
+
+  /// No description provided for @attendanceStudentMark.
+  ///
+  /// In en, this message translates to:
+  /// **'{name}, roll {roll}'**
+  String attendanceStudentMark(String name, String roll);
+
+  /// No description provided for @attendanceSubmit.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm & Submit Attendance'**
+  String get attendanceSubmit;
+
+  /// No description provided for @attendanceSaveCorrections.
+  ///
+  /// In en, this message translates to:
+  /// **'Save corrections'**
+  String get attendanceSaveCorrections;
+
+  /// No description provided for @attendanceVoid.
+  ///
+  /// In en, this message translates to:
+  /// **'Void this register'**
+  String get attendanceVoid;
+
+  /// No description provided for @attendanceTakenBy.
+  ///
+  /// In en, this message translates to:
+  /// **'Taken by {name} on {time}'**
+  String attendanceTakenBy(String name, String time);
+
+  /// No description provided for @attendanceHoliday.
+  ///
+  /// In en, this message translates to:
+  /// **'Holiday: {title}'**
+  String attendanceHoliday(String title);
+
+  /// No description provided for @attendanceHolidayUntitled.
+  ///
+  /// In en, this message translates to:
+  /// **'Holiday'**
+  String get attendanceHolidayUntitled;
+
+  /// No description provided for @attendanceNotYet.
+  ///
+  /// In en, this message translates to:
+  /// **'This day has not come yet, so it cannot be marked.'**
+  String get attendanceNotYet;
+
+  /// No description provided for @attendanceViewOnly.
+  ///
+  /// In en, this message translates to:
+  /// **'You can see this register, but you mark attendance only at your own Institution.'**
+  String get attendanceViewOnly;
+
+  /// No description provided for @attendanceClosed.
+  ///
+  /// In en, this message translates to:
+  /// **'Attendance cannot be taken for this day. It may be outside the current academic year.'**
+  String get attendanceClosed;
+
+  /// No description provided for @attendanceSubmitted.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =0{Attendance submitted} =1{Attendance submitted for 1 student} other{Attendance submitted for {count} students}}'**
+  String attendanceSubmitted(int count);
+
+  /// No description provided for @attendanceCorrected.
+  ///
+  /// In en, this message translates to:
+  /// **'Attendance corrected'**
+  String get attendanceCorrected;
+
+  /// No description provided for @attendanceVoided.
+  ///
+  /// In en, this message translates to:
+  /// **'Register voided. The day can be marked again.'**
+  String get attendanceVoided;
+
+  /// No description provided for @attendanceVoidTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Void this register?'**
+  String get attendanceVoidTitle;
+
+  /// No description provided for @attendanceVoidMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'The day can then be marked again. Parents who were told about an absence keep that alert.'**
+  String get attendanceVoidMessage;
+
+  /// No description provided for @attendanceVoidReason.
+  ///
+  /// In en, this message translates to:
+  /// **'Reason (at least 5 characters)'**
+  String get attendanceVoidReason;
+
+  /// No description provided for @attendanceVoidReasonShort.
+  ///
+  /// In en, this message translates to:
+  /// **'At least 5 characters.'**
+  String get attendanceVoidReasonShort;
+
+  /// No description provided for @attendanceVoidConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Void register'**
+  String get attendanceVoidConfirm;
+
+  /// No description provided for @errorAttendanceNotFound.
+  ///
+  /// In en, this message translates to:
+  /// **'This section could not be found. It may have been closed.'**
+  String get errorAttendanceNotFound;
+
+  /// No description provided for @errorAttendanceNotAssigned.
+  ///
+  /// In en, this message translates to:
+  /// **'You mark attendance only at your own Institution.'**
+  String get errorAttendanceNotAssigned;
+
+  /// No description provided for @errorAttendanceNoYear.
+  ///
+  /// In en, this message translates to:
+  /// **'No current academic year has been set up yet, so attendance cannot be taken.'**
+  String get errorAttendanceNoYear;
+
+  /// No description provided for @errorAttendanceFuture.
+  ///
+  /// In en, this message translates to:
+  /// **'This day has not come yet, so it cannot be marked.'**
+  String get errorAttendanceFuture;
+
+  /// No description provided for @errorAttendanceOutsideYear.
+  ///
+  /// In en, this message translates to:
+  /// **'This day is outside the current academic year.'**
+  String get errorAttendanceOutsideYear;
+
+  /// No description provided for @errorAttendanceHoliday.
+  ///
+  /// In en, this message translates to:
+  /// **'This day is a holiday for the class, so it cannot be marked.'**
+  String get errorAttendanceHoliday;
+
+  /// No description provided for @errorAttendanceTaken.
+  ///
+  /// In en, this message translates to:
+  /// **'Attendance for this day was taken meanwhile. The register is shown.'**
+  String get errorAttendanceTaken;
+
+  /// No description provided for @errorAttendanceRosterChanged.
+  ///
+  /// In en, this message translates to:
+  /// **'A student joined or left the section meanwhile. The list is read again: check the marks and submit once more.'**
+  String get errorAttendanceRosterChanged;
+
+  /// No description provided for @errorAttendanceNotInSection.
+  ///
+  /// In en, this message translates to:
+  /// **'A student is no longer in this section. The list is read again.'**
+  String get errorAttendanceNotInSection;
+
+  /// No description provided for @errorAttendanceVersion.
+  ///
+  /// In en, this message translates to:
+  /// **'Someone else changed this register meanwhile. The latest is shown: check it and correct again.'**
+  String get errorAttendanceVersion;
+
+  /// No description provided for @errorAttendanceVoided.
+  ///
+  /// In en, this message translates to:
+  /// **'This register was voided meanwhile. The day is shown as it is now.'**
+  String get errorAttendanceVoided;
+
+  /// No description provided for @errorAttendanceOlderYear.
+  ///
+  /// In en, this message translates to:
+  /// **'Only an Owner or an Admin can correct a register of an earlier year.'**
+  String get errorAttendanceOlderYear;
+
+  /// No description provided for @errorStudentMoveAttendanceTaken.
+  ///
+  /// In en, this message translates to:
+  /// **'Attendance was taken for the old section on {date} with this student in it. Choose a later day, or void that register and take it again.'**
+  String errorStudentMoveAttendanceTaken(String date);
+
+  /// No description provided for @errorStudentMoveAttendanceTakenNoDay.
+  ///
+  /// In en, this message translates to:
+  /// **'Attendance was already taken for the old section with this student in it. Choose a later day, or void that register and take it again.'**
+  String get errorStudentMoveAttendanceTakenNoDay;
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {
