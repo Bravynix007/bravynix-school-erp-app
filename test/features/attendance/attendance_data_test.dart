@@ -35,6 +35,7 @@ void main() {
     test('are numbered 1 Present to 5 Leave, as the API numbers them', () {
       expect([for (final mark in AttendanceMark.values) mark.code], [1, 2, 3, 4, 5]);
       expect(AttendanceMarkCode.fromCode(4), AttendanceMark.halfDay);
+      expect(AttendanceMarkCode.fromCode(5), AttendanceMark.leave);
       expect(AttendanceMarkCode.fromCode(0), isNull);
       expect(AttendanceMarkCode.fromCode(6), isNull);
     });
@@ -108,8 +109,8 @@ void main() {
       expect(() => AttendanceModels.roster({...rosterJson(), 'canMark': null}), throwsA(isA<TypeError>()));
     });
 
-    test('read the counts of a register', () {
-      expect(AttendanceModels.counts(countsJson()), submitted);
+    test('read the number of students a register counts', () {
+      expect(AttendanceModels.rosterCount(countsJson()), submitted);
     });
 
     test('write a register and a correction with the numbers of the marks', () {

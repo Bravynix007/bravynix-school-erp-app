@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:bravynix_school_erp/core/network/api_failure.dart';
 import 'package:bravynix_school_erp/core/widgets/attendance_status_selector.dart';
 import 'package:bravynix_school_erp/features/attendance/domain/attendance_repository.dart';
@@ -228,6 +230,99 @@ void main() {
       expect(find.byKey(const ValueKey('attendance.student.e1')), findsOneWidget);
     });
 
+    testWidgets('while a register is on its way, the marks cannot be changed', (
+      tester,
+    ) async {
+      final slow = Completer<int>();
+      when(
+        () => repository.submit(
+          sectionId: any(named: 'sectionId'),
+          day: any(named: 'day'),
+          rosterCount: any(named: 'rosterCount'),
+          exceptions: any(named: 'exceptions'),
+          idempotencyKey: any(named: 'idempotencyKey'),
+        ),
+      ).thenAnswer((_) => slow.future);
+      await pump(tester);
+      await tester.tap(find.text('Confirm & Submit Attendance'));
+      await tester.pump();
+      // The marks are shown as they are, and no button changes them.
+      final card = find.byKey(const ValueKey('attendance.student.e2'));
+      expect(find.descendant(of: card, matching: find.bySemanticsLabel('Absent')), findsNothing);
+      expect(find.text('Confirm & Submit Attendance'), findsNothing);
+      verify(
+        () => repository.submit(
+          sectionId: any(named: 'sectionId'),
+          day: any(named: 'day'),
+          rosterCount: any(named: 'rosterCount'),
+          exceptions: any(named: 'exceptions'),
+          idempotencyKey: any(named: 'idempotencyKey'),
+        ),
+      ).called(1);
+      slow.complete(submitted);
+      await tester.pumpAndSettle();
+    });
+
+    testWidgets('says why a roll was read again over a day that cannot be marked', (tester) async {
+      var read = 0;
+      when(() => repository.roster('sec1', '2026-11-17')).thenAnswer((_) async => ++read == 1 ? openRoll : holidayRoll);
+      when(
+        () => repository.submit(
+          sectionId: any(named: 'sectionId'),
+          day: any(named: 'day'),
+          rosterCount: any(named: 'rosterCount'),
+          exceptions: any(named: 'exceptions'),
+          idempotencyKey: any(named: 'idempotencyKey'),
+        ),
+      ).thenThrow(refusal('ROSTER_CHANGED'));
+      await pump(tester);
+      await tester.tap(find.text('Confirm & Submit Attendance'));
+      await tester.pumpAndSettle();
+      expect(find.text('Holiday: Founders Day'), findsOneWidget);
+      expect(find.byKey(const Key('attendance.error')), findsOneWidget);
+      expect(find.textContaining('A student joined or left'), findsOneWidget);
+    });
+
+    testWidgets('keeps the class and the section when a roll is read again after it failed', (tester) async {
+      var calls = 0;
+      when(() => repository.sections('i1')).thenAnswer((_) async => twoClasses);
+      when(() => repository.roster('sec1', '2026-11-17')).thenAnswer((_) async {
+        if (++calls == 1) throw refusal('SERVER_ERROR', status: 500);
+        return openRoll;
+      });
+      await pump(tester);
+      await choose(tester, 'attendance.class', '7th');
+      await choose(tester, 'attendance.section', '7th · A');
+      expect(find.byKey(const Key('attendance.rollFailed')), findsOneWidget);
+      await tester.tap(find.text('Try again'));
+      await tester.pumpAndSettle();
+      expect(find.byKey(const ValueKey('attendance.student.e1')), findsOneWidget);
+      verify(() => repository.sections('i1')).called(1);
+    });
+
+    testWidgets('offers the days from a year ago to today and no later', (tester) async {
+      await pump(tester);
+      await tester.tap(find.byKey(const Key('attendance.day')));
+      await tester.pumpAndSettle();
+      final calendar = tester.widget<CalendarDatePicker>(find.byType(CalendarDatePicker));
+      expect([calendar.firstDate, calendar.lastDate], [DateTime(2025, 11, 17), DateTime(2026, 11, 17)]);
+      expect(find.text('17-11-2026'), findsOneWidget);
+    });
+
+    testWidgets('a person who may not mark is told so on a day with no register to take', (tester) async {
+      when(() => repository.roster('sec1', '2026-11-17')).thenAnswer(
+        (_) async => const AttendanceRoster(
+          sectionId: 'sec1',
+          day: '2026-11-17',
+          isHoliday: false,
+          canMark: false,
+          students: [asha],
+        ),
+      );
+      await pump(tester, mayMark: false);
+      expect(find.text('You mark attendance only at your own Institution.'), findsOneWidget);
+    });
+
     testWidgets('a teacher away from their own Institution reads the roll and cannot change it', (tester) async {
       await pump(tester, mayMark: false);
       expect(find.byKey(const ValueKey('attendance.student.e1')), findsOneWidget);
@@ -239,7 +334,7 @@ void main() {
     setUp(() => when(() => repository.roster('sec1', '2026-11-17')).thenAnswer((_) async => takenRoll));
 
     testWidgets('says who took it, and opens it for correction, with Save only once something changed', (tester) async {
-      when(() => repository.correct(any(), any(), any())).thenAnswer((_) async => submitted);
+      when(() => repository.correct(any(), any(), any())).thenAnswer((_) async {});
       await pump(tester);
       expect(find.byKey(const Key('attendance.taken')), findsOneWidget);
       expect(find.textContaining('Taken by R. Nair'), findsOneWidget);
@@ -267,6 +362,22 @@ void main() {
       await tester.tap(find.byKey(const Key('attendanceVoid.confirm')));
       await tester.pumpAndSettle();
       verify(() => repository.voidRegister('r1', 2, 'Marked the wrong section')).called(1);
+    });
+
+    testWidgets('a reason of spaces is no reason, and one is cut at 500 characters', (tester) async {
+      when(() => repository.voidRegister(any(), any(), any())).thenAnswer((_) async {});
+      await pump(tester, mayVoid: true);
+      await tester.tap(find.text('Void this register'));
+      await tester.pumpAndSettle();
+      await tester.enterText(find.byKey(const Key('attendanceVoid.reason')), '        ');
+      await tester.tap(find.byKey(const Key('attendanceVoid.confirm')));
+      await tester.pumpAndSettle();
+      expect(find.text('At least 5 characters.'), findsOneWidget);
+      verifyNever(() => repository.voidRegister(any(), any(), any()));
+      await tester.enterText(find.byKey(const Key('attendanceVoid.reason')), 'x' * 600);
+      await tester.tap(find.byKey(const Key('attendanceVoid.confirm')));
+      await tester.pumpAndSettle();
+      verify(() => repository.voidRegister('r1', 2, 'x' * 500)).called(1);
     });
 
     testWidgets('asks for a reason before voiding, and cancel voids nothing', (tester) async {

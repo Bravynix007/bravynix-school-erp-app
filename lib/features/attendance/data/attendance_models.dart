@@ -15,9 +15,10 @@ abstract final class AttendanceModels {
       sections: [
         for (final json in classes)
           for (final section in jsonList(json['sections']))
-            SectionChoice(
+            SectionChoice.inClass(
               id: jsonObject(section)['id'] as String,
-              name: '${json['className']} · ${jsonObject(section)['displayName']}',
+              className: json['className'] as String,
+              sectionName: jsonObject(section)['displayName'] as String,
               classId: json['classId'] as String,
             ),
       ],
@@ -28,7 +29,6 @@ abstract final class AttendanceModels {
     final json = jsonObject(raw);
     final code = (json['attendanceStatus'] as num).toInt();
     return RosterStudent(
-      studentId: json['studentId'] as String,
       enrolmentId: json['studentEnrolmentId'] as String,
       rollNumber: json['rollNumber'] as String,
       firstName: json['firstName'] as String,
@@ -62,20 +62,8 @@ abstract final class AttendanceModels {
     );
   }
 
-  static RegisterCounts counts(Object? raw) {
-    final json = jsonObject(raw);
-    int count(String key) => (json[key] as num).toInt();
-    return RegisterCounts(
-      id: json['id'] as String,
-      version: count('version'),
-      rosterCount: count('rosterCount'),
-      presentCount: count('presentCount'),
-      absentCount: count('absentCount'),
-      lateCount: count('lateCount'),
-      halfDayCount: count('halfDayCount'),
-      leaveCount: count('leaveCount'),
-    );
-  }
+  /// ATT-02: the number of students the register counts.
+  static int rosterCount(Object? raw) => (jsonObject(raw)['rosterCount'] as num).toInt();
 
   static Map<String, Object?> _mark(MarkChange change) => {
     'studentEnrolmentId': change.enrolmentId,

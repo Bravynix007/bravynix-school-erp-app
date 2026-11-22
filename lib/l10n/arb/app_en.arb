@@ -947,7 +947,6 @@
 
   "attendanceTitle": "Attendance",
   "attendanceDate": "Date",
-  "attendanceClearTooltip": "Clear filters",
   "attendanceNoSectionsTitle": "No classes to mark yet",
   "attendanceNoSectionsMessage": "Add classes and sections in School setup, and their students appear here to be marked.",
   "attendancePickTitle": "Choose a class and a section",
@@ -976,8 +975,7 @@
   "attendanceHoliday": "Holiday: {title}",
   "@attendanceHoliday": { "placeholders": { "title": { "type": "String" } } },
   "attendanceHolidayUntitled": "Holiday",
-  "attendanceNotYet": "This day has not come yet, so it cannot be marked.",
-  "attendanceViewOnly": "You can see this register, but you mark attendance only at your own Institution.",
+  "attendanceViewOnly": "You mark attendance only at your own Institution.",
   "attendanceClosed": "Attendance cannot be taken for this day. It may be outside the current academic year.",
   "attendanceSubmitted": "{count, plural, =0{Attendance submitted} =1{Attendance submitted for 1 student} other{Attendance submitted for {count} students}}",
   "@attendanceSubmitted": { "placeholders": { "count": { "type": "int" } } },

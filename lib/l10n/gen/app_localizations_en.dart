@@ -2903,9 +2903,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get attendanceDate => 'Date';
 
   @override
-  String get attendanceClearTooltip => 'Clear filters';
-
-  @override
   String get attendanceNoSectionsTitle => 'No classes to mark yet';
 
   @override
@@ -2987,10 +2984,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get attendanceHolidayUntitled => 'Holiday';
 
   @override
-  String get attendanceNotYet => 'This day has not come yet, so it cannot be marked.';
-
-  @override
-  String get attendanceViewOnly => 'You can see this register, but you mark attendance only at your own Institution.';
+  String get attendanceViewOnly => 'You mark attendance only at your own Institution.';
 
   @override
   String get attendanceClosed =>

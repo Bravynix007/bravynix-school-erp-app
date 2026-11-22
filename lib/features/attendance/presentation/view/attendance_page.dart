@@ -318,7 +318,6 @@ class _Screen extends StatelessWidget {
       final title = roster.holidayTitle;
       return title == null || title.isEmpty ? l10n.attendanceHolidayUntitled : l10n.attendanceHoliday(title);
     }
-    if (roster.day.compareTo(today) > 0) return l10n.attendanceNotYet;
     return mayMark ? l10n.attendanceClosed : l10n.attendanceViewOnly;
   }
 

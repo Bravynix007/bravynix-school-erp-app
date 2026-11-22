@@ -5125,12 +5125,6 @@ abstract class AppLocalizations {
   /// **'Date'**
   String get attendanceDate;
 
-  /// No description provided for @attendanceClearTooltip.
-  ///
-  /// In en, this message translates to:
-  /// **'Clear filters'**
-  String get attendanceClearTooltip;
-
   /// No description provided for @attendanceNoSectionsTitle.
   ///
   /// In en, this message translates to:
@@ -5275,16 +5269,10 @@ abstract class AppLocalizations {
   /// **'Holiday'**
   String get attendanceHolidayUntitled;
 
-  /// No description provided for @attendanceNotYet.
-  ///
-  /// In en, this message translates to:
-  /// **'This day has not come yet, so it cannot be marked.'**
-  String get attendanceNotYet;
-
   /// No description provided for @attendanceViewOnly.
   ///
   /// In en, this message translates to:
-  /// **'You can see this register, but you mark attendance only at your own Institution.'**
+  /// **'You mark attendance only at your own Institution.'**
   String get attendanceViewOnly;
 
   /// No description provided for @attendanceClosed.
