@@ -97,6 +97,48 @@ abstract class AppLocalizations {
   /// **'BravyNix'**
   String get appName;
 
+  /// No description provided for @authProductName.
+  ///
+  /// In en, this message translates to:
+  /// **'School ERP'**
+  String get authProductName;
+
+  /// No description provided for @authTaglineLead.
+  ///
+  /// In en, this message translates to:
+  /// **'School life,'**
+  String get authTaglineLead;
+
+  /// No description provided for @authTaglineEmphasis.
+  ///
+  /// In en, this message translates to:
+  /// **'connected.'**
+  String get authTaglineEmphasis;
+
+  /// No description provided for @authEmailExample.
+  ///
+  /// In en, this message translates to:
+  /// **'you@example.com'**
+  String get authEmailExample;
+
+  /// No description provided for @authSignInHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'Need help? Contact your school office.'**
+  String get authSignInHelp;
+
+  /// No description provided for @authCheckingSession.
+  ///
+  /// In en, this message translates to:
+  /// **'Checking your sign-in…'**
+  String get authCheckingSession;
+
+  /// No description provided for @authRestoreTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t open the app'**
+  String get authRestoreTitle;
+
   /// No description provided for @loginTitle.
   ///
   /// In en, this message translates to:
@@ -106,13 +148,13 @@ abstract class AppLocalizations {
   /// No description provided for @loginSubtitle.
   ///
   /// In en, this message translates to:
-  /// **'Enter your email and we\'ll send you a 6-digit code.'**
+  /// **'Use the email address you shared with your school.'**
   String get loginSubtitle;
 
   /// No description provided for @emailLabel.
   ///
   /// In en, this message translates to:
-  /// **'Email'**
+  /// **'Email address'**
   String get emailLabel;
 
   /// No description provided for @emailRequired.
@@ -130,7 +172,7 @@ abstract class AppLocalizations {
   /// No description provided for @sendCode.
   ///
   /// In en, this message translates to:
-  /// **'Send code'**
+  /// **'Send sign-in code'**
   String get sendCode;
 
   /// No description provided for @codeTitle.
@@ -142,8 +184,8 @@ abstract class AppLocalizations {
   /// No description provided for @codeSubtitle.
   ///
   /// In en, this message translates to:
-  /// **'Enter the 6-digit code sent to {email}'**
-  String codeSubtitle(String email);
+  /// **'If this email is registered, a code has been sent.'**
+  String get codeSubtitle;
 
   /// No description provided for @codeLabel.
   ///
@@ -151,10 +193,16 @@ abstract class AppLocalizations {
   /// **'6-digit code'**
   String get codeLabel;
 
+  /// No description provided for @codeRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter all six digits.'**
+  String get codeRequired;
+
   /// No description provided for @verify.
   ///
   /// In en, this message translates to:
-  /// **'Verify'**
+  /// **'Verify code'**
   String get verify;
 
   /// No description provided for @resendIn.
@@ -514,14 +562,20 @@ abstract class AppLocalizations {
   /// No description provided for @chooseRoleTitle.
   ///
   /// In en, this message translates to:
-  /// **'Choose how to continue'**
+  /// **'Choose a role'**
   String get chooseRoleTitle;
 
   /// No description provided for @chooseRoleSubtitle.
   ///
   /// In en, this message translates to:
-  /// **'Your email has more than one role. You can change this later from Profile.'**
+  /// **'You can switch roles later from Profile.'**
   String get chooseRoleSubtitle;
+
+  /// No description provided for @roleCurrent.
+  ///
+  /// In en, this message translates to:
+  /// **'Current role'**
+  String get roleCurrent;
 
   /// No description provided for @noRoleTitle.
   ///

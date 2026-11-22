@@ -1,6 +1,9 @@
+import 'package:bravynix_school_erp/core/theme/app_spacing.dart';
+import 'package:bravynix_school_erp/core/widgets/app_button.dart';
 import 'package:bravynix_school_erp/core/widgets/inline_message.dart';
 import 'package:bravynix_school_erp/features/auth/presentation/login/bloc/login_bloc.dart';
 import 'package:bravynix_school_erp/features/auth/presentation/login/view/login_error_text.dart';
+import 'package:bravynix_school_erp/features/auth/presentation/widgets/auth_scaffold.dart';
 import 'package:bravynix_school_erp/l10n/gen/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -35,59 +38,71 @@ class _EmailFormState extends State<EmailForm> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
-    final textTheme = Theme.of(context).textTheme;
+    final theme = Theme.of(context);
     final state = context.watch<LoginBloc>().state;
     final fieldError = state.failure?.fieldError('email')?.message;
 
-    return Form(
-      key: _formKey,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Text(l10n.loginTitle, style: textTheme.titleLarge),
-          const SizedBox(height: 4),
-          Text(l10n.loginSubtitle, style: textTheme.bodyMedium?.copyWith(color: textTheme.bodySmall?.color)),
-          const SizedBox(height: 24),
-          if (state.failure != null && fieldError == null) ...[
-            InlineMessage.error(loginErrorText(l10n, state.failure!)),
-            const SizedBox(height: 16),
-          ],
-          TextFormField(
-            key: const Key('login.email'),
-            controller: _email,
-            autofocus: true,
-            keyboardType: TextInputType.emailAddress,
-            textInputAction: TextInputAction.send,
-            autofillHints: const [AutofillHints.email, AutofillHints.username],
-            autocorrect: false,
-            enableSuggestions: false,
-            maxLength: 254,
-            buildCounter: (_, {required currentLength, required isFocused, maxLength}) => null,
-            decoration: InputDecoration(labelText: l10n.emailLabel, errorText: fieldError),
-            validator: (value) {
-              final email = value?.trim() ?? '';
-              if (email.isEmpty) return l10n.emailRequired;
-              if (!EmailForm._emailPattern.hasMatch(email)) return l10n.emailInvalid;
-              return null;
-            },
-            onFieldSubmitted: (_) => _submit(),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        AuthHeading(title: l10n.loginTitle, subtitle: l10n.loginSubtitle),
+        const SizedBox(height: AppSpacing.xl),
+        Form(
+          key: _formKey,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              if (state.failure != null && fieldError == null) ...[
+                InlineMessage.error(loginErrorText(l10n, state.failure!)),
+                const SizedBox(height: AppSpacing.md),
+              ],
+              ExcludeSemantics(child: Text(l10n.emailLabel, style: theme.textTheme.labelLarge)),
+              const SizedBox(height: AppSpacing.xs),
+              MergeSemantics(
+                child: Semantics(
+                  label: l10n.emailLabel,
+                  child: TextFormField(
+                    key: const Key('login.email'),
+                    controller: _email,
+                    autovalidateMode: AutovalidateMode.onUserInteractionIfError,
+                    keyboardType: TextInputType.emailAddress,
+                    textInputAction: TextInputAction.send,
+                    autofillHints: const [AutofillHints.email, AutofillHints.username],
+                    autocorrect: false,
+                    enableSuggestions: false,
+                    maxLength: 254,
+                    buildCounter: (_, {required currentLength, required isFocused, maxLength}) => null,
+                    decoration: InputDecoration(
+                      hintText: l10n.authEmailExample,
+                      prefixIcon: const Icon(Icons.mail_outline, size: 20),
+                      errorText: fieldError,
+                      errorMaxLines: 3,
+                    ),
+                    validator: (value) {
+                      final email = value?.trim() ?? '';
+                      if (email.isEmpty) return l10n.emailRequired;
+                      if (!EmailForm._emailPattern.hasMatch(email)) return l10n.emailInvalid;
+                      return null;
+                    },
+                    onFieldSubmitted: (_) => _submit(),
+                  ),
+                ),
+              ),
+              const SizedBox(height: AppSpacing.md),
+              AppButton(
+                key: const Key('login.sendCode'),
+                label: l10n.sendCode,
+                icon: Icons.arrow_forward,
+                iconAlignment: IconAlignment.end,
+                loading: state.isSubmitting,
+                onPressed: _submit,
+              ),
+            ],
           ),
-          const SizedBox(height: 24),
-          FilledButton(
-            key: const Key('login.sendCode'),
-            onPressed: state.isSubmitting ? null : _submit,
-            child: state.isSubmitting ? const _ButtonSpinner() : Text(l10n.sendCode),
-          ),
-        ],
-      ),
+        ),
+        const SizedBox(height: AppSpacing.xl),
+        Text(l10n.authSignInHelp, style: theme.textTheme.bodySmall),
+      ],
     );
   }
-}
-
-class _ButtonSpinner extends StatelessWidget {
-  const new();
-
-  @override
-  Widget build(BuildContext context) =>
-      const SizedBox.square(dimension: 20, child: CircularProgressIndicator(strokeWidth: 2));
 }

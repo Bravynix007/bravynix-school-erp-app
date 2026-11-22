@@ -1,12 +1,11 @@
 {
-    "name": "bravynix_school_erp",
-    "short_name": "bravynix_school_erp",
+    "name": "BravyNix School ERP",
+    "short_name": "BravyNix",
     "start_url": ".",
     "display": "standalone",
-    "background_color": "#0175C2",
-    "theme_color": "#0175C2",
-    "description": "A new Flutter project.",
-    "orientation": "portrait-primary",
+    "background_color": "#102F2A",
+    "theme_color": "#102F2A",
+    "description": "BravyNix School ERP connects school staff and families.",
     "prefer_related_applications": false,
     "icons": [
         {
