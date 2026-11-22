@@ -52,6 +52,19 @@ abstract final class AppColors {
   static const Color onHoliday = ink;
 }
 
+/// BravyNix brand colours for authentication artwork and surfaces.
+abstract final class AuthColors {
+  static const canvas = Color(0xFFFAF8F1);
+  static const brand = Color(0xFF102F2A);
+  static const onBrand = Color(0xFFFFF9EC);
+  static const onBrandMuted = Color(0xFFD5E5DC);
+  static const gold = Color(0xFFE3BE82);
+  static const ornament = Color(0x40AAD8BA);
+  static const progressTrack = Color(0xFF31564D);
+  static const heroShade = Color(0xEA082722);
+  static const heroEdge = Color(0x21082722);
+}
+
 /// The seven theme accents (UI alignment spec, Theme switch). The four light
 /// originals are darkened so white text on the header and primary buttons
 /// passes WCAG AA (4.5:1).
