@@ -2,10 +2,12 @@ import 'dart:async';
 
 import 'package:bravynix_school_erp/core/network/api_failure.dart';
 import 'package:bravynix_school_erp/core/widgets/attendance_status_selector.dart';
+import 'package:bravynix_school_erp/core/widgets/day_picker.dart';
 import 'package:bravynix_school_erp/features/attendance/domain/attendance_repository.dart';
 import 'package:bravynix_school_erp/features/attendance/domain/attendance_roster.dart';
 import 'package:bravynix_school_erp/features/attendance/presentation/bloc/attendance_bloc.dart';
 import 'package:bravynix_school_erp/features/attendance/presentation/view/attendance_page.dart';
+import 'package:bravynix_school_erp/features/masters/presentation/view/master_dropdown.dart';
 import 'package:bravynix_school_erp/features/sections/presentation/bloc/section_day_bloc.dart';
 import 'package:bravynix_school_erp/features/sections/presentation/view/section_day_frame.dart';
 import 'package:flutter/material.dart';
@@ -261,6 +263,10 @@ void main() {
       final card = find.byKey(const ValueKey('attendance.student.e2'));
       expect(find.descendant(of: card, matching: find.bySemanticsLabel('Absent')), findsNothing);
       expect(find.text('Confirm & Submit Attendance'), findsNothing);
+      // Nor the class, the section or the day: the answer belongs to the roll that is on screen.
+      expect(tester.widget<MasterDropdown>(find.byKey(const Key('attendance.class'))).onChanged, isNull);
+      expect(tester.widget<MasterDropdown>(find.byKey(const Key('attendance.section'))).onChanged, isNull);
+      expect(tester.widget<DayField>(find.byKey(const Key('attendance.day'))).onChanged, isNull);
       verify(
         () => repository.submit(
           sectionId: any(named: 'sectionId'),
@@ -272,6 +278,7 @@ void main() {
       ).called(1);
       slow.complete(submitted);
       await tester.pumpAndSettle();
+      expect(tester.widget<DayField>(find.byKey(const Key('attendance.day'))).onChanged, isNotNull);
     });
 
     testWidgets('says why a roll was read again over a day that cannot be marked', (tester) async {

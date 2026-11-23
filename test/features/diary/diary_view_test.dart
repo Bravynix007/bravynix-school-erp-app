@@ -3,11 +3,13 @@ import 'dart:async';
 import 'package:bravynix_school_erp/app/di/injection.dart';
 import 'package:bravynix_school_erp/core/network/api_failure.dart';
 import 'package:bravynix_school_erp/core/widgets/app_button.dart';
+import 'package:bravynix_school_erp/core/widgets/day_picker.dart';
 import 'package:bravynix_school_erp/features/diary/domain/diary_entry.dart';
 import 'package:bravynix_school_erp/features/diary/domain/diary_repository.dart';
 import 'package:bravynix_school_erp/features/diary/presentation/bloc/diary_bloc.dart';
 import 'package:bravynix_school_erp/features/diary/presentation/bloc/diary_form_bloc.dart';
 import 'package:bravynix_school_erp/features/diary/presentation/view/diary_page.dart';
+import 'package:bravynix_school_erp/features/masters/presentation/view/master_dropdown.dart';
 import 'package:bravynix_school_erp/features/sections/domain/section_options.dart';
 import 'package:bravynix_school_erp/features/sections/presentation/bloc/section_day_bloc.dart';
 import 'package:bravynix_school_erp/features/sections/presentation/view/section_day_frame.dart';
@@ -452,11 +454,11 @@ void main() {
       await pump(tester);
       await tester.tap(find.byKey(const ValueKey('diary.edit.d9')));
       await tester.pumpAndSettle();
-      // The calendar opens on the entry's day, which is before the last 7 days.
+      // The calendar opens on the entry's day, which is before the last 7 days, and confirming it keeps that day.
       await tester.tap(find.byKey(const Key('diaryForm.day')));
       await tester.pumpAndSettle();
       expect(tester.takeException(), isNull);
-      await tester.tap(find.text('Cancel').last);
+      await tester.tap(find.text('OK'));
       await tester.pumpAndSettle();
       await tester.enterText(find.byKey(const Key('diaryForm.description')), 'Old note, corrected.');
       await tester.tap(find.byKey(const Key('diaryForm.save')));
@@ -516,6 +518,22 @@ void main() {
       verify(() => diary.remove('d1')).called(1);
       expect(find.byKey(const ValueKey('diary.entry.d1')), findsNothing);
       expect(find.byKey(const ValueKey('diary.entry.d2')), findsOneWidget);
+    });
+
+    testWidgets('takes no other choice of class, section or day while the entry is going', (tester) async {
+      final pending = Completer<void>();
+      when(() => diary.remove('d1')).thenAnswer((_) => pending.future);
+      await pump(tester);
+      await ask(tester);
+      await tester.tap(find.text('Delete').last);
+      await tester.pump();
+      expect(tester.widget<MasterDropdown>(find.byKey(const Key('diary.class'))).onChanged, isNull);
+      expect(tester.widget<MasterDropdown>(find.byKey(const Key('diary.section'))).onChanged, isNull);
+      expect(tester.widget<DayField>(find.byKey(const Key('diary.day'))).onChanged, isNull);
+      pending.complete();
+      await tester.pumpAndSettle();
+      expect(tester.widget<DayField>(find.byKey(const Key('diary.day'))).onChanged, isNotNull);
+      expect(find.text('Diary entry deleted'), findsOneWidget);
     });
 
     testWidgets('keeps the entry when the person says Cancel', (tester) async {
