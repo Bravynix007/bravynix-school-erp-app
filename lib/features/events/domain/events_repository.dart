@@ -25,6 +25,11 @@ abstract class EventsRepository {
   /// meanwhile, 403 SCOPE_NOT_ALLOWED for an Admin and a Society event, 404 for one removed.
   Future<SchoolEvent> change(SchoolEvent event, EventInput input);
 
+  /// EVT-06 (an Owner only): moves the event to the whole Society ([EventScope.society]) or to one Institution the Owner
+  /// reaches, with the version that was read. 409 VERSION_CONFLICT when it changed meanwhile, 404 for an event that is
+  /// gone or an Institution out of reach, 400 for an Institution that does not fit the scope.
+  Future<SchoolEvent> changeScope(SchoolEvent event, {required EventScope scope, String? institutionId});
+
   /// EVT-05: removes the event from every list; nothing is deleted. 404 when it is already removed.
   Future<void> remove(String id);
 }

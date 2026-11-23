@@ -157,7 +157,7 @@ void main() {
     Future<void> pump(WidgetTester tester, EventState state, {double textScale = 1}) {
       when(() => bloc.state).thenReturn(state);
       return tester.pumpAppScaled(
-        BlocProvider<EventBloc>.value(value: bloc, child: const EventView()),
+        BlocProvider<EventBloc>.value(value: bloc, child: const EventView(owner: false)),
         textScale: textScale,
       );
     }

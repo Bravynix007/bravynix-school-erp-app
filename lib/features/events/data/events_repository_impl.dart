@@ -50,6 +50,14 @@ class EventsRepositoryImpl implements EventsRepository {
   );
 
   @override
+  Future<SchoolEvent> changeScope(SchoolEvent event, {required EventScope scope, String? institutionId}) => _api.data(
+    'events/${Uri.encodeComponent(event.id)}/scope',
+    method: HttpMethod.post,
+    body: EventModels.scopeBody(event, scope: scope, institutionId: institutionId),
+    parse: EventModels.event,
+  );
+
+  @override
   Future<void> remove(String id) =>
       _api.data('events/${Uri.encodeComponent(id)}', method: HttpMethod.delete, parse: (_) {});
 }

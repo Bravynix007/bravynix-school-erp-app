@@ -57,6 +57,12 @@ abstract final class EventModels {
     'institutionId': ?institutionId,
   };
 
+  static Map<String, Object?> scopeBody(SchoolEvent event, {required EventScope scope, String? institutionId}) => {
+    'version': event.version,
+    'scope': scope.code,
+    'institutionId': ?institutionId,
+  };
+
   static Map<String, Object?> changeBody(SchoolEvent event, EventInput input) => {
     'version': event.version,
     ...fields(input),

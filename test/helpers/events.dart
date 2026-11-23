@@ -14,6 +14,8 @@ SchoolEvent schoolEvent({
   DateTime? endDate,
   String? presetImageCode,
   bool canEdit = false,
+  EventScope scope = EventScope.society,
+  String? institutionId,
 }) => SchoolEvent(
   id: id,
   title: title,
@@ -23,7 +25,8 @@ SchoolEvent schoolEvent({
   endDate: endDate ?? DateTime(2026, 11, 20),
   durationLabel: '1 Day Event',
   audience: EventAudience.everyone,
-  scope: EventScope.society,
+  scope: scope,
+  institutionId: institutionId,
   presetImageCode: presetImageCode,
   isHoliday: isHoliday,
   holidayType: holidayType,

@@ -179,6 +179,20 @@ void main() {
       expect(body.containsKey('scope'), isFalse);
     });
 
+    test('moves an event to the Society with the version that was read, and to an Institution by name', () async {
+      final (:repository, :adapter) = build(() => okReply(eventJson()));
+      await repository.changeScope(
+        schoolEvent(scope: EventScope.institution, institutionId: 'i1'),
+        scope: EventScope.society,
+      );
+      final toSociety = adapter.requests.single;
+      expect([toSociety.method, toSociety.uri.path], ['POST', '/v1/events/e1/scope']);
+      expect(bodyOf(toSociety), {'version': 1, 'scope': 1});
+      final event = await repository.changeScope(schoolEvent(), scope: EventScope.institution, institutionId: 'i2');
+      expect(bodyOf(adapter.requests.last), {'version': 1, 'scope': 2, 'institutionId': 'i2'});
+      expect(event.scope, EventScope.institution);
+    });
+
     test('removes an event', () async {
       final (:repository, :adapter) = build(() => okReply({'id': 'e1', 'status': 0}));
       await repository.remove('e1');
