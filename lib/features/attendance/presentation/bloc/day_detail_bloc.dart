@@ -4,8 +4,12 @@ import 'package:bravynix_school_erp/features/attendance/domain/attendance_calend
 import 'package:bravynix_school_erp/features/attendance/domain/attendance_repository.dart';
 import 'package:equatable/equatable.dart';
 
+sealed class DayDetailEvent {
+  const new();
+}
+
 /// Reading the day, and Try again after it could not be read.
-final class DayDetailRequested {
+final class DayDetailRequested extends DayDetailEvent {
   const new();
 }
 
@@ -39,7 +43,7 @@ class DayDetailLoaded extends DayDetailState {
 }
 
 /// ATT-08: one day of one student, for the sheet a day of the calendar opens.
-class DayDetailBloc extends Bloc<DayDetailRequested, DayDetailState> {
+class DayDetailBloc extends Bloc<DayDetailEvent, DayDetailState> {
   new(this._attendance, this.studentId, this.day) : super(const DayDetailLoading()) {
     on<DayDetailRequested>(_onRequested);
   }

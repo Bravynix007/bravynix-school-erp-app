@@ -2,6 +2,8 @@ import 'dart:async';
 
 import 'package:bravynix_school_erp/app/router/app_router.dart';
 import 'package:bravynix_school_erp/app/router/app_routes.dart';
+import 'package:bravynix_school_erp/features/attendance/presentation/bloc/attendance_bloc.dart';
+import 'package:bravynix_school_erp/features/attendance/presentation/view/attendance_page.dart';
 import 'package:bravynix_school_erp/features/auth/domain/auth_entities.dart';
 import 'package:bravynix_school_erp/features/auth/presentation/session/session_bloc.dart';
 import 'package:bravynix_school_erp/features/events/presentation/view/event_form_page.dart';
@@ -195,6 +197,25 @@ void main() {
       expect(match(AppRoutes.ownStaffRecord).pattern, AppRoutes.ownStaffRecord);
       // The signed-in role of this router is an Owner, who has none.
       expect(await route.redirect!(_MockContext(), _MockRouterState()), AppRoutes.profile);
+    });
+  });
+
+  group('the attendance screen', () {
+    AttendancePage pageFor(Object? extra) {
+      final route = router.configuration.findMatch(Uri.parse(AppRoutes.attendance)).matches.last.route as GoRoute;
+      final state = _MockRouterState();
+      when(() => state.extra).thenReturn(extra);
+      return route.builder!(_MockContext(), state) as AttendancePage;
+    }
+
+    test('opens on the register a calendar day hands over', () {
+      const focus = AttendanceFocus(sectionId: 'sec1', day: '2026-11-03');
+      expect(pageFor(focus).focus, focus);
+    });
+
+    test('opens on the picker when nothing, or something else, is handed over', () {
+      expect(pageFor(null).focus, isNull);
+      expect(pageFor('sec1').focus, isNull);
     });
   });
 }

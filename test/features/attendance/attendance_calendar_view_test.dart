@@ -1,6 +1,9 @@
+import 'dart:async';
+
 import 'package:bloc_test/bloc_test.dart';
 import 'package:bravynix_school_erp/app/di/injection.dart';
 import 'package:bravynix_school_erp/core/network/api_failure.dart';
+import 'package:bravynix_school_erp/core/theme/app_colors.dart';
 import 'package:bravynix_school_erp/core/theme/app_theme.dart';
 import 'package:bravynix_school_erp/features/attendance/domain/attendance_calendar.dart';
 import 'package:bravynix_school_erp/features/attendance/domain/attendance_repository.dart';
@@ -12,6 +15,7 @@ import 'package:bravynix_school_erp/features/auth/domain/auth_entities.dart';
 import 'package:bravynix_school_erp/features/children/presentation/bloc/active_child_bloc.dart';
 import 'package:bravynix_school_erp/l10n/gen/app_localizations.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/semantics.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
@@ -85,6 +89,54 @@ void main() {
       }
     });
 
+    testWidgets('writes a whole percentage without a fraction and any other as it is', (tester) async {
+      AttendanceCalendar withRate(double rate) => AttendanceCalendar(
+        month: november.month,
+        summary: MonthSummary(
+          presentDays: 1,
+          absentDays: 0,
+          lateDays: 0,
+          halfDays: 0,
+          leaveDays: 0,
+          holidays: 0,
+          notMarkedDays: 0,
+          percentage: rate,
+        ),
+        yearToDatePercentage: 100,
+        days: november.days,
+      );
+      when(() => repository.calendar('s1', '2026-11')).thenAnswer((_) async => withRate(95));
+      await pump(tester);
+      expect(find.text('95%'), findsOneWidget);
+      expect(find.text('100%'), findsOneWidget);
+      expect(find.text('95.0%'), findsNothing);
+    });
+
+    testWidgets('greys a weekly off and a day before the student joined, and no other day with no mark', (
+      tester,
+    ) async {
+      await pump(tester);
+      Color? ink(int day) => tester
+          .widget<Text>(find.descendant(of: find.byKey(ValueKey('calendar.day.$day')), matching: find.text('$day')))
+          .style
+          ?.color;
+      expect(ink(1), AppColors.disabled, reason: 'a weekly off');
+      expect(ink(6), AppColors.disabled, reason: 'before the student joined');
+      expect(ink(8), AppColors.ink, reason: 'a school day nobody marked yet');
+      expect(ink(3), Colors.white, reason: 'a marked day');
+    });
+
+    testWidgets('lets a screen reader open a day', (tester) async {
+      final handle = tester.ensureSemantics();
+      await pump(tester);
+      final absent = tester.getSemantics(find.bySemanticsLabel('03-11-2026, Absent'));
+      expect(absent.getSemanticsData().hasAction(SemanticsAction.tap), isTrue);
+      tester.semantics.tap(find.semantics.byLabel('03-11-2026, Absent'));
+      await tester.pumpAndSettle();
+      expect(find.byKey(const Key('dayDetail.status')), findsOneWidget);
+      handle.dispose();
+    });
+
     testWidgets('says a day to a screen reader with its date and status, a weekly off and a holiday by name', (
       tester,
     ) async {
@@ -156,18 +208,23 @@ void main() {
       when(() => repository.calendar('s1', '2026-11')).thenThrow(refusal('FORBIDDEN', status: 403));
       await pump(tester);
       expect(find.byKey(const Key('attendanceCalendar.forbidden')), findsOneWidget);
+      expect(find.text('Try again'), findsNothing);
     });
 
     testWidgets('says a teacher may read only the students of their sections', (tester) async {
       when(() => repository.calendar('s1', '2026-11')).thenThrow(refusal('NOT_ASSIGNED', status: 403));
       await pump(tester);
       expect(find.textContaining('sections you lead or teach'), findsOneWidget);
+      expect(find.byKey(const Key('attendanceCalendar.forbidden')), findsOneWidget);
+      expect(find.text('Try again'), findsNothing);
     });
 
     testWidgets('says a blocked child in its own words', (tester) async {
       when(() => repository.calendar('s1', '2026-11')).thenThrow(refusal('CHILD_ACCESS_BLOCKED', status: 403));
       await pump(tester);
       expect(find.text("Access to this child's information is blocked. Contact the school."), findsOneWidget);
+      expect(find.byKey(const Key('attendanceCalendar.forbidden')), findsOneWidget);
+      expect(find.text('Try again'), findsNothing);
     });
 
     testWidgets('says a student that is not found in its own words', (tester) async {
@@ -216,6 +273,56 @@ void main() {
       await tester.pumpAndSettle();
       expect(find.text('No register was taken for this day.'), findsOneWidget);
       expect(find.byKey(const Key('dayDetail.correct')), findsNothing);
+    });
+
+    testWidgets('offers no Correct on a day with a section but no register', (tester) async {
+      when(() => repository.dayDetail('s1', '2026-11-10')).thenAnswer(
+        (_) async => const DayDetail(
+          day: '2026-11-10',
+          status: DayStatus.notMarked,
+          isWeekend: false,
+          section: DaySection(id: 'sec1', name: 'A', className: '7th'),
+        ),
+      );
+      await pump(tester, canCorrect: true);
+      await tester.tap(find.byKey(const ValueKey('calendar.day.10')));
+      await tester.pumpAndSettle();
+      expect(find.text('7th · A'), findsOneWidget);
+      expect(find.byKey(const Key('dayDetail.correct')), findsNothing);
+    });
+
+    testWidgets('shows no Section row when the section has no name, as for a parent', (tester) async {
+      when(() => repository.dayDetail('s1', '2026-11-03')).thenAnswer(
+        (_) async => DayDetail(
+          day: '2026-11-03',
+          status: DayStatus.absent,
+          isWeekend: false,
+          section: const DaySection(id: 'sec1'),
+          markedBy: 'R. Nair',
+          markedAt: DateTime.utc(2026, 11, 3, 4, 30),
+        ),
+      );
+      await pump(tester);
+      await tester.tap(find.byKey(const ValueKey('calendar.day.3')));
+      await tester.pumpAndSettle();
+      expect(find.text('R. Nair'), findsOneWidget);
+      expect(find.text('Section'), findsNothing);
+    });
+
+    testWidgets('names the holiday and does not say a register is missing for it', (tester) async {
+      when(() => repository.dayDetail('s1', '2026-11-05')).thenAnswer(
+        (_) async => const DayDetail(
+          day: '2026-11-05',
+          status: DayStatus.holiday,
+          isWeekend: false,
+          holidayTitle: 'Founders Day',
+        ),
+      );
+      await pump(tester);
+      await tester.tap(find.byKey(const ValueKey('calendar.day.5')));
+      await tester.pumpAndSettle();
+      expect(find.text('Holiday: Founders Day'), findsOneWidget);
+      expect(find.text('No register was taken for this day.'), findsNothing);
     });
 
     testWidgets('names the holiday, and a weekly off', (tester) async {
@@ -287,6 +394,41 @@ void main() {
       await tester.tap(find.byKey(const ValueKey('calendar.day.3')));
       await tester.pumpAndSettle();
       expect(find.byKey(const Key('dayDetail.correct')), findsNothing);
+    });
+
+    testWidgets("a parent's starts again on this month for the next child, not on the last child's", (tester) async {
+      const meera = LinkedChild(
+        studentId: 's2',
+        firstName: 'Meera',
+        institutionName: 'Green Valley School',
+        isBlocked: false,
+      );
+      when(() => repository.calendar('s1', '2026-10')).thenAnswer((_) async => november);
+      when(() => repository.calendar('s2', any())).thenAnswer((_) async => november);
+      final children = _MockActiveChildBloc();
+      final changes = StreamController<ActiveChildState>();
+      addTearDown(changes.close);
+      whenListen(
+        children,
+        changes.stream,
+        initialState: const ActiveChildReady(children: [diya, meera], selected: diya),
+      );
+      await tester.pumpAppScaled(
+        BlocProvider<ActiveChildBloc>.value(
+          value: children,
+          child: AttendanceCalendarPage(clock: clock),
+        ),
+        size: const Size(400, 1400),
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('monthStepper.previous')));
+      await tester.pumpAndSettle();
+      expect(find.text('October 2026'), findsOneWidget);
+      changes.add(const ActiveChildReady(children: [diya, meera], selected: meera));
+      await tester.pumpAndSettle();
+      expect(find.text('November 2026'), findsOneWidget);
+      verify(() => repository.calendar('s2', '2026-11')).called(1);
+      verifyNever(() => repository.calendar('s2', '2026-10'));
     });
 
     testWidgets("a student's for staff names them, and Correct opens that register", (tester) async {

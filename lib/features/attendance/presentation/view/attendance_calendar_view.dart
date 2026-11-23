@@ -1,5 +1,4 @@
 import 'package:bravynix_school_erp/core/format/formatters.dart';
-import 'package:bravynix_school_erp/core/theme/app_colors.dart';
 import 'package:bravynix_school_erp/core/theme/app_spacing.dart';
 import 'package:bravynix_school_erp/core/widgets/month_calendar_grid.dart';
 import 'package:bravynix_school_erp/core/widgets/month_stepper.dart';
@@ -15,6 +14,9 @@ import 'package:bravynix_school_erp/features/attendance/presentation/view/day_de
 import 'package:bravynix_school_erp/l10n/gen/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+
+/// The 403 codes of ATT-07 (API design 10.13): none of them can be cured by asking again.
+const _refusals = {'FORBIDDEN', 'NOT_ASSIGNED', 'CHILD_ACCESS_BLOCKED'};
 
 /// One student's month: the percentages, the days in their colours with a legend and the day counts, and a day that
 /// opens who marked it. [onCorrect] is set for someone who may correct a register (an Owner, an Admin or a teacher): the
@@ -48,7 +50,7 @@ class AttendanceCalendarView extends StatelessWidget {
                 key: const Key('attendanceCalendar.outsideYear'),
                 title: attendanceCalendarErrorText(l10n, failure),
               ),
-              AttendanceCalendarFailed(:final failure) when failure.code == 'FORBIDDEN' => StatePanel.forbidden(
+              AttendanceCalendarFailed(:final failure) when _refusals.contains(failure.code) => StatePanel.forbidden(
                 key: const Key('attendanceCalendar.forbidden'),
                 title: attendanceCalendarErrorText(l10n, failure),
               ),
@@ -145,7 +147,7 @@ class _Month extends StatelessWidget {
               if (status != DayStatus.notEnrolled)
                 CalendarLegendEntry(
                   label: l10n.attendanceCalendarLegend(status.label(l10n), summary.count(status)),
-                  fill: status.fill ?? (status == DayStatus.notMarked ? null : AppColors.sunken),
+                  fill: status.fill,
                 ),
           ],
         ),
