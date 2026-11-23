@@ -567,6 +567,91 @@ void main() {
       expect(find.text('Nothing here yet'), findsOneWidget);
     });
 
+    testWidgets('an alert that started the app while signed out waits for the sign-in, then opens the inbox once', (
+      tester,
+    ) async {
+      await start(
+        tester,
+        reply: (path) async => switch (path) {
+          'auth/otp' => okReply({'resendAfterSeconds': 60, 'expiresInSeconds': 600}),
+          'auth/otp/verify' => okReply({
+            'accessToken': 'a',
+            'accessTokenExpiresAt': '2026-10-23T04:25:00.000Z',
+            'refreshToken': 'r',
+            'session': {'id': 'x1', 'activeContext': null},
+            'person': {'id': 'p1', 'email': 'asha.rao@example.com', 'firstName': 'Asha', 'preferredLanguage': 'en'},
+            'contexts': [_owner('s1')],
+          }),
+          _ => await owner(path),
+        },
+        push: const _FakePush('tok-1', Stream.empty(), launch: 'inbox'),
+      );
+      // Signed out: the alert opens nothing yet.
+      expect(find.text('Sign in'), findsOneWidget);
+      expect(find.text('Nothing here yet'), findsNothing);
+
+      await tester.enterText(find.byKey(const Key('login.email')), 'asha.rao@example.com');
+      await tester.tap(find.byKey(const Key('login.sendCode')));
+      await tester.pumpAndSettle();
+      await tester.enterText(find.byKey(const Key('login.code')), '482017');
+      await tester.pumpAndSettle();
+      expect(find.text('Nothing here yet'), findsOneWidget);
+
+      // Back to the home: the alert is spent, and the inbox does not open again on the next sign-in state.
+      await tester.tap(find.byType(BackButton).evaluate().isEmpty ? find.byTooltip('Back') : find.byType(BackButton));
+      await tester.pumpAndSettle();
+      expect(find.byKey(const Key('home.bell')), findsOneWidget);
+      await tester.tap(find.byKey(const Key('home.logout')));
+      await tester.pumpAndSettle();
+      expect(find.text('Sign in'), findsOneWidget);
+      await tester.enterText(find.byKey(const Key('login.email')), 'asha.rao@example.com');
+      await tester.tap(find.byKey(const Key('login.sendCode')));
+      await tester.pumpAndSettle();
+      await tester.enterText(find.byKey(const Key('login.code')), '482017');
+      await tester.pumpAndSettle();
+      expect(find.byKey(const Key('home.bell')), findsOneWidget);
+      expect(find.text('Nothing here yet'), findsNothing);
+    });
+
+    testWidgets(
+      'an alert that started the app waits for the role to be chosen, and a later role change keeps it spent',
+      (
+        tester,
+      ) async {
+        await start(
+          tester,
+          tokens: tokens,
+          reply: (path) async => switch (path) {
+            'auth/context' => okReply({'accessToken': 'a2', 'activeContext': _owner('s2')}),
+            'society/access-blocks' => okReply([]),
+            'notifications' => okReply([], meta: {'limit': 20, 'nextCursor': null, 'hasMore': false}),
+            'me/push-device' => okReply(null),
+            _ => okReply({
+              'person': {'id': 'p1', 'email': 'asha.rao@example.com', 'firstName': 'Asha', 'preferredLanguage': 'en'},
+              'contexts': [_owner('s1', name: 'North Trust'), _owner('s2', name: 'South Trust')],
+            }),
+          },
+          push: const _FakePush('tok-1', Stream.empty(), launch: 'inbox'),
+        );
+        expect(find.text('Choose a role'), findsOneWidget);
+        expect(find.text('Nothing here yet'), findsNothing);
+
+        await tester.tap(find.text('South Trust'));
+        await tester.pumpAndSettle();
+        expect(find.text('Nothing here yet'), findsOneWidget);
+
+        await tester.tap(find.byType(BackButton).evaluate().isEmpty ? find.byTooltip('Back') : find.byType(BackButton));
+        await tester.pumpAndSettle();
+        await tester.tap(find.byKey(const Key('home.profile')));
+        await tester.pumpAndSettle();
+        await tester.tap(find.byKey(const Key('profile.switchRole')));
+        await tester.pumpAndSettle();
+        await tester.tap(find.text('South Trust'));
+        await tester.pumpAndSettle();
+        expect(find.text('Nothing here yet'), findsNothing);
+      },
+    );
+
     testWidgets('an alert that names a screen the app does not know opens nothing', (tester) async {
       final taps = StreamController<String>();
       addTearDown(taps.close);

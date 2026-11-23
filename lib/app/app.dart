@@ -67,7 +67,8 @@ class _AppViewState extends State<AppView> {
   late final StreamSubscription<String> _pushTokens;
   late final StreamSubscription<String> _pushTaps;
 
-  /// The route of an alert tapped before the person was signed in (the app was started by it): opened once they are.
+  /// The route of an alert tapped before the person was signed in and working as a role (the app was started by it):
+  /// opened once they are.
   String? _pendingRoute;
 
   @override
@@ -84,7 +85,7 @@ class _AppViewState extends State<AppView> {
   void _openScreen(String screen) {
     final route = routeOfPushScreen(screen);
     if (route == null) return;
-    if (_session.state is SessionAuthenticated) {
+    if (_session.state.activeRole != null) {
       _push(route);
     } else {
       _pendingRoute = route;
@@ -133,7 +134,8 @@ class _AppViewState extends State<AppView> {
           listener: (context, state) => unawaited(getIt<PushRegistrar>().register()),
         ),
         BlocListener<SessionBloc, SessionState>(
-          listenWhen: (previous, current) => current is SessionAuthenticated,
+          // Only with a role at work: before one is chosen every route leads back to the role chooser.
+          listenWhen: (previous, current) => current.activeRole != null,
           listener: (context, state) => _openPending(),
         ),
         BlocListener<SessionBloc, SessionState>(
