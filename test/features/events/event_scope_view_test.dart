@@ -142,6 +142,23 @@ void main() {
     expect(closed, isEmpty);
   });
 
+  testWidgets('shows a refusal that names the Institution under it only, not also above the form', (tester) async {
+    when(
+      () => events.changeScope(
+        any(),
+        scope: any(named: 'scope'),
+        institutionId: any(named: 'institutionId'),
+      ),
+    ).thenThrow(refusal('VALIDATION_FAILED', status: 400, fields: [const FieldError.required('institutionId')]));
+    await pump(tester);
+    await tester.tap(find.text('One Institution'));
+    await tester.pumpAndSettle();
+    await chooseInstitution(tester, 'Sri Vidya High School');
+    await save(tester);
+    expect(find.text('This field is required.'), findsOneWidget);
+    expect(find.byKey(const Key('eventScope.error')), findsNothing);
+  });
+
   testWidgets('on an event changed meanwhile, says so and closes on Read the event again', (tester) async {
     when(
       () => events.changeScope(

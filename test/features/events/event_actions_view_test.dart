@@ -117,7 +117,9 @@ void main() {
       expect(find.byKey(const Key('event.delete')), findsOneWidget);
     });
 
-    testWidgets('offers an Owner, and nobody else, a way to change where the event belongs', (tester) async {
+    testWidgets('offers the view no way to change where the event belongs unless it is told the person is an Owner', (
+      tester,
+    ) async {
       await pump(tester, editable);
       expect(find.byKey(const Key('event.scope')), findsNothing);
     });
@@ -193,6 +195,20 @@ void main() {
       expect(find.byKey(const Key('event.actionFailed')), findsOneWidget);
       expect(find.textContaining('Only an Owner can add or change an event of the whole Society'), findsOneWidget);
       expect(find.text('Annual Day'), findsOneWidget);
+    });
+
+    testWidgets('offers no way to change where the event belongs while the delete is on its way', (tester) async {
+      final pending = Completer<void>();
+      when(() => repository.remove('e1')).thenAnswer((_) => pending.future);
+      await pump(tester, editable, owner: true);
+      expect(tester.widget<AppButton>(find.byKey(const Key('event.scope'))).onPressed, isNotNull);
+      await tester.tap(find.byKey(const Key('event.delete')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Delete').last);
+      await tester.pump();
+      expect(tester.widget<AppButton>(find.byKey(const Key('event.scope'))).onPressed, isNull);
+      pending.complete();
+      await tester.pumpAndSettle();
     });
 
     testWidgets('shows the delete on its way, and offers neither action meanwhile', (tester) async {
@@ -322,6 +338,37 @@ void main() {
   });
 
   group('the page', () {
+    for (final (role, moves) in [
+      (RoleCode.societyOwner, true),
+      (RoleCode.institutionAdmin, false),
+    ]) {
+      testWidgets('${moves ? 'offers' : 'does not offer'} Change where it belongs to ${role.name}', (tester) async {
+        when(() => repository.event('e1')).thenAnswer((_) async => schoolEvent(canEdit: true));
+        final session = _MockSessionBloc();
+        final active = AuthContext(role: role, societyId: 's1', societyName: 'North Trust');
+        when(() => session.state).thenReturn(
+          SessionAuthenticated(AuthSession(person: testPerson, contexts: [active], activeContext: active)),
+        );
+        getIt.registerSingleton<EventsRepository>(repository);
+        addTearDown(getIt.reset);
+        final children = _MockActiveChildBloc();
+        when(() => children.state).thenReturn(const ActiveChildNone());
+        await tester.pumpAppScaled(
+          MultiBlocProvider(
+            providers: [
+              BlocProvider<SessionBloc>.value(value: session),
+              BlocProvider<ActiveChildBloc>.value(value: children),
+            ],
+            child: const EventPage(id: 'e1'),
+          ),
+          size: const Size(400, 1000),
+        );
+        await tester.pumpAndSettle();
+        expect(find.byKey(const Key('event.edit')), findsOneWidget);
+        expect(find.byKey(const Key('event.scope')), moves ? findsOneWidget : findsNothing);
+      });
+    }
+
     for (final (role, adds) in [
       (RoleCode.societyOwner, true),
       (RoleCode.institutionAdmin, true),
