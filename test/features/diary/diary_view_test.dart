@@ -369,7 +369,7 @@ void main() {
     });
 
     testWidgets('offers no Try again for subjects it was refused, which asking again does not change', (tester) async {
-      when(subjects.subjects).thenThrow(refusal('NOT_ASSIGNED', status: 403));
+      when(() => diary.subjects('sec1')).thenThrow(refusal('NOT_ASSIGNED', status: 403));
       await pump(tester);
       await open(tester);
       expect(find.byKey(const Key('diaryForm.loadFailed')), findsOneWidget);
