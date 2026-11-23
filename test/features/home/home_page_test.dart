@@ -94,7 +94,7 @@ void main() {
     testWidgets("a parent's attendance tile opens the child's calendar, never the marking screen", (tester) async {
       final session = _MockSessionBloc();
       when(() => session.state).thenReturn(
-        SessionAuthenticated(AuthSession(person: testPerson, contexts: [parent], activeContext: parent)),
+        const SessionAuthenticated(AuthSession(person: testPerson, contexts: [parent], activeContext: parent)),
       );
       final child = _MockActiveChildBloc();
       when(() => child.state).thenReturn(const ActiveChildReady(children: [diya], selected: diya));
