@@ -1,8 +1,14 @@
+import 'dart:async';
+
+import 'package:bravynix_school_erp/app/di/injection.dart';
 import 'package:bravynix_school_erp/core/network/api_failure.dart';
 import 'package:bravynix_school_erp/features/classes/domain/school_class.dart';
 import 'package:bravynix_school_erp/features/events/domain/event.dart';
 import 'package:bravynix_school_erp/features/events/presentation/bloc/event_form_bloc.dart';
 import 'package:bravynix_school_erp/features/events/presentation/view/event_form_page.dart';
+import 'package:bravynix_school_erp/features/files/domain/file_picking.dart';
+import 'package:bravynix_school_erp/features/files/domain/file_purpose.dart';
+import 'package:bravynix_school_erp/features/files/domain/files_repository.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -11,8 +17,10 @@ import 'package:mocktail/mocktail.dart';
 
 import '../../helpers/clipped_text.dart';
 import '../../helpers/events.dart';
+import '../../helpers/files.dart';
 import '../../helpers/institutions.dart';
 import '../../helpers/mocks.dart';
+import '../../helpers/network_images.dart';
 import '../../helpers/pump_app.dart';
 
 ApiFailure refusal(String code, {int status = 422, List<FieldError> fields = const []}) =>
@@ -22,12 +30,16 @@ void main() {
   late MockEventsRepository events;
   late MockInstitutionsRepository institutions;
   late MockClassCatalogue catalogue;
+  late MockFilesRepository files;
   final today = DateTime(2026, 11, 17);
 
   setUp(() {
     events = MockEventsRepository();
     institutions = MockInstitutionsRepository();
     catalogue = MockClassCatalogue();
+    files = MockFilesRepository();
+    registerFallbackValue(photo);
+    registerFallbackValue(FilePurpose.eventImage);
     registerFallbackValue(planEvent);
     registerFallbackValue(schoolEvent());
     registerFallbackValue(EventScope.society);
@@ -54,7 +66,21 @@ void main() {
         institutionId: any(named: 'institutionId'),
       ),
     ).thenAnswer((_) async => schoolEvent());
+    when(
+      () => files.upload(
+        any(),
+        purpose: any(named: 'purpose'),
+        institutionId: any(named: 'institutionId'),
+        onProgress: any(named: 'onProgress'),
+        cancelToken: any(named: 'cancelToken'),
+      ),
+    ).thenAnswer((_) async => uploadedPhoto);
+    // The picture field starts its own upload and picker from these.
+    getIt
+      ..registerSingleton<FilesRepository>(files)
+      ..registerSingleton<FilePicking>(FakeFilePicking(result: photo));
   });
+  tearDown(getIt.reset);
 
   /// Opens the form inside a router, so that what it closes with can be seen.
   Future<List<bool?>> pump(
@@ -413,8 +439,253 @@ void main() {
     });
   });
 
+  group('the picture of an event', () {
+    Future<void> addPhoto(WidgetTester tester) async {
+      await tester.ensureVisible(find.text('Add photo'));
+      await tester.tap(find.text('Add photo'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('photo.gallery')));
+      await tester.pumpAndSettle();
+    }
+
+    Future<void> fill(WidgetTester tester) async {
+      await type(tester, 'eventForm.title', 'Poster day');
+      await type(tester, 'eventForm.duration', '1 Day');
+    }
+
+    void verifyUploadedFor(String institutionId) => verify(
+      () => files.upload(
+        any(),
+        purpose: FilePurpose.eventImage,
+        institutionId: institutionId,
+        onProgress: any(named: 'onProgress'),
+        cancelToken: any(named: 'cancelToken'),
+      ),
+    ).called(1);
+
+    testWidgets('is uploaded for an Institution and sent as its file, with no preset', (tester) async {
+      when(institutions.institutions).thenAnswer((_) async => [summary()]);
+      await pump(tester, owner: false);
+      await fill(tester);
+      await addPhoto(tester);
+      verifyUploadedFor('i1');
+      expect(find.text('Change photo'), findsOneWidget);
+      await save(tester);
+      verify(
+        () => events.create(
+          any(
+            that: isA<EventInput>()
+                .having((input) => input.imageFileId, 'file', 'f1')
+                .having(
+                  (input) => input.presetImageCode,
+                  'preset',
+                  isNull,
+                ),
+          ),
+          scope: EventScope.institution,
+          institutionId: 'i1',
+        ),
+      ).called(1);
+    });
+
+    testWidgets('of a Society event is uploaded for the first Institution the Owner reaches', (tester) async {
+      await pump(tester);
+      await fill(tester);
+      await addPhoto(tester);
+      verifyUploadedFor('i1');
+      await save(tester);
+      verify(
+        () => events.create(
+          any(that: isA<EventInput>().having((input) => input.imageFileId, 'file', 'f1')),
+          scope: EventScope.society,
+        ),
+      ).called(1);
+    });
+
+    testWidgets('waits for the Institution to be chosen when there are several, and starts again when it changes', (
+      tester,
+    ) async {
+      await pump(tester);
+      await tester.ensureVisible(find.text('One Institution'));
+      await tester.tap(find.text('One Institution'));
+      await tester.pumpAndSettle();
+      expect(find.byKey(const Key('eventForm.pictureWaits')), findsOneWidget);
+      expect(find.text('Add photo'), findsNothing);
+      await choose(tester, 'eventForm.institution', 'Sri Vidya High School');
+      expect(find.byKey(const Key('eventForm.pictureWaits')), findsNothing);
+      await addPhoto(tester);
+      verifyUploadedFor('i1');
+      expect(find.text('Change photo'), findsOneWidget);
+      // A picture sent for one Institution is not valid for another, so it is let go.
+      await choose(tester, 'eventForm.institution', 'Lake View School');
+      expect(find.text('Add photo'), findsOneWidget);
+      await fill(tester);
+      await save(tester);
+      verify(
+        () => events.create(
+          any(that: isA<EventInput>().having((input) => input.imageFileId, 'file', isNull)),
+          scope: EventScope.institution,
+          institutionId: 'i2',
+        ),
+      ).called(1);
+    });
+
+    testWidgets('drops the preset chosen before it', (tester) async {
+      await pump(tester);
+      await fill(tester);
+      await tester.ensureVisible(find.text('Sports'));
+      await tester.tap(find.descendant(of: find.byKey(const Key('eventForm.picture')), matching: find.text('Sports')));
+      await tester.pumpAndSettle();
+      await addPhoto(tester);
+      await save(tester);
+      verify(
+        () => events.create(
+          any(
+            that: isA<EventInput>()
+                .having((input) => input.imageFileId, 'file', 'f1')
+                .having((input) => input.presetImageCode, 'preset', isNull),
+          ),
+          scope: EventScope.society,
+        ),
+      ).called(1);
+    });
+
+    testWidgets('is dropped for a preset chosen after it, and the tile is empty again', (tester) async {
+      await pump(tester);
+      await fill(tester);
+      await addPhoto(tester);
+      expect(find.text('Change photo'), findsOneWidget);
+      await tester.ensureVisible(find.text('Exam'));
+      await tester.tap(find.descendant(of: find.byKey(const Key('eventForm.picture')), matching: find.text('Exam')));
+      await tester.pumpAndSettle();
+      expect(find.text('Add photo'), findsOneWidget);
+      await save(tester);
+      verify(
+        () => events.create(
+          any(
+            that: isA<EventInput>()
+                .having((input) => input.imageFileId, 'file', isNull)
+                .having((input) => input.presetImageCode, 'preset', 'exam'),
+          ),
+          scope: EventScope.society,
+        ),
+      ).called(1);
+    });
+
+    testWidgets('holds the form until it has been sent, and says so', (tester) async {
+      final release = Completer<void>();
+      when(
+        () => files.upload(
+          any(),
+          purpose: any(named: 'purpose'),
+          institutionId: any(named: 'institutionId'),
+          onProgress: any(named: 'onProgress'),
+          cancelToken: any(named: 'cancelToken'),
+        ),
+      ).thenAnswer((_) async {
+        await release.future;
+        return uploadedPhoto;
+      });
+      await pump(tester);
+      await fill(tester);
+      await addPhoto(tester);
+      expect(find.byKey(const Key('eventForm.uploadingWait')), findsOneWidget);
+      await tester.tap(find.text('Save'));
+      await tester.pump();
+      verifyNever(
+        () => events.create(
+          any(),
+          scope: any(named: 'scope'),
+          institutionId: any(named: 'institutionId'),
+        ),
+      );
+      release.complete();
+      await tester.pumpAndSettle();
+      expect(find.byKey(const Key('eventForm.uploadingWait')), findsNothing);
+      await save(tester);
+      verify(
+        () => events.create(
+          any(that: isA<EventInput>().having((input) => input.imageFileId, 'file', 'f1')),
+          scope: EventScope.society,
+        ),
+      ).called(1);
+    });
+
+    testWidgets('of an event that has one is shown, kept when it is saved and taken off with Remove', (tester) async {
+      const image = EventImage(id: 'f7', url: 'https://files.test/public/f7');
+      final withImage = schoolEvent(image: image, canEdit: true);
+      when(() => events.change(any(), any())).thenAnswer((_) async => withImage);
+      await withNetworkImages(() async {
+        await pump(tester, event: withImage);
+        expect(find.byType(Image), findsOneWidget);
+        expect(find.text('Change photo'), findsOneWidget);
+        await save(tester);
+        verify(
+          () =>
+              events.change(withImage, any(that: isA<EventInput>().having((input) => input.imageFileId, 'file', 'f7'))),
+        ).called(1);
+
+        await pump(tester, event: withImage);
+        await tester.ensureVisible(find.text('Remove photo'));
+        await tester.tap(find.text('Remove photo'));
+        await tester.pumpAndSettle();
+        expect(find.text('Add photo'), findsOneWidget);
+        await save(tester);
+        verify(
+          () => events.change(
+            withImage,
+            any(that: isA<EventInput>().having((input) => input.imageFileId, 'file', isNull)),
+          ),
+        ).called(1);
+      });
+    });
+
+    testWidgets('of an event that has one is uploaded for that Institution when it is replaced', (tester) async {
+      const image = EventImage(id: 'f7', url: 'https://files.test/public/f7');
+      final withImage = schoolEvent(image: image, scope: EventScope.institution, institutionId: 'i2', canEdit: true);
+      when(() => events.change(any(), any())).thenAnswer((_) async => withImage);
+      await withNetworkImages(() async {
+        await pump(tester, event: withImage);
+        await tester.ensureVisible(find.text('Change photo'));
+        await tester.tap(find.text('Change photo'));
+        await tester.pumpAndSettle();
+        await tester.tap(find.byKey(const Key('photo.gallery')));
+        await tester.pumpAndSettle();
+        verifyUploadedFor('i2');
+        await save(tester);
+        verify(
+          () =>
+              events.change(withImage, any(that: isA<EventInput>().having((input) => input.imageFileId, 'file', 'f1'))),
+        ).called(1);
+      });
+    });
+
+    testWidgets('puts a refusal that names the picture under it', (tester) async {
+      when(() => events.change(any(), any())).thenThrow(
+        refusal(
+          'VALIDATION_FAILED',
+          status: 400,
+          fields: const [FieldError(field: 'imageFileId', code: 'INVALID_VALUE', message: 'bad')],
+        ),
+      );
+      await pump(tester, event: schoolEvent(canEdit: true));
+      await save(tester);
+      expect(find.byKey(const Key('eventForm.pictureError')), findsOneWidget);
+      expect(find.byKey(const Key('eventForm.error')), findsNothing);
+    });
+
+    testWidgets('fits at the largest text size on a narrow phone', (tester) async {
+      await pump(tester, textScale: 2, size: const Size(320, 640));
+      await tester.scrollUntilVisible(find.text('Add photo'), 300, scrollable: find.byType(Scrollable).first);
+      expect(tester.takeException(), isNull);
+      expect(clippedParagraphs(tester, unbreakable: 320 - 6 * 16), isEmpty);
+    });
+  });
+
   group('changing an event', () {
     final existing = schoolEvent(
+      scope: EventScope.institution,
+      institutionId: 'i1',
       isHoliday: true,
       holidayType: HolidayType.vacation,
       forStudents: true,

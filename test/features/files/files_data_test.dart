@@ -89,7 +89,16 @@ void main() {
       expect(grant.fileId, 'f1');
       expect(grant.ticket.url, 'http://store.test/v1/local-storage/token');
       expect(grant.ticket.fields, {'key': 'k1', 'policy': 'p1'});
+      expect(grant.ticket.method, 'POST');
+      expect(grant.ticket.headers, isEmpty);
       expect(FileModels.uploaded(confirmedJson()), uploadedPhoto);
+    });
+
+    test('read the PUT ticket of R2 with its headers', () {
+      final ticket = FileModels.grant(r2GrantJson()).ticket;
+      expect(ticket.method, 'PUT');
+      expect(ticket.fields, isEmpty);
+      expect(ticket.headers, containsPair('if-none-match', '*'));
     });
 
     test('refuse an answer they cannot read instead of sending a file to nowhere', () {
@@ -123,6 +132,23 @@ void main() {
         'sizeBytes': photo.sizeBytes,
         'fileName': 'kavya.png',
       });
+    });
+
+    test('send the bytes alone with the signed headers when the ticket says PUT, and no sign-in', () async {
+      final (:repository, :adapter) = build(
+        api: (options) async =>
+            options.uri.path.endsWith('/confirm') ? okReply(confirmedJson()) : okReply(r2GrantJson(), status: 201),
+      );
+      final uploaded = await repository.upload(photo, purpose: FilePurpose.eventImage, institutionId: 'i1');
+      expect(uploaded, uploadedPhoto);
+      final sent = adapter.requests[1];
+      expect(sent.method, 'PUT');
+      expect(sent.data, photo.bytes);
+      final headers = {for (final header in sent.headers.entries) header.key.toLowerCase(): header.value};
+      expect(headers['content-type'], 'image/png');
+      expect(headers['if-none-match'], '*');
+      expect(headers, isNot(contains('authorization')));
+      expect(adapter.requests.first.data, containsPair('purpose', 10));
     });
 
     test('send the file to the store as a form with the ticket fields first, and no sign-in', () async {

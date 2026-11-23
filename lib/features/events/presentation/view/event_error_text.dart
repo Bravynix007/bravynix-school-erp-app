@@ -4,9 +4,10 @@ import 'package:bravynix_school_erp/features/auth/presentation/role/view/role_er
 import 'package:bravynix_school_erp/l10n/gen/app_localizations.dart';
 
 /// Copy for what EVT-02 to EVT-05 refuse with beyond the common codes: 403 SCOPE_NOT_ALLOWED (an Admin and an event of the
-/// whole Society), and 404 for an event that is already gone; the rest reads as everywhere else.
+/// whole Society), 422 FILE_NOT_READY (the picture was removed before the event was saved), and 404 for an event that is already gone; the rest reads as everywhere else.
 String eventErrorText(AppLocalizations l10n, ApiFailure failure) => switch (failure.code) {
   'SCOPE_NOT_ALLOWED' => l10n.errorEventScopeNotAllowed,
+  'FILE_NOT_READY' => l10n.errorFileNotArrived,
   _ => apiErrorText(l10n, failure, notFound: l10n.errorEventNotFound),
 };
 

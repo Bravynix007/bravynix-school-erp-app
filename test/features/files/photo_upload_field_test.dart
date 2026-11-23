@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:typed_data';
 
 import 'package:bloc_test/bloc_test.dart';
 import 'package:bravynix_school_erp/core/network/api_failure.dart';
@@ -35,6 +36,8 @@ void main() {
     FilePicking? picking,
     Stream<FileUploadState>? later,
     double textScale = 1,
+    ImageProvider? current,
+    VoidCallback? onRemoveCurrent,
   }) {
     if (later == null) {
       when(() => bloc.state).thenReturn(state);
@@ -50,6 +53,8 @@ void main() {
               picking: picking ?? FakeFilePicking(),
               imageLabel: 'Photo of Kavya',
               onChanged: changes.add,
+              current: current,
+              onRemoveCurrent: onRemoveCurrent,
             ),
           ),
         ),
@@ -64,6 +69,31 @@ void main() {
     expect(find.text('Add photo'), findsOneWidget);
     expect(find.text('Change photo'), findsNothing);
     expect(find.byType(InlineMessage), findsNothing);
+  });
+
+  testWidgets('shows the picture the record has, with Change and Remove, until another is chosen', (tester) async {
+    var removed = 0;
+    await pump(tester, const FileUploadIdle(), current: MemoryImage(photo.bytes), onRemoveCurrent: () => removed++);
+    expect(find.byType(Image), findsOneWidget);
+    expect(find.text('Change photo'), findsOneWidget);
+    expect(find.text('Add photo'), findsNothing);
+    await tester.tap(find.text('Remove photo'));
+    expect(removed, 1);
+    // Nothing was chosen, so the bloc has nothing to forget.
+    verifyNever(() => bloc.add(any()));
+  });
+
+  testWidgets('shows the chosen photo and not the one the record has', (tester) async {
+    await pump(
+      tester,
+      FileUploadDone(photo, uploadedPhoto),
+      current: MemoryImage(Uint8List.fromList([1, 2, 3])),
+      onRemoveCurrent: () {},
+    );
+    final shown = tester.widget<Image>(find.byType(Image)).image;
+    expect(shown, isA<MemoryImage>().having((image) => image.bytes, 'bytes', photo.bytes));
+    await tester.tap(find.text('Remove photo'));
+    verify(() => bloc.add(const FileUploadCleared())).called(1);
   });
 
   testWidgets('asks where the photo comes from, then hands the chosen photo to the bloc', (tester) async {

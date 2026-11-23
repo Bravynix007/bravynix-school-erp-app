@@ -25,6 +25,7 @@ import 'package:mocktail/mocktail.dart';
 import '../../helpers/events.dart';
 import '../../helpers/institutions.dart';
 import '../../helpers/mocks.dart';
+import '../../helpers/network_images.dart';
 import '../../helpers/pump_app.dart';
 
 class _MockActiveChildBloc extends MockBloc<ActiveChildEvent, ActiveChildState> implements ActiveChildBloc;
@@ -104,6 +105,34 @@ void main() {
       await tester.pumpAndSettle();
       return (closed: closed, forms: forms);
     }
+
+    testWidgets('shows the picture the event has, from its public address', (tester) async {
+      final withImage = schoolEvent(
+        image: const EventImage(id: 'f1', url: 'https://files.test/public/f1'),
+      );
+      await withNetworkImages(() async {
+        await pump(tester, withImage);
+        expect(find.byKey(const Key('event.image')), findsOneWidget);
+        expect(find.bySemanticsLabel('Picture of the event'), findsOneWidget);
+      });
+    });
+
+    testWidgets('has no picture to show for an event without one, and still reads when its picture will not load', (
+      tester,
+    ) async {
+      await pump(tester, schoolEvent());
+      expect(find.byKey(const Key('event.image')), findsNothing);
+      // A picture that cannot be read leaves the page as it is without one.
+      await pump(
+        tester,
+        schoolEvent(
+          image: const EventImage(id: 'f1', url: 'https://files.test/public/missing'),
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(tester.takeException(), isNull);
+      expect(find.text('Annual Day'), findsOneWidget);
+    });
 
     testWidgets('offers no Edit or Delete when the person may not change it', (tester) async {
       await pump(tester, schoolEvent());

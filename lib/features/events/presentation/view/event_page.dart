@@ -156,6 +156,23 @@ class _Detail extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              if (event.image case final image?) ...[
+                // The event's own picture, which anyone it is shown to can open; one that does not load leaves the
+                // preset icon below to speak for the event.
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(AppRadius.card),
+                  child: Image.network(
+                    image.url,
+                    key: const Key('event.image'),
+                    width: double.infinity,
+                    height: 180,
+                    fit: BoxFit.cover,
+                    semanticLabel: l10n.eventPictureLabel,
+                    errorBuilder: (_, _, _) => const SizedBox.shrink(),
+                  ),
+                ),
+                const SizedBox(height: AppSpacing.sm),
+              ],
               Row(
                 children: [
                   ExcludeSemantics(child: Icon(EventText.icon(event), size: 32, color: theme.colorScheme.primary)),

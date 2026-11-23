@@ -16,12 +16,26 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 /// when the person removes it. The [FileUploadBloc] comes from the context, so the screen owns the upload.
 ///
 /// [imageLabel] says what the picture shows, for screen readers: "Photo of Kavya".
+///
+/// A record that already has a picture passes it as [current], with [onRemoveCurrent] for the person to take it off; it
+/// shows until a photo is chosen, and the form keeps the ID of the file it holds.
 class PhotoUploadField extends StatefulWidget {
-  const new({required this.picking, required this.imageLabel, required this.onChanged, super.key});
+  const new({
+    required this.picking,
+    required this.imageLabel,
+    required this.onChanged,
+    this.current,
+    this.onRemoveCurrent,
+    super.key,
+  }) : assert(current == null || onRemoveCurrent != null, 'A picture that is shown can be removed');
 
   final FilePicking picking;
   final String imageLabel;
   final ValueChanged<String?> onChanged;
+
+  /// The picture the record has now, when the person has not chosen another.
+  final ImageProvider? current;
+  final VoidCallback? onRemoveCurrent;
 
   @override
   State<PhotoUploadField> createState() => _PhotoUploadFieldState();
@@ -88,16 +102,23 @@ class _PhotoUploadFieldState extends State<PhotoUploadField> {
           _ => null,
         };
         final failure = state is FileUploadFailed && state.canRetry ? state.failure : null;
+        final kept = chosen == null && refusal == null ? widget.current : null;
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             PhotoUploadTile(
               label: l10n.filesAddPhoto,
               onPick: sending ? null : _choose,
-              image: chosen == null ? null : MemoryImage(chosen.bytes),
+              image: chosen == null ? kept : MemoryImage(chosen.bytes),
               imageLabel: widget.imageLabel,
               changeLabel: l10n.filesChangePhoto,
-              onRemove: chosen == null || sending ? null : () => bloc.add(const FileUploadCleared()),
+              onRemove: sending
+                  ? null
+                  : chosen != null
+                  ? () => bloc.add(const FileUploadCleared())
+                  : kept == null
+                  ? null
+                  : widget.onRemoveCurrent,
               removeLabel: l10n.filesRemovePhoto,
               errorText: refusal,
             ),

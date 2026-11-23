@@ -40,6 +40,19 @@ Map<String, Object?> grantJson({String fileId = 'f1', String url = 'http://store
   'maxBytes': 5242880,
 };
 
+/// FIL-01 as R2 answers it: the bytes alone with `PUT`, and the headers the address was signed for.
+Map<String, Object?> r2GrantJson({String fileId = 'f1'}) => {
+  'fileId': fileId,
+  'upload': {
+    'url': 'http://store.test/public/s/i/10/abc?X-Amz-Signature=sig',
+    'method': 'PUT',
+    'fields': <String, String>{},
+    'headers': {'content-type': 'image/png', 'content-length': '${photo.sizeBytes}', 'if-none-match': '*'},
+    'expiresAt': '2026-11-10T05:00:00.000Z',
+  },
+  'maxBytes': 5242880,
+};
+
 Map<String, Object?> confirmedJson({String id = 'f1'}) => {
   'id': id,
   'purpose': 4,

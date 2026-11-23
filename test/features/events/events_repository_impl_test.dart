@@ -49,6 +49,19 @@ void main() {
     expect(events.last.holidayClassIds, ['c1', 'c2']);
   });
 
+  test('reads the picture an event carries as its file and public address, and none as null', () async {
+    final (:repository, adapter: _) = build(
+      () => okReply([
+        eventJson(image: {'id': 'f1', 'url': 'https://files.test/public/f1'}),
+        eventJson(id: 'e2'),
+      ]),
+    );
+    final events = await repository.events(from: DateTime(2026, 11), to: DateTime(2026, 11, 30));
+    expect(events.first.image, const EventImage(id: 'f1', url: 'https://files.test/public/f1'));
+    expect(events.first.presetImageCode, isNull);
+    expect(events.last.image, isNull);
+  });
+
   test('asks for no holidays filter and no child unless named', () async {
     final (:repository, :adapter) = build(() => okReply(<Object?>[]));
     await repository.events(from: DateTime(2026, 11), to: DateTime(2026, 11, 30));
@@ -83,6 +96,7 @@ void main() {
         'venue': null,
         'audience': 1,
         'presetImageCode': null,
+        'imageFileId': null,
         'isHoliday': false,
         'holidayType': null,
         'holidayForStudents': false,
@@ -118,6 +132,7 @@ void main() {
         'venue': 'Campus',
         'audience': 2,
         'presetImageCode': 'festival',
+        'imageFileId': null,
         'isHoliday': true,
         'holidayType': 2,
         'holidayForStudents': true,
@@ -164,6 +179,23 @@ void main() {
         [other['isHoliday'], other['holidayType'], other['holidayForStudents'], other['holidayPredefinedClassIds']],
         [false, null, false, <String>[]],
       );
+    });
+
+    test('sends the uploaded picture by its file, and null to take it off', () async {
+      final (:repository, :adapter) = build(() => okReply(eventJson()));
+      await repository.create(
+        EventInput(
+          title: 'Poster',
+          startDate: DateTime(2026, 12, 5),
+          endDate: DateTime(2026, 12, 5),
+          durationLabel: '1 Day',
+          audience: EventAudience.everyone,
+          imageFileId: 'f1',
+        ),
+        scope: EventScope.society,
+      );
+      expect(bodyOf(adapter.requests.single), containsPair('imageFileId', 'f1'));
+      expect(bodyOf(adapter.requests.single), containsPair('presetImageCode', null));
     });
 
     test('changes an event with the version that was read, and every field, which clears what is empty', () async {

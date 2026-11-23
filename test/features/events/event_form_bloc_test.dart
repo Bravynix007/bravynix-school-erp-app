@@ -78,10 +78,24 @@ void main() {
     await bloc.close();
   });
 
-  test('offers no Institution for an event that is changed, which keeps its scope, and reads none', () async {
+  test(
+    'offers no Institution for an event of an Institution that is changed, which keeps its scope, and reads none',
+    () async {
+      final bloc = await open(
+        existing: schoolEvent(scope: EventScope.institution, institutionId: 'i1'),
+      );
+      expect(bloc.state, const EventFormEditing(options));
+      verifyNever(institutions.institutions);
+      await bloc.close();
+    },
+  );
+
+  test('offers the Institutions for a change to an event of the Society, which a picture is uploaded for', () async {
     final bloc = await open(existing: schoolEvent());
-    expect(bloc.state, const EventFormEditing(options));
-    verifyNever(institutions.institutions);
+    expect(
+      bloc.state,
+      EventFormEditing(EventOptions(institutions: [summary()], classes: const [class1Choice, class2Choice])),
+    );
     await bloc.close();
   });
 

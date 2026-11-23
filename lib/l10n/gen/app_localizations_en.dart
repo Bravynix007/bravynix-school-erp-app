@@ -3350,6 +3350,18 @@ class AppLocalizationsEn extends AppLocalizations {
   String get eventFieldPicture => 'Picture';
 
   @override
+  String get eventPictureOwn => 'Or use your own picture';
+
+  @override
+  String get eventPictureChooseInstitution => 'Choose the Institution first, to add your own picture.';
+
+  @override
+  String get eventPictureLabel => 'Picture of the event';
+
+  @override
+  String get eventUploadingWait => 'Wait for the picture to finish sending.';
+
+  @override
   String get eventFieldInstitution => 'Institution';
 
   @override
