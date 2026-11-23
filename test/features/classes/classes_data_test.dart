@@ -179,6 +179,25 @@ void main() {
       verifyNever(() => masters.entries(MasterType.predefinedClasses, parentId: 'c3'));
     });
 
+    test('lists every predefined class of every category, whatever the Institution offers', () async {
+      final masters = MockMastersRepository();
+      when(() => masters.entries(MasterType.classCategories)).thenAnswer(
+        (_) async => [lowerPrimary, higherPrimary, seniorSecondary],
+      );
+      when(() => masters.entries(MasterType.predefinedClasses, parentId: 'c1')).thenAnswer(
+        (_) async => const [MasterEntry(id: 'p1', name: 'Class 1', code: 'C1')],
+      );
+      when(() => masters.entries(MasterType.predefinedClasses, parentId: 'c2')).thenAnswer(
+        (_) async => const [MasterEntry(id: 'p4', name: 'Class 4', code: 'C4')],
+      );
+      when(() => masters.entries(MasterType.predefinedClasses, parentId: 'c3')).thenAnswer(
+        (_) async => const [MasterEntry(id: 'p9', name: 'Class 11', code: 'C11')],
+      );
+      final choices = await ClassCatalogue(MockInstitutionsRepository(), masters).all();
+      expect(choices.map((choice) => choice.predefinedClass.id), ['p1', 'p4', 'p9']);
+      expect(choices.last.category.id, 'c3');
+    });
+
     test('says which classes allow a stream: only those of Pre-University', () {
       expect(class1Choice.allowsStream, isFalse);
       expect(pucChoice.allowsStream, isTrue);

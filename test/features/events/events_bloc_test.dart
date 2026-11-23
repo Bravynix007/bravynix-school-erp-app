@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:bloc_test/bloc_test.dart';
 import 'package:bravynix_school_erp/core/network/api_failure.dart';
 import 'package:bravynix_school_erp/features/events/presentation/bloc/event_bloc.dart';
@@ -221,6 +223,22 @@ void main() {
           const EventFailed(ApiFailure(statusCode: 404, code: 'NOT_FOUND', message: 'x')),
         ],
       );
+
+      test('takes no second delete while the first is on its way', () async {
+        final pending = Completer<void>();
+        when(() => repository.event('e1')).thenAnswer((_) async => annual);
+        when(() => repository.remove('e1')).thenAnswer((_) => pending.future);
+        final bloc = EventBloc(repository, 'e1')..add(const EventRequested());
+        await bloc.stream.firstWhere((state) => state is EventLoaded);
+        bloc.add(const EventRemoved());
+        await bloc.stream.firstWhere((state) => state is EventLoaded && state.removing);
+        bloc.add(const EventRemoved());
+        await Future<void>.delayed(Duration.zero);
+        pending.complete();
+        await bloc.stream.firstWhere((state) => state is EventGone);
+        verify(() => repository.remove('e1')).called(1);
+        await bloc.close();
+      });
 
       blocTest<EventBloc, EventState>(
         'deletes nothing before the event is shown',

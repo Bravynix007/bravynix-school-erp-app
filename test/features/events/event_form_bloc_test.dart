@@ -1,10 +1,12 @@
+import 'dart:async';
+
 import 'package:bravynix_school_erp/core/network/api_failure.dart';
 import 'package:bravynix_school_erp/features/events/domain/event.dart';
 import 'package:bravynix_school_erp/features/events/presentation/bloc/event_form_bloc.dart';
-import 'package:bravynix_school_erp/features/masters/domain/master_entry.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 
+import '../../helpers/classes.dart';
 import '../../helpers/events.dart';
 import '../../helpers/institutions.dart';
 import '../../helpers/mocks.dart';
@@ -14,28 +16,22 @@ ApiFailure refusal(String code, {int status = 422}) => ApiFailure(statusCode: st
 void main() {
   late MockEventsRepository events;
   late MockInstitutionsRepository institutions;
-  late MockMastersRepository masters;
+  late MockClassCatalogue catalogue;
 
-  const lkg = MasterEntry(id: 'c1', name: 'LKG', parentId: 'k1');
-  const first = MasterEntry(id: 'c2', name: 'Class 1', parentId: 'k2');
-  const options = EventOptions(institutions: [], classes: [lkg, first]);
+  const options = EventOptions(institutions: [], classes: [class1Choice, class2Choice]);
 
   setUp(() {
     events = MockEventsRepository();
     institutions = MockInstitutionsRepository();
-    masters = MockMastersRepository();
+    catalogue = MockClassCatalogue();
     registerFallbackValue(planEvent);
     registerFallbackValue(schoolEvent());
     registerFallbackValue(EventScope.society);
     when(institutions.institutions).thenAnswer((_) async => [summary()]);
-    when(() => masters.entries(MasterType.classCategories)).thenAnswer(
-      (_) async => const [MasterEntry(id: 'k1', name: 'Pre-primary'), MasterEntry(id: 'k2', name: 'Primary')],
-    );
-    when(() => masters.entries(MasterType.predefinedClasses, parentId: 'k1')).thenAnswer((_) async => [lkg]);
-    when(() => masters.entries(MasterType.predefinedClasses, parentId: 'k2')).thenAnswer((_) async => [first]);
+    when(catalogue.all).thenAnswer((_) async => [class1Choice, class2Choice]);
   });
 
-  EventFormBloc build({SchoolEvent? existing}) => EventFormBloc(events, institutions, masters, existing: existing);
+  EventFormBloc build({SchoolEvent? existing}) => EventFormBloc(events, institutions, catalogue, existing: existing);
 
   Future<EventFormBloc> open({SchoolEvent? existing}) async {
     final bloc = build(existing: existing)..add(const EventFormStarted());
@@ -47,7 +43,6 @@ void main() {
     String title = 'Sports Day',
     String duration = '1 Day Event',
     DateTime? end,
-    String description = '',
     bool isHoliday = false,
     HolidayType? holidayType,
     bool forStudents = false,
@@ -55,16 +50,17 @@ void main() {
     EventScope scope = EventScope.institution,
     String? institutionId = 'i1',
   }) => EventFields(
-    title: title,
-    startDate: DateTime(2026, 12, 5),
-    endDate: end ?? DateTime(2026, 12, 5),
-    durationLabel: duration,
-    audience: EventAudience.everyone,
-    description: description,
-    isHoliday: isHoliday,
-    holidayType: holidayType,
-    holidayForStudents: forStudents,
-    holidayForStaff: forStaff,
+    input: EventInput(
+      title: title,
+      startDate: DateTime(2026, 12, 5),
+      endDate: end ?? DateTime(2026, 12, 5),
+      durationLabel: duration,
+      audience: EventAudience.everyone,
+      isHoliday: isHoliday,
+      holidayType: holidayType,
+      holidayForStudents: forStudents,
+      holidayForStaff: forStaff,
+    ),
     scope: scope,
     institutionId: institutionId,
   );
@@ -75,7 +71,10 @@ void main() {
 
   test('offers the Institutions of a new event and every predefined class, category by category', () async {
     final bloc = await open();
-    expect(bloc.state, EventFormEditing(EventOptions(institutions: [summary()], classes: const [lkg, first])));
+    expect(
+      bloc.state,
+      EventFormEditing(EventOptions(institutions: [summary()], classes: const [class1Choice, class2Choice])),
+    );
     await bloc.close();
   });
 
@@ -96,7 +95,7 @@ void main() {
     await bloc.close();
   });
 
-  test('creates an event for an Institution, with an empty description or venue sent as none', () async {
+  test('creates an event for an Institution with what the form holds', () async {
     when(
       () => events.create(
         any(),
@@ -105,7 +104,7 @@ void main() {
       ),
     ).thenAnswer((_) async => schoolEvent());
     final bloc = await open()
-      ..add(EventFormSubmitted(fields(title: '  Sports Day  ', description: '   ')));
+      ..add(EventFormSubmitted(fields()));
     await bloc.stream.firstWhere((state) => state is EventFormSaved);
     verify(() => events.create(planEvent, scope: EventScope.institution, institutionId: 'i1')).called(1);
     await bloc.close();
@@ -198,16 +197,20 @@ void main() {
   });
 
   test('does not save twice while a save is on its way', () async {
+    final pending = Completer<SchoolEvent>();
     when(
       () => events.create(
         any(),
         scope: any(named: 'scope'),
         institutionId: any(named: 'institutionId'),
       ),
-    ).thenAnswer((_) async => schoolEvent());
+    ).thenAnswer((_) => pending.future);
     final bloc = await open()
       ..add(EventFormSubmitted(fields()))
       ..add(EventFormSubmitted(fields()));
+    await bloc.stream.firstWhere((state) => state is EventFormEditing && state.saving);
+    await Future<void>.delayed(Duration.zero);
+    pending.complete(schoolEvent());
     await bloc.stream.firstWhere((state) => state is EventFormSaved);
     verify(
       () => events.create(

@@ -1,80 +1,36 @@
 import 'package:bloc/bloc.dart';
 import 'package:bravynix_school_erp/core/network/api_failure.dart';
 import 'package:bravynix_school_erp/core/validation/field_problems.dart';
+import 'package:bravynix_school_erp/features/classes/domain/class_catalogue.dart';
+import 'package:bravynix_school_erp/features/classes/domain/school_class.dart';
 import 'package:bravynix_school_erp/features/events/domain/event.dart';
 import 'package:bravynix_school_erp/features/events/domain/events_repository.dart';
 import 'package:bravynix_school_erp/features/institutions/domain/institution.dart';
 import 'package:bravynix_school_erp/features/institutions/domain/institutions_repository.dart';
-import 'package:bravynix_school_erp/features/masters/domain/master_entry.dart';
-import 'package:bravynix_school_erp/features/masters/domain/masters_repository.dart';
 import 'package:equatable/equatable.dart';
 
 /// What the form offers: the Institutions an event can be created for (none when one is edited, which keeps its scope),
-/// and the predefined classes a holiday for students can be limited to, by category.
+/// and the predefined classes a holiday for students can be limited to.
 class EventOptions extends Equatable {
   const new({required this.institutions, required this.classes});
 
   final List<InstitutionSummary> institutions;
-  final List<MasterEntry> classes;
+  final List<ClassChoice> classes;
 
   @override
   List<Object?> get props => [institutions, classes];
 }
 
-/// What the form holds. A new event also names its [scope] and, for an Institution, which one.
+/// What the form holds: the event as typed, and for a new event its [scope] and, for an Institution, which one.
 class EventFields extends Equatable {
-  const new({
-    required this.title,
-    required this.startDate,
-    required this.endDate,
-    required this.durationLabel,
-    required this.audience,
-    this.description = '',
-    this.venue = '',
-    this.presetImageCode,
-    this.isHoliday = false,
-    this.holidayType,
-    this.holidayForStudents = false,
-    this.holidayForStaff = false,
-    this.holidayClassIds = const [],
-    this.scope = EventScope.institution,
-    this.institutionId,
-  });
+  const new({required this.input, this.scope = EventScope.institution, this.institutionId});
 
-  final String title;
-  final DateTime startDate;
-  final DateTime endDate;
-  final String durationLabel;
-  final EventAudience audience;
-  final String description;
-  final String venue;
-  final String? presetImageCode;
-  final bool isHoliday;
-  final HolidayType? holidayType;
-  final bool holidayForStudents;
-  final bool holidayForStaff;
-  final List<String> holidayClassIds;
+  final EventInput input;
   final EventScope scope;
   final String? institutionId;
 
   @override
-  List<Object?> get props => [
-    title,
-    startDate,
-    endDate,
-    durationLabel,
-    audience,
-    description,
-    venue,
-    presetImageCode,
-    isHoliday,
-    holidayType,
-    holidayForStudents,
-    holidayForStaff,
-    holidayClassIds,
-    scope,
-    institutionId,
-  ];
+  List<Object?> get props => [input, scope, institutionId];
 }
 
 sealed class EventFormEvent extends Equatable {
@@ -141,14 +97,14 @@ class EventFormSaved extends EventFormState {
 
 /// Creates an event (EVT-02), or, with [existing], changes that event (EVT-04).
 class EventFormBloc extends Bloc<EventFormEvent, EventFormState> {
-  new(this._events, this._institutions, this._masters, {this.existing}) : super(const EventFormLoading()) {
+  new(this._events, this._institutions, this._catalogue, {this.existing}) : super(const EventFormLoading()) {
     on<EventFormStarted>(_onStarted);
     on<EventFormSubmitted>(_onSubmitted);
   }
 
   final EventsRepository _events;
   final InstitutionsRepository _institutions;
-  final MastersRepository _masters;
+  final ClassCatalogue _catalogue;
   final SchoolEvent? existing;
 
   Future<void> _onStarted(EventFormStarted event, Emitter<EventFormState> emit) async {
@@ -156,52 +112,32 @@ class EventFormBloc extends Bloc<EventFormEvent, EventFormState> {
     try {
       // One after the other: the first refusal is the one to show.
       final institutions = existing == null ? await _institutions.institutions() : const <InstitutionSummary>[];
-      emit(EventFormEditing(EventOptions(institutions: institutions, classes: await _classes())));
+      emit(EventFormEditing(EventOptions(institutions: institutions, classes: await _catalogue.all())));
     } on ApiFailure catch (failure) {
       emit(EventFormLoadFailed(failure));
     }
   }
 
-  /// Every predefined class, category by category, in the order of the shared lists.
-  Future<List<MasterEntry>> _classes() async => [
-    for (final category in await _masters.entries(MasterType.classCategories))
-      ...await _masters.entries(MasterType.predefinedClasses, parentId: category.id),
-  ];
-
   Future<void> _onSubmitted(EventFormSubmitted event, Emitter<EventFormState> emit) async {
     if (state case final EventFormEditing editing when !editing.saving) {
       final fields = event.fields;
+      final input = fields.input;
       final problems = FieldProblems()
-        ..requireText('title', fields.title)
-        ..requireText('durationLabel', fields.durationLabel);
-      if (fields.endDate.isBefore(fields.startDate)) problems.add('endDate', 'OUT_OF_RANGE');
+        ..requireText('title', input.title)
+        ..requireText('durationLabel', input.durationLabel);
+      if (input.endDate.isBefore(input.startDate)) problems.add('endDate', 'OUT_OF_RANGE');
       if (existing == null && fields.scope == EventScope.institution) {
         problems.requireChoice('institutionId', fields.institutionId);
       }
-      if (fields.isHoliday) {
-        problems.requireChoice('holidayType', fields.holidayType);
-        if (!fields.holidayForStudents && !fields.holidayForStaff) problems.add('holidayForStudents', 'REQUIRED');
+      if (input.isHoliday) {
+        problems.requireChoice('holidayType', input.holidayType);
+        if (!input.holidayForStudents && !input.holidayForStaff) problems.add('holidayForStudents', 'REQUIRED');
       }
       if (problems.failure case final failure?) {
         emit(EventFormEditing(editing.options, failure: failure));
         return;
       }
       emit(EventFormEditing(editing.options, saving: true));
-      final input = EventInput(
-        title: fields.title.trim(),
-        startDate: fields.startDate,
-        endDate: fields.endDate,
-        durationLabel: fields.durationLabel.trim(),
-        audience: fields.audience,
-        description: _text(fields.description),
-        venue: _text(fields.venue),
-        presetImageCode: fields.presetImageCode,
-        isHoliday: fields.isHoliday,
-        holidayType: fields.holidayType,
-        holidayForStudents: fields.holidayForStudents,
-        holidayForStaff: fields.holidayForStaff,
-        holidayClassIds: fields.holidayClassIds,
-      );
       try {
         emit(
           EventFormSaved(
@@ -215,9 +151,6 @@ class EventFormBloc extends Bloc<EventFormEvent, EventFormState> {
       }
     }
   }
-
-  /// What was typed, or null when it is only spaces: an empty description or venue is none.
-  static String? _text(String value) => value.trim().isEmpty ? null : value.trim();
 
   /// A Society event names no Institution.
   static String? _institutionOf(EventFields fields) =>

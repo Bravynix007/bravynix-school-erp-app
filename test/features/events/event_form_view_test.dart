@@ -1,8 +1,8 @@
 import 'package:bravynix_school_erp/core/network/api_failure.dart';
+import 'package:bravynix_school_erp/features/classes/domain/school_class.dart';
 import 'package:bravynix_school_erp/features/events/domain/event.dart';
 import 'package:bravynix_school_erp/features/events/presentation/bloc/event_form_bloc.dart';
 import 'package:bravynix_school_erp/features/events/presentation/view/event_form_page.dart';
-import 'package:bravynix_school_erp/features/masters/domain/master_entry.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -21,24 +21,31 @@ ApiFailure refusal(String code, {int status = 422, List<FieldError> fields = con
 void main() {
   late MockEventsRepository events;
   late MockInstitutionsRepository institutions;
-  late MockMastersRepository masters;
+  late MockClassCatalogue catalogue;
   final today = DateTime(2026, 11, 17);
 
   setUp(() {
     events = MockEventsRepository();
     institutions = MockInstitutionsRepository();
-    masters = MockMastersRepository();
+    catalogue = MockClassCatalogue();
     registerFallbackValue(planEvent);
     registerFallbackValue(schoolEvent());
     registerFallbackValue(EventScope.society);
     when(institutions.institutions).thenAnswer(
       (_) async => [summary(), summary(id: 'i2', code: 'LVS', name: 'Lake View School')],
     );
-    when(() => masters.entries(MasterType.classCategories)).thenAnswer(
-      (_) async => const [MasterEntry(id: 'k1', name: 'Primary')],
-    );
-    when(() => masters.entries(MasterType.predefinedClasses, parentId: 'k1')).thenAnswer(
-      (_) async => const [MasterEntry(id: 'c1', name: 'Class 1'), MasterEntry(id: 'c2', name: 'Class 2')],
+    const primary = NamedRef(id: 'k1', code: 'PRIMARY', name: 'Primary');
+    when(catalogue.all).thenAnswer(
+      (_) async => const [
+        ClassChoice(
+          predefinedClass: NamedRef(id: 'c1', code: 'C1', name: 'Class 1'),
+          category: primary,
+        ),
+        ClassChoice(
+          predefinedClass: NamedRef(id: 'c2', code: 'C2', name: 'Class 2'),
+          category: primary,
+        ),
+      ],
     );
     when(
       () => events.create(
@@ -74,7 +81,8 @@ void main() {
         GoRoute(
           path: '/form',
           builder: (_, _) => BlocProvider(
-            create: (_) => EventFormBloc(events, institutions, masters, existing: event)..add(const EventFormStarted()),
+            create: (_) =>
+                EventFormBloc(events, institutions, catalogue, existing: event)..add(const EventFormStarted()),
             child: EventFormView(event: event, owner: owner, today: today),
           ),
         ),
@@ -238,6 +246,53 @@ void main() {
       ).called(1);
     });
 
+    testWidgets('sends the title and the duration without their spaces, and an empty description or venue as none', (
+      tester,
+    ) async {
+      await pump(tester);
+      await type(tester, 'eventForm.title', '  Sports Day  ');
+      await type(tester, 'eventForm.duration', '  1 Day Event  ');
+      await type(tester, 'eventForm.description', '   ');
+      await type(tester, 'eventForm.venue', '  ');
+      await save(tester);
+      verify(
+        () => events.create(
+          EventInput(
+            title: 'Sports Day',
+            startDate: today,
+            endDate: today,
+            durationLabel: '1 Day Event',
+            audience: EventAudience.everyone,
+          ),
+          scope: EventScope.society,
+        ),
+      ).called(1);
+    });
+
+    testWidgets('offers every picture under its own name', (tester) async {
+      await pump(tester);
+      final picture = find.byKey(const Key('eventForm.picture'));
+      for (final name in [
+        'None',
+        'Assembly',
+        'Celebration',
+        'Cultural',
+        'Exam',
+        'Festival',
+        'Holiday',
+        'Meeting',
+        'Science',
+        'Sports',
+        'Trip',
+      ]) {
+        expect(
+          find.descendant(of: picture, matching: find.text(name)),
+          findsOneWidget,
+          reason: name,
+        );
+      }
+    });
+
     testWidgets('a holiday asks for its kind and for who it is for, and names what is missing', (tester) async {
       await pump(tester);
       await type(tester, 'eventForm.title', 'Diwali break');
@@ -391,6 +446,26 @@ void main() {
         ),
       ).called(1);
       expect(closed, [true]);
+    });
+
+    testWidgets('keeps the start of an event that began before the calendar reaches, when its day is confirmed', (
+      tester,
+    ) async {
+      final early = schoolEvent(startDate: DateTime(2025, 6), endDate: DateTime(2026, 11, 20));
+      when(() => events.change(any(), any())).thenAnswer((_) async => early);
+      await pump(tester, event: early);
+      await tester.tap(find.byKey(const Key('eventForm.start')));
+      await tester.pumpAndSettle();
+      expect(tester.takeException(), isNull);
+      await tester.tap(find.text('OK'));
+      await tester.pumpAndSettle();
+      await save(tester);
+      verify(
+        () => events.change(
+          early,
+          any(that: isA<EventInput>().having((input) => input.startDate, 'start', DateTime(2025, 6))),
+        ),
+      ).called(1);
     });
 
     testWidgets('on an event changed meanwhile, says so and hands back to the list, which reads again', (tester) async {

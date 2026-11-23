@@ -19,13 +19,19 @@ class ClassCatalogue {
       for (final category in await _masters.entries(MasterType.classCategories))
         if (offeredIds.contains(category.id)) category,
     ];
-    return [
-      for (final category in categories)
-        for (final entry in await _masters.entries(MasterType.predefinedClasses, parentId: category.id))
-          ClassChoice(
-            predefinedClass: NamedRef(id: entry.id, code: entry.code ?? '', name: entry.name),
-            category: NamedRef(id: category.id, code: category.code ?? '', name: category.name),
-          ),
-    ];
+    final choices = await _classesOf(categories);
+    return choices;
   }
+
+  /// Every predefined class of every category, in the order of the shared lists.
+  Future<List<ClassChoice>> all() => _masters.entries(MasterType.classCategories).then(_classesOf);
+
+  Future<List<ClassChoice>> _classesOf(List<MasterEntry> categories) async => [
+    for (final category in categories)
+      for (final entry in await _masters.entries(MasterType.predefinedClasses, parentId: category.id))
+        ClassChoice(
+          predefinedClass: NamedRef(id: entry.id, code: entry.code ?? '', name: entry.name),
+          category: NamedRef(id: category.id, code: category.code ?? '', name: category.name),
+        ),
+  ];
 }

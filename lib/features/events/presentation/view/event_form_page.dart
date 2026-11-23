@@ -18,18 +18,24 @@ import 'package:bravynix_school_erp/core/widgets/state_panel.dart';
 import 'package:bravynix_school_erp/core/widgets/sticky_bottom_actions.dart';
 import 'package:bravynix_school_erp/features/auth/domain/auth_entities.dart';
 import 'package:bravynix_school_erp/features/auth/presentation/session/session_bloc.dart';
+import 'package:bravynix_school_erp/features/classes/domain/class_catalogue.dart';
 import 'package:bravynix_school_erp/features/events/domain/event.dart';
 import 'package:bravynix_school_erp/features/events/domain/events_repository.dart';
 import 'package:bravynix_school_erp/features/events/presentation/bloc/event_form_bloc.dart';
 import 'package:bravynix_school_erp/features/events/presentation/view/event_error_text.dart';
 import 'package:bravynix_school_erp/features/events/presentation/view/event_text.dart';
 import 'package:bravynix_school_erp/features/institutions/domain/institutions_repository.dart';
-import 'package:bravynix_school_erp/features/masters/domain/masters_repository.dart';
 import 'package:bravynix_school_erp/l10n/gen/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+
+/// The longest each text an event holds can be (API design 10.26).
+const maxEventTitle = 150;
+const maxEventDuration = 50;
+const maxEventDescription = 2000;
+const maxEventVenue = 200;
 
 /// The event to change, or null to add one.
 class EventFormArgs {
@@ -53,7 +59,7 @@ class EventFormPage extends StatelessWidget {
     create: (_) => EventFormBloc(
       getIt<EventsRepository>(),
       getIt<InstitutionsRepository>(),
-      getIt<MastersRepository>(),
+      getIt<ClassCatalogue>(),
       existing: args.event,
     )..add(const EventFormStarted()),
     child: EventFormView(
@@ -131,26 +137,34 @@ class _EventFormViewState extends State<EventFormView> {
     return ids.length == 1 ? ids.single : null;
   }
 
+  /// What was typed, or null when it is only spaces: an empty description or venue is none.
+  static String? _text(TextEditingController controller) {
+    final value = controller.text.trim();
+    return value.isEmpty ? null : value;
+  }
+
   void _submit(EventOptions options) => context.read<EventFormBloc>().add(
     EventFormSubmitted(
       EventFields(
-        title: _title.text,
-        startDate: _start,
-        endDate: _end,
-        durationLabel: _duration.text,
-        audience: _audience,
-        description: _description.text,
-        venue: _venue.text,
-        presetImageCode: _preset,
-        isHoliday: _isHoliday,
-        holidayType: _holidayType,
-        holidayForStudents: _forStudents,
-        holidayForStaff: _forStaff,
-        // Only the classes the form offers, in its order.
-        holidayClassIds: [
-          for (final entry in options.classes)
-            if (_classIds.contains(entry.id)) entry.id,
-        ],
+        input: EventInput(
+          title: _title.text.trim(),
+          startDate: _start,
+          endDate: _end,
+          durationLabel: _duration.text.trim(),
+          audience: _audience,
+          description: _text(_description),
+          venue: _text(_venue),
+          presetImageCode: _preset,
+          isHoliday: _isHoliday,
+          holidayType: _holidayType,
+          holidayForStudents: _forStudents,
+          holidayForStaff: _forStaff,
+          // Only the classes the form offers, in its order.
+          holidayClassIds: [
+            for (final choice in options.classes)
+              if (_classIds.contains(choice.predefinedClass.id)) choice.predefinedClass.id,
+          ],
+        ),
         scope: _scope,
         institutionId: _offered(options),
       ),
@@ -248,7 +262,7 @@ class _EventFormViewState extends State<EventFormView> {
           required: true,
           requiredLabel: l10n.fieldRequired,
           error: error('title'),
-          inputFormatters: [LengthLimitingTextInputFormatter(150)],
+          inputFormatters: [LengthLimitingTextInputFormatter(maxEventTitle)],
         ),
         const SizedBox(height: AppSpacing.sm),
         DayField(
@@ -283,7 +297,7 @@ class _EventFormViewState extends State<EventFormView> {
           required: true,
           requiredLabel: l10n.fieldRequired,
           error: error('durationLabel'),
-          inputFormatters: [LengthLimitingTextInputFormatter(50)],
+          inputFormatters: [LengthLimitingTextInputFormatter(maxEventDuration)],
         ),
         const SizedBox(height: AppSpacing.sm),
         AppTextField(
@@ -293,7 +307,7 @@ class _EventFormViewState extends State<EventFormView> {
           error: error('description'),
           maxLines: 4,
           keyboardType: TextInputType.multiline,
-          inputFormatters: [LengthLimitingTextInputFormatter(2000)],
+          inputFormatters: [LengthLimitingTextInputFormatter(maxEventDescription)],
         ),
         const SizedBox(height: AppSpacing.sm),
         AppTextField(
@@ -301,7 +315,7 @@ class _EventFormViewState extends State<EventFormView> {
           label: l10n.eventFieldVenue,
           controller: _venue,
           error: error('venue'),
-          inputFormatters: [LengthLimitingTextInputFormatter(200)],
+          inputFormatters: [LengthLimitingTextInputFormatter(maxEventVenue)],
         ),
         const SizedBox(height: AppSpacing.md),
         SectionHeader(title: l10n.eventAudience),
@@ -400,12 +414,14 @@ class _EventFormViewState extends State<EventFormView> {
       const SizedBox(height: AppSpacing.sm),
       SectionHeader(title: l10n.eventHolidayClasses),
       Text(l10n.eventHolidayClassesHelper, style: Theme.of(context).textTheme.bodySmall),
-      for (final entry in options.classes)
+      for (final choice in options.classes)
         AppCheckboxTile(
-          key: ValueKey('eventForm.class.${entry.id}'),
-          title: entry.name,
-          value: _classIds.contains(entry.id),
-          onChanged: (value) => setState(() => value ? _classIds.add(entry.id) : _classIds.remove(entry.id)),
+          key: ValueKey('eventForm.class.${choice.predefinedClass.id}'),
+          title: choice.predefinedClass.name,
+          value: _classIds.contains(choice.predefinedClass.id),
+          onChanged: (value) => setState(
+            () => value ? _classIds.add(choice.predefinedClass.id) : _classIds.remove(choice.predefinedClass.id),
+          ),
         ),
       if (error('holidayPredefinedClassIds') case final problem?)
         InlineMessage.error(problem, key: const Key('eventForm.classesError')),
