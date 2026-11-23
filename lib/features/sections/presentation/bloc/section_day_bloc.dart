@@ -126,7 +126,8 @@ class SectionDayBloc extends Bloc<SectionDayEvent, SectionDayState> {
   final DateTime Function() _clock;
   final SectionDay? focus;
 
-  /// The day to open on when there is no [focus] (`YYYY-MM-DD`), unless it is after today, which cannot be chosen.
+  /// The day to open on when there is no [focus] (`YYYY-MM-DD`), when it is a real day and not after today, which
+  /// cannot be chosen; today otherwise (a route can carry anything).
   final String? startDay;
 
   static Future<SectionChoices> _noSections() async =>
@@ -143,7 +144,7 @@ class SectionDayBloc extends Bloc<SectionDayEvent, SectionDayState> {
         classes: choices.classes,
         sections: choices.sections,
         today: today,
-        day: target != null ? focus!.day : (startDay != null && startDay!.compareTo(today) <= 0 ? startDay! : today),
+        day: target != null ? focus!.day : (_opensOn(startDay, today) ? startDay! : today),
         classId: target?.classId ?? single,
         sectionId: target?.id,
       );
@@ -151,6 +152,12 @@ class SectionDayBloc extends Bloc<SectionDayEvent, SectionDayState> {
     } on ApiFailure catch (failure) {
       emit(SectionDayFailed(failure));
     }
+  }
+
+  /// Whether [day] is a real day (`2026-02-30` and `1` are not) that is not after [today].
+  static bool _opensOn(String? day, String today) {
+    final parsed = day == null ? null : Formatters.parseDay(day);
+    return parsed != null && Formatters.isoDay(parsed) == day && day!.compareTo(today) <= 0;
   }
 
   /// A class with one section has nothing more to choose.
