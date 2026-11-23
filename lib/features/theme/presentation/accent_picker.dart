@@ -2,6 +2,7 @@ import 'package:bravynix_school_erp/core/theme/app_colors.dart';
 import 'package:bravynix_school_erp/core/theme/app_spacing.dart';
 import 'package:bravynix_school_erp/core/widgets/app_card.dart';
 import 'package:bravynix_school_erp/core/widgets/ring_ink_well.dart';
+import 'package:bravynix_school_erp/features/theme/presentation/accent_names.dart';
 import 'package:bravynix_school_erp/features/theme/presentation/bloc/accent_bloc.dart';
 import 'package:bravynix_school_erp/l10n/gen/app_localizations.dart';
 import 'package:flutter/material.dart';
@@ -57,7 +58,7 @@ class _Swatch extends StatelessWidget {
     return Semantics(
       button: true,
       selected: selected,
-      label: accent.label,
+      label: accentName(AppLocalizations.of(context), accent),
       onTap: onTap,
       excludeSemantics: true,
       child: SizedBox.square(
@@ -67,6 +68,7 @@ class _Swatch extends StatelessWidget {
             onTap: onTap,
             borderRadius: BorderRadius.circular(AppRadius.sm),
             child: Container(
+              key: Key('accent.${accent.name}.fill'),
               width: AccentPicker._swatch,
               height: AccentPicker._swatch,
               decoration: BoxDecoration(
