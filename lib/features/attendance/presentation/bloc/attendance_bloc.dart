@@ -85,6 +85,20 @@ final class AttendanceVoided extends AttendanceEvent {
   List<Object?> get props => [reason];
 }
 
+/// A register to open on: the section and day a screen elsewhere (a student's calendar) points at. A section that is not
+/// among the Institution's is ignored, and the person chooses.
+class AttendanceFocus extends Equatable {
+  const new({required this.sectionId, required this.day});
+
+  final String sectionId;
+
+  /// `YYYY-MM-DD`.
+  final String day;
+
+  @override
+  List<Object?> get props => [sectionId, day];
+}
+
 enum AttendanceOutcomeKind { submitted, corrected, voided }
 
 /// What the last action did, for the screen to say once: [count] is the students on the register.
@@ -238,7 +252,7 @@ class AttendanceReady extends AttendanceState {
 /// same submission, after an answer that was lost, carries the same Idempotency-Key and finds the first one done; any
 /// change to the marks or the roll starts a new attempt.
 class AttendanceBloc extends Bloc<AttendanceEvent, AttendanceState> {
-  new(this._attendance, this.institutionId, {this._clock = DateTime.now, String Function()? newKey})
+  new(this._attendance, this.institutionId, {this._clock = DateTime.now, this.focus, String Function()? newKey})
     : _newKey = newKey ?? const Uuid().v4,
       super(const AttendanceLoading()) {
     on<AttendanceStarted>(_onStarted);
@@ -254,6 +268,7 @@ class AttendanceBloc extends Bloc<AttendanceEvent, AttendanceState> {
 
   final AttendanceRepository _attendance;
   final String institutionId;
+  final AttendanceFocus? focus;
   final DateTime Function() _clock;
   final String Function() _newKey;
   String? _key;
@@ -288,11 +303,28 @@ class AttendanceBloc extends Bloc<AttendanceEvent, AttendanceState> {
           classId: single,
         ),
       );
-      // A school with one class and one section has nothing to choose.
-      if (single != null) _chooseOnlySection();
+      if (_focus(choices) case final target?) {
+        // The day first, so that the roll is read once, for the section chosen last.
+        add(AttendanceDayChosen(target.day));
+        add(AttendanceClassChosen(target.classId));
+        add(AttendanceSectionChosen(target.sectionId));
+      } else if (single != null) {
+        // A school with one class and one section has nothing to choose.
+        _chooseOnlySection();
+      }
     } on ApiFailure catch (failure) {
       emit(AttendanceFailed(failure));
     }
+  }
+
+  /// The class and section [focus] points at, when the Institution has that section.
+  ({String classId, String sectionId, String day})? _focus(MarkingSections choices) {
+    final target = focus;
+    if (target == null) return null;
+    for (final section in choices.sections) {
+      if (section.id == target.sectionId) return (classId: section.classId, sectionId: section.id, day: target.day);
+    }
+    return null;
   }
 
   void _chooseOnlySection() => _ready((ready) {

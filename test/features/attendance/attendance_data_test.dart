@@ -7,6 +7,7 @@ import 'package:bravynix_school_erp/core/storage/token_storage.dart';
 import 'package:bravynix_school_erp/core/widgets/attendance_status_selector.dart';
 import 'package:bravynix_school_erp/features/attendance/data/attendance_models.dart';
 import 'package:bravynix_school_erp/features/attendance/data/attendance_repository_impl.dart';
+import 'package:bravynix_school_erp/features/attendance/domain/attendance_calendar.dart';
 import 'package:bravynix_school_erp/features/attendance/domain/attendance_repository.dart';
 import 'package:bravynix_school_erp/features/attendance/domain/attendance_roster.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -104,6 +105,92 @@ void main() {
       expect(() => AttendanceModels.roster(rosterJson(students: [studentJson(status: 0)])), throwsFormatException);
     });
 
+    test('read a month of a student, the status of each day and the percentages', () {
+      final calendar = AttendanceModels.calendar(calendarJson());
+      expect(calendar, november);
+      expect(calendar.days[4].holidayTitle, 'Founders Day');
+      expect(calendar.summary.count(DayStatus.holiday), 1);
+      expect(calendar.summary.count(DayStatus.notEnrolled), 0);
+    });
+
+    test('read the half days and the leave days each from its own count', () {
+      final json = calendarJson();
+      final summary = {...(json['summary']! as Map<String, Object?>), 'halfDays': 3, 'leaveDays': 4};
+      final calendar = AttendanceModels.calendar({...json, 'summary': summary});
+      expect(calendar.summary.halfDays, 3);
+      expect(calendar.summary.leaveDays, 4);
+      expect(calendar.summary.count(DayStatus.halfDay), 3);
+      expect(calendar.summary.count(DayStatus.leave), 4);
+    });
+
+    test('refuse a month whose days are not every day of it in order, which the screen reads by position', () {
+      final days = (calendarJson()['days']! as List<Object?>).cast<Map<String, Object?>>();
+      for (final wrong in [
+        days.take(29).toList(),
+        [...days, dayJson('2026-11-31', 'not_marked')],
+        [days[1], days[0], ...days.skip(2)],
+        const <Map<String, Object?>>[],
+      ]) {
+        expect(() => AttendanceModels.calendar({...calendarJson(), 'days': wrong}), throwsFormatException);
+      }
+    });
+
+    test('read a February of 28 days and of 29', () {
+      Map<String, Object?> february(String month, int length) => {
+        ...calendarJson(month: month),
+        'days': [
+          for (var day = 1; day <= length; day++) dayJson('$month-${day.toString().padLeft(2, '0')}', 'not_marked'),
+        ],
+      };
+      expect(AttendanceModels.calendar(february('2027-02', 28)).days, hasLength(28));
+      expect(AttendanceModels.calendar(february('2028-02', 29)).days, hasLength(29));
+      expect(() => AttendanceModels.calendar(february('2027-02', 29)), throwsFormatException);
+    });
+
+    test('read a month with no day marked, which has no percentage', () {
+      final calendar = AttendanceModels.calendar({
+        ...calendarJson(percentage: null),
+        'yearToDate': {'attendancePercentage': null},
+      });
+      expect(calendar.summary.percentage, isNull);
+      expect(calendar.yearToDatePercentage, isNull);
+    });
+
+    test('read a day with who marked it and when, and one with no register', () {
+      expect(AttendanceModels.dayDetail(dayDetailJson()), absentOnThe3rd);
+      final bare = AttendanceModels.dayDetail({
+        ...dayJson('2026-11-06', 'not_marked'),
+        'section': null,
+        'markedBy': null,
+        'markedAt': null,
+        'lastCorrectedAt': null,
+      });
+      expect([bare.section, bare.markedBy, bare.markedAt, bare.lastCorrectedAt], everyElement(isNull));
+    });
+
+    test("read a parent's day, where the section has no names", () {
+      final detail = AttendanceModels.dayDetail({
+        ...dayDetailJson(),
+        'section': {'id': 'sec1', 'name': null, 'className': null},
+      });
+      expect(detail.section, const DaySection(id: 'sec1'));
+    });
+
+    test('refuse a day status they do not know instead of drawing another day', () {
+      expect(
+        () => AttendanceModels.calendar({
+          ...calendarJson(),
+          'days': [
+            for (final day in (calendarJson()['days']! as List<Object?>).cast<Map<String, Object?>>())
+              if (day['date'] == '2026-11-03') dayJson('2026-11-03', 'sick') else day,
+          ],
+        }),
+        throwsFormatException,
+      );
+      expect(DayStatus.fromCode('half_day'), DayStatus.halfDay);
+      expect(DayStatus.fromCode('sick'), isNull);
+    });
+
     test('refuse an answer they cannot read', () {
       expect(() => AttendanceModels.sections({'a': 1}), throwsFormatException);
       expect(() => AttendanceModels.roster({...rosterJson(), 'canMark': null}), throwsA(isA<TypeError>()));
@@ -180,6 +267,16 @@ void main() {
       expect(bodyOf(correction)['version'], 2);
       expect([voiding.method, voiding.uri.path], ['POST', '/v1/attendance/sessions/r1/void']);
       expect(bodyOf(voiding), {'version': 3, 'reason': 'Taken for the wrong section'});
+    });
+
+    test('reads a month and a day of a student', () async {
+      final t = build(() => okReply(calendarJson()));
+      expect(await t.repository.calendar('s 1', '2026-11'), november);
+      expect(t.adapter.paths.single, '/v1/students/s%201/attendance');
+      expect(t.adapter.requests.single.uri.queryParameters, {'month': '2026-11'});
+      final d = build(() => okReply(dayDetailJson()));
+      expect(await d.repository.dayDetail('s1', '2026-11-03'), absentOnThe3rd);
+      expect(d.adapter.paths.single, '/v1/students/s1/attendance/days/2026-11-03');
     });
 
     test('passes on the refusal with the details a screen needs', () async {

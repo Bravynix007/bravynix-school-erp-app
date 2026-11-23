@@ -79,6 +79,8 @@ void main() {
     expect(find.text('O+'), findsOneWidget);
     expect(find.text('Admission ID'), findsNothing);
     expect(find.text('Guardians'), findsNothing);
+    // Their attendance is read from here.
+    expect(find.byKey(const Key('student.attendance')), findsOneWidget);
   });
 
   testWidgets('shows the stars, and offers to take back only the ones this teacher gave', (tester) async {

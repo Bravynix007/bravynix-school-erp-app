@@ -5412,6 +5412,144 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Attendance was already taken for the old section with this student in it. Choose a later day, or void that register and take it again.'**
   String get errorStudentMoveAttendanceTakenNoDay;
+
+  /// No description provided for @attendanceCalendarPartial.
+  ///
+  /// In en, this message translates to:
+  /// **'Partially present'**
+  String get attendanceCalendarPartial;
+
+  /// No description provided for @attendanceCalendarHolidayShort.
+  ///
+  /// In en, this message translates to:
+  /// **'H'**
+  String get attendanceCalendarHolidayShort;
+
+  /// No description provided for @attendanceCalendarNotMarked.
+  ///
+  /// In en, this message translates to:
+  /// **'Not marked'**
+  String get attendanceCalendarNotMarked;
+
+  /// No description provided for @attendanceCalendarNotEnrolled.
+  ///
+  /// In en, this message translates to:
+  /// **'Not enrolled'**
+  String get attendanceCalendarNotEnrolled;
+
+  /// No description provided for @attendanceCalendarWeeklyOff.
+  ///
+  /// In en, this message translates to:
+  /// **'Weekly off'**
+  String get attendanceCalendarWeeklyOff;
+
+  /// No description provided for @attendanceCalendarLegend.
+  ///
+  /// In en, this message translates to:
+  /// **'{status}: {days, plural, =1{1 day} other{{days} days}}'**
+  String attendanceCalendarLegend(String status, int days);
+
+  /// No description provided for @attendanceCalendarDay.
+  ///
+  /// In en, this message translates to:
+  /// **'{date}, {status}'**
+  String attendanceCalendarDay(String date, String status);
+
+  /// No description provided for @attendanceCalendarMonthRate.
+  ///
+  /// In en, this message translates to:
+  /// **'This month'**
+  String get attendanceCalendarMonthRate;
+
+  /// No description provided for @attendanceCalendarYearRate.
+  ///
+  /// In en, this message translates to:
+  /// **'This year so far'**
+  String get attendanceCalendarYearRate;
+
+  /// No description provided for @attendanceCalendarNoRate.
+  ///
+  /// In en, this message translates to:
+  /// **'No day marked yet'**
+  String get attendanceCalendarNoRate;
+
+  /// No description provided for @attendanceCalendarRate.
+  ///
+  /// In en, this message translates to:
+  /// **'{percent}%'**
+  String attendanceCalendarRate(String percent);
+
+  /// No description provided for @attendanceCalendarNoChildTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'No child to show'**
+  String get attendanceCalendarNoChildTitle;
+
+  /// No description provided for @attendanceCalendarNoChildMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'A child linked to you appears here, with their attendance.'**
+  String get attendanceCalendarNoChildMessage;
+
+  /// No description provided for @attendanceDayTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Day'**
+  String get attendanceDayTitle;
+
+  /// No description provided for @attendanceDayMarkedBy.
+  ///
+  /// In en, this message translates to:
+  /// **'Marked by'**
+  String get attendanceDayMarkedBy;
+
+  /// No description provided for @attendanceDayMarkedAt.
+  ///
+  /// In en, this message translates to:
+  /// **'Marked on'**
+  String get attendanceDayMarkedAt;
+
+  /// No description provided for @attendanceDayCorrectedAt.
+  ///
+  /// In en, this message translates to:
+  /// **'Last corrected'**
+  String get attendanceDayCorrectedAt;
+
+  /// No description provided for @attendanceDaySection.
+  ///
+  /// In en, this message translates to:
+  /// **'Section'**
+  String get attendanceDaySection;
+
+  /// No description provided for @attendanceDayNoRegister.
+  ///
+  /// In en, this message translates to:
+  /// **'No register was taken for this day.'**
+  String get attendanceDayNoRegister;
+
+  /// No description provided for @attendanceDayCorrect.
+  ///
+  /// In en, this message translates to:
+  /// **'Correct this register'**
+  String get attendanceDayCorrect;
+
+  /// No description provided for @errorAttendanceCalendarOutsideYear.
+  ///
+  /// In en, this message translates to:
+  /// **'No academic year covers this month.'**
+  String get errorAttendanceCalendarOutsideYear;
+
+  /// No description provided for @errorAttendanceCalendarNotAssigned.
+  ///
+  /// In en, this message translates to:
+  /// **'You can see the attendance of the students of the sections you lead or teach.'**
+  String get errorAttendanceCalendarNotAssigned;
+
+  /// No description provided for @errorAttendanceCalendarNotFound.
+  ///
+  /// In en, this message translates to:
+  /// **'This student could not be found.'**
+  String get errorAttendanceCalendarNotFound;
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {

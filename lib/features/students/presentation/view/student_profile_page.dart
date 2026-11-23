@@ -10,6 +10,7 @@ import 'package:bravynix_school_erp/core/widgets/section_header.dart';
 import 'package:bravynix_school_erp/core/widgets/skeleton.dart';
 import 'package:bravynix_school_erp/core/widgets/state_panel.dart';
 import 'package:bravynix_school_erp/core/widgets/status_chip.dart';
+import 'package:bravynix_school_erp/features/attendance/presentation/view/student_attendance_tile.dart';
 import 'package:bravynix_school_erp/features/classes/domain/classes_repository.dart';
 import 'package:bravynix_school_erp/features/masters/domain/masters_repository.dart';
 import 'package:bravynix_school_erp/features/people/presentation/bloc/access_block_bloc.dart';
@@ -160,6 +161,8 @@ class _Details extends StatelessWidget {
             ],
           ),
         ),
+        const SizedBox(height: AppSpacing.xs),
+        StudentAttendanceTile(studentId: record.id, name: record.fullName),
         const SizedBox(height: AppSpacing.md),
         SectionHeader(title: l10n.personFormContact),
         const SizedBox(height: AppSpacing.xs),

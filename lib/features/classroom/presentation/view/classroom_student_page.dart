@@ -8,6 +8,7 @@ import 'package:bravynix_school_erp/features/academic_years/domain/academic_year
 import 'package:bravynix_school_erp/features/achievements/domain/achievements_repository.dart';
 import 'package:bravynix_school_erp/features/achievements/presentation/bloc/achievements_bloc.dart';
 import 'package:bravynix_school_erp/features/achievements/presentation/view/stars_section.dart';
+import 'package:bravynix_school_erp/features/attendance/presentation/view/student_attendance_tile.dart';
 import 'package:bravynix_school_erp/features/auth/presentation/session/session_bloc.dart';
 import 'package:bravynix_school_erp/features/classes/domain/classes_repository.dart';
 import 'package:bravynix_school_erp/features/classroom/domain/classroom.dart';
@@ -54,11 +55,10 @@ class ClassroomStudentView extends StatelessWidget {
       child: BlocBuilder<ClassroomStudentBloc, ClassroomStudentState>(
         builder: (context, state) => switch (state) {
           ClassroomStudentLoading() => SkeletonCards(semanticLabel: l10n.loading, heights: const [160, 112]),
-          ClassroomStudentFailed(:final failure) when failure.code == 'NOT_ASSIGNED' || failure.code == 'FORBIDDEN' =>
-            StatePanel.forbidden(
-              key: const Key('classroomStudent.forbidden'),
-              title: classroomErrorText(l10n, failure),
-            ),
+          ClassroomStudentFailed(:final failure) when failure.refused => StatePanel.forbidden(
+            key: const Key('classroomStudent.forbidden'),
+            title: classroomErrorText(l10n, failure),
+          ),
           ClassroomStudentFailed(:final failure) when failure.code == 'NOT_FOUND' => StatePanel.empty(
             key: const Key('classroomStudent.notFound'),
             title: classroomErrorText(l10n, failure),
@@ -113,6 +113,8 @@ class _Details extends StatelessWidget {
             ],
           ),
         ),
+        const SizedBox(height: AppSpacing.xs),
+        StudentAttendanceTile(studentId: student.id, name: student.fullName),
         const SizedBox(height: AppSpacing.md),
         BlocProvider(
           create: (_) =>

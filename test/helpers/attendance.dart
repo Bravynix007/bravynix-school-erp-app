@@ -1,4 +1,5 @@
 import 'package:bravynix_school_erp/core/widgets/attendance_status_selector.dart';
+import 'package:bravynix_school_erp/features/attendance/domain/attendance_calendar.dart';
 import 'package:bravynix_school_erp/features/attendance/domain/attendance_repository.dart';
 import 'package:bravynix_school_erp/features/attendance/domain/attendance_roster.dart';
 import 'package:bravynix_school_erp/features/sections/domain/section_options.dart';
@@ -127,4 +128,87 @@ Map<String, Object?> countsJson({String id = 'r1', int version = 1}) => {
   'leaveCount': 0,
   'institutionId': 'i1',
   'sectionId': 'sec1',
+};
+
+Map<String, Object?> dayJson(
+  String date,
+  String status, {
+  bool weekend = false,
+  String? holiday,
+}) => {'date': date, 'dayStatus': status, 'isWeekend': weekend, 'holidayTitle': holiday};
+
+/// November 2026: the 1st is a Sunday, the 2nd to the 4th are marked, the 5th is a holiday.
+Map<String, Object?> calendarJson({String month = '2026-11', double? percentage = 66.67}) => {
+  'month': month,
+  'summary': {
+    'presentDays': 1,
+    'absentDays': 1,
+    'lateDays': 1,
+    'halfDays': 0,
+    'leaveDays': 0,
+    'holidays': 1,
+    'notMarkedDays': 2,
+    'attendancePercentage': percentage,
+  },
+  'yearToDate': {'attendancePercentage': 90.5},
+  'days': [
+    for (var day = 1; day <= 30; day++)
+      switch (day) {
+        1 => dayJson('2026-11-01', 'not_marked', weekend: true),
+        2 => dayJson('2026-11-02', 'present'),
+        3 => dayJson('2026-11-03', 'absent'),
+        4 => dayJson('2026-11-04', 'late'),
+        5 => dayJson('2026-11-05', 'holiday', holiday: 'Founders Day'),
+        _ => dayJson('2026-11-${day.toString().padLeft(2, '0')}', day < 8 ? 'not_enrolled' : 'not_marked'),
+      },
+  ],
+};
+
+final november = AttendanceCalendar(
+  month: '2026-11',
+  summary: const MonthSummary(
+    presentDays: 1,
+    absentDays: 1,
+    lateDays: 1,
+    halfDays: 0,
+    leaveDays: 0,
+    holidays: 1,
+    notMarkedDays: 2,
+    percentage: 66.67,
+  ),
+  yearToDatePercentage: 90.5,
+  days: [
+    for (var day = 1; day <= 30; day++)
+      CalendarDay(
+        day: '2026-11-${day.toString().padLeft(2, '0')}',
+        status: switch (day) {
+          1 => DayStatus.notMarked,
+          2 => DayStatus.present,
+          3 => DayStatus.absent,
+          4 => DayStatus.late,
+          5 => DayStatus.holiday,
+          _ => day < 8 ? DayStatus.notEnrolled : DayStatus.notMarked,
+        },
+        isWeekend: day == 1,
+        holidayTitle: day == 5 ? 'Founders Day' : null,
+      ),
+  ],
+);
+
+final absentOnThe3rd = DayDetail(
+  day: '2026-11-03',
+  status: DayStatus.absent,
+  isWeekend: false,
+  section: const DaySection(id: 'sec1', name: 'A', className: '7th'),
+  markedBy: 'R. Nair',
+  markedAt: DateTime.utc(2026, 11, 3, 4, 30),
+  lastCorrectedAt: DateTime.utc(2026, 11, 3, 6),
+);
+
+Map<String, Object?> dayDetailJson() => {
+  ...dayJson('2026-11-03', 'absent'),
+  'section': {'id': 'sec1', 'name': 'A', 'className': '7th'},
+  'markedBy': {'id': 't1', 'displayName': 'R. Nair'},
+  'markedAt': '2026-11-03T04:30:00.000Z',
+  'lastCorrectedAt': '2026-11-03T06:00:00.000Z',
 };

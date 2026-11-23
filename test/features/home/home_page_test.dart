@@ -1,5 +1,7 @@
 import 'package:bloc_test/bloc_test.dart';
 import 'package:bravynix_school_erp/app/di/injection.dart';
+import 'package:bravynix_school_erp/app/router/app_routes.dart';
+import 'package:bravynix_school_erp/core/theme/app_theme.dart';
 import 'package:bravynix_school_erp/features/auth/domain/auth_entities.dart';
 import 'package:bravynix_school_erp/features/auth/presentation/session/session_bloc.dart';
 import 'package:bravynix_school_erp/features/blocks/domain/blocks_repository.dart';
@@ -7,9 +9,11 @@ import 'package:bravynix_school_erp/features/blocks/domain/section_block.dart';
 import 'package:bravynix_school_erp/features/children/presentation/bloc/active_child_bloc.dart';
 import 'package:bravynix_school_erp/features/home/presentation/home_page.dart';
 import 'package:bravynix_school_erp/features/notifications/domain/notifications_repository.dart';
-import 'package:flutter/widgets.dart';
+import 'package:bravynix_school_erp/l10n/gen/app_localizations.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:go_router/go_router.dart';
 import 'package:mocktail/mocktail.dart';
 
 import '../../helpers/mocks.dart';
@@ -87,6 +91,42 @@ void main() {
       expect(find.text('7th - A, Green Valley School'), findsOneWidget);
     });
 
+    testWidgets("a parent's attendance tile opens the child's calendar, never the marking screen", (tester) async {
+      final session = _MockSessionBloc();
+      when(() => session.state).thenReturn(
+        const SessionAuthenticated(AuthSession(person: testPerson, contexts: [parent], activeContext: parent)),
+      );
+      final child = _MockActiveChildBloc();
+      when(() => child.state).thenReturn(const ActiveChildReady(children: [diya], selected: diya));
+      final router = GoRouter(
+        routes: [
+          GoRoute(path: '/', builder: (_, _) => const HomePage()),
+          GoRoute(path: AppRoutes.attendanceCalendar, builder: (_, _) => const Text('calendar screen')),
+          GoRoute(path: AppRoutes.attendance, builder: (_, _) => const Text('marking screen')),
+        ],
+      );
+      addTearDown(router.dispose);
+      await tester.pumpWidget(
+        MultiBlocProvider(
+          providers: [
+            BlocProvider<SessionBloc>.value(value: session),
+            BlocProvider<ActiveChildBloc>.value(value: child),
+          ],
+          child: MaterialApp.router(
+            theme: AppTheme.light(),
+            routerConfig: router,
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('home.quick.attendance')));
+      await tester.pumpAndSettle();
+      expect(find.text('calendar screen'), findsOneWidget);
+      expect(find.text('marking screen'), findsNothing);
+    });
+
     testWidgets('when every child is blocked, says so once for all of them', (tester) async {
       const blocked = LinkedChild(studentId: 's2', firstName: 'Meera', institutionName: 'Lake View', isBlocked: true);
       await pumpParent(
@@ -101,8 +141,8 @@ void main() {
     testWidgets("a parent's home has the timetable tile", (tester) async {
       await pumpParent(tester, parent, const ActiveChildReady(children: [diya], selected: diya));
       expect(find.byKey(const Key('home.quick.timetable')), findsOneWidget);
-      // A parent reads the calendar; taking a register is for the school's side.
-      expect(find.byKey(const Key('home.quick.attendance')), findsNothing);
+      // The same tile opens the child's calendar for a parent, and the register for the school's side.
+      expect(find.byKey(const Key('home.quick.attendance')), findsOneWidget);
     });
 
     testWidgets('an owner sees no child panel', (tester) async {

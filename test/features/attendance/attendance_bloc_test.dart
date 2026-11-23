@@ -59,6 +59,46 @@ void main() {
 
   BoardLoaded boardOf(AttendanceBloc bloc) => (bloc.state as AttendanceReady).board as BoardLoaded;
 
+  group("opened on a register from a student's calendar", () {
+    AttendanceBloc buildOn(AttendanceFocus focus) => AttendanceBloc(
+      repository,
+      'i1',
+      clock: () => DateTime.utc(2026, 11, 17, 4),
+      focus: focus,
+    );
+
+    test('chooses its class, section and day, and reads that roll once', () async {
+      when(() => repository.roster('sec3', '2026-11-10')).thenAnswer((_) async => takenRoll);
+      final bloc = buildOn(const AttendanceFocus(sectionId: 'sec3', day: '2026-11-10'))..add(const AttendanceStarted());
+      await bloc.stream.firstWhere((state) => state is AttendanceReady && state.board is BoardLoaded);
+      expect(
+        bloc.state,
+        ready(classId: 'c8', sectionId: 'sec3', day: '2026-11-10', board: BoardLoaded(takenRoll, const {})),
+      );
+      verify(() => repository.roster('sec3', '2026-11-10')).called(1);
+      await bloc.close();
+    });
+
+    test('with a section of a class that has two, reads only the one named', () async {
+      when(() => repository.roster('sec2', '2026-11-10')).thenAnswer((_) async => openRoll);
+      final bloc = buildOn(const AttendanceFocus(sectionId: 'sec2', day: '2026-11-10'))..add(const AttendanceStarted());
+      await bloc.stream.firstWhere((state) => state is AttendanceReady && state.board is BoardLoaded);
+      expect((bloc.state as AttendanceReady).sectionId, 'sec2');
+      verify(() => repository.roster('sec2', '2026-11-10')).called(1);
+      verifyNever(() => repository.roster('sec1', any()));
+      await bloc.close();
+    });
+
+    test('ignores a section the Institution does not have, and leaves the choice to the person', () async {
+      final bloc = buildOn(const AttendanceFocus(sectionId: 'elsewhere', day: '2026-11-10'))
+        ..add(const AttendanceStarted());
+      await bloc.stream.firstWhere((state) => state is AttendanceReady);
+      expect(bloc.state, ready());
+      verifyNever(() => repository.roster(any(), any()));
+      await bloc.close();
+    });
+  });
+
   group('choosing', () {
     blocTest<AttendanceBloc, AttendanceState>(
       'reads the classes and shows today, with nothing chosen when there is a choice',

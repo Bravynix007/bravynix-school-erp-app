@@ -24,3 +24,12 @@ String attendanceErrorText(AppLocalizations l10n, ApiFailure failure) => switch 
 /// is a teacher correcting a register of an earlier year, which only an Owner or an Admin may.
 String attendanceActionErrorText(AppLocalizations l10n, ApiFailure failure) =>
     failure.code == 'FORBIDDEN' ? l10n.errorAttendanceOlderYear : attendanceErrorText(l10n, failure);
+
+/// Copy for the codes ATT-07 and ATT-08 add (API design 10.13): 422 OUTSIDE_ACADEMIC_YEAR for a month or day no year of
+/// the Institution holds, 403 NOT_ASSIGNED for a teacher and a student outside their sections, 404 for a student out of
+/// reach, and 403 CHILD_ACCESS_BLOCKED for a blocked child. The rest reads as everywhere else.
+String attendanceCalendarErrorText(AppLocalizations l10n, ApiFailure failure) => switch (failure.code) {
+  'OUTSIDE_ACADEMIC_YEAR' => l10n.errorAttendanceCalendarOutsideYear,
+  'NOT_ASSIGNED' => l10n.errorAttendanceCalendarNotAssigned,
+  _ => apiErrorText(l10n, failure, notFound: l10n.errorAttendanceCalendarNotFound),
+};

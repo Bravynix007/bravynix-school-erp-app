@@ -3070,4 +3070,86 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get errorStudentMoveAttendanceTakenNoDay =>
       'Attendance was already taken for the old section with this student in it. Choose a later day, or void that register and take it again.';
+
+  @override
+  String get attendanceCalendarPartial => 'Partially present';
+
+  @override
+  String get attendanceCalendarHolidayShort => 'H';
+
+  @override
+  String get attendanceCalendarNotMarked => 'Not marked';
+
+  @override
+  String get attendanceCalendarNotEnrolled => 'Not enrolled';
+
+  @override
+  String get attendanceCalendarWeeklyOff => 'Weekly off';
+
+  @override
+  String attendanceCalendarLegend(String status, int days) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: '$days days',
+      one: '1 day',
+    );
+    return '$status: $_temp0';
+  }
+
+  @override
+  String attendanceCalendarDay(String date, String status) {
+    return '$date, $status';
+  }
+
+  @override
+  String get attendanceCalendarMonthRate => 'This month';
+
+  @override
+  String get attendanceCalendarYearRate => 'This year so far';
+
+  @override
+  String get attendanceCalendarNoRate => 'No day marked yet';
+
+  @override
+  String attendanceCalendarRate(String percent) {
+    return '$percent%';
+  }
+
+  @override
+  String get attendanceCalendarNoChildTitle => 'No child to show';
+
+  @override
+  String get attendanceCalendarNoChildMessage => 'A child linked to you appears here, with their attendance.';
+
+  @override
+  String get attendanceDayTitle => 'Day';
+
+  @override
+  String get attendanceDayMarkedBy => 'Marked by';
+
+  @override
+  String get attendanceDayMarkedAt => 'Marked on';
+
+  @override
+  String get attendanceDayCorrectedAt => 'Last corrected';
+
+  @override
+  String get attendanceDaySection => 'Section';
+
+  @override
+  String get attendanceDayNoRegister => 'No register was taken for this day.';
+
+  @override
+  String get attendanceDayCorrect => 'Correct this register';
+
+  @override
+  String get errorAttendanceCalendarOutsideYear => 'No academic year covers this month.';
+
+  @override
+  String get errorAttendanceCalendarNotAssigned =>
+      'You can see the attendance of the students of the sections you lead or teach.';
+
+  @override
+  String get errorAttendanceCalendarNotFound => 'This student could not be found.';
 }

@@ -32,10 +32,14 @@ class MonthStepper extends StatelessWidget {
           child: Semantics(
             header: true,
             liveRegion: true,
-            child: Text(
-              DateFormat.yMMMM(locale).format(month),
-              textAlign: TextAlign.center,
-              style: Theme.of(context).textTheme.titleMedium,
+            // A month and a year: on a narrow phone at a large text size it shrinks to fit rather than breaking a word.
+            child: FittedBox(
+              fit: BoxFit.scaleDown,
+              child: Text(
+                DateFormat.yMMMM(locale).format(month),
+                textAlign: TextAlign.center,
+                style: Theme.of(context).textTheme.titleMedium,
+              ),
             ),
           ),
         ),
