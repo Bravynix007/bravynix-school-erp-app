@@ -112,7 +112,7 @@ class SectionDayReady extends SectionDayState {
 /// classes and sections the person may choose from; a school with one class and one section has nothing to choose, and
 /// a focus that names a section of the list opens on it.
 class SectionDayBloc extends Bloc<SectionDayEvent, SectionDayState> {
-  new(this._load, {this._clock = DateTime.now, this.focus}) : super(const SectionDayLoading()) {
+  new(this._load, {this._clock = DateTime.now, this.focus, this.startDay}) : super(const SectionDayLoading()) {
     on<SectionDayStarted>(_onStarted);
     on<SectionDayClassChosen>(_onClassChosen);
     on<SectionDaySectionChosen>(_onSectionChosen);
@@ -120,11 +120,14 @@ class SectionDayBloc extends Bloc<SectionDayEvent, SectionDayState> {
   }
 
   /// A screen that chooses the day only, such as a parent's diary of the child shown.
-  new dayOnly({DateTime Function() clock = DateTime.now}) : this(_noSections, clock: clock);
+  new dayOnly({DateTime Function() clock = DateTime.now, String? day}) : this(_noSections, clock: clock, startDay: day);
 
   final Future<SectionChoices> Function() _load;
   final DateTime Function() _clock;
   final SectionDay? focus;
+
+  /// The day to open on when there is no [focus] (`YYYY-MM-DD`), unless it is after today, which cannot be chosen.
+  final String? startDay;
 
   static Future<SectionChoices> _noSections() async =>
       (classes: const <ClassChoice>[], sections: const <SectionChoice>[]);
@@ -140,7 +143,7 @@ class SectionDayBloc extends Bloc<SectionDayEvent, SectionDayState> {
         classes: choices.classes,
         sections: choices.sections,
         today: today,
-        day: target == null ? today : focus!.day,
+        day: target != null ? focus!.day : (startDay != null && startDay!.compareTo(today) <= 0 ? startDay! : today),
         classId: target?.classId ?? single,
         sectionId: target?.id,
       );

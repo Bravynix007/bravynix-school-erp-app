@@ -208,7 +208,7 @@ class _List extends StatelessWidget {
 /// diary entry the diary, an event the event.
 String? _locationOf(InboxItem item) => switch (item.target?.type) {
   NotificationTargetType.attendance => AppRoutes.attendanceCalendar,
-  NotificationTargetType.diary => AppRoutes.diary,
+  NotificationTargetType.diary => AppRoutes.diaryOn(item.target!.day),
   NotificationTargetType.event => AppRoutes.event(item.target!.id, studentId: item.studentId),
   null => null,
 };

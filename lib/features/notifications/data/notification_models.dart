@@ -5,8 +5,8 @@ import 'package:bravynix_school_erp/features/notifications/domain/inbox_item.dar
 abstract final class NotificationModels {
   static InboxItem item(Object? raw) {
     final json = jsonObject(raw);
-    final target = json['target'];
-    final type = target is Map<String, dynamic> ? NotificationTargetType.fromCode(target['type']) : null;
+    final target = json['target'] is Map<String, dynamic> ? json['target'] as Map<String, dynamic> : null;
+    final type = target == null ? null : NotificationTargetType.fromCode(target['type']);
     return InboxItem(
       id: json['id'] as String,
       createdAt: DateTime.parse(json['createdAt'] as String),
@@ -19,7 +19,7 @@ abstract final class NotificationModels {
       isRead: json['isRead'] as bool? ?? false,
       target: type == null
           ? null
-          : NotificationTarget(type: type, id: (target! as Map<String, dynamic>)['id'] as String),
+          : NotificationTarget(type: type, id: target!['id'] as String, day: target['date'] as String?),
     );
   }
 
