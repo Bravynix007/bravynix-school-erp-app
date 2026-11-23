@@ -55,11 +55,10 @@ class ClassroomStudentView extends StatelessWidget {
       child: BlocBuilder<ClassroomStudentBloc, ClassroomStudentState>(
         builder: (context, state) => switch (state) {
           ClassroomStudentLoading() => SkeletonCards(semanticLabel: l10n.loading, heights: const [160, 112]),
-          ClassroomStudentFailed(:final failure) when failure.code == 'NOT_ASSIGNED' || failure.code == 'FORBIDDEN' =>
-            StatePanel.forbidden(
-              key: const Key('classroomStudent.forbidden'),
-              title: classroomErrorText(l10n, failure),
-            ),
+          ClassroomStudentFailed(:final failure) when failure.refused => StatePanel.forbidden(
+            key: const Key('classroomStudent.forbidden'),
+            title: classroomErrorText(l10n, failure),
+          ),
           ClassroomStudentFailed(:final failure) when failure.code == 'NOT_FOUND' => StatePanel.empty(
             key: const Key('classroomStudent.notFound'),
             title: classroomErrorText(l10n, failure),

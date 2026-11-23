@@ -114,6 +114,10 @@ class ApiFailure extends Equatable implements Exception {
   /// or gone (404). A screen that opened a form from a list reads the list again.
   bool get outdatesCopy => code == 'VERSION_CONFLICT' || code == 'NOT_FOUND';
 
+  /// Refused to the caller (403: FORBIDDEN, NOT_ASSIGNED, CHILD_ACCESS_BLOCKED and the like). Asking again gives the same
+  /// answer, so a screen says so and offers no Retry.
+  bool get refused => statusCode == 403;
+
   FieldError? fieldError(String field) {
     for (final error in fieldErrors) {
       if (error.field == field) return error;

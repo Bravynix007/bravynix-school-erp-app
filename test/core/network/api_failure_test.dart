@@ -49,4 +49,21 @@ void main() {
       expect(const ApiFailure.network().isStoredRefusal, isFalse);
     });
   });
+
+  group('refused', () {
+    ApiFailure answer(int status, String code) => ApiFailure(statusCode: status, code: code, message: 'm');
+
+    test('is true for every 403, whatever its code, as asking again gives the same answer', () {
+      for (final code in ['FORBIDDEN', 'NOT_ASSIGNED', 'CHILD_ACCESS_BLOCKED']) {
+        expect(answer(403, code).refused, isTrue, reason: code);
+      }
+    });
+
+    test('is false for a failure asking again can cure, or one that is not a refusal', () {
+      expect(answer(404, 'NOT_FOUND').refused, isFalse);
+      expect(answer(500, 'SERVER_ERROR').refused, isFalse);
+      expect(answer(422, 'FORBIDDEN').refused, isFalse);
+      expect(const ApiFailure.network().refused, isFalse);
+    });
+  });
 }
