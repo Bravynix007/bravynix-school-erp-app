@@ -2,6 +2,8 @@ import 'package:bravynix_school_erp/core/network/api_client.dart';
 import 'package:bravynix_school_erp/features/diary/data/diary_models.dart';
 import 'package:bravynix_school_erp/features/diary/domain/diary_entry.dart';
 import 'package:bravynix_school_erp/features/diary/domain/diary_repository.dart';
+import 'package:bravynix_school_erp/features/subjects/data/subject_models.dart';
+import 'package:bravynix_school_erp/features/subjects/domain/subject.dart';
 
 class DiaryRepositoryImpl implements DiaryRepository {
   const new({required this._api});
@@ -17,6 +19,10 @@ class DiaryRepositoryImpl implements DiaryRepository {
   @override
   Future<List<DiaryEntry>> ofChild(String studentId, String day) =>
       _api.data('diary-entries', query: {'studentId': studentId, 'date': day}, parse: DiaryModels.entries);
+
+  @override
+  Future<List<Subject>> subjects(String sectionId) =>
+      _api.data('diary-subjects', query: {'sectionId': sectionId}, parse: SubjectModels.subjects);
 
   @override
   Future<DiaryEntry> add(String sectionId, DiaryInput input) => _api.data(

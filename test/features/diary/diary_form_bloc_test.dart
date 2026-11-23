@@ -14,34 +14,33 @@ ApiFailure refusal(String code, {int status = 422}) => ApiFailure(statusCode: st
 
 void main() {
   late MockDiaryRepository diary;
-  late MockSubjectsRepository subjects;
   setUp(() {
     diary = MockDiaryRepository();
-    subjects = MockSubjectsRepository();
     registerFallbackValue(const DiaryInput(subjectId: '', day: '', description: ''));
     registerFallbackValue(mathsEntry);
-    when(subjects.subjects).thenAnswer((_) async => [maths, art]);
+    when(() => diary.subjects('sec1')).thenAnswer((_) async => [maths, art]);
   });
 
   Future<DiaryFormBloc> open({DiaryEntry? existing}) async {
-    final bloc = DiaryFormBloc(diary, subjects, sectionId: 'sec1', existing: existing)..add(const DiaryFormStarted());
+    final bloc = DiaryFormBloc(diary, sectionId: 'sec1', existing: existing)..add(const DiaryFormStarted());
     await bloc.stream.firstWhere((state) => state is DiaryFormEditing);
     return bloc;
   }
 
   const fields = DiaryFields(subjectId: 'u1', day: '2026-11-17', description: '  Exercise 4.2.  ');
 
-  test('offers the subjects it is given, which are a teacher’s own', () async {
+  test('offers the subjects the server says the caller may write for in the section', () async {
     final bloc = await open();
     expect(bloc.state, const DiaryFormEditing([maths, art]));
+    verify(() => diary.subjects('sec1')).called(1);
     await bloc.close();
   });
 
   test('is told when the subjects cannot be read, and reads them again on Try again', () async {
-    when(subjects.subjects).thenThrow(refusal('FORBIDDEN', status: 403));
-    final bloc = DiaryFormBloc(diary, subjects, sectionId: 'sec1')..add(const DiaryFormStarted());
+    when(() => diary.subjects('sec1')).thenThrow(refusal('NOT_ASSIGNED', status: 403));
+    final bloc = DiaryFormBloc(diary, sectionId: 'sec1')..add(const DiaryFormStarted());
     await bloc.stream.firstWhere((state) => state is DiaryFormLoadFailed);
-    when(subjects.subjects).thenAnswer((_) async => [maths]);
+    when(() => diary.subjects('sec1')).thenAnswer((_) async => [maths]);
     bloc.add(const DiaryFormStarted());
     await bloc.stream.firstWhere((state) => state is DiaryFormEditing);
     expect(bloc.state, const DiaryFormEditing([maths]));

@@ -10,6 +10,7 @@ import 'package:flutter_test/flutter_test.dart';
 
 import '../../helpers/diary.dart';
 import '../../helpers/fake_http.dart';
+import '../../helpers/subjects.dart';
 
 void main() {
   const config = AppConfig(flavor: Flavor.dev, apiBaseUrl: 'http://api.test/v1');
@@ -105,6 +106,14 @@ void main() {
       final t = build(() => okReply([diaryJson()]));
       expect(await t.repository.ofChild('s1', '2026-11-17'), [mathsEntry]);
       expect(t.adapter.requests.single.uri.queryParameters, {'studentId': 's1', 'date': '2026-11-17'});
+    });
+
+    test('reads the subjects the caller may write for in a section, as subjects are read', () async {
+      final t = build(() => okReply([subjectJson(), subjectJson(id: 'u2', name: 'Art', code: null, version: 1)]));
+      expect(await t.repository.subjects('sec1'), [maths, art]);
+      expect(t.adapter.requests.single.method, 'GET');
+      expect(t.adapter.paths.single, '/v1/diary-subjects');
+      expect(t.adapter.requests.single.uri.queryParameters, {'sectionId': 'sec1'});
     });
 
     test('adds an entry', () async {

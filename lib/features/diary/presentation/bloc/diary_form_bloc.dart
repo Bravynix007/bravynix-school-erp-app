@@ -4,7 +4,6 @@ import 'package:bravynix_school_erp/core/validation/field_problems.dart';
 import 'package:bravynix_school_erp/features/diary/domain/diary_entry.dart';
 import 'package:bravynix_school_erp/features/diary/domain/diary_repository.dart';
 import 'package:bravynix_school_erp/features/subjects/domain/subject.dart';
-import 'package:bravynix_school_erp/features/subjects/domain/subjects_repository.dart';
 import 'package:equatable/equatable.dart';
 
 /// The longest description DIA-02 takes.
@@ -87,23 +86,22 @@ class DiaryFormSaved extends DiaryFormState {
 }
 
 /// Adds an entry to [sectionId]'s diary (DIA-02), or, with [existing], changes that entry (DIA-03). The subjects are the
-/// Society's, and a teacher is given only those on their own list (SUB-01); the server decides which of them they may
-/// write for in the section.
+/// ones the server says the caller may write for in the section (DIA-05): a class teacher gets every subject of theirs,
+/// another teacher the ones they teach there.
 class DiaryFormBloc extends Bloc<DiaryFormEvent, DiaryFormState> {
-  new(this._diary, this._subjects, {required this.sectionId, this.existing}) : super(const DiaryFormLoading()) {
+  new(this._diary, {required this.sectionId, this.existing}) : super(const DiaryFormLoading()) {
     on<DiaryFormStarted>(_onStarted);
     on<DiaryFormSubmitted>(_onSubmitted);
   }
 
   final DiaryRepository _diary;
-  final SubjectsRepository _subjects;
   final String sectionId;
   final DiaryEntry? existing;
 
   Future<void> _onStarted(DiaryFormStarted event, Emitter<DiaryFormState> emit) async {
     emit(const DiaryFormLoading());
     try {
-      emit(DiaryFormEditing(await _subjects.subjects()));
+      emit(DiaryFormEditing(await _diary.subjects(sectionId)));
     } on ApiFailure catch (failure) {
       emit(DiaryFormLoadFailed(failure));
     }

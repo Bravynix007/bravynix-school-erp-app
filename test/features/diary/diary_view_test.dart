@@ -13,7 +13,6 @@ import 'package:bravynix_school_erp/features/masters/presentation/view/master_dr
 import 'package:bravynix_school_erp/features/sections/domain/section_options.dart';
 import 'package:bravynix_school_erp/features/sections/presentation/bloc/section_day_bloc.dart';
 import 'package:bravynix_school_erp/features/sections/presentation/view/section_day_frame.dart';
-import 'package:bravynix_school_erp/features/subjects/domain/subjects_repository.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -32,7 +31,6 @@ ApiFailure refusal(String code, {int status = 422}) =>
 void main() {
   late MockDiaryRepository diary;
   late Future<SectionChoices> Function() load;
-  late MockSubjectsRepository subjects;
   setUpAll(() {
     registerFallbackValue(const DiaryInput(subjectId: '', day: '', description: ''));
     registerFallbackValue(mathsEntry);
@@ -40,12 +38,9 @@ void main() {
   setUp(() {
     diary = MockDiaryRepository();
     load = () async => oneSection.choices;
-    subjects = MockSubjectsRepository();
     when(() => diary.ofSection('sec1', '2026-11-17')).thenAnswer((_) async => [mathsEntry, artEntry, noticeEntry]);
-    when(subjects.subjects).thenAnswer((_) async => [maths, art]);
-    getIt
-      ..registerSingleton<DiaryRepository>(diary)
-      ..registerSingleton<SubjectsRepository>(subjects);
+    when(() => diary.subjects('sec1')).thenAnswer((_) async => [maths, art]);
+    getIt.registerSingleton<DiaryRepository>(diary);
   });
   tearDown(getIt.reset);
 
@@ -368,7 +363,7 @@ void main() {
 
     testWidgets('says why the subjects could not be read, and reads them again on Try again', (tester) async {
       var calls = 0;
-      when(subjects.subjects).thenAnswer((_) async {
+      when(() => diary.subjects('sec1')).thenAnswer((_) async {
         if (++calls == 1) throw refusal('SERVER_ERROR', status: 500);
         return [maths, art];
       });
@@ -426,7 +421,7 @@ void main() {
     });
 
     testWidgets('asks for the subject again when the entry’s subject is no longer offered', (tester) async {
-      when(subjects.subjects).thenAnswer((_) async => [art]);
+      when(() => diary.subjects('sec1')).thenAnswer((_) async => [art]);
       await pump(tester);
       await open(tester);
       await tester.tap(find.byKey(const Key('diaryForm.save')));
