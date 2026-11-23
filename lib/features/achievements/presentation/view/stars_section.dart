@@ -86,7 +86,7 @@ class _StarsSectionState extends State<StarsSection> {
               achievementErrorText(l10n, failure),
               key: const Key('stars.failed'),
               // A student outside the teacher's sections does not come back by asking again.
-              actionLabel: failure.code == 'NOT_ASSIGNED' || failure.code == 'FORBIDDEN' ? null : l10n.retry,
+              actionLabel: failure.refused ? null : l10n.retry,
               onAction: () => context.read<AchievementsBloc>().add(
                 const AchievementsStarted(),
               ),

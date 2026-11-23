@@ -105,7 +105,7 @@ class AttendanceView extends StatelessWidget {
       },
       builder: (context, state) => switch (state) {
         AttendanceLoading() => SkeletonCards(semanticLabel: l10n.loading, heights: const [64, 64, 120]),
-        AttendanceFailed(:final failure) when failure.code == 'FORBIDDEN' => StatePanel.forbidden(
+        AttendanceFailed(:final failure) when failure.refused => StatePanel.forbidden(
           key: const Key('attendance.forbidden'),
           title: attendanceErrorText(l10n, failure),
         ),

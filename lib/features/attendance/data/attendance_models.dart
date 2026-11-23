@@ -108,10 +108,7 @@ abstract final class AttendanceModels {
     final count = DateTime(first.year, first.month + 1, 0).day;
     final complete =
         days.length == count &&
-        [
-          for (var i = 0; i < count; i++)
-            if (days[i].day != '$month-${(i + 1).toString().padLeft(2, '0')}') i,
-        ].isEmpty;
+        days.indexed.every((entry) => entry.$2.day == '$month-${(entry.$1 + 1).toString().padLeft(2, '0')}');
     if (!complete) throw FormatException('The days of $month are not every day in order');
   }
 

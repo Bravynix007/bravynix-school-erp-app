@@ -83,6 +83,8 @@ void main() {
       expect(find.text('Absent: 1 day'), findsOneWidget);
       expect(find.text('Partially present: 0 days'), findsOneWidget);
       expect(find.text('Not marked: 2 days'), findsOneWidget);
+      // A day before the student joined is not a colour of the register, so the legend does not name it.
+      expect(find.textContaining('Not enrolled'), findsNothing);
       // The letters of the days that were marked: P, A, L and H, and the days between carry none.
       for (final letter in ['P', 'A', 'L', 'H']) {
         expect(find.text(letter), findsWidgets, reason: letter);
