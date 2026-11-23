@@ -1,5 +1,8 @@
+import 'dart:async';
+
 import 'package:bloc_test/bloc_test.dart';
 import 'package:bravynix_school_erp/core/network/api_failure.dart';
+import 'package:bravynix_school_erp/features/attendance/domain/attendance_calendar.dart';
 import 'package:bravynix_school_erp/features/attendance/presentation/bloc/attendance_calendar_bloc.dart';
 import 'package:bravynix_school_erp/features/attendance/presentation/bloc/day_detail_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -73,6 +76,38 @@ void main() {
         AttendanceCalendarReady(DateTime(2027), november),
       ],
     );
+  });
+
+  group('a slow month', () {
+    test('does not overwrite the month chosen after it, however late its answer comes', () async {
+      final october = Completer<AttendanceCalendar>();
+      when(() => repository.calendar('s1', '2026-10')).thenAnswer((_) => october.future);
+      when(() => repository.calendar('s1', '2026-09')).thenAnswer((_) async => november);
+      final bloc = build();
+      addTearDown(bloc.close);
+      bloc
+        ..add(AttendanceCalendarMonthChosen(DateTime(2026, 10)))
+        ..add(AttendanceCalendarMonthChosen(DateTime(2026, 9)));
+      await bloc.stream.firstWhere((state) => state is AttendanceCalendarReady);
+      october.complete(november);
+      await pumpEventQueue();
+      expect(bloc.state, AttendanceCalendarReady(DateTime(2026, 9), november));
+    });
+
+    test('does not show its failure over the month chosen after it', () async {
+      final october = Completer<AttendanceCalendar>();
+      when(() => repository.calendar('s1', '2026-10')).thenAnswer((_) => october.future);
+      when(() => repository.calendar('s1', '2026-09')).thenAnswer((_) async => november);
+      final bloc = build();
+      addTearDown(bloc.close);
+      bloc
+        ..add(AttendanceCalendarMonthChosen(DateTime(2026, 10)))
+        ..add(AttendanceCalendarMonthChosen(DateTime(2026, 9)));
+      await bloc.stream.firstWhere((state) => state is AttendanceCalendarReady);
+      october.completeError(refusal('OUTSIDE_ACADEMIC_YEAR'));
+      await pumpEventQueue();
+      expect(bloc.state, AttendanceCalendarReady(DateTime(2026, 9), november));
+    });
   });
 
   group('a day', () {
