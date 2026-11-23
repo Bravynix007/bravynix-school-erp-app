@@ -126,3 +126,56 @@ class SchoolEvent extends Equatable {
     version,
   ];
 }
+
+/// What the form of an event holds once it is complete: EVT-02 sends all of it, EVT-04 sends all of it with the version
+/// that was read. The scope is chosen when the event is created and changed by its own action (EVT-06).
+class EventInput extends Equatable {
+  const new({
+    required this.title,
+    required this.startDate,
+    required this.endDate,
+    required this.durationLabel,
+    required this.audience,
+    this.description,
+    this.venue,
+    this.presetImageCode,
+    this.isHoliday = false,
+    this.holidayType,
+    this.holidayForStudents = false,
+    this.holidayForStaff = false,
+    this.holidayClassIds = const [],
+  });
+
+  final String title;
+  final DateTime startDate;
+  final DateTime endDate;
+  final String durationLabel;
+  final EventAudience audience;
+  final String? description;
+  final String? venue;
+  final String? presetImageCode;
+  final bool isHoliday;
+  final HolidayType? holidayType;
+  final bool holidayForStudents;
+  final bool holidayForStaff;
+
+  /// The predefined classes a holiday for students is for; empty is every class.
+  final List<String> holidayClassIds;
+
+  @override
+  List<Object?> get props => [
+    title,
+    startDate,
+    endDate,
+    durationLabel,
+    audience,
+    description,
+    venue,
+    presetImageCode,
+    isHoliday,
+    holidayType,
+    holidayForStudents,
+    holidayForStaff,
+    holidayClassIds,
+  ];
+}

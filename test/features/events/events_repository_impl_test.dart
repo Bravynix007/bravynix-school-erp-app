@@ -67,4 +67,123 @@ void main() {
     final (:repository, adapter: _) = build(() => okReply({...eventJson(), 'audience': 9}));
     await expectLater(repository.event('e1'), throwsA(isA<ApiFailure>()));
   });
+
+  group('writing', () {
+    test('creates an event for the Society, which names no Institution', () async {
+      final (:repository, :adapter) = build(() => okReply(eventJson(), status: 201));
+      await repository.create(planEvent, scope: EventScope.society);
+      final request = adapter.requests.single;
+      expect([request.method, request.uri.path], ['POST', '/v1/events']);
+      expect(bodyOf(request), {
+        'title': 'Sports Day',
+        'startDate': '2026-12-05',
+        'endDate': '2026-12-05',
+        'durationLabel': '1 Day Event',
+        'description': null,
+        'venue': null,
+        'audience': 1,
+        'presetImageCode': null,
+        'isHoliday': false,
+        'holidayType': null,
+        'holidayForStudents': false,
+        'holidayForStaff': false,
+        'holidayPredefinedClassIds': <String>[],
+        'scope': 1,
+      });
+    });
+
+    test('creates an event for an Institution, with a picture and a holiday for some classes', () async {
+      final (:repository, :adapter) = build(() => okReply(eventJson(isHoliday: true), status: 201));
+      final input = EventInput(
+        title: 'Diwali break',
+        startDate: DateTime(2026, 11, 8),
+        endDate: DateTime(2026, 11, 10),
+        durationLabel: '3 Days Holiday',
+        audience: EventAudience.studentsAndParents,
+        description: 'School reopens on the 11th.',
+        venue: 'Campus',
+        presetImageCode: 'festival',
+        isHoliday: true,
+        holidayType: HolidayType.vacation,
+        holidayForStudents: true,
+        holidayClassIds: const ['c1', 'c2'],
+      );
+      await repository.create(input, scope: EventScope.institution, institutionId: 'i1');
+      expect(bodyOf(adapter.requests.single), {
+        'title': 'Diwali break',
+        'startDate': '2026-11-08',
+        'endDate': '2026-11-10',
+        'durationLabel': '3 Days Holiday',
+        'description': 'School reopens on the 11th.',
+        'venue': 'Campus',
+        'audience': 2,
+        'presetImageCode': 'festival',
+        'isHoliday': true,
+        'holidayType': 2,
+        'holidayForStudents': true,
+        'holidayForStaff': false,
+        'holidayPredefinedClassIds': ['c1', 'c2'],
+        'scope': 2,
+        'institutionId': 'i1',
+      });
+    });
+
+    test('a holiday for staff alone names no classes, and a plain event no holiday at all', () async {
+      final (:repository, :adapter) = build(() => okReply(eventJson(), status: 201));
+      final staffHoliday = EventInput(
+        title: 'Staff day',
+        startDate: DateTime(2026, 12, 5),
+        endDate: DateTime(2026, 12, 5),
+        durationLabel: '1 Day Holiday',
+        audience: EventAudience.staff,
+        isHoliday: true,
+        holidayType: HolidayType.optional,
+        holidayForStaff: true,
+        // Left over from a time the holiday was for students: not sent.
+        holidayClassIds: const ['c1'],
+      );
+      await repository.create(staffHoliday, scope: EventScope.society);
+      final body = bodyOf(adapter.requests.single);
+      expect(
+        [body['holidayForStudents'], body['holidayForStaff'], body['holidayPredefinedClassIds']],
+        [false, true, <String>[]],
+      );
+      final plain = EventInput(
+        title: 'Talk',
+        startDate: DateTime(2026, 12, 5),
+        endDate: DateTime(2026, 12, 5),
+        durationLabel: '1 Day Event',
+        audience: EventAudience.everyone,
+        holidayType: HolidayType.vacation,
+        holidayForStudents: true,
+        holidayClassIds: const ['c1'],
+      );
+      await repository.create(plain, scope: EventScope.society);
+      final other = bodyOf(adapter.requests.last);
+      expect(
+        [other['isHoliday'], other['holidayType'], other['holidayForStudents'], other['holidayPredefinedClassIds']],
+        [false, null, false, <String>[]],
+      );
+    });
+
+    test('changes an event with the version that was read, and every field, which clears what is empty', () async {
+      final (:repository, :adapter) = build(() => okReply(eventJson()));
+      await repository.change(schoolEvent(), planEvent);
+      final request = adapter.requests.single;
+      expect([request.method, request.uri.path], ['PATCH', '/v1/events/e1']);
+      final body = bodyOf(request);
+      expect(body['version'], 1);
+      expect(body['title'], 'Sports Day');
+      expect(body.containsKey('description'), isTrue);
+      expect(body['description'], isNull);
+      expect(body.containsKey('scope'), isFalse);
+    });
+
+    test('removes an event', () async {
+      final (:repository, :adapter) = build(() => okReply({'id': 'e1', 'status': 0}));
+      await repository.remove('e1');
+      final request = adapter.requests.single;
+      expect([request.method, request.uri.path], ['DELETE', '/v1/events/e1']);
+    });
+  });
 }

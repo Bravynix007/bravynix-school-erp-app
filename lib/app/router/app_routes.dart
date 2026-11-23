@@ -14,6 +14,10 @@ abstract final class AppRoutes {
   static const events = '/events';
   static const eventPattern = '/events/:id';
 
+  /// The form that adds an event (EVT-02) or changes one (EVT-04), which takes the event to change as the route's
+  /// `extra`. Registered before [eventPattern] so `form` is not read as an id.
+  static const eventForm = '/events/form';
+
   /// One event; a notice says which child it is about with [studentId], so a parent of two reads it for that child.
   static String event(String id, {String? studentId}) =>
       '$events/${Uri.encodeComponent(id)}${studentId == null ? '' : '?studentId=${Uri.encodeQueryComponent(studentId)}'}';

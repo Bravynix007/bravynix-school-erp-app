@@ -32,4 +32,24 @@ class EventsRepositoryImpl implements EventsRepository {
     query: {'studentId': studentId},
     parse: EventModels.event,
   );
+
+  @override
+  Future<SchoolEvent> create(EventInput input, {required EventScope scope, String? institutionId}) => _api.data(
+    'events',
+    method: HttpMethod.post,
+    body: EventModels.createBody(input, scope: scope, institutionId: institutionId),
+    parse: EventModels.event,
+  );
+
+  @override
+  Future<SchoolEvent> change(SchoolEvent event, EventInput input) => _api.data(
+    'events/${Uri.encodeComponent(event.id)}',
+    method: HttpMethod.patch,
+    body: EventModels.changeBody(event, input),
+    parse: EventModels.event,
+  );
+
+  @override
+  Future<void> remove(String id) =>
+      _api.data('events/${Uri.encodeComponent(id)}', method: HttpMethod.delete, parse: (_) {});
 }

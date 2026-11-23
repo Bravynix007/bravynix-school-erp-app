@@ -15,6 +15,7 @@ import 'package:bravynix_school_erp/features/classes/presentation/view/classes_p
 import 'package:bravynix_school_erp/features/classroom/presentation/view/classroom_page.dart';
 import 'package:bravynix_school_erp/features/classroom/presentation/view/classroom_student_page.dart';
 import 'package:bravynix_school_erp/features/diary/presentation/view/diary_page.dart';
+import 'package:bravynix_school_erp/features/events/presentation/view/event_form_page.dart';
 import 'package:bravynix_school_erp/features/events/presentation/view/event_page.dart';
 import 'package:bravynix_school_erp/features/events/presentation/view/events_page.dart';
 import 'package:bravynix_school_erp/features/gallery/presentation/component_gallery_page.dart';
@@ -81,6 +82,10 @@ String? sectionTimetableRedirect(Object? extra) => extra is SectionTimetableArgs
 /// The entry form needs the section and Institution the week passes as `extra`; opened any other way it goes home.
 String? timetableEntryFormRedirect(Object? extra) => extra is EntryFormArgs ? null : AppRoutes.home;
 
+/// The event form needs the event to change, or none to add, which the screen behind it hands over; opened any other way
+/// it goes back to the events, so an Edit that lost its event cannot open as an Add.
+String? eventFormRedirect(Object? extra) => extra is EventFormArgs ? null : AppRoutes.events;
+
 /// The class forms need the Institution the list passes as `extra`; opened any other way they go back to the list.
 String? classFormRedirect(Object? extra) => extra is ClassFormArgs ? null : AppRoutes.classes;
 
@@ -146,6 +151,11 @@ GoRouter createRouter(SessionBloc session, {required SessionChanges changes}) {
       GoRoute(path: AppRoutes.profile, builder: (_, _) => const ProfilePage()),
       GoRoute(path: AppRoutes.inbox, builder: (_, _) => const InboxPage()),
       GoRoute(path: AppRoutes.events, builder: (_, _) => const EventsPage()),
+      GoRoute(
+        path: AppRoutes.eventForm,
+        redirect: (_, state) => eventFormRedirect(state.extra),
+        builder: (_, state) => EventFormPage(args: state.extra! as EventFormArgs),
+      ),
       GoRoute(
         path: AppRoutes.eventPattern,
         builder: (_, state) =>

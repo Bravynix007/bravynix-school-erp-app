@@ -1,6 +1,7 @@
 import 'package:bravynix_school_erp/app/di/injection.dart';
 import 'package:bravynix_school_erp/app/router/app_routes.dart';
 import 'package:bravynix_school_erp/core/theme/app_spacing.dart';
+import 'package:bravynix_school_erp/core/widgets/app_button.dart';
 import 'package:bravynix_school_erp/core/widgets/app_segmented_control.dart';
 import 'package:bravynix_school_erp/core/widgets/app_top_bar.dart';
 import 'package:bravynix_school_erp/core/widgets/date_badge_card.dart';
@@ -16,6 +17,7 @@ import 'package:bravynix_school_erp/features/children/presentation/view/child_pa
 import 'package:bravynix_school_erp/features/events/domain/event.dart';
 import 'package:bravynix_school_erp/features/events/domain/events_repository.dart';
 import 'package:bravynix_school_erp/features/events/presentation/bloc/events_bloc.dart';
+import 'package:bravynix_school_erp/features/events/presentation/view/event_form_page.dart';
 import 'package:bravynix_school_erp/l10n/gen/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -32,7 +34,10 @@ class EventsPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
-    final parent = context.read<SessionBloc>().state.activeRole == RoleCode.studentParent;
+    final role = context.read<SessionBloc>().state.activeRole;
+    final parent = role == RoleCode.studentParent;
+    // An Owner and an Admin add events; each event says whether the person may change it.
+    final canAdd = role == RoleCode.societyOwner || role == RoleCode.institutionAdmin;
     return Scaffold(
       body: Column(
         children: [
@@ -55,7 +60,7 @@ class EventsPage extends StatelessWidget {
                     create: (_) =>
                         EventsBloc(getIt<EventsRepository>(), today: clock(), studentId: studentId)
                           ..add(const EventsRequested()),
-                    child: const EventsView(),
+                    child: EventsView(canAdd: canAdd),
                   ),
                 );
               },
@@ -68,7 +73,16 @@ class EventsPage extends StatelessWidget {
 }
 
 class EventsView extends StatelessWidget {
-  const new({super.key});
+  const new({this.canAdd = false, super.key});
+
+  /// Whether the person may add events.
+  final bool canAdd;
+
+  Future<void> _add(BuildContext context) async {
+    final bloc = context.read<EventsBloc>();
+    final saved = await context.push<bool>(AppRoutes.eventForm, extra: const EventFormArgs());
+    if (saved ?? false) bloc.add(const EventsRequested());
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -93,6 +107,17 @@ class EventsView extends StatelessWidget {
               onChanged: (holidaysOnly) => bloc.add(EventsHolidaysOnlyChosen(holidaysOnly: holidaysOnly)),
             ),
           ),
+          if (canAdd)
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.screenMargin, vertical: AppSpacing.xs),
+              child: AppButton(
+                key: const Key('events.add'),
+                label: l10n.eventAdd,
+                icon: Icons.add,
+                variant: AppButtonVariant.secondary,
+                onPressed: () => _add(context),
+              ),
+            ),
           const SizedBox(height: AppSpacing.xs),
           Expanded(
             child: switch (state) {
@@ -120,7 +145,7 @@ class EventsView extends StatelessWidget {
                 ),
                 children: [
                   for (final event in events) ...[
-                    _EventCard(event: event),
+                    _EventCard(event: event, onOpened: canAdd ? () => bloc.add(const EventsRequested()) : null),
                     const SizedBox(height: AppSpacing.xs),
                   ],
                 ],
@@ -134,9 +159,12 @@ class EventsView extends StatelessWidget {
 }
 
 class _EventCard extends StatelessWidget {
-  const new({required this.event});
+  const new({required this.event, this.onOpened});
 
   final SchoolEvent event;
+
+  /// Said when the event's screen closes: the person who can change events reads the list again.
+  final VoidCallback? onOpened;
 
   @override
   Widget build(BuildContext context) {
@@ -148,7 +176,10 @@ class _EventCard extends StatelessWidget {
       title: event.title,
       subtitle: note,
       trailing: event.isHoliday ? StatusChip(label: l10n.eventHolidayTag, tone: StatusTone.info) : null,
-      onTap: () => context.push(AppRoutes.event(event.id)),
+      onTap: () async {
+        await context.push<bool>(AppRoutes.event(event.id));
+        onOpened?.call();
+      },
     );
   }
 }
