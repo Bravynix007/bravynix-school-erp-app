@@ -652,6 +652,37 @@ void main() {
       },
     );
 
+    testWidgets('an alert tapped while the role chooser is showing waits for the role, and is not lost', (
+      tester,
+    ) async {
+      final taps = StreamController<String>();
+      addTearDown(taps.close);
+      await start(
+        tester,
+        tokens: tokens,
+        reply: (path) async => switch (path) {
+          'auth/context' => okReply({'accessToken': 'a2', 'activeContext': _owner('s2')}),
+          'society/access-blocks' => okReply([]),
+          'notifications' => okReply([], meta: {'limit': 20, 'nextCursor': null, 'hasMore': false}),
+          'me/push-device' => okReply(null),
+          _ => okReply({
+            'person': {'id': 'p1', 'email': 'asha.rao@example.com', 'firstName': 'Asha', 'preferredLanguage': 'en'},
+            'contexts': [_owner('s1', name: 'North Trust'), _owner('s2', name: 'South Trust')],
+          }),
+        },
+        push: _FakePush('tok-1', const Stream.empty(), screenTaps: taps.stream),
+      );
+      expect(find.text('Choose a role'), findsOneWidget);
+
+      taps.add('inbox');
+      await tester.pumpAndSettle();
+      expect(find.text('Nothing here yet'), findsNothing);
+
+      await tester.tap(find.text('South Trust'));
+      await tester.pumpAndSettle();
+      expect(find.text('Nothing here yet'), findsOneWidget);
+    });
+
     testWidgets('an alert that names a screen the app does not know opens nothing', (tester) async {
       final taps = StreamController<String>();
       addTearDown(taps.close);
