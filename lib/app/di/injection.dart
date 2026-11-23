@@ -6,6 +6,7 @@ import 'package:bravynix_school_erp/core/l10n/app_language.dart';
 import 'package:bravynix_school_erp/core/network/api_client.dart';
 import 'package:bravynix_school_erp/core/network/api_events.dart';
 import 'package:bravynix_school_erp/core/network/dio_factory.dart';
+import 'package:bravynix_school_erp/core/storage/accent_choice_store.dart';
 import 'package:bravynix_school_erp/core/storage/child_choice_store.dart';
 import 'package:bravynix_school_erp/core/storage/install_marker.dart';
 import 'package:bravynix_school_erp/core/storage/institution_choice_store.dart';
@@ -152,6 +153,7 @@ Future<void> configureDependencies(
     ..registerLazySingleton<InstitutionsRepository>(() => InstitutionsRepositoryImpl(api: getIt()))
     ..registerLazySingleton<InstitutionChoiceStore>(PreferencesInstitutionChoiceStore.new)
     ..registerLazySingleton<ChildChoiceStore>(PreferencesChildChoiceStore.new)
+    ..registerLazySingleton<AccentChoiceStore>(PreferencesAccentChoiceStore.new)
     ..registerLazySingleton<MastersRepository>(() => MastersRepositoryImpl(api: getIt()))
     ..registerLazySingleton<PlatformDuesRepository>(() => PlatformDuesRepositoryImpl(api: getIt()));
 }

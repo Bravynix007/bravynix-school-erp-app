@@ -1,8 +1,10 @@
 import 'package:bloc_test/bloc_test.dart';
 import 'package:bravynix_school_erp/app/router/app_routes.dart';
+import 'package:bravynix_school_erp/core/storage/accent_choice_store.dart';
 import 'package:bravynix_school_erp/features/auth/domain/auth_entities.dart';
 import 'package:bravynix_school_erp/features/auth/presentation/session/session_bloc.dart';
 import 'package:bravynix_school_erp/features/profile/presentation/profile_page.dart';
+import 'package:bravynix_school_erp/features/theme/presentation/bloc/accent_bloc.dart';
 import 'package:bravynix_school_erp/l10n/gen/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -21,11 +23,18 @@ void main() {
   setUpAll(() => registerFallbackValue(const SessionStarted()));
   setUp(() => session = _MockSessionBloc());
 
-  Future<void> pump(WidgetTester tester, AuthSession value, {double textScale = 1}) {
+  Future<void> pump(WidgetTester tester, AuthSession value, {double textScale = 1, Size size = const Size(320, 1000)}) {
     when(() => session.state).thenReturn(SessionAuthenticated(value));
     return tester.pumpAppScaled(
-      BlocProvider<SessionBloc>.value(value: session, child: const ProfilePage()),
+      MultiBlocProvider(
+        providers: [
+          BlocProvider<SessionBloc>.value(value: session),
+          BlocProvider(create: (_) => AccentBloc(InMemoryAccentChoiceStore())),
+        ],
+        child: const ProfilePage(),
+      ),
       textScale: textScale,
+      size: size,
     );
   }
 
@@ -47,6 +56,12 @@ void main() {
       ),
     );
     expect(find.text('new.owner@two-worlds.test'), findsNWidgets(2));
+  });
+
+  testWidgets('offers the theme colours to every role', (tester) async {
+    await pump(tester, testSession);
+    expect(find.text('Theme colour'), findsOneWidget);
+    expect(find.byKey(const Key('accent.teal')), findsOneWidget);
   });
 
   testWidgets('has no Switch role with a single role', (tester) async {
@@ -136,7 +151,13 @@ void main() {
         routes: [
           GoRoute(
             path: '/',
-            builder: (_, _) => BlocProvider<SessionBloc>.value(value: session, child: const ProfilePage()),
+            builder: (_, _) => MultiBlocProvider(
+              providers: [
+                BlocProvider<SessionBloc>.value(value: session),
+                BlocProvider(create: (_) => AccentBloc(InMemoryAccentChoiceStore())),
+              ],
+              child: const ProfilePage(),
+            ),
           ),
           for (final path in [AppRoutes.classroom, AppRoutes.ownStaffRecord])
             GoRoute(path: path, builder: (_, _) => Text('went to $path')),
@@ -186,7 +207,7 @@ void main() {
   });
 
   testWidgets('is usable at a large text scale on a small phone', (tester) async {
-    await pump(tester, twoRoleSession.withActiveContext(ownerNorth), textScale: 2);
+    await pump(tester, twoRoleSession.withActiveContext(ownerNorth), textScale: 2, size: const Size(320, 640));
     expect(tester.takeException(), isNull);
     await tester.scrollUntilVisible(find.byKey(const Key('profile.logOut')), 100);
   });

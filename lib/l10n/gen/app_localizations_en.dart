@@ -509,6 +509,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get profileSociety => 'Society';
 
   @override
+  String get themeColour => 'Theme colour';
+
+  @override
   String get switchRole => 'Switch role';
 
   @override

@@ -6,6 +6,7 @@ import 'package:bravynix_school_erp/app/router/app_routes.dart';
 import 'package:bravynix_school_erp/core/l10n/app_language.dart';
 import 'package:bravynix_school_erp/core/network/api_events.dart';
 import 'package:bravynix_school_erp/core/network/api_failure.dart';
+import 'package:bravynix_school_erp/core/storage/accent_choice_store.dart';
 import 'package:bravynix_school_erp/core/storage/child_choice_store.dart';
 import 'package:bravynix_school_erp/core/theme/app_theme.dart';
 import 'package:bravynix_school_erp/core/widgets/app_snackbar.dart';
@@ -15,6 +16,7 @@ import 'package:bravynix_school_erp/features/auth/presentation/session/session_b
 import 'package:bravynix_school_erp/features/children/presentation/bloc/active_child_bloc.dart';
 import 'package:bravynix_school_erp/features/push/domain/push_messaging.dart';
 import 'package:bravynix_school_erp/features/push/domain/push_registrar.dart';
+import 'package:bravynix_school_erp/features/theme/presentation/bloc/accent_bloc.dart';
 import 'package:bravynix_school_erp/l10n/gen/app_localizations.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -41,6 +43,8 @@ class App extends StatelessWidget {
         BlocProvider(create: (_) => SessionBloc(getIt<AuthRepository>())..add(const SessionStarted())),
         // Above the router, so every screen a parent opens reads the same child.
         BlocProvider(create: (_) => ActiveChildBloc(getIt<ChildChoiceStore>())),
+        // Above the router too: the accent colour is the theme of every screen, signed in or not.
+        BlocProvider(create: (_) => AccentBloc(getIt<AccentChoiceStore>())..add(const AccentStarted())),
       ],
       child: const AppView(),
     );
@@ -104,7 +108,7 @@ class _AppViewState extends State<AppView> {
         valueListenable: getIt<AppLanguage>(),
         builder: (context, language, _) => MaterialApp.router(
           onGenerateTitle: (context) => AppLocalizations.of(context).appName,
-          theme: AppTheme.light(),
+          theme: AppTheme.light(accent: context.watch<AccentBloc>().state.accent),
           routerConfig: _router,
           locale: Locale(language),
           localizationsDelegates: AppLocalizations.localizationsDelegates,

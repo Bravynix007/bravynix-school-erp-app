@@ -6,6 +6,7 @@ import 'package:bravynix_school_erp/app/di/injection.dart';
 import 'package:bravynix_school_erp/core/device/app_device.dart';
 import 'package:bravynix_school_erp/core/storage/install_marker.dart';
 import 'package:bravynix_school_erp/core/storage/token_storage.dart';
+import 'package:bravynix_school_erp/core/theme/app_colors.dart';
 import 'package:bravynix_school_erp/features/push/domain/push_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -94,6 +95,45 @@ void main() {
     // An Owner's home also asks what is blocked in the Society (SOC-02), and how many notices are unread (NTF-02).
     expect(adapter.paths, unorderedEquals(['/v1/me', '/v1/society/access-blocks', '/v1/notifications/unread-count']));
     expect(find.text('Welcome, Asha'), findsOneWidget);
+  });
+
+  testWidgets('the accent picked in Profile colours the app at once and is the one it opens in next time', (
+    tester,
+  ) async {
+    const tokens = AuthTokens(accessToken: 'a', refreshToken: 'r');
+    Future<FakeReply> reply(String path) async => path == 'society/access-blocks'
+        ? okReply([])
+        : okReply({
+            'person': {'id': 'p1', 'email': 'asha.rao@example.com', 'firstName': 'Asha', 'preferredLanguage': 'en'},
+            'contexts': [_owner('s1')],
+          });
+    Color primary() => Theme.of(tester.element(find.byType(Scaffold).first)).colorScheme.primary;
+
+    await start(tester, tokens: tokens, reply: reply);
+    expect(primary(), AppAccent.teal.primary);
+
+    await tester.tap(find.byKey(const Key('home.profile')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('accent.royalPurple')));
+    await tester.pumpAndSettle();
+    expect(primary(), AppAccent.royalPurple.primary);
+
+    // A new start of the app, with the same preferences.
+    await tester.pumpWidget(const SizedBox());
+    await getIt.reset();
+    await configureDependencies(
+      config,
+      device: device,
+      tokens: InMemoryTokenStorage(tokens),
+      installMarker: InMemoryInstallMarker(started: true),
+      httpAdapter: FakeHttpAdapter(
+        (options) =>
+            options.path == 'notifications/unread-count' ? Future.value(okReply({'count': 0})) : reply(options.path),
+      ),
+    );
+    await tester.pumpWidget(const App());
+    await tester.pumpAndSettle();
+    expect(primary(), AppAccent.royalPurple.primary);
   });
 
   testWidgets('a parent opens on their first child and can switch to a sibling, and logging out clears it', (

@@ -943,6 +943,12 @@ abstract class AppLocalizations {
   /// **'Society'**
   String get profileSociety;
 
+  /// No description provided for @themeColour.
+  ///
+  /// In en, this message translates to:
+  /// **'Theme colour'**
+  String get themeColour;
+
   /// No description provided for @switchRole.
   ///
   /// In en, this message translates to:
