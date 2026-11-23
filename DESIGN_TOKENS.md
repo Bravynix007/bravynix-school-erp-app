@@ -30,7 +30,7 @@ Status and attendance colours are fixed. They never follow the accent.
 ## Accents (`AppAccent`)
 
 The only themed colour: primary buttons, accent text, tonal fills (selected chips, the attendance control, the nav indicator), the active tab and the focus ring. The accent header comes with the module-header widget. White text
-on each passes WCAG AA (4.5:1). `AppTheme.light(accent: ...)` takes it as a parameter.
+on each passes WCAG AA (4.5:1). `AppTheme.light(accent: ...)` takes it as a parameter. The person picks it in Profile (seven 40 px swatches, the chosen one with a check and an ink ring); it is kept on the phone and BravyNix Teal is the default.
 
 | Accent | Value |
 | --- | --- |
@@ -73,7 +73,6 @@ License; static files so the phone's Bold Text setting and bold spans pick the r
 ## Not yet
 
 - Dark mode. Tokens are named by job, so a dark set can be added without renaming anything.
-- The accent picker screen and saving the choice on the device (with the Profile feature).
 
 ## Shared widgets (`lib/core/widgets/`)
 

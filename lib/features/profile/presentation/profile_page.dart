@@ -8,12 +8,13 @@ import 'package:bravynix_school_erp/core/widgets/menu_list_tile.dart';
 import 'package:bravynix_school_erp/features/auth/domain/auth_entities.dart';
 import 'package:bravynix_school_erp/features/auth/presentation/role/role_titles.dart';
 import 'package:bravynix_school_erp/features/auth/presentation/session/session_bloc.dart';
+import 'package:bravynix_school_erp/features/theme/presentation/accent_picker.dart';
 import 'package:bravynix_school_erp/l10n/gen/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
-/// Profile (PRD 6.3): who is signed in, the role in use, switching role, log out.
+/// Profile (PRD 6.3): who is signed in, the role in use, the theme colour, switching role, log out.
 class ProfilePage extends StatelessWidget {
   const new({super.key});
 
@@ -53,6 +54,8 @@ class ProfilePage extends StatelessWidget {
                     ],
                   ),
                 ),
+                const SizedBox(height: AppSpacing.md),
+                const AccentPicker(),
                 const SizedBox(height: AppSpacing.md),
                 if (session.contexts.length > 1)
                   MenuListTile(

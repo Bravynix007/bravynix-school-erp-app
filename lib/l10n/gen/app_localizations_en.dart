@@ -509,6 +509,30 @@ class AppLocalizationsEn extends AppLocalizations {
   String get profileSociety => 'Society';
 
   @override
+  String get themeColour => 'Theme colour';
+
+  @override
+  String get accentTeal => 'BravyNix Teal';
+
+  @override
+  String get accentForestGreen => 'Forest Green';
+
+  @override
+  String get accentRoyalPurple => 'Royal Purple';
+
+  @override
+  String get accentSteelBlue => 'Steel Blue';
+
+  @override
+  String get accentRosePink => 'Rose Pink';
+
+  @override
+  String get accentSunsetOrange => 'Sunset Orange';
+
+  @override
+  String get accentDarkCyan => 'Dark Cyan';
+
+  @override
   String get switchRole => 'Switch role';
 
   @override

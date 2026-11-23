@@ -943,6 +943,54 @@ abstract class AppLocalizations {
   /// **'Society'**
   String get profileSociety;
 
+  /// No description provided for @themeColour.
+  ///
+  /// In en, this message translates to:
+  /// **'Theme colour'**
+  String get themeColour;
+
+  /// No description provided for @accentTeal.
+  ///
+  /// In en, this message translates to:
+  /// **'BravyNix Teal'**
+  String get accentTeal;
+
+  /// No description provided for @accentForestGreen.
+  ///
+  /// In en, this message translates to:
+  /// **'Forest Green'**
+  String get accentForestGreen;
+
+  /// No description provided for @accentRoyalPurple.
+  ///
+  /// In en, this message translates to:
+  /// **'Royal Purple'**
+  String get accentRoyalPurple;
+
+  /// No description provided for @accentSteelBlue.
+  ///
+  /// In en, this message translates to:
+  /// **'Steel Blue'**
+  String get accentSteelBlue;
+
+  /// No description provided for @accentRosePink.
+  ///
+  /// In en, this message translates to:
+  /// **'Rose Pink'**
+  String get accentRosePink;
+
+  /// No description provided for @accentSunsetOrange.
+  ///
+  /// In en, this message translates to:
+  /// **'Sunset Orange'**
+  String get accentSunsetOrange;
+
+  /// No description provided for @accentDarkCyan.
+  ///
+  /// In en, this message translates to:
+  /// **'Dark Cyan'**
+  String get accentDarkCyan;
+
   /// No description provided for @switchRole.
   ///
   /// In en, this message translates to:
