@@ -108,7 +108,8 @@ class _DiaryFormState extends State<DiaryForm> {
         DiaryFormLoadFailed(:final failure) => InlineMessage.error(
           diaryErrorText(l10n, failure),
           key: const Key('diaryForm.loadFailed'),
-          actionLabel: l10n.retry,
+          // A refusal gives the same answer again, so there is nothing to retry.
+          actionLabel: failure.refused ? null : l10n.retry,
           onAction: () => context.read<DiaryFormBloc>().add(const DiaryFormStarted()),
         ),
         DiaryFormEditing() => _form(context, l10n, state),

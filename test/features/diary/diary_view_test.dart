@@ -117,6 +117,13 @@ void main() {
       expect(find.byKey(const Key('diary.forbidden')), findsOneWidget);
     });
 
+    testWidgets('says the same for any other refusal, which Try again cannot cure', (tester) async {
+      load = () async => throw refusal('NOT_ASSIGNED', status: 403);
+      await pump(tester);
+      expect(find.byKey(const Key('diary.forbidden')), findsOneWidget);
+      expect(find.text('Try again'), findsNothing);
+    });
+
     testWidgets('says why it could not read, and reads again on Try again', (tester) async {
       var calls = 0;
       load = () async {
@@ -359,6 +366,14 @@ void main() {
         findsOneWidget,
       );
       expect(find.text('Bring crayons tomorrow.'), findsOneWidget);
+    });
+
+    testWidgets('offers no Try again for subjects it was refused, which asking again does not change', (tester) async {
+      when(subjects.subjects).thenThrow(refusal('NOT_ASSIGNED', status: 403));
+      await pump(tester);
+      await open(tester);
+      expect(find.byKey(const Key('diaryForm.loadFailed')), findsOneWidget);
+      expect(find.text('Try again'), findsNothing);
     });
 
     testWidgets('says why the subjects could not be read, and reads them again on Try again', (tester) async {

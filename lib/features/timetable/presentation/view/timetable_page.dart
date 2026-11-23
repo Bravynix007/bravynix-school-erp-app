@@ -193,7 +193,7 @@ class TimetableView extends StatelessWidget {
           AppSnackbar.show(context, message: l10n.timetableEntryDeleted, kind: AppSnackbarKind.success),
       builder: (context, state) => switch (state) {
         ListLoading<TimetableEntry>() => SkeletonCards(semanticLabel: l10n.loading, heights: const [72, 72, 72]),
-        ListFailed<TimetableEntry>(:final failure) when failure.code == 'FORBIDDEN' => StatePanel.forbidden(
+        ListFailed<TimetableEntry>(:final failure) when failure.refused => StatePanel.forbidden(
           key: const Key('timetable.forbidden'),
           title: timetableErrorText(l10n, failure),
         ),
