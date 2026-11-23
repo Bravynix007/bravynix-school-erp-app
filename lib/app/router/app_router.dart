@@ -188,7 +188,10 @@ GoRouter createRouter(SessionBloc session, {required SessionChanges changes}) {
         redirect: (_, state) => studentAttendanceRedirect(state.extra),
         builder: (_, state) => StudentAttendancePage(args: state.extra! as StudentAttendanceArgs),
       ),
-      GoRoute(path: AppRoutes.diary, builder: (_, _) => const DiaryPage()),
+      GoRoute(
+        path: AppRoutes.diary,
+        builder: (_, state) => DiaryPage(day: state.uri.queryParameters['day']),
+      ),
       GoRoute(path: AppRoutes.timetable, builder: (_, _) => const TimetablePage()),
       GoRoute(
         path: AppRoutes.sectionTimetable,

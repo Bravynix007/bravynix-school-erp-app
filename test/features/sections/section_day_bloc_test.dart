@@ -98,6 +98,28 @@ void main() {
     );
   });
 
+  group('a diary opened from a notice', () {
+    blocTest<SectionDayBloc, SectionDayState>(
+      'opens on the day the notice names',
+      build: () => SectionDayBloc.dayOnly(clock: clock, day: '2026-11-12'),
+      act: (bloc) => bloc.add(const SectionDayStarted()),
+      expect: () => [
+        const SectionDayLoading(),
+        const SectionDayReady(classes: [], sections: [], today: '2026-11-17', day: '2026-11-12'),
+      ],
+    );
+
+    blocTest<SectionDayBloc, SectionDayState>(
+      'opens on today when the day named has not come yet, which cannot be chosen',
+      build: () => SectionDayBloc.dayOnly(clock: clock, day: '2026-11-18'),
+      act: (bloc) => bloc.add(const SectionDayStarted()),
+      expect: () => [
+        const SectionDayLoading(),
+        const SectionDayReady(classes: [], sections: [], today: '2026-11-17', day: '2026-11-17'),
+      ],
+    );
+  });
+
   group("opened on a register from a student's calendar", () {
     blocTest<SectionDayBloc, SectionDayState>(
       'chooses its class, section and day at once',
