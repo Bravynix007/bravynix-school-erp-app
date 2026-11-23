@@ -193,16 +193,27 @@ void main() {
     testWidgets('say why they could not be read, and read again on Try again', (tester) async {
       var calls = 0;
       when(() => diary.ofSection('sec1', '2026-11-17')).thenAnswer((_) async {
-        if (++calls == 1) throw refusal('NOT_ASSIGNED', status: 403);
+        if (++calls == 1) throw const ApiFailure(statusCode: 500, code: 'INTERNAL_ERROR', message: 'server words');
         return [mathsEntry];
       });
       await pump(tester);
       expect(find.byKey(const Key('diary.entriesFailed')), findsOneWidget);
-      expect(find.text('You can read the diary of a section you lead or teach.'), findsOneWidget);
       await tester.tap(find.text('Try again'));
       await tester.pumpAndSettle();
       expect(find.text('Mathematics'), findsOneWidget);
     });
+
+    for (final code in ['NOT_ASSIGNED', 'CHILD_ACCESS_BLOCKED']) {
+      testWidgets('say why on a 403 $code, with no Try again that could only be refused again', (tester) async {
+        when(() => diary.ofSection('sec1', '2026-11-17')).thenThrow(refusal(code, status: 403));
+        await pump(tester);
+        expect(find.byKey(const Key('diary.entriesFailed')), findsOneWidget);
+        if (code == 'NOT_ASSIGNED') {
+          expect(find.text('You can read the diary of a section you lead or teach.'), findsOneWidget);
+        }
+        expect(find.text('Try again'), findsNothing);
+      });
+    }
 
     testWidgets('read whole at a large text scale on a small phone', (tester) async {
       await pump(tester, textScale: 2, size: const Size(320, 640));
