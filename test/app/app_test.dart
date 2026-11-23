@@ -29,15 +29,27 @@ Map<String, Object?> _owner(String societyId, {String? name}) => {
 };
 
 class _FakePush implements PushMessaging {
-  const new(this._token, this.tokenRefreshes);
+  const new(
+    this._token,
+    this.tokenRefreshes, {
+    this.screenTaps = const Stream.empty(),
+    this.launch,
+  });
 
   final String _token;
+  final String? launch;
 
   @override
   final Stream<String> tokenRefreshes;
 
   @override
+  final Stream<String> screenTaps;
+
+  @override
   Future<String?> token() async => _token;
+
+  @override
+  Future<String?> launchScreen() async => launch;
 }
 
 void main() {
@@ -523,6 +535,51 @@ void main() {
       refreshes.add('tok-2');
       await tester.pumpAndSettle();
       expect(adapter.paths, isNot(contains('/v1/me/push-device')));
+    });
+
+    testWidgets('tapping an alert while the app is open opens the inbox above the home', (tester) async {
+      final taps = StreamController<String>();
+      addTearDown(taps.close);
+      await start(
+        tester,
+        tokens: tokens,
+        reply: owner,
+        push: _FakePush('tok-1', const Stream.empty(), screenTaps: taps.stream),
+      );
+      expect(find.text('Nothing here yet'), findsNothing);
+
+      taps.add('inbox');
+      await tester.pumpAndSettle();
+      expect(find.text('Nothing here yet'), findsOneWidget);
+
+      await tester.tap(find.byType(BackButton).evaluate().isEmpty ? find.byTooltip('Back') : find.byType(BackButton));
+      await tester.pumpAndSettle();
+      expect(find.byKey(const Key('home.bell')), findsOneWidget);
+    });
+
+    testWidgets('an alert that started the app opens the inbox once the person is signed in', (tester) async {
+      await start(
+        tester,
+        tokens: tokens,
+        reply: owner,
+        push: const _FakePush('tok-1', Stream.empty(), launch: 'inbox'),
+      );
+      expect(find.text('Nothing here yet'), findsOneWidget);
+    });
+
+    testWidgets('an alert that names a screen the app does not know opens nothing', (tester) async {
+      final taps = StreamController<String>();
+      addTearDown(taps.close);
+      await start(
+        tester,
+        tokens: tokens,
+        reply: owner,
+        push: _FakePush('tok-1', const Stream.empty(), screenTaps: taps.stream),
+      );
+      taps.add('somewhere-new');
+      await tester.pumpAndSettle();
+      expect(find.byKey(const Key('home.bell')), findsOneWidget);
+      expect(find.text('Nothing here yet'), findsNothing);
     });
 
     testWidgets('with no push token from the phone, nothing is registered', (tester) async {

@@ -25,6 +25,13 @@ val releaseKeyPassword = signingValue("keyPassword", "ANDROID_KEY_PASSWORD")
 val hasReleaseKey =
     listOf(releaseStoreFile, releaseStorePassword, releaseKeyAlias, releaseKeyPassword).all { it != null }
 
+// google-services.json is not committed (README, Firebase): it sits in app/ or in a flavor's folder
+// (app/src/dev, app/src/staging, app/src/prod). A build without it still runs, with no push; a prod release refuses.
+val hasFirebaseConfig =
+    file("google-services.json").exists() ||
+        listOf("dev", "staging", "prod").any { file("src/$it/google-services.json").exists() }
+if (hasFirebaseConfig) apply(plugin = "com.google.gms.google-services")
+
 android {
     namespace = "com.bravynix.schoolerp"
     compileSdk = flutter.compileSdkVersion
@@ -95,6 +102,11 @@ android {
 // AAB is ever written: a check in the tasks themselves ran after the bundle was packaged and signed.
 gradle.taskGraph.whenReady {
     val buildsProdRelease = allTasks.any { it.project == project && it.name.contains("ProdRelease") }
+    if (buildsProdRelease && !file("src/prod/google-services.json").exists() && !file("google-services.json").exists()) {
+        throw GradleException(
+            "A prod release needs the Firebase file: google-services.json in android/app/src/prod (README, Firebase).",
+        )
+    }
     if (buildsProdRelease && !hasReleaseKey) {
         throw GradleException(
             "A prod release needs the release key: storeFile, storePassword, keyAlias and keyPassword " +
