@@ -41,13 +41,16 @@ enum NotificationTargetType {
 }
 
 class NotificationTarget extends Equatable {
-  const new({required this.type, required this.id});
+  const new({required this.type, required this.id, this.day});
 
   final NotificationTargetType type;
   final String id;
 
+  /// The day the screen opens on (`YYYY-MM-DD`), for a notice about a day: the date of a diary entry.
+  final String? day;
+
   @override
-  List<Object?> get props => [type, id];
+  List<Object?> get props => [type, id, day];
 }
 
 /// What kind of notice it is, for its icon: attendance, diary, event, or anything else the server adds (API design 5.2).

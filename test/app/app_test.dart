@@ -337,10 +337,23 @@ void main() {
       'isBlocked': false,
     };
 
-    for (final (name, type, path, shows) in [
-      ('an absent alert opens the attendance calendar', 1, 'students/s2/attendance', '66.67%'),
-      ('a diary entry opens the diary', 2, 'diary-entries', 'Exercise 4.2, questions 1 to 5.'),
-    ]) {
+    for (final (name, target, path, shows, asks)
+        in <(String, Map<String, Object?>, String, String, Map<String, String>)>[
+          (
+            'an absent alert opens the attendance calendar',
+            {'type': 1, 'id': 'x1'},
+            'students/s2/attendance',
+            '66.67%',
+            {},
+          ),
+          (
+            'a diary entry opens the diary on the day it is for',
+            {'type': 2, 'id': 'x1', 'date': '2026-11-10'},
+            'diary-entries',
+            'Exercise 4.2, questions 1 to 5.',
+            {'studentId': 's2', 'date': '2026-11-10'},
+          ),
+        ]) {
       testWidgets(name, (tester) async {
         final adapter = await start(
           tester,
@@ -348,7 +361,7 @@ void main() {
           reply: (requested) async => switch (requested) {
             'notifications' => okReply(
               [
-                inboxItemJson(target: {'type': type, 'id': 'x1'})..['studentId'] = 's2',
+                inboxItemJson(target: target)..['studentId'] = 's2',
               ],
               meta: {'limit': 20, 'nextCursor': null, 'hasMore': false},
             ),
@@ -377,6 +390,9 @@ void main() {
         expect(find.text('Arun'), findsOneWidget);
         expect(adapter.requests.last.uri.path, '/v1/$path');
         expect(adapter.requests.last.uri.queryParameters['studentId'] ?? 's2', 's2');
+        for (final MapEntry(:key, :value) in asks.entries) {
+          expect(adapter.requests.last.uri.queryParameters[key], value, reason: key);
+        }
       });
     }
   });

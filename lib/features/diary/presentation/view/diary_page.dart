@@ -34,10 +34,13 @@ import 'package:go_router/go_router.dart';
 /// "Diary" (API design 10.14a): an Owner, an Admin or a teacher reads the diary of a section for a day under the
 /// Institution switcher, and writes it; a parent reads the diary of the child shown at the top, and nothing else.
 class DiaryPage extends StatelessWidget {
-  const new({this.clock = DateTime.now, super.key});
+  const new({this.clock = DateTime.now, this.day, super.key});
 
   /// What "today" is: the school day it falls on in IST, as everywhere in the app.
   final DateTime Function() clock;
+
+  /// The day a parent's diary opens on (`YYYY-MM-DD`), when a notice about an entry says so; today otherwise.
+  final String? day;
 
   @override
   Widget build(BuildContext context) {
@@ -69,7 +72,8 @@ class DiaryPage extends StatelessWidget {
                                 create: (_) => DiaryBloc(getIt<DiaryRepository>(), studentId: child.selected.studentId),
                               ),
                               BlocProvider(
-                                create: (_) => SectionDayBloc.dayOnly(clock: clock)..add(const SectionDayStarted()),
+                                create: (_) =>
+                                    SectionDayBloc.dayOnly(clock: clock, day: day)..add(const SectionDayStarted()),
                               ),
                             ],
                             child: SectionDayListener(
@@ -254,8 +258,10 @@ class _Screen extends StatelessWidget {
           StatePanel.error(
             key: const Key('diary.entriesFailed'),
             title: diaryErrorText(l10n, failure),
-            actionLabel: l10n.retry,
-            onAction: () => context.read<DiaryBloc>().add(const DiaryReloaded()),
+            // A refusal (403: a blocked child, a section the person does not lead or teach) gives the same answer
+            // again, so there is nothing to retry.
+            actionLabel: failure.refused ? null : l10n.retry,
+            onAction: failure.refused ? null : () => context.read<DiaryBloc>().add(const DiaryReloaded()),
           ),
         ];
       case DiaryBoardLoaded(:final entries, :final removing, :final failure):
