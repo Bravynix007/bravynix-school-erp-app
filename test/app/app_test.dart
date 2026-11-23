@@ -320,6 +320,13 @@ void main() {
     expect(find.text('Annual Day'), findsOneWidget);
     expect(adapter.requests.last.uri.path, '/v1/events/e1');
     expect(adapter.requests.last.uri.queryParameters, {'studentId': 's2'});
+    // The event names its child itself, so the child shown at the top is left as it was.
+    await tester.pageBack();
+    await tester.pumpAndSettle();
+    await tester.pageBack();
+    await tester.pumpAndSettle();
+    expect(find.text('Diya'), findsOneWidget);
+    expect(find.text('Arun'), findsNothing);
   });
 
   group('a notice about a child opens that child’s screen, not the one shown', () {

@@ -6,6 +6,7 @@ import 'package:bravynix_school_erp/core/widgets/app_button.dart';
 import 'package:bravynix_school_erp/features/diary/domain/diary_entry.dart';
 import 'package:bravynix_school_erp/features/diary/domain/diary_repository.dart';
 import 'package:bravynix_school_erp/features/diary/presentation/bloc/diary_bloc.dart';
+import 'package:bravynix_school_erp/features/diary/presentation/bloc/diary_form_bloc.dart';
 import 'package:bravynix_school_erp/features/diary/presentation/view/diary_page.dart';
 import 'package:bravynix_school_erp/features/sections/domain/section_options.dart';
 import 'package:bravynix_school_erp/features/sections/presentation/bloc/section_day_bloc.dart';
@@ -275,6 +276,68 @@ void main() {
       verify(() => diary.ofSection('sec1', '2026-11-17')).called(2);
     });
 
+    testWidgets('shows the day an entry was saved for, not the day that was open', (tester) async {
+      const earlier = DiaryEntry(
+        id: 'd4',
+        version: 1,
+        sectionId: 'sec1',
+        subjectId: 'u2',
+        subjectName: 'Art',
+        day: '2026-11-16',
+        description: 'Bring crayons.',
+      );
+      when(() => diary.add('sec1', any())).thenAnswer((_) async => earlier);
+      when(() => diary.ofSection('sec1', '2026-11-16')).thenAnswer((_) async => [earlier]);
+      await pump(tester);
+      await open(tester);
+      await fill(tester);
+      await tester.tap(find.byKey(const Key('diaryForm.save')));
+      await tester.pumpAndSettle();
+      verify(() => diary.ofSection('sec1', '2026-11-16')).called(1);
+      expect(
+        find.descendant(of: find.byKey(const Key('diary.day')), matching: find.text('16-11-2026')),
+        findsOneWidget,
+      );
+      expect(find.byKey(const ValueKey('diary.entry.d4')), findsOneWidget);
+    });
+
+    testWidgets('lets the day be picked up to today and no later', (tester) async {
+      await pump(tester);
+      await open(tester);
+      await tester.tap(find.byKey(const Key('diaryForm.day')));
+      await tester.pumpAndSettle();
+      final next = tester.widget<IconButton>(find.widgetWithIcon(IconButton, Icons.chevron_right));
+      expect(next.onPressed, isNull, reason: 'November 2026 is the last month with a day to pick');
+    });
+
+    testWidgets('stops the description at the longest the server takes', (tester) async {
+      await pump(tester);
+      await open(tester);
+      await tester.enterText(find.byKey(const Key('diaryForm.description')), 'a' * (maxDiaryDescription + 50));
+      final field = tester.widget<TextField>(
+        find.descendant(of: find.byKey(const Key('diaryForm.description')), matching: find.byType(TextField)),
+      );
+      expect(field.controller!.text.length, maxDiaryDescription);
+    });
+
+    testWidgets('shows a refused field under it only, not also above the form', (tester) async {
+      when(() => diary.add('sec1', any())).thenThrow(
+        const ApiFailure(
+          statusCode: 400,
+          code: 'VALIDATION_FAILED',
+          message: 'server words',
+          fieldErrors: [FieldError(field: 'description', code: 'REQUIRED', message: 'x')],
+        ),
+      );
+      await pump(tester);
+      await open(tester);
+      await fill(tester);
+      await tester.tap(find.byKey(const Key('diaryForm.save')));
+      await tester.pumpAndSettle();
+      expect(find.text('This field is required.'), findsOneWidget);
+      expect(find.byKey(const Key('diaryForm.error')), findsNothing);
+    });
+
     testWidgets('names a subject or a description left empty, and sends nothing', (tester) async {
       await pump(tester);
       await open(tester);
@@ -358,6 +421,52 @@ void main() {
         ),
       ).called(1);
       expect(find.text('Diary entry saved'), findsOneWidget);
+    });
+
+    testWidgets('asks for the subject again when the entry’s subject is no longer offered', (tester) async {
+      when(subjects.subjects).thenAnswer((_) async => [art]);
+      await pump(tester);
+      await open(tester);
+      await tester.tap(find.byKey(const Key('diaryForm.save')));
+      await tester.pumpAndSettle();
+      expect(find.text('This field is required.'), findsOneWidget);
+      verifyNever(() => diary.change(any(), any()));
+    });
+
+    testWidgets('keeps the day of an entry older than the window, which a text correction does not check', (
+      tester,
+    ) async {
+      const old = DiaryEntry(
+        id: 'd9',
+        version: 2,
+        sectionId: 'sec1',
+        subjectId: 'u1',
+        subjectName: 'Mathematics',
+        day: '2026-11-02',
+        description: 'Old note.',
+        teacherId: 't1',
+        teacherName: 'R. Nair',
+      );
+      when(() => diary.ofSection('sec1', any())).thenAnswer((_) async => [old]);
+      when(() => diary.change(any(), any())).thenAnswer((_) async => old);
+      await pump(tester);
+      await tester.tap(find.byKey(const ValueKey('diary.edit.d9')));
+      await tester.pumpAndSettle();
+      // The calendar opens on the entry's day, which is before the last 7 days.
+      await tester.tap(find.byKey(const Key('diaryForm.day')));
+      await tester.pumpAndSettle();
+      expect(tester.takeException(), isNull);
+      await tester.tap(find.text('Cancel').last);
+      await tester.pumpAndSettle();
+      await tester.enterText(find.byKey(const Key('diaryForm.description')), 'Old note, corrected.');
+      await tester.tap(find.byKey(const Key('diaryForm.save')));
+      await tester.pumpAndSettle();
+      verify(
+        () => diary.change(
+          old,
+          const DiaryInput(subjectId: 'u1', day: '2026-11-02', description: 'Old note, corrected.'),
+        ),
+      ).called(1);
     });
 
     testWidgets('on an entry changed meanwhile, says so and hands back to the list, which reads the day again', (

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:bravynix_school_erp/core/network/api_failure.dart';
 import 'package:bravynix_school_erp/features/diary/domain/diary_entry.dart';
 import 'package:bravynix_school_erp/features/diary/presentation/bloc/diary_form_bloc.dart';
@@ -91,10 +93,14 @@ void main() {
   });
 
   test('does not save twice while a save is on its way', () async {
-    when(() => diary.add('sec1', any())).thenAnswer((_) async => mathsEntry);
+    final pending = Completer<DiaryEntry>();
+    when(() => diary.add('sec1', any())).thenAnswer((_) => pending.future);
     final bloc = await open()
       ..add(const DiaryFormSubmitted(fields))
       ..add(const DiaryFormSubmitted(fields));
+    await bloc.stream.firstWhere((state) => state is DiaryFormEditing && state.saving);
+    await Future<void>.delayed(Duration.zero);
+    pending.complete(mathsEntry);
     await bloc.stream.firstWhere((state) => state is DiaryFormSaved);
     verify(() => diary.add('sec1', any())).called(1);
     await bloc.close();

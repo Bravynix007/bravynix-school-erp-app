@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:bloc_test/bloc_test.dart';
 import 'package:bravynix_school_erp/app/di/injection.dart';
 import 'package:bravynix_school_erp/core/storage/institution_choice_store.dart';
@@ -174,6 +176,52 @@ void main() {
       );
       await tester.pumpAndSettle();
     }
+
+    testWidgets('starts again on today for the next child, not on the day the last child was left on', (tester) async {
+      const meera = LinkedChild(
+        studentId: 's2',
+        firstName: 'Meera',
+        institutionName: 'Green Valley School',
+        isBlocked: false,
+      );
+      when(() => diary.ofChild('s1', '2026-11-16')).thenAnswer((_) async => [mathsEntry]);
+      when(() => diary.ofChild('s2', '2026-11-17')).thenAnswer((_) async => [artEntry]);
+      final session = _MockSessionBloc();
+      when(() => session.state).thenReturn(
+        const SessionAuthenticated(AuthSession(person: testPerson, contexts: [parent], activeContext: parent)),
+      );
+      final children = _MockActiveChildBloc();
+      final changes = StreamController<ActiveChildState>();
+      addTearDown(changes.close);
+      whenListen(
+        children,
+        changes.stream,
+        initialState: const ActiveChildReady(children: [diya, meera], selected: diya),
+      );
+      await tester.pumpAppScaled(
+        MultiBlocProvider(
+          providers: [
+            BlocProvider<SessionBloc>.value(value: session),
+            BlocProvider<ActiveChildBloc>.value(value: children),
+          ],
+          child: DiaryPage(clock: () => today),
+        ),
+        size: const Size(400, 1600),
+      );
+      await tester.pumpAndSettle();
+      // Diya's diary, on another day.
+      await tester.tap(find.byKey(const Key('diary.day')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('16').last);
+      await tester.tap(find.text('OK'));
+      await tester.pumpAndSettle();
+      verify(() => diary.ofChild('s1', '2026-11-16')).called(1);
+      changes.add(const ActiveChildReady(children: [diya, meera], selected: meera));
+      await tester.pumpAndSettle();
+      expect(find.text('Bring crayons.'), findsOneWidget);
+      verify(() => diary.ofChild('s2', '2026-11-17')).called(1);
+      verifyNever(() => diary.ofChild('s2', '2026-11-16'));
+    });
 
     testWidgets('says there is no child to show when there is none', (tester) async {
       await pumpParent(tester, const ActiveChildNone());
