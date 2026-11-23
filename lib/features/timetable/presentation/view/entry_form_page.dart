@@ -106,7 +106,7 @@ class _EntryFormViewState extends State<EntryFormView> {
                       semanticLabel: l10n.loading,
                       heights: const [64, 64, 64],
                     ),
-                    EntryFormLoadFailed(:final failure) when failure.code == 'FORBIDDEN' => StatePanel.forbidden(
+                    EntryFormLoadFailed(:final failure) when failure.refused => StatePanel.forbidden(
                       key: const Key('entryForm.forbidden'),
                       title: timetableEntryErrorText(l10n, failure),
                     ),

@@ -180,7 +180,10 @@ void main() {
       expect(
         () => AttendanceModels.calendar({
           ...calendarJson(),
-          'days': [dayJson('2026-11-01', 'sick')],
+          'days': [
+            for (final day in (calendarJson()['days']! as List<Object?>).cast<Map<String, Object?>>())
+              if (day['date'] == '2026-11-03') dayJson('2026-11-03', 'sick') else day,
+          ],
         }),
         throwsFormatException,
       );

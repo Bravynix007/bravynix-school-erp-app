@@ -38,7 +38,7 @@ class SectionDayFrame extends StatelessWidget {
     return BlocBuilder<SectionDayBloc, SectionDayState>(
       builder: (context, state) => switch (state) {
         SectionDayLoading() => SkeletonCards(semanticLabel: l10n.loading, heights: const [64, 64, 120]),
-        SectionDayFailed(:final failure) when failure.code == 'FORBIDDEN' => StatePanel.forbidden(
+        SectionDayFailed(:final failure) when failure.refused => StatePanel.forbidden(
           key: Key('$keyPrefix.forbidden'),
           title: errorText(l10n, failure),
         ),
