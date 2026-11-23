@@ -23,6 +23,7 @@ import 'package:bravynix_school_erp/features/events/domain/event.dart';
 import 'package:bravynix_school_erp/features/events/domain/events_repository.dart';
 import 'package:bravynix_school_erp/features/events/presentation/bloc/event_form_bloc.dart';
 import 'package:bravynix_school_erp/features/events/presentation/view/event_error_text.dart';
+import 'package:bravynix_school_erp/features/events/presentation/view/event_scope_fields.dart';
 import 'package:bravynix_school_erp/features/events/presentation/view/event_text.dart';
 import 'package:bravynix_school_erp/features/institutions/domain/institutions_repository.dart';
 import 'package:bravynix_school_erp/l10n/gen/app_localizations.dart';
@@ -129,14 +130,6 @@ class _EventFormViewState extends State<EventFormView> {
     super.dispose();
   }
 
-  /// The Institution chosen if the form offers it, else the only one it offers, else null: one that is no longer offered
-  /// must be chosen again.
-  String? _offered(EventOptions options) {
-    final ids = [for (final institution in options.institutions) institution.id];
-    if (ids.contains(_institutionId)) return _institutionId;
-    return ids.length == 1 ? ids.single : null;
-  }
-
   /// What was typed, or null when it is only spaces: an empty description or venue is none.
   static String? _text(TextEditingController controller) {
     final value = controller.text.trim();
@@ -166,7 +159,7 @@ class _EventFormViewState extends State<EventFormView> {
           ],
         ),
         scope: _scope,
-        institutionId: _offered(options),
+        institutionId: offeredInstitution(options.institutions, _institutionId),
       ),
     ),
   );
@@ -331,30 +324,15 @@ class _EventFormViewState extends State<EventFormView> {
           const SizedBox(height: AppSpacing.md),
           SectionHeader(title: l10n.eventScope),
           const SizedBox(height: AppSpacing.xs),
-          if (widget.owner) ...[
-            ChoiceChipGroup<EventScope>(
-              key: const Key('eventForm.scope'),
-              options: EventScope.values,
-              labelOf: (scope) => EventText.scope(l10n, scope),
-              selected: _scope,
-              onSelected: (scope) => setState(() => _scope = scope),
-            ),
-            const SizedBox(height: AppSpacing.sm),
-          ],
-          if (_scope == EventScope.institution)
-            AppDropdownField<String>(
-              key: const Key('eventForm.institution'),
-              label: l10n.eventFieldInstitution,
-              value: _offered(options),
-              required: true,
-              requiredLabel: l10n.fieldRequired,
-              error: error('institutionId'),
-              items: [
-                for (final institution in options.institutions)
-                  DropdownMenuItem(value: institution.id, child: Text(institution.name)),
-              ],
-              onChanged: (id) => setState(() => _institutionId = id),
-            ),
+          EventScopeFields(
+            keyPrefix: 'eventForm',
+            scope: _scope,
+            onScope: widget.owner ? (scope) => setState(() => _scope = scope) : null,
+            institutions: options.institutions,
+            institutionId: offeredInstitution(options.institutions, _institutionId),
+            onInstitution: (id) => setState(() => _institutionId = id),
+            error: error('institutionId'),
+          ),
         ],
         const SizedBox(height: AppSpacing.md),
         SectionHeader(title: l10n.eventFieldPicture),

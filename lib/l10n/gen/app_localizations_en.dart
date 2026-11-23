@@ -3290,6 +3290,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get eventSave => 'Save';
 
   @override
+  String get eventScopeChange => 'Change where it belongs';
+
+  @override
+  String get eventScopeTitle => 'Where does this event belong?';
+
+  @override
+  String get eventScopeReload => 'Read the event again';
+
+  @override
   String get eventSaved => 'Event saved';
 
   @override

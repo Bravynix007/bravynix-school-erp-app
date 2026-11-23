@@ -5809,6 +5809,24 @@ abstract class AppLocalizations {
   /// **'Save'**
   String get eventSave;
 
+  /// No description provided for @eventScopeChange.
+  ///
+  /// In en, this message translates to:
+  /// **'Change where it belongs'**
+  String get eventScopeChange;
+
+  /// No description provided for @eventScopeTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Where does this event belong?'**
+  String get eventScopeTitle;
+
+  /// No description provided for @eventScopeReload.
+  ///
+  /// In en, this message translates to:
+  /// **'Read the event again'**
+  String get eventScopeReload;
+
   /// No description provided for @eventSaved.
   ///
   /// In en, this message translates to:

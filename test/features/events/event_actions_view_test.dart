@@ -15,6 +15,7 @@ import 'package:bravynix_school_erp/features/events/presentation/bloc/events_blo
 import 'package:bravynix_school_erp/features/events/presentation/view/event_form_page.dart';
 import 'package:bravynix_school_erp/features/events/presentation/view/event_page.dart';
 import 'package:bravynix_school_erp/features/events/presentation/view/events_page.dart';
+import 'package:bravynix_school_erp/features/institutions/domain/institutions_repository.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -22,6 +23,7 @@ import 'package:go_router/go_router.dart';
 import 'package:mocktail/mocktail.dart';
 
 import '../../helpers/events.dart';
+import '../../helpers/institutions.dart';
 import '../../helpers/mocks.dart';
 import '../../helpers/pump_app.dart';
 
@@ -46,9 +48,17 @@ void main() {
 
   group('the event', () {
     final editable = schoolEvent(canEdit: true);
+    setUpAll(() {
+      registerFallbackValue(editable);
+      registerFallbackValue(EventScope.society);
+    });
 
     /// Opens the event from a list, so that what it closes with and the form it opens can be seen.
-    Future<({List<bool?> closed, List<Object?> forms})> pump(WidgetTester tester, SchoolEvent event) async {
+    Future<({List<bool?> closed, List<Object?> forms})> pump(
+      WidgetTester tester,
+      SchoolEvent event, {
+      bool owner = false,
+    }) async {
       when(() => repository.event('e1')).thenAnswer((_) async => event);
       final closed = <bool?>[];
       final forms = <Object?>[];
@@ -67,7 +77,7 @@ void main() {
             path: '/event',
             builder: (_, _) => BlocProvider(
               create: (_) => EventBloc(repository, 'e1')..add(const EventRequested()),
-              child: const EventView(),
+              child: EventView(owner: owner),
             ),
           ),
           GoRoute(
@@ -105,6 +115,38 @@ void main() {
       await pump(tester, editable);
       expect(find.byKey(const Key('event.edit')), findsOneWidget);
       expect(find.byKey(const Key('event.delete')), findsOneWidget);
+    });
+
+    testWidgets('offers the view no way to change where the event belongs unless it is told the person is an Owner', (
+      tester,
+    ) async {
+      await pump(tester, editable);
+      expect(find.byKey(const Key('event.scope')), findsNothing);
+    });
+
+    testWidgets('Change where it belongs opens the sheet, and reads the event again once it moved', (tester) async {
+      final institutions = MockInstitutionsRepository();
+      when(institutions.institutions).thenAnswer((_) async => [summary()]);
+      when(
+        () => repository.changeScope(
+          any(),
+          scope: any(named: 'scope'),
+          institutionId: any(named: 'institutionId'),
+        ),
+      ).thenAnswer((_) async => editable);
+      getIt
+        ..registerSingleton<EventsRepository>(repository)
+        ..registerSingleton<InstitutionsRepository>(institutions);
+      addTearDown(getIt.reset);
+      await pump(tester, editable, owner: true);
+      await tester.tap(find.byKey(const Key('event.scope')));
+      await tester.pumpAndSettle();
+      expect(find.byKey(const Key('eventScope.save')), findsOneWidget);
+      await tester.tap(find.byKey(const Key('eventScope.save')));
+      await tester.pumpAndSettle();
+      verify(() => repository.changeScope(editable, scope: EventScope.society)).called(1);
+      expect(find.byKey(const Key('eventScope.save')), findsNothing);
+      verify(() => repository.event('e1')).called(2);
     });
 
     testWidgets('Edit opens the form on this event, and reads the event again once it is saved', (tester) async {
@@ -153,6 +195,20 @@ void main() {
       expect(find.byKey(const Key('event.actionFailed')), findsOneWidget);
       expect(find.textContaining('Only an Owner can add or change an event of the whole Society'), findsOneWidget);
       expect(find.text('Annual Day'), findsOneWidget);
+    });
+
+    testWidgets('offers no way to change where the event belongs while the delete is on its way', (tester) async {
+      final pending = Completer<void>();
+      when(() => repository.remove('e1')).thenAnswer((_) => pending.future);
+      await pump(tester, editable, owner: true);
+      expect(tester.widget<AppButton>(find.byKey(const Key('event.scope'))).onPressed, isNotNull);
+      await tester.tap(find.byKey(const Key('event.delete')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Delete').last);
+      await tester.pump();
+      expect(tester.widget<AppButton>(find.byKey(const Key('event.scope'))).onPressed, isNull);
+      pending.complete();
+      await tester.pumpAndSettle();
     });
 
     testWidgets('shows the delete on its way, and offers neither action meanwhile', (tester) async {
@@ -282,6 +338,37 @@ void main() {
   });
 
   group('the page', () {
+    for (final (role, moves) in [
+      (RoleCode.societyOwner, true),
+      (RoleCode.institutionAdmin, false),
+    ]) {
+      testWidgets('${moves ? 'offers' : 'does not offer'} Change where it belongs to ${role.name}', (tester) async {
+        when(() => repository.event('e1')).thenAnswer((_) async => schoolEvent(canEdit: true));
+        final session = _MockSessionBloc();
+        final active = AuthContext(role: role, societyId: 's1', societyName: 'North Trust');
+        when(() => session.state).thenReturn(
+          SessionAuthenticated(AuthSession(person: testPerson, contexts: [active], activeContext: active)),
+        );
+        getIt.registerSingleton<EventsRepository>(repository);
+        addTearDown(getIt.reset);
+        final children = _MockActiveChildBloc();
+        when(() => children.state).thenReturn(const ActiveChildNone());
+        await tester.pumpAppScaled(
+          MultiBlocProvider(
+            providers: [
+              BlocProvider<SessionBloc>.value(value: session),
+              BlocProvider<ActiveChildBloc>.value(value: children),
+            ],
+            child: const EventPage(id: 'e1'),
+          ),
+          size: const Size(400, 1000),
+        );
+        await tester.pumpAndSettle();
+        expect(find.byKey(const Key('event.edit')), findsOneWidget);
+        expect(find.byKey(const Key('event.scope')), moves ? findsOneWidget : findsNothing);
+      });
+    }
+
     for (final (role, adds) in [
       (RoleCode.societyOwner, true),
       (RoleCode.institutionAdmin, true),

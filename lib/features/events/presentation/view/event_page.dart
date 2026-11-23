@@ -20,6 +20,7 @@ import 'package:bravynix_school_erp/features/events/domain/events_repository.dar
 import 'package:bravynix_school_erp/features/events/presentation/bloc/event_bloc.dart';
 import 'package:bravynix_school_erp/features/events/presentation/view/event_error_text.dart';
 import 'package:bravynix_school_erp/features/events/presentation/view/event_form_page.dart';
+import 'package:bravynix_school_erp/features/events/presentation/view/event_scope_sheet.dart';
 import 'package:bravynix_school_erp/features/events/presentation/view/event_text.dart';
 import 'package:bravynix_school_erp/l10n/gen/app_localizations.dart';
 import 'package:flutter/material.dart';
@@ -44,13 +45,16 @@ class EventPage extends StatelessWidget {
     final readFor = parent ? studentId ?? (child is ActiveChildReady ? child.selected.studentId : null) : null;
     return BlocProvider(
       create: (_) => EventBloc(getIt<EventsRepository>(), id, studentId: readFor)..add(const EventRequested()),
-      child: const EventView(),
+      child: EventView(owner: context.read<SessionBloc>().state.activeRole == RoleCode.societyOwner),
     );
   }
 }
 
 class EventView extends StatelessWidget {
-  const new({super.key});
+  const new({required this.owner, super.key});
+
+  /// Only an Owner changes where an event belongs.
+  final bool owner;
 
   @override
   Widget build(BuildContext context) {
@@ -85,6 +89,7 @@ class EventView extends StatelessWidget {
                 ),
                 EventLoaded(:final event, :final removing, :final failure) => _Detail(
                   event: event,
+                  owner: owner,
                   removing: removing,
                   failure: failure,
                 ),
@@ -98,9 +103,10 @@ class EventView extends StatelessWidget {
 }
 
 class _Detail extends StatelessWidget {
-  const new({required this.event, required this.removing, this.failure});
+  const new({required this.event, required this.owner, required this.removing, this.failure});
 
   final SchoolEvent event;
+  final bool owner;
 
   /// The delete is on its way.
   final bool removing;
@@ -112,6 +118,11 @@ class _Detail extends StatelessWidget {
     final bloc = context.read<EventBloc>();
     final saved = await context.push<bool>(AppRoutes.eventForm, extra: EventFormArgs(event: event));
     if (saved ?? false) bloc.add(const EventRequested());
+  }
+
+  Future<void> _moveScope(BuildContext context) async {
+    final bloc = context.read<EventBloc>();
+    if (await showEventScopeSheet(context, event) ?? false) bloc.add(const EventRequested());
   }
 
   Future<void> _confirmDelete(BuildContext context) async {
@@ -202,6 +213,15 @@ class _Detail extends StatelessWidget {
             variant: AppButtonVariant.secondary,
             onPressed: removing ? null : () => _edit(context),
           ),
+          if (owner) ...[
+            const SizedBox(height: AppSpacing.xs),
+            AppButton(
+              key: const Key('event.scope'),
+              label: l10n.eventScopeChange,
+              variant: AppButtonVariant.secondary,
+              onPressed: removing ? null : () => _moveScope(context),
+            ),
+          ],
           const SizedBox(height: AppSpacing.xs),
           AppButton(
             key: const Key('event.delete'),
