@@ -109,15 +109,23 @@ void main() {
       ],
     );
 
-    blocTest<SectionDayBloc, SectionDayState>(
-      'opens on today when the day named has not come yet, which cannot be chosen',
-      build: () => SectionDayBloc.dayOnly(clock: clock, day: '2026-11-18'),
-      act: (bloc) => bloc.add(const SectionDayStarted()),
-      expect: () => [
-        const SectionDayLoading(),
-        const SectionDayReady(classes: [], sections: [], today: '2026-11-17', day: '2026-11-17'),
-      ],
-    );
+    for (final (why, day) in [
+      ('has not come yet, which cannot be chosen', '2026-11-18'),
+      ('is no day', '1'),
+      ('is a day that does not exist', '2026-13-45'),
+      ('is a day that rolls over to another', '2026-02-30'),
+      ('is written another way', '10-11-2026'),
+    ]) {
+      blocTest<SectionDayBloc, SectionDayState>(
+        'opens on today when the day named $why',
+        build: () => SectionDayBloc.dayOnly(clock: clock, day: day),
+        act: (bloc) => bloc.add(const SectionDayStarted()),
+        expect: () => [
+          const SectionDayLoading(),
+          const SectionDayReady(classes: [], sections: [], today: '2026-11-17', day: '2026-11-17'),
+        ],
+      );
+    }
   });
 
   group("opened on a register from a student's calendar", () {
