@@ -3222,6 +3222,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get diaryNoSectionsMessage => 'Add classes and sections in School setup, and their diary appears here.';
 
   @override
+  String get diaryNoSubjects =>
+      'None of the subjects you can write for in this section is open, so there is nothing to write the diary for. Ask the school to check the subjects of this section.';
+
+  @override
   String get diaryNoChildMessage => 'A child linked to you appears here, with their diary.';
 
   @override

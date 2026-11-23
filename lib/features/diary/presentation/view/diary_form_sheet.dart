@@ -13,7 +13,6 @@ import 'package:bravynix_school_erp/features/diary/domain/diary_entry.dart';
 import 'package:bravynix_school_erp/features/diary/domain/diary_repository.dart';
 import 'package:bravynix_school_erp/features/diary/presentation/bloc/diary_form_bloc.dart';
 import 'package:bravynix_school_erp/features/diary/presentation/view/diary_error_text.dart';
-import 'package:bravynix_school_erp/features/subjects/domain/subjects_repository.dart';
 import 'package:bravynix_school_erp/l10n/gen/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -49,8 +48,7 @@ Future<DiaryFormResult?> showDiaryFormSheet(
     title: entry == null ? l10n.diaryAddTitle : l10n.diaryEditTitle,
     builder: (_) => BlocProvider(
       create: (_) =>
-          DiaryFormBloc(getIt<DiaryRepository>(), getIt<SubjectsRepository>(), sectionId: sectionId, existing: entry)
-            ..add(const DiaryFormStarted()),
+          DiaryFormBloc(getIt<DiaryRepository>(), sectionId: sectionId, existing: entry)..add(const DiaryFormStarted()),
       child: DiaryForm(today: today, day: entry?.day ?? day, entry: entry),
     ),
   );
@@ -114,10 +112,27 @@ class _DiaryFormState extends State<DiaryForm> {
           actionLabel: failure.refused ? null : l10n.retry,
           onAction: () => context.read<DiaryFormBloc>().add(const DiaryFormStarted()),
         ),
+        // A required Subject with nothing to choose, and a Save that can only answer "required", is a dead end.
+        DiaryFormEditing(:final subjects) when subjects.isEmpty => _noSubjects(context, l10n),
         DiaryFormEditing() => _form(context, l10n, state),
       },
     );
   }
+
+  Widget _noSubjects(BuildContext context, AppLocalizations l10n) => Column(
+    crossAxisAlignment: CrossAxisAlignment.stretch,
+    mainAxisSize: MainAxisSize.min,
+    children: [
+      InlineMessage.info(l10n.diaryNoSubjects, key: const Key('diaryForm.noSubjects')),
+      const SizedBox(height: AppSpacing.md),
+      AppButton(
+        key: const Key('diaryForm.cancel'),
+        label: l10n.cancel,
+        variant: AppButtonVariant.text,
+        onPressed: () => Navigator.of(context).maybePop(),
+      ),
+    ],
+  );
 
   Widget _form(BuildContext context, AppLocalizations l10n, DiaryFormEditing editing) {
     final failure = editing.failure;

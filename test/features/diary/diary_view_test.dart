@@ -13,7 +13,6 @@ import 'package:bravynix_school_erp/features/masters/presentation/view/master_dr
 import 'package:bravynix_school_erp/features/sections/domain/section_options.dart';
 import 'package:bravynix_school_erp/features/sections/presentation/bloc/section_day_bloc.dart';
 import 'package:bravynix_school_erp/features/sections/presentation/view/section_day_frame.dart';
-import 'package:bravynix_school_erp/features/subjects/domain/subjects_repository.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -32,7 +31,6 @@ ApiFailure refusal(String code, {int status = 422}) =>
 void main() {
   late MockDiaryRepository diary;
   late Future<SectionChoices> Function() load;
-  late MockSubjectsRepository subjects;
   setUpAll(() {
     registerFallbackValue(const DiaryInput(subjectId: '', day: '', description: ''));
     registerFallbackValue(mathsEntry);
@@ -40,12 +38,9 @@ void main() {
   setUp(() {
     diary = MockDiaryRepository();
     load = () async => oneSection.choices;
-    subjects = MockSubjectsRepository();
     when(() => diary.ofSection('sec1', '2026-11-17')).thenAnswer((_) async => [mathsEntry, artEntry, noticeEntry]);
-    when(subjects.subjects).thenAnswer((_) async => [maths, art]);
-    getIt
-      ..registerSingleton<DiaryRepository>(diary)
-      ..registerSingleton<SubjectsRepository>(subjects);
+    when(() => diary.subjects('sec1')).thenAnswer((_) async => [maths, art]);
+    getIt.registerSingleton<DiaryRepository>(diary);
   });
   tearDown(getIt.reset);
 
@@ -385,7 +380,7 @@ void main() {
     });
 
     testWidgets('offers no Try again for subjects it was refused, which asking again does not change', (tester) async {
-      when(subjects.subjects).thenThrow(refusal('NOT_ASSIGNED', status: 403));
+      when(() => diary.subjects('sec1')).thenThrow(refusal('NOT_ASSIGNED', status: 403));
       await pump(tester);
       await open(tester);
       expect(find.byKey(const Key('diaryForm.loadFailed')), findsOneWidget);
@@ -394,7 +389,7 @@ void main() {
 
     testWidgets('says why the subjects could not be read, and reads them again on Try again', (tester) async {
       var calls = 0;
-      when(subjects.subjects).thenAnswer((_) async {
+      when(() => diary.subjects('sec1')).thenAnswer((_) async {
         if (++calls == 1) throw refusal('SERVER_ERROR', status: 500);
         return [maths, art];
       });
@@ -406,6 +401,27 @@ void main() {
       );
       await tester.pumpAndSettle();
       expect(find.byKey(const Key('diaryForm.subject')), findsOneWidget);
+    });
+
+    testWidgets('with no subject open to write for, says so and offers no Save', (tester) async {
+      when(() => diary.subjects('sec1')).thenAnswer((_) async => const []);
+      await pump(tester);
+      await open(tester);
+      expect(find.byKey(const Key('diaryForm.noSubjects')), findsOneWidget);
+      expect(find.byKey(const Key('diaryForm.save')), findsNothing);
+      expect(find.byKey(const Key('diaryForm.subject')), findsNothing);
+      await tester.tap(find.byKey(const Key('diaryForm.cancel')));
+      await tester.pumpAndSettle();
+      expect(find.byKey(const Key('diaryForm.noSubjects')), findsNothing);
+      verifyNever(() => diary.add(any(), any()));
+    });
+
+    testWidgets('says it whole at a large text scale on a small phone', (tester) async {
+      when(() => diary.subjects('sec1')).thenAnswer((_) async => const []);
+      await pump(tester, textScale: 3, size: const Size(320, 640));
+      await open(tester);
+      expect(tester.takeException(), isNull);
+      expect(find.byKey(const Key('diaryForm.noSubjects')), findsOneWidget);
     });
 
     testWidgets('closes on Cancel without saving', (tester) async {
@@ -452,7 +468,7 @@ void main() {
     });
 
     testWidgets('asks for the subject again when the entry’s subject is no longer offered', (tester) async {
-      when(subjects.subjects).thenAnswer((_) async => [art]);
+      when(() => diary.subjects('sec1')).thenAnswer((_) async => [art]);
       await pump(tester);
       await open(tester);
       await tester.tap(find.byKey(const Key('diaryForm.save')));
