@@ -1,5 +1,6 @@
 import 'package:bloc/bloc.dart';
 import 'package:bravynix_school_erp/core/network/api_failure.dart';
+import 'package:bravynix_school_erp/core/paging/items_page.dart';
 import 'package:bravynix_school_erp/features/academic_years/domain/academic_year.dart';
 import 'package:bravynix_school_erp/features/sections/domain/section_options.dart';
 import 'package:bravynix_school_erp/features/staff/domain/staff_member.dart';
@@ -241,19 +242,14 @@ class StaffTeachingBloc extends Bloc<StaffTeachingEvent, StaffTeachingState> {
   }
 
   /// All they teach in the year: the list is read a page at a time.
-  Future<List<TeachingAssignment>> _read(String yearId) async {
-    final all = <TeachingAssignment>[];
-    for (var page = 1; ; page++) {
-      final read = await _assignments.assignments(
-        member.homeInstitutionId,
-        academicYearId: yearId,
-        staffMemberId: member.id,
-        page: page,
-      );
-      all.addAll(read.items);
-      if (!read.hasMore) return all;
-    }
-  }
+  Future<List<TeachingAssignment>> _read(String yearId) => allPages(
+    (page) => _assignments.assignments(
+      member.homeInstitutionId,
+      academicYearId: yearId,
+      staffMemberId: member.id,
+      page: page,
+    ),
+  );
 
   Future<void> _onStarted(StaffTeachingStarted event, Emitter<StaffTeachingState> emit) async {
     emit(const StaffTeachingLoading());

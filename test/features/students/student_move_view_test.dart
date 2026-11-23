@@ -1,4 +1,5 @@
 import 'package:bloc_test/bloc_test.dart';
+import 'package:bravynix_school_erp/core/format/formatters.dart';
 import 'package:bravynix_school_erp/core/network/api_failure.dart';
 import 'package:bravynix_school_erp/core/theme/app_theme.dart';
 import 'package:bravynix_school_erp/core/widgets/sticky_bottom_actions.dart';
@@ -107,13 +108,16 @@ void main() {
   });
 
   group('the day', () {
+    /// Today as the API counts it, in IST, whatever time zone the machine is in.
+    DateTime schoolToday() => Formatters.parseDay(Formatters.schoolDay(DateTime.now()))!;
+
     String day(DateTime date) =>
         '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
 
     /// The limits of the calendar the From field opens for a placement that began [begunDaysAgo] days ago (a negative
     /// number: it begins that many days from today).
     Future<({DateTime first, DateTime last})> limits(WidgetTester tester, int begunDaysAgo) async {
-      final today = DateTime.now();
+      final today = schoolToday();
       final start = DateTime(today.year, today.month, today.day - begunDaysAgo);
       final summary = StudentSummary(
         id: 'p1',
@@ -143,15 +147,15 @@ void main() {
       return (first: calendar.firstDate, last: calendar.lastDate);
     }
 
-    testWidgets('can be any day from the one the placement began to today', (tester) async {
-      final today = DateTime.now();
+    testWidgets('can be any day from the one the placement began to tomorrow', (tester) async {
+      final today = schoolToday();
       final (:first, :last) = await limits(tester, 10);
       expect(first, DateTime(today.year, today.month, today.day - 10));
-      expect(last, DateTime(today.year, today.month, today.day));
+      expect(last, DateTime(today.year, today.month, today.day + 1));
     });
 
     testWidgets('can only be the first day of a placement that begins later', (tester) async {
-      final today = DateTime.now();
+      final today = schoolToday();
       final (:first, :last) = await limits(tester, -60);
       expect(tester.takeException(), isNull);
       expect(first, DateTime(today.year, today.month, today.day + 60));
@@ -358,6 +362,24 @@ void main() {
           of: find.byKey(const Key('studentMove.error')),
           matching: find.text('Another student in this section has this roll number.'),
         ),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('says which day a taken register blocks the move over, above the form', (tester) async {
+      await pump(
+        tester,
+        _ready.copyWith(
+          failure: () => const ApiFailure(
+            statusCode: 409,
+            code: 'ATTENDANCE_TAKEN',
+            message: 'x',
+            details: {'attendanceDate': '2026-11-17'},
+          ),
+        ),
+      );
+      expect(
+        find.descendant(of: find.byKey(const Key('studentMove.error')), matching: find.textContaining('17-11-2026')),
         findsOneWidget,
       );
     });

@@ -5,6 +5,7 @@ import 'package:bravynix_school_erp/core/widgets/app_date_field.dart';
 import 'package:bravynix_school_erp/core/widgets/app_snackbar.dart';
 import 'package:bravynix_school_erp/core/widgets/app_text_field.dart';
 import 'package:bravynix_school_erp/core/widgets/app_top_bar.dart';
+import 'package:bravynix_school_erp/core/widgets/day_picker.dart';
 import 'package:bravynix_school_erp/core/widgets/inline_message.dart';
 import 'package:bravynix_school_erp/core/widgets/stale_copy_guard.dart';
 import 'package:bravynix_school_erp/core/widgets/sticky_bottom_actions.dart';
@@ -63,15 +64,8 @@ class _AcademicYearFormViewState extends State<AcademicYearFormView> {
   }
 
   Future<void> _pick(String current, ValueChanged<String> chosen) async {
-    final today = DateTime.now();
-    final initial = DateTime.tryParse(current) ?? today;
-    final picked = await showDatePicker(
-      context: context,
-      initialDate: initial,
-      firstDate: DateTime(2000),
-      lastDate: DateTime(2100),
-    );
-    if (picked != null) setState(() => chosen(Formatters.isoDay(picked)));
+    final picked = await pickSchoolDay(context, day: current, firstDay: DateTime(2000), lastDay: DateTime(2100));
+    if (picked != null) setState(() => chosen(picked));
   }
 
   @override

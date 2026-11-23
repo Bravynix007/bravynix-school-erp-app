@@ -7,6 +7,17 @@ abstract final class AppRoutes {
   static const chooseRole = '/choose-role';
   static const profile = '/profile';
 
+  /// The bell's screen: the person's notices by tab (NTF-01).
+  static const inbox = '/inbox';
+
+  /// Events and holidays (EVT-01), and one of them (EVT-03), which a notice opens by its ID.
+  static const events = '/events';
+  static const eventPattern = '/events/:id';
+
+  /// One event; a notice says which child it is about with [studentId], so a parent of two reads it for that child.
+  static String event(String id, {String? studentId}) =>
+      '$events/${Uri.encodeComponent(id)}${studentId == null ? '' : '?studentId=${Uri.encodeQueryComponent(studentId)}'}';
+
   /// A teacher's own staff record and documents (STF-03, STF-14), read only.
   static const ownStaffRecord = '/profile/staff-record';
 
@@ -38,6 +49,21 @@ abstract final class AppRoutes {
   /// the Institution and the year as the route's `extra`: no endpoint reads one year, so the list hands it over.
   static const academicYears = '/school-setup/academic-years';
   static const academicYearForm = '/school-setup/academic-years/form';
+
+  /// Timetable: a teacher's own week, or a parent's child's (TT-01), and one section's week, which takes the section and
+  /// its name as the route's `extra`.
+  static const timetable = '/timetable';
+  static const sectionTimetable = '/timetable/section';
+  static const timetableEntryForm = '/timetable/entry';
+
+  /// Attendance: the register of one section on one day, taken, corrected or voided (ATT-01 to ATT-06, ATT-09).
+  static const attendance = '/attendance';
+
+  /// Period timings of the chosen Institution's current year (TTS-01), and the form that adds or edits one (TTS-02,
+  /// TTS-03), which takes the Institution and the period as the route's `extra`: no endpoint reads one period, so the
+  /// list hands it over.
+  static const timeSlots = '/school-setup/period-timings';
+  static const timeSlotForm = '/school-setup/period-timings/form';
 
   /// Subjects of the Society (SUB-01), and the form that adds or edits one (SUB-02, SUB-03), which takes the subject to
   /// edit as the route's `extra` (null to add): no endpoint reads one subject, so the list hands it over.

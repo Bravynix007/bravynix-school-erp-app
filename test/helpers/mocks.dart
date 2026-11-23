@@ -1,5 +1,6 @@
 import 'package:bravynix_school_erp/features/academic_years/domain/academic_years_repository.dart';
 import 'package:bravynix_school_erp/features/achievements/domain/achievements_repository.dart';
+import 'package:bravynix_school_erp/features/attendance/domain/attendance_repository.dart';
 import 'package:bravynix_school_erp/features/auth/domain/auth_entities.dart';
 import 'package:bravynix_school_erp/features/auth/domain/auth_repository.dart';
 import 'package:bravynix_school_erp/features/blocks/domain/blocks_repository.dart';
@@ -7,10 +8,12 @@ import 'package:bravynix_school_erp/features/classes/domain/class_catalogue.dart
 import 'package:bravynix_school_erp/features/classes/domain/classes_repository.dart';
 import 'package:bravynix_school_erp/features/classroom/domain/classroom.dart';
 import 'package:bravynix_school_erp/features/documents/domain/documents_repository.dart';
+import 'package:bravynix_school_erp/features/events/domain/events_repository.dart';
 import 'package:bravynix_school_erp/features/files/domain/file_opening.dart';
 import 'package:bravynix_school_erp/features/files/domain/files_repository.dart';
 import 'package:bravynix_school_erp/features/institutions/domain/institutions_repository.dart';
 import 'package:bravynix_school_erp/features/masters/domain/masters_repository.dart';
+import 'package:bravynix_school_erp/features/notifications/domain/notifications_repository.dart';
 import 'package:bravynix_school_erp/features/platform_dues/domain/platform_dues_repository.dart';
 import 'package:bravynix_school_erp/features/sections/domain/sections_repository.dart';
 import 'package:bravynix_school_erp/features/staff/domain/staff_repository.dart';
@@ -18,9 +21,17 @@ import 'package:bravynix_school_erp/features/students/domain/student_import.dart
 import 'package:bravynix_school_erp/features/students/domain/students_repository.dart';
 import 'package:bravynix_school_erp/features/subjects/domain/subjects_repository.dart';
 import 'package:bravynix_school_erp/features/teaching_assignments/domain/teaching_assignments_repository.dart';
+import 'package:bravynix_school_erp/features/time_slots/domain/time_slots_repository.dart';
+import 'package:bravynix_school_erp/features/timetable/domain/timetable_repository.dart';
 import 'package:mocktail/mocktail.dart';
 
 class MockAcademicYearsRepository extends Mock implements AcademicYearsRepository;
+
+class MockTimeSlotsRepository extends Mock implements TimeSlotsRepository;
+
+class MockTimetableRepository extends Mock implements TimetableRepository;
+
+class MockAttendanceRepository extends Mock implements AttendanceRepository;
 
 class MockClassCatalogue extends Mock implements ClassCatalogue;
 
@@ -33,6 +44,10 @@ class MockAchievementsRepository extends Mock implements AchievementsRepository;
 class MockAuthRepository extends Mock implements AuthRepository;
 
 class MockBlocksRepository extends Mock implements BlocksRepository;
+
+class MockEventsRepository extends Mock implements EventsRepository;
+
+class MockNotificationsRepository extends Mock implements NotificationsRepository;
 
 class MockDocumentsRepository extends Mock implements DocumentsRepository;
 

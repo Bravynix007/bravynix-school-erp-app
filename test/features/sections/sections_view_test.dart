@@ -7,6 +7,7 @@ import 'package:bravynix_school_erp/features/sections/domain/section.dart';
 import 'package:bravynix_school_erp/features/sections/presentation/bloc/sections_bloc.dart';
 import 'package:bravynix_school_erp/features/sections/presentation/view/section_form_page.dart';
 import 'package:bravynix_school_erp/features/sections/presentation/view/sections_page.dart';
+import 'package:bravynix_school_erp/features/timetable/presentation/view/timetable_page.dart';
 import 'package:bravynix_school_erp/l10n/gen/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -66,6 +67,13 @@ void main() {
           builder: (context, routeState) {
             opened.add(routeState.extra);
             return TextButton(onPressed: () => context.pop(saved), child: const Text('form'));
+          },
+        ),
+        GoRoute(
+          path: AppRoutes.sectionTimetable,
+          builder: (context, routeState) {
+            opened.add(routeState.extra);
+            return const Text('timetable');
           },
         ),
       ],
@@ -132,6 +140,7 @@ void main() {
     expect(tester.widget<ButtonStyleButton>(button('section.edit.e1')).onPressed, isNull);
     expect(tester.widget<ButtonStyleButton>(button('section.deactivate.e1')).onPressed, isNull);
     expect(tester.widget<ButtonStyleButton>(button('section.edit.e2')).onPressed, isNull);
+    expect(tester.widget<ButtonStyleButton>(button('section.timetable.e2')).onPressed, isNull);
   });
 
   testWidgets('says why a deactivation was refused, above the list', (tester) async {
@@ -194,6 +203,17 @@ void main() {
     await pump(tester, const ListFailed<Section>(ApiFailure(statusCode: 403, code: 'FORBIDDEN', message: 'x')));
     expect(find.byKey(const Key('sections.forbidden')), findsOneWidget);
     expect(find.text('Try again'), findsNothing);
+  });
+
+  testWidgets("Timetable opens that section's week, named by its class and section", (tester) async {
+    final opened = await pumpWithForm(tester, const ListLoaded<Section>([sectionA, sectionB]), saved: false);
+    await tester.tap(find.byKey(const ValueKey('section.timetable.e2')));
+    await tester.pumpAndSettle();
+    final args = opened.single! as SectionTimetableArgs;
+    expect(args.sectionId, 'e2');
+    expect(args.institutionId, 'i1');
+    expect(args.title, 'Class 1 - Blue');
+    expect(find.text('timetable'), findsOneWidget);
   });
 
   group('the form', () {

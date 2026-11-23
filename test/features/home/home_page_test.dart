@@ -4,7 +4,10 @@ import 'package:bravynix_school_erp/features/auth/domain/auth_entities.dart';
 import 'package:bravynix_school_erp/features/auth/presentation/session/session_bloc.dart';
 import 'package:bravynix_school_erp/features/blocks/domain/blocks_repository.dart';
 import 'package:bravynix_school_erp/features/blocks/domain/section_block.dart';
+import 'package:bravynix_school_erp/features/children/presentation/bloc/active_child_bloc.dart';
 import 'package:bravynix_school_erp/features/home/presentation/home_page.dart';
+import 'package:bravynix_school_erp/features/notifications/domain/notifications_repository.dart';
+import 'package:flutter/widgets.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
@@ -14,7 +17,18 @@ import '../../helpers/pump_app.dart';
 
 class _MockSessionBloc extends MockBloc<SessionEvent, SessionState> implements SessionBloc;
 
+class _MockActiveChildBloc extends MockBloc<ActiveChildEvent, ActiveChildState> implements ActiveChildBloc;
+
 void main() {
+  // Every home has the bell, which reads the unread count.
+  late MockNotificationsRepository notifications;
+  setUp(() {
+    notifications = MockNotificationsRepository();
+    when(notifications.unreadCount).thenAnswer((_) async => 0);
+    getIt.registerSingleton<NotificationsRepository>(notifications);
+  });
+  tearDown(getIt.reset);
+
   Future<void> pumpHome(WidgetTester tester, Person person) {
     final session = _MockSessionBloc();
     when(() => session.state).thenReturn(SessionAuthenticated(AuthSession(person: person, contexts: const [])));
@@ -26,9 +40,120 @@ void main() {
     expect(find.text('Welcome, Asha'), findsOneWidget);
   });
 
+  testWidgets('the bell shows how many notices are unread', (tester) async {
+    when(notifications.unreadCount).thenAnswer((_) async => 3);
+    await pumpHome(tester, testPerson);
+    await tester.pumpAndSettle();
+    expect(find.bySemanticsLabel('Notifications, 3 unread'), findsOneWidget);
+  });
+
   testWidgets('greets a person with no name yet by their email', (tester) async {
     await pumpHome(tester, const Person(id: 'p2', email: 'new.owner@two-worlds.test', preferredLanguage: 'en'));
     expect(find.text('Welcome, new.owner@two-worlds.test'), findsOneWidget);
+  });
+
+  group('parent', () {
+    const diya = LinkedChild(
+      studentId: 's1',
+      firstName: 'Diya',
+      institutionName: 'Green Valley School',
+      className: '7th',
+      sectionName: 'A',
+      isBlocked: false,
+    );
+    const parent = AuthContext(role: RoleCode.studentParent, children: [diya]);
+
+    Future<void> pumpParent(WidgetTester tester, AuthContext active, ActiveChildState state) {
+      final session = _MockSessionBloc();
+      when(() => session.state).thenReturn(
+        SessionAuthenticated(AuthSession(person: testPerson, contexts: [active], activeContext: active)),
+      );
+      final child = _MockActiveChildBloc();
+      when(() => child.state).thenReturn(state);
+      return tester.pumpApp(
+        MultiBlocProvider(
+          providers: [
+            BlocProvider<SessionBloc>.value(value: session),
+            BlocProvider<ActiveChildBloc>.value(value: child),
+          ],
+          child: const HomePage(),
+        ),
+      );
+    }
+
+    testWidgets("a parent's home opens on the child they are viewing", (tester) async {
+      await pumpParent(tester, parent, const ActiveChildReady(children: [diya], selected: diya));
+      expect(find.text('Diya'), findsOneWidget);
+      expect(find.text('7th - A, Green Valley School'), findsOneWidget);
+    });
+
+    testWidgets('when every child is blocked, says so once for all of them', (tester) async {
+      const blocked = LinkedChild(studentId: 's2', firstName: 'Meera', institutionName: 'Lake View', isBlocked: true);
+      await pumpParent(
+        tester,
+        const AuthContext(role: RoleCode.studentParent, children: [blocked], isBlocked: true),
+        const ActiveChildReady(children: [blocked], selected: blocked),
+      );
+      expect(find.text("Access to your children's information is blocked. Contact the school."), findsOneWidget);
+      expect(find.textContaining("Access to Meera's"), findsNothing);
+    });
+
+    testWidgets("a parent's home has the timetable tile", (tester) async {
+      await pumpParent(tester, parent, const ActiveChildReady(children: [diya], selected: diya));
+      expect(find.byKey(const Key('home.quick.timetable')), findsOneWidget);
+      // A parent reads the calendar; taking a register is for the school's side.
+      expect(find.byKey(const Key('home.quick.attendance')), findsNothing);
+    });
+
+    testWidgets('an owner sees no child panel', (tester) async {
+      final blocks = MockBlocksRepository();
+      when(blocks.societyBlocks).thenAnswer((_) async => []);
+      getIt.registerSingleton<BlocksRepository>(blocks);
+      addTearDown(getIt.reset);
+      await pumpParent(tester, ownerNorth, const ActiveChildNone());
+      await tester.pumpAndSettle();
+      expect(find.byKey(const Key('child.switcher')), findsNothing);
+    });
+  });
+
+  group('the timetable tile', () {
+    Future<void> pumpAs(WidgetTester tester, AuthContext active) {
+      final session = _MockSessionBloc();
+      when(() => session.state).thenReturn(
+        SessionAuthenticated(AuthSession(person: testPerson, contexts: [active], activeContext: active)),
+      );
+      return tester.pumpApp(BlocProvider<SessionBloc>.value(value: session, child: const HomePage()));
+    }
+
+    testWidgets('is there for a teacher, who reads their own week', (tester) async {
+      await pumpAs(tester, const AuthContext(role: RoleCode.teacherStaff, societyId: 's1', societyName: 'North Trust'));
+      expect(find.byKey(const Key('home.quick.timetable')), findsOneWidget);
+    });
+
+    testWidgets('is not there for an Admin, who opens a section from School setup', (tester) async {
+      await pumpAs(
+        tester,
+        const AuthContext(role: RoleCode.institutionAdmin, societyId: 's1', societyName: 'North Trust'),
+      );
+      expect(find.byKey(const Key('home.quick.timetable')), findsNothing);
+    });
+  });
+
+  group('the attendance tile', () {
+    Future<void> pumpAs(WidgetTester tester, AuthContext active) {
+      final session = _MockSessionBloc();
+      when(() => session.state).thenReturn(
+        SessionAuthenticated(AuthSession(person: testPerson, contexts: [active], activeContext: active)),
+      );
+      return tester.pumpApp(BlocProvider<SessionBloc>.value(value: session, child: const HomePage()));
+    }
+
+    for (final role in [RoleCode.teacherStaff, RoleCode.institutionAdmin]) {
+      testWidgets('is there for ${role.name}, who takes registers', (tester) async {
+        await pumpAs(tester, AuthContext(role: role, societyId: 's1', societyName: 'North Trust'));
+        expect(find.byKey(const Key('home.quick.attendance')), findsOneWidget);
+      });
+    }
   });
 
   group('blocked access', () {

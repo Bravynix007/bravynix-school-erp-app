@@ -2,6 +2,7 @@ import 'package:bravynix_school_erp/core/format/formatters.dart';
 import 'package:bravynix_school_erp/core/theme/app_spacing.dart';
 import 'package:bravynix_school_erp/core/widgets/app_date_field.dart';
 import 'package:bravynix_school_erp/core/widgets/app_icon_button.dart';
+import 'package:bravynix_school_erp/core/widgets/day_picker.dart';
 import 'package:flutter/material.dart';
 
 /// A day that may be left empty: a date field that opens the calendar, with a button that clears it. [day] and
@@ -37,14 +38,8 @@ class OptionalDateField extends StatelessWidget {
   final String? error;
 
   Future<void> _pick(BuildContext context) async {
-    final start = (day == null ? null : DateTime.tryParse(day!)) ?? initialDay ?? DateTime.now();
-    final picked = await showDatePicker(
-      context: context,
-      initialDate: start.isBefore(firstDay) ? firstDay : (start.isAfter(lastDay) ? lastDay : start),
-      firstDate: firstDay,
-      lastDate: lastDay,
-    );
-    if (picked != null) onChanged(Formatters.isoDay(picked));
+    final picked = await pickSchoolDay(context, day: day, initialDay: initialDay, firstDay: firstDay, lastDay: lastDay);
+    if (picked != null) onChanged(picked);
   }
 
   @override

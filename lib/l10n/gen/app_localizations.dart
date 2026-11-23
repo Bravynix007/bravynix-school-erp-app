@@ -409,6 +409,324 @@ abstract class AppLocalizations {
   /// **'Your home screen arrives with the next modules of the build plan.'**
   String get homeComingSoon;
 
+  /// No description provided for @inboxTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Notifications'**
+  String get inboxTitle;
+
+  /// No description provided for @inboxTabOnlyForYou.
+  ///
+  /// In en, this message translates to:
+  /// **'Only for you'**
+  String get inboxTabOnlyForYou;
+
+  /// No description provided for @inboxTabAll.
+  ///
+  /// In en, this message translates to:
+  /// **'All'**
+  String get inboxTabAll;
+
+  /// No description provided for @inboxTabAllTeachers.
+  ///
+  /// In en, this message translates to:
+  /// **'All teachers'**
+  String get inboxTabAllTeachers;
+
+  /// No description provided for @inboxTabAllStudents.
+  ///
+  /// In en, this message translates to:
+  /// **'All students'**
+  String get inboxTabAllStudents;
+
+  /// No description provided for @inboxMarkAllRead.
+  ///
+  /// In en, this message translates to:
+  /// **'Mark all as read'**
+  String get inboxMarkAllRead;
+
+  /// No description provided for @inboxClear.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear all'**
+  String get inboxClear;
+
+  /// No description provided for @inboxClearTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear notifications?'**
+  String get inboxClearTitle;
+
+  /// No description provided for @inboxClearMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Every notification in \"{tab}\" is deleted for good.'**
+  String inboxClearMessage(String tab);
+
+  /// No description provided for @inboxClearConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear'**
+  String get inboxClearConfirm;
+
+  /// No description provided for @inboxEmptyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing here yet'**
+  String get inboxEmptyTitle;
+
+  /// No description provided for @inboxEmptyMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'New notifications about your school show up here.'**
+  String get inboxEmptyMessage;
+
+  /// No description provided for @inboxLoadMore.
+  ///
+  /// In en, this message translates to:
+  /// **'Load more'**
+  String get inboxLoadMore;
+
+  /// No description provided for @inboxUnread.
+  ///
+  /// In en, this message translates to:
+  /// **'Unread'**
+  String get inboxUnread;
+
+  /// No description provided for @inboxFrom.
+  ///
+  /// In en, this message translates to:
+  /// **'From: {sender} · {when}'**
+  String inboxFrom(String sender, String when);
+
+  /// No description provided for @bellTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Notifications'**
+  String get bellTooltip;
+
+  /// No description provided for @bellUnread.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} unread'**
+  String bellUnread(int count);
+
+  /// No description provided for @quickAccessTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Quick Access'**
+  String get quickAccessTitle;
+
+  /// No description provided for @eventsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Events'**
+  String get eventsTitle;
+
+  /// No description provided for @eventsPreviousMonth.
+  ///
+  /// In en, this message translates to:
+  /// **'Previous month'**
+  String get eventsPreviousMonth;
+
+  /// No description provided for @eventsNextMonth.
+  ///
+  /// In en, this message translates to:
+  /// **'Next month'**
+  String get eventsNextMonth;
+
+  /// No description provided for @eventsFilterAll.
+  ///
+  /// In en, this message translates to:
+  /// **'All'**
+  String get eventsFilterAll;
+
+  /// No description provided for @eventsFilterHolidays.
+  ///
+  /// In en, this message translates to:
+  /// **'Holidays'**
+  String get eventsFilterHolidays;
+
+  /// No description provided for @eventsEmptyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'No events this month'**
+  String get eventsEmptyTitle;
+
+  /// No description provided for @eventsEmptyMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Events and holidays your school adds show up here.'**
+  String get eventsEmptyMessage;
+
+  /// No description provided for @eventsEmptyHolidaysTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'No holidays this month'**
+  String get eventsEmptyHolidaysTitle;
+
+  /// No description provided for @eventHolidayTag.
+  ///
+  /// In en, this message translates to:
+  /// **'Holiday'**
+  String get eventHolidayTag;
+
+  /// No description provided for @eventWhen.
+  ///
+  /// In en, this message translates to:
+  /// **'When'**
+  String get eventWhen;
+
+  /// No description provided for @eventOneDay.
+  ///
+  /// In en, this message translates to:
+  /// **'{date}'**
+  String eventOneDay(String date);
+
+  /// No description provided for @eventDays.
+  ///
+  /// In en, this message translates to:
+  /// **'{start} to {end}'**
+  String eventDays(String start, String end);
+
+  /// No description provided for @eventVenue.
+  ///
+  /// In en, this message translates to:
+  /// **'Venue'**
+  String get eventVenue;
+
+  /// No description provided for @eventAbout.
+  ///
+  /// In en, this message translates to:
+  /// **'About'**
+  String get eventAbout;
+
+  /// No description provided for @eventAudience.
+  ///
+  /// In en, this message translates to:
+  /// **'Told to'**
+  String get eventAudience;
+
+  /// No description provided for @eventAudienceEveryone.
+  ///
+  /// In en, this message translates to:
+  /// **'Everyone'**
+  String get eventAudienceEveryone;
+
+  /// No description provided for @eventAudienceStudents.
+  ///
+  /// In en, this message translates to:
+  /// **'Students and parents'**
+  String get eventAudienceStudents;
+
+  /// No description provided for @eventAudienceStaff.
+  ///
+  /// In en, this message translates to:
+  /// **'Staff'**
+  String get eventAudienceStaff;
+
+  /// No description provided for @eventScope.
+  ///
+  /// In en, this message translates to:
+  /// **'Belongs to'**
+  String get eventScope;
+
+  /// No description provided for @eventScopeSociety.
+  ///
+  /// In en, this message translates to:
+  /// **'The whole Society'**
+  String get eventScopeSociety;
+
+  /// No description provided for @eventScopeInstitution.
+  ///
+  /// In en, this message translates to:
+  /// **'One Institution'**
+  String get eventScopeInstitution;
+
+  /// No description provided for @eventHolidayType.
+  ///
+  /// In en, this message translates to:
+  /// **'Kind of holiday'**
+  String get eventHolidayType;
+
+  /// No description provided for @eventHolidayPublic.
+  ///
+  /// In en, this message translates to:
+  /// **'Public holiday'**
+  String get eventHolidayPublic;
+
+  /// No description provided for @eventHolidayVacation.
+  ///
+  /// In en, this message translates to:
+  /// **'Vacation'**
+  String get eventHolidayVacation;
+
+  /// No description provided for @eventHolidayEvent.
+  ///
+  /// In en, this message translates to:
+  /// **'Event holiday'**
+  String get eventHolidayEvent;
+
+  /// No description provided for @eventHolidayOptional.
+  ///
+  /// In en, this message translates to:
+  /// **'Optional'**
+  String get eventHolidayOptional;
+
+  /// No description provided for @eventHolidayFor.
+  ///
+  /// In en, this message translates to:
+  /// **'Holiday for'**
+  String get eventHolidayFor;
+
+  /// No description provided for @eventHolidayForStudents.
+  ///
+  /// In en, this message translates to:
+  /// **'Students'**
+  String get eventHolidayForStudents;
+
+  /// No description provided for @eventHolidayForStaff.
+  ///
+  /// In en, this message translates to:
+  /// **'Staff'**
+  String get eventHolidayForStaff;
+
+  /// No description provided for @eventHolidayForBoth.
+  ///
+  /// In en, this message translates to:
+  /// **'Students and staff'**
+  String get eventHolidayForBoth;
+
+  /// No description provided for @eventHolidayClasses.
+  ///
+  /// In en, this message translates to:
+  /// **'Classes'**
+  String get eventHolidayClasses;
+
+  /// No description provided for @eventHolidayEveryClass.
+  ///
+  /// In en, this message translates to:
+  /// **'Every class'**
+  String get eventHolidayEveryClass;
+
+  /// No description provided for @eventHolidaySomeClasses.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 class} other{{count} classes}}'**
+  String eventHolidaySomeClasses(int count);
+
+  /// No description provided for @errorEventNotFound.
+  ///
+  /// In en, this message translates to:
+  /// **'This event is no longer available.'**
+  String get errorEventNotFound;
+
+  /// No description provided for @errorChildAccessBlocked.
+  ///
+  /// In en, this message translates to:
+  /// **'Access to this child\'s information is blocked. Contact the school.'**
+  String get errorChildAccessBlocked;
+
   /// No description provided for @logOut.
   ///
   /// In en, this message translates to:
@@ -522,6 +840,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Your access to {society} is blocked. Contact your Society.'**
   String blockedStaffNotice(String society);
+
+  /// No description provided for @blockedChildNotice.
+  ///
+  /// In en, this message translates to:
+  /// **'Access to {child}\'s information is blocked. Contact the school.'**
+  String blockedChildNotice(String child);
+
+  /// No description provided for @childSwitchHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Change child'**
+  String get childSwitchHint;
+
+  /// No description provided for @childSwitchTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a child'**
+  String get childSwitchTitle;
+
+  /// No description provided for @childDetail.
+  ///
+  /// In en, this message translates to:
+  /// **'{classSection}, {institution}'**
+  String childDetail(String classSection, String institution);
+
+  /// No description provided for @childNoClass.
+  ///
+  /// In en, this message translates to:
+  /// **'Not placed in a class yet'**
+  String get childNoClass;
 
   /// No description provided for @blockedParentNotice.
   ///
@@ -1266,6 +1614,390 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Another academic year of this Institution has this name.'**
   String get errorYearDuplicate;
+
+  /// No description provided for @timeSlotsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Period timings'**
+  String get timeSlotsTitle;
+
+  /// No description provided for @timeSlotsDetail.
+  ///
+  /// In en, this message translates to:
+  /// **'The periods of the school day, for the current academic year'**
+  String get timeSlotsDetail;
+
+  /// No description provided for @timeSlotsEmptyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'No periods yet'**
+  String get timeSlotsEmptyTitle;
+
+  /// No description provided for @timeSlotsEmptyMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Add the periods and breaks of the school day. The class timetable is built from them.'**
+  String get timeSlotsEmptyMessage;
+
+  /// No description provided for @timeSlotAdd.
+  ///
+  /// In en, this message translates to:
+  /// **'Add period'**
+  String get timeSlotAdd;
+
+  /// No description provided for @timeSlotAddTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Add period'**
+  String get timeSlotAddTitle;
+
+  /// No description provided for @timeSlotEditTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit period'**
+  String get timeSlotEditTitle;
+
+  /// No description provided for @timeSlotEdit.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit'**
+  String get timeSlotEdit;
+
+  /// No description provided for @timeSlotDeactivate.
+  ///
+  /// In en, this message translates to:
+  /// **'Deactivate'**
+  String get timeSlotDeactivate;
+
+  /// No description provided for @timeSlotDeactivateTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Deactivate {name}?'**
+  String timeSlotDeactivateTitle(String name);
+
+  /// No description provided for @timeSlotDeactivateMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'It leaves the list and its number and times are free again. Nothing is deleted.'**
+  String get timeSlotDeactivateMessage;
+
+  /// No description provided for @timeSlotDeactivated.
+  ///
+  /// In en, this message translates to:
+  /// **'Period deactivated'**
+  String get timeSlotDeactivated;
+
+  /// No description provided for @timeSlotSaved.
+  ///
+  /// In en, this message translates to:
+  /// **'Period saved'**
+  String get timeSlotSaved;
+
+  /// No description provided for @timeSlotName.
+  ///
+  /// In en, this message translates to:
+  /// **'Period {number}'**
+  String timeSlotName(int number);
+
+  /// No description provided for @timeSlotTimes.
+  ///
+  /// In en, this message translates to:
+  /// **'{start} to {end}'**
+  String timeSlotTimes(String start, String end);
+
+  /// No description provided for @timeSlotBreakChip.
+  ///
+  /// In en, this message translates to:
+  /// **'Break'**
+  String get timeSlotBreakChip;
+
+  /// No description provided for @timeSlotNumber.
+  ///
+  /// In en, this message translates to:
+  /// **'Period number'**
+  String get timeSlotNumber;
+
+  /// No description provided for @timeSlotNumberHelper.
+  ///
+  /// In en, this message translates to:
+  /// **'1 to 30'**
+  String get timeSlotNumberHelper;
+
+  /// No description provided for @timeSlotLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Name (optional)'**
+  String get timeSlotLabel;
+
+  /// No description provided for @timeSlotLabelHelper.
+  ///
+  /// In en, this message translates to:
+  /// **'For example Lunch'**
+  String get timeSlotLabelHelper;
+
+  /// No description provided for @timeSlotStart.
+  ///
+  /// In en, this message translates to:
+  /// **'Starts at'**
+  String get timeSlotStart;
+
+  /// No description provided for @timeSlotEnd.
+  ///
+  /// In en, this message translates to:
+  /// **'Ends at'**
+  String get timeSlotEnd;
+
+  /// No description provided for @timeSlotBreak.
+  ///
+  /// In en, this message translates to:
+  /// **'This is a break'**
+  String get timeSlotBreak;
+
+  /// No description provided for @timeSlotBreakHelper.
+  ///
+  /// In en, this message translates to:
+  /// **'No lesson is given in a break. It cannot be changed once the period is added.'**
+  String get timeSlotBreakHelper;
+
+  /// No description provided for @timeSlotSave.
+  ///
+  /// In en, this message translates to:
+  /// **'Save'**
+  String get timeSlotSave;
+
+  /// No description provided for @errorTimeSlotDuplicate.
+  ///
+  /// In en, this message translates to:
+  /// **'Another period of this year has this number.'**
+  String get errorTimeSlotDuplicate;
+
+  /// No description provided for @errorTimeSlotOverlap.
+  ///
+  /// In en, this message translates to:
+  /// **'These times overlap another period of this year. A period may end when the next begins.'**
+  String get errorTimeSlotOverlap;
+
+  /// No description provided for @errorTimeSlotInUse.
+  ///
+  /// In en, this message translates to:
+  /// **'A timetable entry sits in this period. Remove it from the timetable first.'**
+  String get errorTimeSlotInUse;
+
+  /// No description provided for @errorTimeSlotNotFound.
+  ///
+  /// In en, this message translates to:
+  /// **'This period could not be found. It may have been deactivated.'**
+  String get errorTimeSlotNotFound;
+
+  /// No description provided for @timetableTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Timetable'**
+  String get timetableTitle;
+
+  /// No description provided for @timetableEmptyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'No timetable yet'**
+  String get timetableEmptyTitle;
+
+  /// No description provided for @timetableEmptyMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'No lessons have been added to the week yet.'**
+  String get timetableEmptyMessage;
+
+  /// No description provided for @timetableDayCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =0{No periods} =1{1 period} other{{count} periods}}'**
+  String timetableDayCount(int count);
+
+  /// No description provided for @timetableDayEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing is planned for this day.'**
+  String get timetableDayEmpty;
+
+  /// No description provided for @timetableBreak.
+  ///
+  /// In en, this message translates to:
+  /// **'Break'**
+  String get timetableBreak;
+
+  /// No description provided for @errorTimetableNotAssigned.
+  ///
+  /// In en, this message translates to:
+  /// **'You can see the timetable of a section you lead or teach.'**
+  String get errorTimetableNotAssigned;
+
+  /// No description provided for @errorTimetableNotFound.
+  ///
+  /// In en, this message translates to:
+  /// **'This timetable could not be found.'**
+  String get errorTimetableNotFound;
+
+  /// No description provided for @errorTimetableNoYear.
+  ///
+  /// In en, this message translates to:
+  /// **'No current academic year has been set up yet, so there is no timetable to show.'**
+  String get errorTimetableNoYear;
+
+  /// No description provided for @timetableEntryAdd.
+  ///
+  /// In en, this message translates to:
+  /// **'Add entry'**
+  String get timetableEntryAdd;
+
+  /// No description provided for @timetableEntryAddTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Add entry'**
+  String get timetableEntryAddTitle;
+
+  /// No description provided for @timetableEntryEditTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit entry'**
+  String get timetableEntryEditTitle;
+
+  /// No description provided for @timetableEntryEdit.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit'**
+  String get timetableEntryEdit;
+
+  /// No description provided for @timetableEntryDelete.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete'**
+  String get timetableEntryDelete;
+
+  /// No description provided for @timetableEntryDeleteTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete this entry?'**
+  String get timetableEntryDeleteTitle;
+
+  /// No description provided for @timetableEntryDeleteMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'It leaves the timetable, and its period is free again for the section and the teacher.'**
+  String get timetableEntryDeleteMessage;
+
+  /// No description provided for @timetableEntryDeleted.
+  ///
+  /// In en, this message translates to:
+  /// **'Entry deleted'**
+  String get timetableEntryDeleted;
+
+  /// No description provided for @timetableEntrySaved.
+  ///
+  /// In en, this message translates to:
+  /// **'Entry saved'**
+  String get timetableEntrySaved;
+
+  /// No description provided for @timetableEntrySave.
+  ///
+  /// In en, this message translates to:
+  /// **'Save'**
+  String get timetableEntrySave;
+
+  /// No description provided for @timetableEntryDay.
+  ///
+  /// In en, this message translates to:
+  /// **'Day'**
+  String get timetableEntryDay;
+
+  /// No description provided for @timetableEntryPeriod.
+  ///
+  /// In en, this message translates to:
+  /// **'Period'**
+  String get timetableEntryPeriod;
+
+  /// No description provided for @timetableEntryBreak.
+  ///
+  /// In en, this message translates to:
+  /// **'This is a break'**
+  String get timetableEntryBreak;
+
+  /// No description provided for @timetableEntryBreakHelper.
+  ///
+  /// In en, this message translates to:
+  /// **'A break has no subject or teacher.'**
+  String get timetableEntryBreakHelper;
+
+  /// No description provided for @timetableEntrySubject.
+  ///
+  /// In en, this message translates to:
+  /// **'Subject'**
+  String get timetableEntrySubject;
+
+  /// No description provided for @timetableEntryTeacher.
+  ///
+  /// In en, this message translates to:
+  /// **'Teacher'**
+  String get timetableEntryTeacher;
+
+  /// No description provided for @timetableEntryNoPeriodsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'No periods yet'**
+  String get timetableEntryNoPeriodsTitle;
+
+  /// No description provided for @timetableEntryNoPeriodsMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Add the periods of the school day under Period timings first.'**
+  String get timetableEntryNoPeriodsMessage;
+
+  /// No description provided for @errorTimetableSlotTaken.
+  ///
+  /// In en, this message translates to:
+  /// **'This section already has an entry in that period on that day.'**
+  String get errorTimetableSlotTaken;
+
+  /// No description provided for @errorTimetableTeacherBusy.
+  ///
+  /// In en, this message translates to:
+  /// **'That teacher already has a lesson in that period on that day.'**
+  String get errorTimetableTeacherBusy;
+
+  /// No description provided for @errorTimetableTeacherBusyIn.
+  ///
+  /// In en, this message translates to:
+  /// **'That teacher is already teaching {section} in that period on that day.'**
+  String errorTimetableTeacherBusyIn(String section);
+
+  /// No description provided for @errorTimetableInvalidSlot.
+  ///
+  /// In en, this message translates to:
+  /// **'That period cannot take this entry. A break period takes only a break.'**
+  String get errorTimetableInvalidSlot;
+
+  /// No description provided for @errorTimetableSubjectNotTaught.
+  ///
+  /// In en, this message translates to:
+  /// **'That teacher does not teach this subject. Add it to their subjects first.'**
+  String get errorTimetableSubjectNotTaught;
+
+  /// No description provided for @errorTimetableTeacherElsewhere.
+  ///
+  /// In en, this message translates to:
+  /// **'That teacher is based at another Institution.'**
+  String get errorTimetableTeacherElsewhere;
+
+  /// No description provided for @errorTimetableTeacherBlocked.
+  ///
+  /// In en, this message translates to:
+  /// **'That teacher\'s access is blocked.'**
+  String get errorTimetableTeacherBlocked;
+
+  /// No description provided for @errorCurrentYearRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'This Institution has no current academic year. Make one current under Academic years first.'**
+  String get errorCurrentYearRequired;
 
   /// No description provided for @errorCurrentYearLocked.
   ///
@@ -4380,6 +5112,306 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'This import is no longer available. Imports are kept for 7 days. Check the students list for what was added.'**
   String get errorImportRunGone;
+
+  /// No description provided for @attendanceTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Attendance'**
+  String get attendanceTitle;
+
+  /// No description provided for @attendanceDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Date'**
+  String get attendanceDate;
+
+  /// No description provided for @attendanceNoSectionsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'No classes to mark yet'**
+  String get attendanceNoSectionsTitle;
+
+  /// No description provided for @attendanceNoSectionsMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Add classes and sections in School setup, and their students appear here to be marked.'**
+  String get attendanceNoSectionsMessage;
+
+  /// No description provided for @attendancePickTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a class and a section'**
+  String get attendancePickTitle;
+
+  /// No description provided for @attendancePickMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'The students of the section appear here for you to mark.'**
+  String get attendancePickMessage;
+
+  /// No description provided for @attendanceNoStudentsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'No students on this day'**
+  String get attendanceNoStudentsTitle;
+
+  /// No description provided for @attendanceNoStudentsMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'No student is placed in this section on this day.'**
+  String get attendanceNoStudentsMessage;
+
+  /// No description provided for @attendancePresentCount.
+  ///
+  /// In en, this message translates to:
+  /// **'Present: {present} / {total}'**
+  String attendancePresentCount(int present, int total);
+
+  /// No description provided for @attendanceMarkPresent.
+  ///
+  /// In en, this message translates to:
+  /// **'Present'**
+  String get attendanceMarkPresent;
+
+  /// No description provided for @attendanceMarkPresentShort.
+  ///
+  /// In en, this message translates to:
+  /// **'P'**
+  String get attendanceMarkPresentShort;
+
+  /// No description provided for @attendanceMarkAbsent.
+  ///
+  /// In en, this message translates to:
+  /// **'Absent'**
+  String get attendanceMarkAbsent;
+
+  /// No description provided for @attendanceMarkAbsentShort.
+  ///
+  /// In en, this message translates to:
+  /// **'A'**
+  String get attendanceMarkAbsentShort;
+
+  /// No description provided for @attendanceMarkLate.
+  ///
+  /// In en, this message translates to:
+  /// **'Late'**
+  String get attendanceMarkLate;
+
+  /// No description provided for @attendanceMarkLateShort.
+  ///
+  /// In en, this message translates to:
+  /// **'L'**
+  String get attendanceMarkLateShort;
+
+  /// No description provided for @attendanceMarkHalfDay.
+  ///
+  /// In en, this message translates to:
+  /// **'Half day'**
+  String get attendanceMarkHalfDay;
+
+  /// No description provided for @attendanceMarkHalfDayShort.
+  ///
+  /// In en, this message translates to:
+  /// **'HD'**
+  String get attendanceMarkHalfDayShort;
+
+  /// No description provided for @attendanceMarkLeave.
+  ///
+  /// In en, this message translates to:
+  /// **'Leave'**
+  String get attendanceMarkLeave;
+
+  /// No description provided for @attendanceMarkLeaveShort.
+  ///
+  /// In en, this message translates to:
+  /// **'LV'**
+  String get attendanceMarkLeaveShort;
+
+  /// No description provided for @attendanceStudentMark.
+  ///
+  /// In en, this message translates to:
+  /// **'{name}, roll {roll}'**
+  String attendanceStudentMark(String name, String roll);
+
+  /// No description provided for @attendanceSubmit.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm & Submit Attendance'**
+  String get attendanceSubmit;
+
+  /// No description provided for @attendanceSaveCorrections.
+  ///
+  /// In en, this message translates to:
+  /// **'Save corrections'**
+  String get attendanceSaveCorrections;
+
+  /// No description provided for @attendanceVoid.
+  ///
+  /// In en, this message translates to:
+  /// **'Void this register'**
+  String get attendanceVoid;
+
+  /// No description provided for @attendanceTakenBy.
+  ///
+  /// In en, this message translates to:
+  /// **'Taken by {name} on {time}'**
+  String attendanceTakenBy(String name, String time);
+
+  /// No description provided for @attendanceHoliday.
+  ///
+  /// In en, this message translates to:
+  /// **'Holiday: {title}'**
+  String attendanceHoliday(String title);
+
+  /// No description provided for @attendanceHolidayUntitled.
+  ///
+  /// In en, this message translates to:
+  /// **'Holiday'**
+  String get attendanceHolidayUntitled;
+
+  /// No description provided for @attendanceViewOnly.
+  ///
+  /// In en, this message translates to:
+  /// **'You mark attendance only at your own Institution.'**
+  String get attendanceViewOnly;
+
+  /// No description provided for @attendanceClosed.
+  ///
+  /// In en, this message translates to:
+  /// **'Attendance cannot be taken for this day. It may be outside the current academic year.'**
+  String get attendanceClosed;
+
+  /// No description provided for @attendanceSubmitted.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =0{Attendance submitted} =1{Attendance submitted for 1 student} other{Attendance submitted for {count} students}}'**
+  String attendanceSubmitted(int count);
+
+  /// No description provided for @attendanceCorrected.
+  ///
+  /// In en, this message translates to:
+  /// **'Attendance corrected'**
+  String get attendanceCorrected;
+
+  /// No description provided for @attendanceVoided.
+  ///
+  /// In en, this message translates to:
+  /// **'Register voided. The day can be marked again.'**
+  String get attendanceVoided;
+
+  /// No description provided for @attendanceVoidTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Void this register?'**
+  String get attendanceVoidTitle;
+
+  /// No description provided for @attendanceVoidMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'The day can then be marked again. Parents who were told about an absence keep that alert.'**
+  String get attendanceVoidMessage;
+
+  /// No description provided for @attendanceVoidReason.
+  ///
+  /// In en, this message translates to:
+  /// **'Reason (at least 5 characters)'**
+  String get attendanceVoidReason;
+
+  /// No description provided for @attendanceVoidReasonShort.
+  ///
+  /// In en, this message translates to:
+  /// **'At least 5 characters.'**
+  String get attendanceVoidReasonShort;
+
+  /// No description provided for @attendanceVoidConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Void register'**
+  String get attendanceVoidConfirm;
+
+  /// No description provided for @errorAttendanceNotFound.
+  ///
+  /// In en, this message translates to:
+  /// **'This section could not be found. It may have been closed.'**
+  String get errorAttendanceNotFound;
+
+  /// No description provided for @errorAttendanceNotAssigned.
+  ///
+  /// In en, this message translates to:
+  /// **'You mark attendance only at your own Institution.'**
+  String get errorAttendanceNotAssigned;
+
+  /// No description provided for @errorAttendanceNoYear.
+  ///
+  /// In en, this message translates to:
+  /// **'No current academic year has been set up yet, so attendance cannot be taken.'**
+  String get errorAttendanceNoYear;
+
+  /// No description provided for @errorAttendanceFuture.
+  ///
+  /// In en, this message translates to:
+  /// **'This day has not come yet, so it cannot be marked.'**
+  String get errorAttendanceFuture;
+
+  /// No description provided for @errorAttendanceOutsideYear.
+  ///
+  /// In en, this message translates to:
+  /// **'This day is outside the current academic year.'**
+  String get errorAttendanceOutsideYear;
+
+  /// No description provided for @errorAttendanceHoliday.
+  ///
+  /// In en, this message translates to:
+  /// **'This day is a holiday for the class, so it cannot be marked.'**
+  String get errorAttendanceHoliday;
+
+  /// No description provided for @errorAttendanceTaken.
+  ///
+  /// In en, this message translates to:
+  /// **'Attendance for this day was taken meanwhile. The register is shown.'**
+  String get errorAttendanceTaken;
+
+  /// No description provided for @errorAttendanceRosterChanged.
+  ///
+  /// In en, this message translates to:
+  /// **'A student joined or left the section meanwhile. The list is read again: check the marks and submit once more.'**
+  String get errorAttendanceRosterChanged;
+
+  /// No description provided for @errorAttendanceNotInSection.
+  ///
+  /// In en, this message translates to:
+  /// **'A student is no longer in this section. The list is read again.'**
+  String get errorAttendanceNotInSection;
+
+  /// No description provided for @errorAttendanceVersion.
+  ///
+  /// In en, this message translates to:
+  /// **'Someone else changed this register meanwhile. The latest is shown: check it and correct again.'**
+  String get errorAttendanceVersion;
+
+  /// No description provided for @errorAttendanceVoided.
+  ///
+  /// In en, this message translates to:
+  /// **'This register was voided meanwhile. The day is shown as it is now.'**
+  String get errorAttendanceVoided;
+
+  /// No description provided for @errorAttendanceOlderYear.
+  ///
+  /// In en, this message translates to:
+  /// **'Only an Owner or an Admin can correct a register of an earlier year.'**
+  String get errorAttendanceOlderYear;
+
+  /// No description provided for @errorStudentMoveAttendanceTaken.
+  ///
+  /// In en, this message translates to:
+  /// **'Attendance was taken for the old section on {date} with this student in it. Choose a later day, or void that register and take it again.'**
+  String errorStudentMoveAttendanceTaken(String date);
+
+  /// No description provided for @errorStudentMoveAttendanceTakenNoDay.
+  ///
+  /// In en, this message translates to:
+  /// **'Attendance was already taken for the old section with this student in it. Choose a later day, or void that register and take it again.'**
+  String get errorStudentMoveAttendanceTakenNoDay;
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {

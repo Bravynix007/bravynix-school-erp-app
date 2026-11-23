@@ -6,6 +6,7 @@ import 'package:bravynix_school_erp/core/l10n/app_language.dart';
 import 'package:bravynix_school_erp/core/network/api_client.dart';
 import 'package:bravynix_school_erp/core/network/api_events.dart';
 import 'package:bravynix_school_erp/core/network/dio_factory.dart';
+import 'package:bravynix_school_erp/core/storage/child_choice_store.dart';
 import 'package:bravynix_school_erp/core/storage/install_marker.dart';
 import 'package:bravynix_school_erp/core/storage/institution_choice_store.dart';
 import 'package:bravynix_school_erp/core/storage/token_storage.dart';
@@ -13,6 +14,8 @@ import 'package:bravynix_school_erp/features/academic_years/data/academic_years_
 import 'package:bravynix_school_erp/features/academic_years/domain/academic_years_repository.dart';
 import 'package:bravynix_school_erp/features/achievements/data/achievements_repository_impl.dart';
 import 'package:bravynix_school_erp/features/achievements/domain/achievements_repository.dart';
+import 'package:bravynix_school_erp/features/attendance/data/attendance_repository_impl.dart';
+import 'package:bravynix_school_erp/features/attendance/domain/attendance_repository.dart';
 import 'package:bravynix_school_erp/features/auth/data/auth_repository_impl.dart';
 import 'package:bravynix_school_erp/features/auth/domain/auth_repository.dart';
 import 'package:bravynix_school_erp/features/blocks/data/blocks_repository_impl.dart';
@@ -24,6 +27,8 @@ import 'package:bravynix_school_erp/features/classroom/data/classroom_repository
 import 'package:bravynix_school_erp/features/classroom/domain/classroom.dart';
 import 'package:bravynix_school_erp/features/documents/data/documents_repository_impl.dart';
 import 'package:bravynix_school_erp/features/documents/domain/documents_repository.dart';
+import 'package:bravynix_school_erp/features/events/data/events_repository_impl.dart';
+import 'package:bravynix_school_erp/features/events/domain/events_repository.dart';
 import 'package:bravynix_school_erp/features/files/data/device_file_picking.dart';
 import 'package:bravynix_school_erp/features/files/data/files_repository_impl.dart';
 import 'package:bravynix_school_erp/features/files/data/object_uploader.dart';
@@ -35,8 +40,14 @@ import 'package:bravynix_school_erp/features/institutions/data/institutions_repo
 import 'package:bravynix_school_erp/features/institutions/domain/institutions_repository.dart';
 import 'package:bravynix_school_erp/features/masters/data/masters_repository_impl.dart';
 import 'package:bravynix_school_erp/features/masters/domain/masters_repository.dart';
+import 'package:bravynix_school_erp/features/notifications/data/notifications_repository_impl.dart';
+import 'package:bravynix_school_erp/features/notifications/domain/notifications_repository.dart';
 import 'package:bravynix_school_erp/features/platform_dues/data/platform_dues_repository_impl.dart';
 import 'package:bravynix_school_erp/features/platform_dues/domain/platform_dues_repository.dart';
+import 'package:bravynix_school_erp/features/push/data/push_device_repository_impl.dart';
+import 'package:bravynix_school_erp/features/push/domain/push_device_repository.dart';
+import 'package:bravynix_school_erp/features/push/domain/push_messaging.dart';
+import 'package:bravynix_school_erp/features/push/domain/push_registrar.dart';
 import 'package:bravynix_school_erp/features/sections/data/sections_repository_impl.dart';
 import 'package:bravynix_school_erp/features/sections/domain/sections_repository.dart';
 import 'package:bravynix_school_erp/features/staff/data/staff_repository_impl.dart';
@@ -49,6 +60,10 @@ import 'package:bravynix_school_erp/features/subjects/data/subjects_repository_i
 import 'package:bravynix_school_erp/features/subjects/domain/subjects_repository.dart';
 import 'package:bravynix_school_erp/features/teaching_assignments/data/teaching_assignments_repository_impl.dart';
 import 'package:bravynix_school_erp/features/teaching_assignments/domain/teaching_assignments_repository.dart';
+import 'package:bravynix_school_erp/features/time_slots/data/time_slots_repository_impl.dart';
+import 'package:bravynix_school_erp/features/time_slots/domain/time_slots_repository.dart';
+import 'package:bravynix_school_erp/features/timetable/data/timetable_repository_impl.dart';
+import 'package:bravynix_school_erp/features/timetable/domain/timetable_repository.dart';
 import 'package:dio/dio.dart';
 import 'package:get_it/get_it.dart';
 
@@ -91,6 +106,9 @@ Future<void> configureDependencies(
       ),
     )
     ..registerLazySingleton<AcademicYearsRepository>(() => AcademicYearsRepositoryImpl(api: getIt()))
+    ..registerLazySingleton<TimeSlotsRepository>(() => TimeSlotsRepositoryImpl(api: getIt()))
+    ..registerLazySingleton<AttendanceRepository>(() => AttendanceRepositoryImpl(api: getIt()))
+    ..registerLazySingleton<TimetableRepository>(() => TimetableRepositoryImpl(api: getIt()))
     ..registerLazySingleton<ClassesRepository>(() => ClassesRepositoryImpl(api: getIt()))
     ..registerLazySingleton(() => ClassCatalogue(getIt(), getIt()))
     ..registerLazySingleton<SectionsRepository>(() => SectionsRepositoryImpl(api: getIt()))
@@ -120,9 +138,17 @@ Future<void> configureDependencies(
         events: events,
       ),
     )
+    ..registerLazySingleton<EventsRepository>(() => EventsRepositoryImpl(api: getIt()))
+    ..registerLazySingleton<NotificationsRepository>(() => NotificationsRepositoryImpl(api: getIt()))
+    ..registerLazySingleton<PushMessaging>(UnavailablePushMessaging.new)
+    ..registerLazySingleton<PushDeviceRepository>(
+      () => PushDeviceRepositoryImpl(api: getIt(), device: appDevice, language: () => language.value),
+    )
+    ..registerLazySingleton(() => PushRegistrar(getIt(), getIt()))
     ..registerLazySingleton<BlocksRepository>(() => BlocksRepositoryImpl(api: getIt()))
     ..registerLazySingleton<InstitutionsRepository>(() => InstitutionsRepositoryImpl(api: getIt()))
     ..registerLazySingleton<InstitutionChoiceStore>(PreferencesInstitutionChoiceStore.new)
+    ..registerLazySingleton<ChildChoiceStore>(PreferencesChildChoiceStore.new)
     ..registerLazySingleton<MastersRepository>(() => MastersRepositoryImpl(api: getIt()))
     ..registerLazySingleton<PlatformDuesRepository>(() => PlatformDuesRepositoryImpl(api: getIt()));
 }

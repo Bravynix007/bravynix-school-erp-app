@@ -14,141 +14,46 @@ void main() {
     expect(find.text('School setup'), findsOneWidget);
     expect(find.text('Institutions'), findsOneWidget);
     expect(find.text('Academic years'), findsOneWidget);
+    expect(find.text('Period timings'), findsOneWidget);
     expect(find.text('Subjects'), findsOneWidget);
     expect(find.text('Classes'), findsOneWidget);
   });
 
-  testWidgets('opens the Institutions', (tester) async {
-    final router = GoRouter(
-      routes: [
-        GoRoute(path: '/', builder: (_, _) => const SchoolSetupPage()),
-        GoRoute(path: AppRoutes.institutions, builder: (_, _) => const Text('institutions screen')),
-        GoRoute(path: AppRoutes.academicYears, builder: (_, _) => const Text('academic years screen')),
-      ],
-    );
-    addTearDown(router.dispose);
-    await tester.pumpWidget(
-      MaterialApp.router(
-        theme: AppTheme.light(),
-        routerConfig: router,
-        localizationsDelegates: AppLocalizations.localizationsDelegates,
-        supportedLocales: AppLocalizations.supportedLocales,
-      ),
-    );
-    await tester.tap(find.byKey(const Key('schoolSetup.institutions')));
-    await tester.pumpAndSettle();
-    expect(find.text('institutions screen'), findsOneWidget);
-  });
-
-  testWidgets('opens the Academic years', (tester) async {
-    final router = GoRouter(
-      routes: [
-        GoRoute(path: '/', builder: (_, _) => const SchoolSetupPage()),
-        GoRoute(path: AppRoutes.academicYears, builder: (_, _) => const Text('academic years screen')),
-      ],
-    );
-    addTearDown(router.dispose);
-    await tester.pumpWidget(
-      MaterialApp.router(
-        theme: AppTheme.light(),
-        routerConfig: router,
-        localizationsDelegates: AppLocalizations.localizationsDelegates,
-        supportedLocales: AppLocalizations.supportedLocales,
-      ),
-    );
-    await tester.tap(find.byKey(const Key('schoolSetup.academicYears')));
-    await tester.pumpAndSettle();
-    expect(find.text('academic years screen'), findsOneWidget);
-  });
-
-  testWidgets('opens the Subjects', (tester) async {
-    final router = GoRouter(
-      routes: [
-        GoRoute(path: '/', builder: (_, _) => const SchoolSetupPage()),
-        GoRoute(path: AppRoutes.subjects, builder: (_, _) => const Text('subjects screen')),
-      ],
-    );
-    addTearDown(router.dispose);
-    await tester.pumpWidget(
-      MaterialApp.router(
-        theme: AppTheme.light(),
-        routerConfig: router,
-        localizationsDelegates: AppLocalizations.localizationsDelegates,
-        supportedLocales: AppLocalizations.supportedLocales,
-      ),
-    );
-    await tester.tap(find.byKey(const Key('schoolSetup.subjects')));
-    await tester.pumpAndSettle();
-    expect(find.text('subjects screen'), findsOneWidget);
-  });
-
-  testWidgets('opens the Classes', (tester) async {
-    final router = GoRouter(
-      routes: [
-        GoRoute(path: '/', builder: (_, _) => const SchoolSetupPage()),
-        GoRoute(path: AppRoutes.classes, builder: (_, _) => const Text('classes screen')),
-      ],
-    );
-    addTearDown(router.dispose);
-    await tester.pumpWidget(
-      MaterialApp.router(
-        theme: AppTheme.light(),
-        routerConfig: router,
-        localizationsDelegates: AppLocalizations.localizationsDelegates,
-        supportedLocales: AppLocalizations.supportedLocales,
-      ),
-    );
-    await tester.tap(find.byKey(const Key('schoolSetup.classes')));
-    await tester.pumpAndSettle();
-    expect(find.text('classes screen'), findsOneWidget);
-  });
-
-  testWidgets('opens the Teachers / Staff', (tester) async {
-    final router = GoRouter(
-      routes: [
-        GoRoute(path: '/', builder: (_, _) => const SchoolSetupPage()),
-        GoRoute(path: AppRoutes.staff, builder: (_, _) => const Text('staff screen')),
-      ],
-    );
-    addTearDown(router.dispose);
-    await tester.pumpWidget(
-      MaterialApp.router(
-        theme: AppTheme.light(),
-        routerConfig: router,
-        localizationsDelegates: AppLocalizations.localizationsDelegates,
-        supportedLocales: AppLocalizations.supportedLocales,
-      ),
-    );
-    await tester.tap(find.byKey(const Key('schoolSetup.staff')));
-    await tester.pumpAndSettle();
-    expect(find.text('staff screen'), findsOneWidget);
-  });
-
-  testWidgets('opens the Students', (tester) async {
-    // Tall enough to show the last tile without scrolling.
-    tester.view
-      ..physicalSize = const Size(800, 1200)
-      ..devicePixelRatio = 1;
-    addTearDown(tester.view.reset);
-    final router = GoRouter(
-      routes: [
-        GoRoute(path: '/', builder: (_, _) => const SchoolSetupPage()),
-        GoRoute(path: AppRoutes.students, builder: (_, _) => const Text('students screen')),
-      ],
-    );
-    addTearDown(router.dispose);
-    await tester.pumpWidget(
-      MaterialApp.router(
-        theme: AppTheme.light(),
-        routerConfig: router,
-        localizationsDelegates: AppLocalizations.localizationsDelegates,
-        supportedLocales: AppLocalizations.supportedLocales,
-      ),
-    );
-    await tester.tap(find.byKey(const Key('schoolSetup.students')));
-    await tester.pumpAndSettle();
-    expect(find.text('students screen'), findsOneWidget);
-  });
+  for (final (name, key, route) in [
+    ('Institutions', 'institutions', AppRoutes.institutions),
+    ('Academic years', 'academicYears', AppRoutes.academicYears),
+    ('Period timings', 'timeSlots', AppRoutes.timeSlots),
+    ('Subjects', 'subjects', AppRoutes.subjects),
+    ('Classes', 'classes', AppRoutes.classes),
+    ('Teachers / Staff', 'staff', AppRoutes.staff),
+    ('Students', 'students', AppRoutes.students),
+  ]) {
+    testWidgets('opens the $name', (tester) async {
+      // Tall enough to show every tile without scrolling.
+      tester.view
+        ..physicalSize = const Size(800, 1600)
+        ..devicePixelRatio = 1;
+      addTearDown(tester.view.reset);
+      final router = GoRouter(
+        routes: [
+          GoRoute(path: '/', builder: (_, _) => const SchoolSetupPage()),
+          GoRoute(path: route, builder: (_, _) => const Text('opened screen')),
+        ],
+      );
+      addTearDown(router.dispose);
+      await tester.pumpWidget(
+        MaterialApp.router(
+          theme: AppTheme.light(),
+          routerConfig: router,
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+        ),
+      );
+      await tester.tap(find.byKey(Key('schoolSetup.$key')));
+      await tester.pumpAndSettle();
+      expect(find.text('opened screen'), findsOneWidget);
+    });
+  }
 
   testWidgets('is usable at a large text scale on a small phone', (tester) async {
     await tester.pumpAppScaled(const SchoolSetupPage(), textScale: 2);

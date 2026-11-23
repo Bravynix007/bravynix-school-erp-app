@@ -58,18 +58,32 @@ class LinkedChild extends Equatable {
     required this.studentId,
     required this.firstName,
     required this.institutionName,
-    required this.classSection,
     required this.isBlocked,
+    this.lastName,
+    this.className,
+    this.sectionName,
   });
 
   final String studentId;
   final String firstName;
+  final String? lastName;
   final String institutionName;
-  final String classSection;
+
+  /// The current placement; both are null while the child has none.
+  final String? className;
+  final String? sectionName;
+
+  /// The child's profile is blocked, or its Institution has its students blocked: the child's data answers 403.
   final bool isBlocked;
 
+  /// First and last name, as the child is called in a list.
+  String get fullName => [firstName, lastName].whereType<String>().where((part) => part.isNotEmpty).join(' ');
+
+  /// "7th - A", "7th" while the section is not known, or empty while the child has no placement.
+  String get classSection => [className, sectionName].whereType<String>().where((part) => part.isNotEmpty).join(' - ');
+
   @override
-  List<Object?> get props => [studentId, firstName, institutionName, classSection, isBlocked];
+  List<Object?> get props => [studentId, firstName, lastName, institutionName, className, sectionName, isBlocked];
 }
 
 /// One role the person can act in, with its scope (API design 6.3).

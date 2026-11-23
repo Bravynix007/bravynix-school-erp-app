@@ -206,6 +206,183 @@ class AppLocalizationsEn extends AppLocalizations {
   String get homeComingSoon => 'Your home screen arrives with the next modules of the build plan.';
 
   @override
+  String get inboxTitle => 'Notifications';
+
+  @override
+  String get inboxTabOnlyForYou => 'Only for you';
+
+  @override
+  String get inboxTabAll => 'All';
+
+  @override
+  String get inboxTabAllTeachers => 'All teachers';
+
+  @override
+  String get inboxTabAllStudents => 'All students';
+
+  @override
+  String get inboxMarkAllRead => 'Mark all as read';
+
+  @override
+  String get inboxClear => 'Clear all';
+
+  @override
+  String get inboxClearTitle => 'Clear notifications?';
+
+  @override
+  String inboxClearMessage(String tab) {
+    return 'Every notification in \"$tab\" is deleted for good.';
+  }
+
+  @override
+  String get inboxClearConfirm => 'Clear';
+
+  @override
+  String get inboxEmptyTitle => 'Nothing here yet';
+
+  @override
+  String get inboxEmptyMessage => 'New notifications about your school show up here.';
+
+  @override
+  String get inboxLoadMore => 'Load more';
+
+  @override
+  String get inboxUnread => 'Unread';
+
+  @override
+  String inboxFrom(String sender, String when) {
+    return 'From: $sender · $when';
+  }
+
+  @override
+  String get bellTooltip => 'Notifications';
+
+  @override
+  String bellUnread(int count) {
+    return '$count unread';
+  }
+
+  @override
+  String get quickAccessTitle => 'Quick Access';
+
+  @override
+  String get eventsTitle => 'Events';
+
+  @override
+  String get eventsPreviousMonth => 'Previous month';
+
+  @override
+  String get eventsNextMonth => 'Next month';
+
+  @override
+  String get eventsFilterAll => 'All';
+
+  @override
+  String get eventsFilterHolidays => 'Holidays';
+
+  @override
+  String get eventsEmptyTitle => 'No events this month';
+
+  @override
+  String get eventsEmptyMessage => 'Events and holidays your school adds show up here.';
+
+  @override
+  String get eventsEmptyHolidaysTitle => 'No holidays this month';
+
+  @override
+  String get eventHolidayTag => 'Holiday';
+
+  @override
+  String get eventWhen => 'When';
+
+  @override
+  String eventOneDay(String date) {
+    return '$date';
+  }
+
+  @override
+  String eventDays(String start, String end) {
+    return '$start to $end';
+  }
+
+  @override
+  String get eventVenue => 'Venue';
+
+  @override
+  String get eventAbout => 'About';
+
+  @override
+  String get eventAudience => 'Told to';
+
+  @override
+  String get eventAudienceEveryone => 'Everyone';
+
+  @override
+  String get eventAudienceStudents => 'Students and parents';
+
+  @override
+  String get eventAudienceStaff => 'Staff';
+
+  @override
+  String get eventScope => 'Belongs to';
+
+  @override
+  String get eventScopeSociety => 'The whole Society';
+
+  @override
+  String get eventScopeInstitution => 'One Institution';
+
+  @override
+  String get eventHolidayType => 'Kind of holiday';
+
+  @override
+  String get eventHolidayPublic => 'Public holiday';
+
+  @override
+  String get eventHolidayVacation => 'Vacation';
+
+  @override
+  String get eventHolidayEvent => 'Event holiday';
+
+  @override
+  String get eventHolidayOptional => 'Optional';
+
+  @override
+  String get eventHolidayFor => 'Holiday for';
+
+  @override
+  String get eventHolidayForStudents => 'Students';
+
+  @override
+  String get eventHolidayForStaff => 'Staff';
+
+  @override
+  String get eventHolidayForBoth => 'Students and staff';
+
+  @override
+  String get eventHolidayClasses => 'Classes';
+
+  @override
+  String get eventHolidayEveryClass => 'Every class';
+
+  @override
+  String eventHolidaySomeClasses(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count classes',
+      one: '1 class',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get errorEventNotFound => 'This event is no longer available.';
+
+  @override
+  String get errorChildAccessBlocked => 'Access to this child\'s information is blocked. Contact the school.';
+
+  @override
   String get logOut => 'Log out';
 
   @override
@@ -265,6 +442,25 @@ class AppLocalizationsEn extends AppLocalizations {
   String blockedStaffNotice(String society) {
     return 'Your access to $society is blocked. Contact your Society.';
   }
+
+  @override
+  String blockedChildNotice(String child) {
+    return 'Access to $child\'s information is blocked. Contact the school.';
+  }
+
+  @override
+  String get childSwitchHint => 'Change child';
+
+  @override
+  String get childSwitchTitle => 'Choose a child';
+
+  @override
+  String childDetail(String classSection, String institution) {
+    return '$classSection, $institution';
+  }
+
+  @override
+  String get childNoClass => 'Not placed in a class yet';
 
   @override
   String get blockedParentNotice => 'Access to your children\'s information is blocked. Contact the school.';
@@ -676,6 +872,221 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get errorYearDuplicate => 'Another academic year of this Institution has this name.';
+
+  @override
+  String get timeSlotsTitle => 'Period timings';
+
+  @override
+  String get timeSlotsDetail => 'The periods of the school day, for the current academic year';
+
+  @override
+  String get timeSlotsEmptyTitle => 'No periods yet';
+
+  @override
+  String get timeSlotsEmptyMessage =>
+      'Add the periods and breaks of the school day. The class timetable is built from them.';
+
+  @override
+  String get timeSlotAdd => 'Add period';
+
+  @override
+  String get timeSlotAddTitle => 'Add period';
+
+  @override
+  String get timeSlotEditTitle => 'Edit period';
+
+  @override
+  String get timeSlotEdit => 'Edit';
+
+  @override
+  String get timeSlotDeactivate => 'Deactivate';
+
+  @override
+  String timeSlotDeactivateTitle(String name) {
+    return 'Deactivate $name?';
+  }
+
+  @override
+  String get timeSlotDeactivateMessage =>
+      'It leaves the list and its number and times are free again. Nothing is deleted.';
+
+  @override
+  String get timeSlotDeactivated => 'Period deactivated';
+
+  @override
+  String get timeSlotSaved => 'Period saved';
+
+  @override
+  String timeSlotName(int number) {
+    return 'Period $number';
+  }
+
+  @override
+  String timeSlotTimes(String start, String end) {
+    return '$start to $end';
+  }
+
+  @override
+  String get timeSlotBreakChip => 'Break';
+
+  @override
+  String get timeSlotNumber => 'Period number';
+
+  @override
+  String get timeSlotNumberHelper => '1 to 30';
+
+  @override
+  String get timeSlotLabel => 'Name (optional)';
+
+  @override
+  String get timeSlotLabelHelper => 'For example Lunch';
+
+  @override
+  String get timeSlotStart => 'Starts at';
+
+  @override
+  String get timeSlotEnd => 'Ends at';
+
+  @override
+  String get timeSlotBreak => 'This is a break';
+
+  @override
+  String get timeSlotBreakHelper => 'No lesson is given in a break. It cannot be changed once the period is added.';
+
+  @override
+  String get timeSlotSave => 'Save';
+
+  @override
+  String get errorTimeSlotDuplicate => 'Another period of this year has this number.';
+
+  @override
+  String get errorTimeSlotOverlap =>
+      'These times overlap another period of this year. A period may end when the next begins.';
+
+  @override
+  String get errorTimeSlotInUse => 'A timetable entry sits in this period. Remove it from the timetable first.';
+
+  @override
+  String get errorTimeSlotNotFound => 'This period could not be found. It may have been deactivated.';
+
+  @override
+  String get timetableTitle => 'Timetable';
+
+  @override
+  String get timetableEmptyTitle => 'No timetable yet';
+
+  @override
+  String get timetableEmptyMessage => 'No lessons have been added to the week yet.';
+
+  @override
+  String timetableDayCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count periods',
+      one: '1 period',
+      zero: 'No periods',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get timetableDayEmpty => 'Nothing is planned for this day.';
+
+  @override
+  String get timetableBreak => 'Break';
+
+  @override
+  String get errorTimetableNotAssigned => 'You can see the timetable of a section you lead or teach.';
+
+  @override
+  String get errorTimetableNotFound => 'This timetable could not be found.';
+
+  @override
+  String get errorTimetableNoYear => 'No current academic year has been set up yet, so there is no timetable to show.';
+
+  @override
+  String get timetableEntryAdd => 'Add entry';
+
+  @override
+  String get timetableEntryAddTitle => 'Add entry';
+
+  @override
+  String get timetableEntryEditTitle => 'Edit entry';
+
+  @override
+  String get timetableEntryEdit => 'Edit';
+
+  @override
+  String get timetableEntryDelete => 'Delete';
+
+  @override
+  String get timetableEntryDeleteTitle => 'Delete this entry?';
+
+  @override
+  String get timetableEntryDeleteMessage =>
+      'It leaves the timetable, and its period is free again for the section and the teacher.';
+
+  @override
+  String get timetableEntryDeleted => 'Entry deleted';
+
+  @override
+  String get timetableEntrySaved => 'Entry saved';
+
+  @override
+  String get timetableEntrySave => 'Save';
+
+  @override
+  String get timetableEntryDay => 'Day';
+
+  @override
+  String get timetableEntryPeriod => 'Period';
+
+  @override
+  String get timetableEntryBreak => 'This is a break';
+
+  @override
+  String get timetableEntryBreakHelper => 'A break has no subject or teacher.';
+
+  @override
+  String get timetableEntrySubject => 'Subject';
+
+  @override
+  String get timetableEntryTeacher => 'Teacher';
+
+  @override
+  String get timetableEntryNoPeriodsTitle => 'No periods yet';
+
+  @override
+  String get timetableEntryNoPeriodsMessage => 'Add the periods of the school day under Period timings first.';
+
+  @override
+  String get errorTimetableSlotTaken => 'This section already has an entry in that period on that day.';
+
+  @override
+  String get errorTimetableTeacherBusy => 'That teacher already has a lesson in that period on that day.';
+
+  @override
+  String errorTimetableTeacherBusyIn(String section) {
+    return 'That teacher is already teaching $section in that period on that day.';
+  }
+
+  @override
+  String get errorTimetableInvalidSlot => 'That period cannot take this entry. A break period takes only a break.';
+
+  @override
+  String get errorTimetableSubjectNotTaught =>
+      'That teacher does not teach this subject. Add it to their subjects first.';
+
+  @override
+  String get errorTimetableTeacherElsewhere => 'That teacher is based at another Institution.';
+
+  @override
+  String get errorTimetableTeacherBlocked => 'That teacher\'s access is blocked.';
+
+  @override
+  String get errorCurrentYearRequired =>
+      'This Institution has no current academic year. Make one current under Academic years first.';
 
   @override
   String get errorCurrentYearLocked => 'The current year can\'t be deactivated. Make another year current first.';
@@ -2484,4 +2895,179 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get errorImportRunGone =>
       'This import is no longer available. Imports are kept for 7 days. Check the students list for what was added.';
+
+  @override
+  String get attendanceTitle => 'Attendance';
+
+  @override
+  String get attendanceDate => 'Date';
+
+  @override
+  String get attendanceNoSectionsTitle => 'No classes to mark yet';
+
+  @override
+  String get attendanceNoSectionsMessage =>
+      'Add classes and sections in School setup, and their students appear here to be marked.';
+
+  @override
+  String get attendancePickTitle => 'Choose a class and a section';
+
+  @override
+  String get attendancePickMessage => 'The students of the section appear here for you to mark.';
+
+  @override
+  String get attendanceNoStudentsTitle => 'No students on this day';
+
+  @override
+  String get attendanceNoStudentsMessage => 'No student is placed in this section on this day.';
+
+  @override
+  String attendancePresentCount(int present, int total) {
+    return 'Present: $present / $total';
+  }
+
+  @override
+  String get attendanceMarkPresent => 'Present';
+
+  @override
+  String get attendanceMarkPresentShort => 'P';
+
+  @override
+  String get attendanceMarkAbsent => 'Absent';
+
+  @override
+  String get attendanceMarkAbsentShort => 'A';
+
+  @override
+  String get attendanceMarkLate => 'Late';
+
+  @override
+  String get attendanceMarkLateShort => 'L';
+
+  @override
+  String get attendanceMarkHalfDay => 'Half day';
+
+  @override
+  String get attendanceMarkHalfDayShort => 'HD';
+
+  @override
+  String get attendanceMarkLeave => 'Leave';
+
+  @override
+  String get attendanceMarkLeaveShort => 'LV';
+
+  @override
+  String attendanceStudentMark(String name, String roll) {
+    return '$name, roll $roll';
+  }
+
+  @override
+  String get attendanceSubmit => 'Confirm & Submit Attendance';
+
+  @override
+  String get attendanceSaveCorrections => 'Save corrections';
+
+  @override
+  String get attendanceVoid => 'Void this register';
+
+  @override
+  String attendanceTakenBy(String name, String time) {
+    return 'Taken by $name on $time';
+  }
+
+  @override
+  String attendanceHoliday(String title) {
+    return 'Holiday: $title';
+  }
+
+  @override
+  String get attendanceHolidayUntitled => 'Holiday';
+
+  @override
+  String get attendanceViewOnly => 'You mark attendance only at your own Institution.';
+
+  @override
+  String get attendanceClosed =>
+      'Attendance cannot be taken for this day. It may be outside the current academic year.';
+
+  @override
+  String attendanceSubmitted(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Attendance submitted for $count students',
+      one: 'Attendance submitted for 1 student',
+      zero: 'Attendance submitted',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get attendanceCorrected => 'Attendance corrected';
+
+  @override
+  String get attendanceVoided => 'Register voided. The day can be marked again.';
+
+  @override
+  String get attendanceVoidTitle => 'Void this register?';
+
+  @override
+  String get attendanceVoidMessage =>
+      'The day can then be marked again. Parents who were told about an absence keep that alert.';
+
+  @override
+  String get attendanceVoidReason => 'Reason (at least 5 characters)';
+
+  @override
+  String get attendanceVoidReasonShort => 'At least 5 characters.';
+
+  @override
+  String get attendanceVoidConfirm => 'Void register';
+
+  @override
+  String get errorAttendanceNotFound => 'This section could not be found. It may have been closed.';
+
+  @override
+  String get errorAttendanceNotAssigned => 'You mark attendance only at your own Institution.';
+
+  @override
+  String get errorAttendanceNoYear => 'No current academic year has been set up yet, so attendance cannot be taken.';
+
+  @override
+  String get errorAttendanceFuture => 'This day has not come yet, so it cannot be marked.';
+
+  @override
+  String get errorAttendanceOutsideYear => 'This day is outside the current academic year.';
+
+  @override
+  String get errorAttendanceHoliday => 'This day is a holiday for the class, so it cannot be marked.';
+
+  @override
+  String get errorAttendanceTaken => 'Attendance for this day was taken meanwhile. The register is shown.';
+
+  @override
+  String get errorAttendanceRosterChanged =>
+      'A student joined or left the section meanwhile. The list is read again: check the marks and submit once more.';
+
+  @override
+  String get errorAttendanceNotInSection => 'A student is no longer in this section. The list is read again.';
+
+  @override
+  String get errorAttendanceVersion =>
+      'Someone else changed this register meanwhile. The latest is shown: check it and correct again.';
+
+  @override
+  String get errorAttendanceVoided => 'This register was voided meanwhile. The day is shown as it is now.';
+
+  @override
+  String get errorAttendanceOlderYear => 'Only an Owner or an Admin can correct a register of an earlier year.';
+
+  @override
+  String errorStudentMoveAttendanceTaken(String date) {
+    return 'Attendance was taken for the old section on $date with this student in it. Choose a later day, or void that register and take it again.';
+  }
+
+  @override
+  String get errorStudentMoveAttendanceTakenNoDay =>
+      'Attendance was already taken for the old section with this student in it. Choose a later day, or void that register and take it again.';
 }

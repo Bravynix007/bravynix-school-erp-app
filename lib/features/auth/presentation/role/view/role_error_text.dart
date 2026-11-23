@@ -20,5 +20,6 @@ String apiErrorText(AppLocalizations l10n, ApiFailure failure, {required String 
   'VALIDATION_FAILED' => l10n.errorValidation,
   'VERSION_CONFLICT' => l10n.errorVersionConflict,
   'NOT_FOUND' => notFound,
+  'CHILD_ACCESS_BLOCKED' => l10n.errorChildAccessBlocked,
   _ => roleErrorText(l10n, failure),
 };

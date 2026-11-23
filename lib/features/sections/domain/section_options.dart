@@ -10,6 +10,14 @@ import 'package:equatable/equatable.dart';
 class SectionChoice extends Equatable {
   const new({required this.id, required this.name, required this.classId});
 
+  /// A section named after its class, "Class 5 · A".
+  factory inClass({
+    required String id,
+    required String className,
+    required String sectionName,
+    required String classId,
+  }) => SectionChoice(id: id, name: '$className · $sectionName', classId: classId);
+
   final String id;
 
   /// The class and the section, such as "Class 5 · A".
@@ -108,9 +116,10 @@ class SectionOptionsSource {
       sections: [
         for (final (schoolClass, sections) in offered)
           for (final section in sections)
-            SectionChoice(
+            SectionChoice.inClass(
               id: section.id,
-              name: '${schoolClass.displayName} · ${section.displayName}',
+              className: schoolClass.displayName,
+              sectionName: section.displayName,
               classId: schoolClass.id,
             ),
       ],

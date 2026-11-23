@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:bravynix_school_erp/app/router/app_routes.dart';
 import 'package:bravynix_school_erp/features/academic_years/presentation/view/academic_year_form_page.dart';
 import 'package:bravynix_school_erp/features/academic_years/presentation/view/academic_years_page.dart';
+import 'package:bravynix_school_erp/features/attendance/presentation/view/attendance_page.dart';
 import 'package:bravynix_school_erp/features/auth/presentation/login/view/login_page.dart';
 import 'package:bravynix_school_erp/features/auth/presentation/role/view/role_chooser_page.dart';
 import 'package:bravynix_school_erp/features/auth/presentation/session/session_bloc.dart';
@@ -12,11 +13,14 @@ import 'package:bravynix_school_erp/features/classes/presentation/view/class_for
 import 'package:bravynix_school_erp/features/classes/presentation/view/classes_page.dart';
 import 'package:bravynix_school_erp/features/classroom/presentation/view/classroom_page.dart';
 import 'package:bravynix_school_erp/features/classroom/presentation/view/classroom_student_page.dart';
+import 'package:bravynix_school_erp/features/events/presentation/view/event_page.dart';
+import 'package:bravynix_school_erp/features/events/presentation/view/events_page.dart';
 import 'package:bravynix_school_erp/features/gallery/presentation/component_gallery_page.dart';
 import 'package:bravynix_school_erp/features/home/presentation/home_page.dart';
 import 'package:bravynix_school_erp/features/institutions/presentation/view/institution_form_page.dart';
 import 'package:bravynix_school_erp/features/institutions/presentation/view/institution_page.dart';
 import 'package:bravynix_school_erp/features/institutions/presentation/view/institutions_page.dart';
+import 'package:bravynix_school_erp/features/notifications/presentation/view/inbox_page.dart';
 import 'package:bravynix_school_erp/features/platform_dues/presentation/view/platform_due_page.dart';
 import 'package:bravynix_school_erp/features/platform_dues/presentation/view/platform_dues_page.dart';
 import 'package:bravynix_school_erp/features/profile/presentation/profile_page.dart';
@@ -35,6 +39,10 @@ import 'package:bravynix_school_erp/features/students/presentation/view/student_
 import 'package:bravynix_school_erp/features/students/presentation/view/students_page.dart';
 import 'package:bravynix_school_erp/features/subjects/presentation/view/subject_form_page.dart';
 import 'package:bravynix_school_erp/features/subjects/presentation/view/subjects_page.dart';
+import 'package:bravynix_school_erp/features/time_slots/presentation/view/time_slot_form_page.dart';
+import 'package:bravynix_school_erp/features/time_slots/presentation/view/time_slots_page.dart';
+import 'package:bravynix_school_erp/features/timetable/presentation/view/entry_form_page.dart';
+import 'package:bravynix_school_erp/features/timetable/presentation/view/timetable_page.dart';
 import 'package:bravynix_school_erp/features/update_required/presentation/update_required_page.dart';
 import 'package:flutter/foundation.dart';
 import 'package:go_router/go_router.dart';
@@ -59,6 +67,16 @@ String? sessionRedirect(SessionState session, String location) {
 /// The academic year form needs the Institution and year the list passes as `extra`; opened any other way there is
 /// nothing to show, so it goes back to the list. Pure, like [sessionRedirect].
 String? academicYearFormRedirect(Object? extra) => extra is AcademicYearFormArgs ? null : AppRoutes.academicYears;
+
+/// The period form needs the Institution and period the list passes as `extra`; opened any other way it goes back to
+/// the list.
+String? timeSlotFormRedirect(Object? extra) => extra is TimeSlotFormArgs ? null : AppRoutes.timeSlots;
+
+/// The section timetable needs the section the list passes as `extra`; opened any other way it goes back home.
+String? sectionTimetableRedirect(Object? extra) => extra is SectionTimetableArgs ? null : AppRoutes.home;
+
+/// The entry form needs the section and Institution the week passes as `extra`; opened any other way it goes home.
+String? timetableEntryFormRedirect(Object? extra) => extra is EntryFormArgs ? null : AppRoutes.home;
 
 /// The class forms need the Institution the list passes as `extra`; opened any other way they go back to the list.
 String? classFormRedirect(Object? extra) => extra is ClassFormArgs ? null : AppRoutes.classes;
@@ -120,6 +138,13 @@ GoRouter createRouter(SessionBloc session, {required SessionChanges changes}) {
       GoRoute(path: AppRoutes.home, builder: (_, _) => const HomePage()),
       GoRoute(path: AppRoutes.chooseRole, builder: (_, _) => const RoleChooserPage()),
       GoRoute(path: AppRoutes.profile, builder: (_, _) => const ProfilePage()),
+      GoRoute(path: AppRoutes.inbox, builder: (_, _) => const InboxPage()),
+      GoRoute(path: AppRoutes.events, builder: (_, _) => const EventsPage()),
+      GoRoute(
+        path: AppRoutes.eventPattern,
+        builder: (_, state) =>
+            EventPage(id: state.pathParameters['id']!, studentId: state.uri.queryParameters['studentId']),
+      ),
       GoRoute(
         path: AppRoutes.ownStaffRecord,
         redirect: (_, _) => ownStaffRecordRedirect(session.state),
@@ -146,6 +171,24 @@ GoRouter createRouter(SessionBloc session, {required SessionChanges changes}) {
         path: AppRoutes.academicYearForm,
         redirect: (_, state) => academicYearFormRedirect(state.extra),
         builder: (_, state) => AcademicYearFormPage(args: state.extra! as AcademicYearFormArgs),
+      ),
+      GoRoute(path: AppRoutes.attendance, builder: (_, _) => const AttendancePage()),
+      GoRoute(path: AppRoutes.timetable, builder: (_, _) => const TimetablePage()),
+      GoRoute(
+        path: AppRoutes.sectionTimetable,
+        redirect: (_, state) => sectionTimetableRedirect(state.extra),
+        builder: (_, state) => SectionTimetablePage(args: state.extra! as SectionTimetableArgs),
+      ),
+      GoRoute(
+        path: AppRoutes.timetableEntryForm,
+        redirect: (_, state) => timetableEntryFormRedirect(state.extra),
+        builder: (_, state) => EntryFormPage(args: state.extra! as EntryFormArgs),
+      ),
+      GoRoute(path: AppRoutes.timeSlots, builder: (_, _) => const TimeSlotsPage()),
+      GoRoute(
+        path: AppRoutes.timeSlotForm,
+        redirect: (_, state) => timeSlotFormRedirect(state.extra),
+        builder: (_, state) => TimeSlotFormPage(args: state.extra! as TimeSlotFormArgs),
       ),
       GoRoute(path: AppRoutes.subjects, builder: (_, _) => const SubjectsPage()),
       GoRoute(

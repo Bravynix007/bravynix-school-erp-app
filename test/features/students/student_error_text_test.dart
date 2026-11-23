@@ -42,6 +42,33 @@ void main() {
     // Each of the words is its own: none is the generic text a code without any would get.
     expect(expected.values.toSet(), hasLength(expected.length));
     expect(studentFormErrorText(l10n, _code('NOT_FOUND', status: 404)), l10n.errorStudentFormNotFound);
+    // STU-08: a move over a day the old register was taken names the latest such day, as the API gives it.
+    expect(
+      studentFormErrorText(
+        l10n,
+        const ApiFailure(
+          statusCode: 409,
+          code: 'ATTENDANCE_TAKEN',
+          message: 'x',
+          details: {'attendanceDate': '2026-11-17'},
+        ),
+      ),
+      l10n.errorStudentMoveAttendanceTaken('17-11-2026'),
+    );
+    for (final details in [
+      <String, dynamic>{},
+      {'attendanceDate': 'soon'},
+      {'attendanceDate': 7},
+    ]) {
+      expect(
+        studentFormErrorText(
+          l10n,
+          ApiFailure(statusCode: 409, code: 'ATTENDANCE_TAKEN', message: 'x', details: details),
+        ),
+        l10n.errorStudentMoveAttendanceTakenNoDay,
+        reason: '$details',
+      );
+    }
     // An edit (STU-04) is also refused when the student was changed meanwhile, or is gone.
     expect(studentFormErrorText(l10n, _code('VERSION_CONFLICT', status: 409)), l10n.errorVersionConflict);
     expect(

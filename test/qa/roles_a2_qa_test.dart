@@ -6,6 +6,8 @@ import 'package:bravynix_school_erp/core/storage/install_marker.dart';
 import 'package:bravynix_school_erp/core/storage/token_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:shared_preferences_platform_interface/in_memory_shared_preferences_async.dart';
+import 'package:shared_preferences_platform_interface/shared_preferences_async_platform_interface.dart';
 
 import '../helpers/fake_http.dart';
 
@@ -37,6 +39,8 @@ void main() {
           ? Future.delayed(switchDelay, () => okReply({'accessToken': 'a2', 'activeContext': options.data}))
           : Future.value(okReply(_me(active: active))),
     );
+    // The app keeps the child a parent chose in the preferences; here they stay in memory.
+    SharedPreferencesAsyncPlatform.instance = InMemorySharedPreferencesAsync.empty();
     await configureDependencies(
       config,
       device: device,

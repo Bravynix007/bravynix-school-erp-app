@@ -2,9 +2,9 @@ import 'package:bravynix_school_erp/core/theme/app_spacing.dart';
 import 'package:bravynix_school_erp/core/widgets/app_text_field.dart';
 import 'package:flutter/material.dart';
 
-/// A field that opens a date picker when tapped. The screen shows the picker
-/// and passes the formatted date back as `valueText`, so the widget has no
-/// date logic of its own. It takes keyboard focus (Enter or Space opens the
+/// A field that opens a date picker when tapped (or a time picker, with the
+/// clock [icon]). The screen shows the picker and passes the formatted value
+/// back as `valueText`, so the widget has no date logic of its own. It takes keyboard focus (Enter or Space opens the
 /// picker), shows the accent focus border, and dims while pressed. Screen
 /// readers hear the label, the date, and the helper or error as the hint.
 class AppDateField extends StatefulWidget {
@@ -12,6 +12,7 @@ class AppDateField extends StatefulWidget {
     required this.label,
     required this.valueText,
     required this.onTap,
+    this.icon = Icons.calendar_today_outlined,
     this.hint,
     this.helper,
     this.error,
@@ -23,6 +24,7 @@ class AppDateField extends StatefulWidget {
   final String label;
   final String valueText;
   final VoidCallback? onTap;
+  final IconData icon;
   final String? hint;
   final String? helper;
   final String? error;
@@ -86,7 +88,7 @@ class _AppDateFieldState extends State<AppDateField> {
                     hint: widget.hint,
                     helper: widget.helper,
                     error: widget.error,
-                    prefixIcon: Icons.calendar_today_outlined,
+                    prefixIcon: widget.icon,
                   ).copyWith(enabled: enabled),
                   child: Text(widget.valueText, style: Theme.of(context).textTheme.bodyMedium),
                 ),
