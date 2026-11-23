@@ -5,7 +5,6 @@ import 'package:bravynix_school_erp/core/widgets/app_card.dart';
 import 'package:bravynix_school_erp/core/widgets/app_snackbar.dart';
 import 'package:bravynix_school_erp/core/widgets/app_top_bar.dart';
 import 'package:bravynix_school_erp/core/widgets/attendance_status_selector.dart';
-import 'package:bravynix_school_erp/core/widgets/day_picker.dart';
 import 'package:bravynix_school_erp/core/widgets/inline_message.dart';
 import 'package:bravynix_school_erp/core/widgets/skeleton.dart';
 import 'package:bravynix_school_erp/core/widgets/state_panel.dart';
@@ -19,8 +18,9 @@ import 'package:bravynix_school_erp/features/attendance/presentation/view/void_r
 import 'package:bravynix_school_erp/features/auth/domain/auth_entities.dart';
 import 'package:bravynix_school_erp/features/auth/presentation/session/session_bloc.dart';
 import 'package:bravynix_school_erp/features/institutions/presentation/view/institution_scope.dart';
-import 'package:bravynix_school_erp/features/masters/domain/master_entry.dart';
-import 'package:bravynix_school_erp/features/masters/presentation/view/master_dropdown.dart';
+import 'package:bravynix_school_erp/features/sections/domain/section_day.dart';
+import 'package:bravynix_school_erp/features/sections/presentation/bloc/section_day_bloc.dart';
+import 'package:bravynix_school_erp/features/sections/presentation/view/section_day_frame.dart';
 import 'package:bravynix_school_erp/l10n/gen/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -33,7 +33,7 @@ class AttendancePage extends StatelessWidget {
   const new({this.focus, this.clock = DateTime.now, super.key});
 
   /// The register to open on, when another screen sent the person here to correct one.
-  final AttendanceFocus? focus;
+  final SectionDay? focus;
 
   /// What "today" is: the school day it falls on in IST, as everywhere in the app.
   final DateTime Function() clock;
@@ -51,16 +51,26 @@ class AttendancePage extends StatelessWidget {
           Expanded(
             child: InstitutionScope(
               // The scope builds its child again for each Institution, so the classes are those of the one chosen.
-              builder: (context, institution) => BlocProvider(
-                create: (_) =>
-                    AttendanceBloc(getIt<AttendanceRepository>(), institution.id, clock: clock, focus: focus)
-                      ..add(const AttendanceStarted()),
-                child: AttendanceView(
-                  // An Owner or an Admin marks at every Institution they reach; a teacher at their own only (API design
-                  // 10.11): at another Institution of theirs they read the register.
-                  mayMark: admin || institution.id == session?.homeInstitutionId,
-                  mayVoid: admin,
-                  today: Formatters.schoolDay(clock()),
+              builder: (context, institution) => MultiBlocProvider(
+                providers: [
+                  BlocProvider(create: (_) => AttendanceBloc(getIt<AttendanceRepository>())),
+                  BlocProvider(
+                    create: (_) => SectionDayBloc(
+                      () async => (await getIt<AttendanceRepository>().sections(institution.id)).choices,
+                      clock: clock,
+                      focus: focus,
+                    )..add(const SectionDayStarted()),
+                  ),
+                ],
+                child: SectionDayListener(
+                  onChosen: (context, chosen) =>
+                      context.read<AttendanceBloc>().add(AttendanceSelected(chosen.selection)),
+                  child: AttendanceView(
+                    // An Owner or an Admin marks at every Institution they reach; a teacher at their own only (API design
+                    // 10.11): at another Institution of theirs they read the register.
+                    mayMark: admin || institution.id == session?.homeInstitutionId,
+                    mayVoid: admin,
+                  ),
                 ),
               ),
             ),
@@ -72,7 +82,7 @@ class AttendancePage extends StatelessWidget {
 }
 
 class AttendanceView extends StatelessWidget {
-  const new({required this.mayMark, required this.mayVoid, required this.today, super.key});
+  const new({required this.mayMark, required this.mayVoid, super.key});
 
   /// Whether the person may take and correct registers at this Institution.
   final bool mayMark;
@@ -80,19 +90,13 @@ class AttendanceView extends StatelessWidget {
   /// Whether the person may void a register (an Owner or an Admin).
   final bool mayVoid;
 
-  /// The school day (IST), `YYYY-MM-DD`: the last day that can be marked.
-  final String today;
-
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
-    return BlocConsumer<AttendanceBloc, AttendanceState>(
-      listenWhen: (previous, current) =>
-          current is AttendanceReady &&
-          current.outcome != null &&
-          (previous is! AttendanceReady || previous.outcome != current.outcome),
+    return BlocListener<AttendanceBloc, AttendanceState>(
+      listenWhen: (previous, current) => current.outcome != null && previous.outcome != current.outcome,
       listener: (context, state) {
-        final outcome = (state as AttendanceReady).outcome!;
+        final outcome = state.outcome!;
         AppSnackbar.show(
           context,
           message: switch (outcome.kind) {
@@ -103,130 +107,101 @@ class AttendanceView extends StatelessWidget {
           kind: AppSnackbarKind.success,
         );
       },
-      builder: (context, state) => switch (state) {
-        AttendanceLoading() => SkeletonCards(semanticLabel: l10n.loading, heights: const [64, 64, 120]),
-        AttendanceFailed(:final failure) when failure.code == 'FORBIDDEN' => StatePanel.forbidden(
-          key: const Key('attendance.forbidden'),
-          title: attendanceErrorText(l10n, failure),
-        ),
-        AttendanceFailed(:final failure) => StatePanel.error(
-          key: const Key('attendance.failed'),
-          title: attendanceErrorText(l10n, failure),
-          actionLabel: l10n.retry,
-          onAction: () => context.read<AttendanceBloc>().add(const AttendanceStarted()),
-        ),
-        AttendanceReady(:final classes) when classes.isEmpty => StatePanel.empty(
-          key: const Key('attendance.noSections'),
-          title: l10n.attendanceNoSectionsTitle,
-          message: l10n.attendanceNoSectionsMessage,
-        ),
-        AttendanceReady() => _Screen(state: state, mayMark: mayMark, mayVoid: mayVoid, today: today),
-      },
+      child: SectionDayFrame(
+        keyPrefix: 'attendance',
+        errorText: attendanceErrorText,
+        noSectionsTitle: l10n.attendanceNoSectionsTitle,
+        noSectionsMessage: l10n.attendanceNoSectionsMessage,
+        builder: (context, chosen) => _Screen(chosen: chosen, mayMark: mayMark, mayVoid: mayVoid),
+      ),
     );
   }
 }
 
 class _Screen extends StatelessWidget {
-  const new({required this.state, required this.mayMark, required this.mayVoid, required this.today});
+  const new({required this.chosen, required this.mayMark, required this.mayVoid});
 
-  final AttendanceReady state;
+  final SectionDayReady chosen;
   final bool mayMark;
   final bool mayVoid;
-  final String today;
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final bloc = context.read<AttendanceBloc>();
-    final board = state.board;
-    final end = Formatters.parseDay(today)!;
-    final labels = _labels(l10n);
-    // The roll can be changed when a register may be taken for the day, or one is taken and the person may correct it.
-    final loaded = board is BoardLoaded ? board : null;
-    final roll = loaded?.roster;
-    final editable = roll != null && mayMark && (roll.canMark || roll.taken != null);
-    return Column(
-      children: [
-        Expanded(
-          child: CustomScrollView(
-            slivers: [
-              SliverPadding(
-                padding: const EdgeInsets.all(AppSpacing.screenMargin),
-                sliver: SliverList.list(
-                  children: [
-                    MasterDropdown(
-                      key: const Key('attendance.class'),
-                      label: l10n.studentClass,
-                      entries: [for (final choice in state.classes) MasterEntry(id: choice.id, name: choice.name)],
-                      value: state.classId,
-                      onChanged: (id) => bloc.add(AttendanceClassChosen(id)),
-                    ),
-                    const SizedBox(height: AppSpacing.sm),
-                    MasterDropdown(
-                      key: const Key('attendance.section'),
-                      label: l10n.studentSection,
-                      entries: [
-                        for (final choice in state.sectionsInClass) MasterEntry(id: choice.id, name: choice.name),
+    return BlocBuilder<AttendanceBloc, AttendanceState>(
+      builder: (context, state) {
+        final board = state.board;
+        final labels = _labels(l10n);
+        // The roll can be changed when a register may be taken for the day, or one is taken and the person may correct it.
+        final loaded = board is BoardLoaded ? board : null;
+        final roll = loaded?.roster;
+        final editable = roll != null && mayMark && (roll.canMark || roll.taken != null);
+        return Column(
+          children: [
+            Expanded(
+              child: CustomScrollView(
+                slivers: [
+                  SliverPadding(
+                    padding: const EdgeInsets.all(AppSpacing.screenMargin),
+                    sliver: SliverList.list(
+                      children: [
+                        SectionDayFields(
+                          keyPrefix: 'attendance',
+                          state: chosen,
+                          dayLabel: l10n.attendanceDate,
+                          // No other choice is taken while an action is on its way: its answer belongs to the roll that
+                          // was on screen.
+                          enabled: loaded == null || !loaded.saving,
+                        ),
+                        const SizedBox(height: AppSpacing.md),
+                        ..._body(context, board, labels, editable: editable),
                       ],
-                      value: state.sectionId,
-                      onChanged: state.classId == null ? null : (id) => bloc.add(AttendanceSectionChosen(id)),
                     ),
-                    const SizedBox(height: AppSpacing.sm),
-                    DayField(
-                      key: const Key('attendance.day'),
-                      label: l10n.attendanceDate,
-                      day: state.day,
-                      // A register is taken for the days of the current year, so a year back is as far as anyone looks.
-                      firstDay: DateTime(end.year - 1, end.month, end.day),
-                      lastDay: end,
-                      onChanged: (day) => bloc.add(AttendanceDayChosen(day)),
+                  ),
+                  if (loaded != null && _showsRoll(loaded.roster))
+                    SliverPadding(
+                      padding: const EdgeInsets.fromLTRB(
+                        AppSpacing.screenMargin,
+                        0,
+                        AppSpacing.screenMargin,
+                        AppSpacing.screenMargin,
+                      ),
+                      sliver: SliverList.separated(
+                        itemCount: loaded.roster.students.length,
+                        separatorBuilder: (_, _) => const SizedBox(height: AppSpacing.xs),
+                        itemBuilder: (context, index) => _StudentCard(
+                          student: loaded.roster.students[index],
+                          mark: loaded.markOf(loaded.roster.students[index]),
+                          labels: labels,
+                          editable: editable && !loaded.saving,
+                        ),
+                      ),
                     ),
-                    const SizedBox(height: AppSpacing.md),
-                    ..._body(context, board, labels, editable: editable),
-                  ],
-                ),
+                ],
               ),
-              if (loaded != null && _showsRoll(loaded.roster))
-                SliverPadding(
-                  padding: const EdgeInsets.fromLTRB(
-                    AppSpacing.screenMargin,
-                    0,
-                    AppSpacing.screenMargin,
-                    AppSpacing.screenMargin,
-                  ),
-                  sliver: SliverList.separated(
-                    itemCount: loaded.roster.students.length,
-                    separatorBuilder: (_, _) => const SizedBox(height: AppSpacing.xs),
-                    itemBuilder: (context, index) => _StudentCard(
-                      student: loaded.roster.students[index],
-                      mark: loaded.markOf(loaded.roster.students[index]),
-                      labels: labels,
-                      editable: editable && !loaded.saving,
-                    ),
-                  ),
-                ),
-            ],
-          ),
-        ),
-        if (loaded != null && editable && loaded.roster.taken == null)
-          StickyBottomActions(
-            primaryLabel: l10n.attendanceSubmit,
-            primaryLoading: loaded.saving,
-            onPrimary: loaded.saving || loaded.roster.students.isEmpty
-                ? null
-                : () => bloc.add(const AttendanceSubmitted()),
-            notice: _notice(l10n, loaded),
-          ),
-        if (loaded != null && editable && loaded.roster.taken != null)
-          StickyBottomActions(
-            primaryLabel: l10n.attendanceSaveCorrections,
-            primaryLoading: loaded.saving,
-            onPrimary: loaded.saving || loaded.changes.isEmpty ? null : () => bloc.add(const AttendanceCorrected()),
-            secondaryLabel: mayVoid ? l10n.attendanceVoid : null,
-            onSecondary: mayVoid && !loaded.saving ? () => _void(context) : null,
-            notice: _notice(l10n, loaded),
-          ),
-      ],
+            ),
+            if (loaded != null && editable && loaded.roster.taken == null)
+              StickyBottomActions(
+                primaryLabel: l10n.attendanceSubmit,
+                primaryLoading: loaded.saving,
+                onPrimary: loaded.saving || loaded.roster.students.isEmpty
+                    ? null
+                    : () => bloc.add(const AttendanceSubmitted()),
+                notice: _notice(l10n, loaded),
+              ),
+            if (loaded != null && editable && loaded.roster.taken != null)
+              StickyBottomActions(
+                primaryLabel: l10n.attendanceSaveCorrections,
+                primaryLoading: loaded.saving,
+                onPrimary: loaded.saving || loaded.changes.isEmpty ? null : () => bloc.add(const AttendanceCorrected()),
+                secondaryLabel: mayVoid ? l10n.attendanceVoid : null,
+                onSecondary: mayVoid && !loaded.saving ? () => _void(context) : null,
+                notice: _notice(l10n, loaded),
+              ),
+          ],
+        );
+      },
     );
   }
 

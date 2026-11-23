@@ -3,11 +3,16 @@ import 'dart:async';
 import 'package:bravynix_school_erp/app/di/injection.dart';
 import 'package:bravynix_school_erp/core/network/api_failure.dart';
 import 'package:bravynix_school_erp/core/widgets/app_button.dart';
-import 'package:bravynix_school_erp/features/attendance/domain/attendance_repository.dart';
+import 'package:bravynix_school_erp/core/widgets/day_picker.dart';
 import 'package:bravynix_school_erp/features/diary/domain/diary_entry.dart';
 import 'package:bravynix_school_erp/features/diary/domain/diary_repository.dart';
 import 'package:bravynix_school_erp/features/diary/presentation/bloc/diary_bloc.dart';
+import 'package:bravynix_school_erp/features/diary/presentation/bloc/diary_form_bloc.dart';
 import 'package:bravynix_school_erp/features/diary/presentation/view/diary_page.dart';
+import 'package:bravynix_school_erp/features/masters/presentation/view/master_dropdown.dart';
+import 'package:bravynix_school_erp/features/sections/domain/section_options.dart';
+import 'package:bravynix_school_erp/features/sections/presentation/bloc/section_day_bloc.dart';
+import 'package:bravynix_school_erp/features/sections/presentation/view/section_day_frame.dart';
 import 'package:bravynix_school_erp/features/subjects/domain/subjects_repository.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -26,7 +31,7 @@ ApiFailure refusal(String code, {int status = 422}) =>
 
 void main() {
   late MockDiaryRepository diary;
-  late MockAttendanceRepository attendance;
+  late Future<SectionChoices> Function() load;
   late MockSubjectsRepository subjects;
   setUpAll(() {
     registerFallbackValue(const DiaryInput(subjectId: '', day: '', description: ''));
@@ -34,9 +39,8 @@ void main() {
   });
   setUp(() {
     diary = MockDiaryRepository();
-    attendance = MockAttendanceRepository();
+    load = () async => oneSection.choices;
     subjects = MockSubjectsRepository();
-    when(() => attendance.sections('i1')).thenAnswer((_) async => oneSection);
     when(() => diary.ofSection('sec1', '2026-11-17')).thenAnswer((_) async => [mathsEntry, artEntry, noticeEntry]);
     when(subjects.subjects).thenAnswer((_) async => [maths, art]);
     getIt
@@ -44,6 +48,32 @@ void main() {
       ..registerSingleton<SubjectsRepository>(subjects);
   });
   tearDown(getIt.reset);
+
+  /// The screen as the page builds it: the diary bloc and the bloc of the class, section and day, which tells the diary
+  /// bloc what is chosen.
+  Widget screen({
+    bool mayWrite = true,
+    bool Function(DiaryEntry entry)? mayChange,
+    bool started = true,
+  }) => MultiBlocProvider(
+    providers: [
+      BlocProvider(create: (_) => DiaryBloc(diary)),
+      BlocProvider(
+        create: (_) {
+          final bloc = SectionDayBloc(() => load(), clock: () => today);
+          return started ? (bloc..add(const SectionDayStarted())) : bloc;
+        },
+      ),
+    ],
+    child: SectionDayListener(
+      onChosen: (context, chosen) => context.read<DiaryBloc>().add(
+        chosen.selection == null ? const DiaryCleared() : DiaryRead(sectionId: chosen.sectionId, day: chosen.day),
+      ),
+      child: Scaffold(
+        body: DiaryView(parent: false, mayWrite: mayWrite, mayChange: mayChange ?? (_) => true),
+      ),
+    ),
+  );
 
   /// Opens the staff screen; [mayChange] says whose entries the person may edit and delete.
   Future<void> pump(
@@ -54,60 +84,50 @@ void main() {
     Size size = const Size(400, 1400),
   }) async {
     await tester.pumpAppScaled(
-      BlocProvider(
-        create: (_) => DiaryBloc(diary, attendance, institutionId: 'i1', clock: () => today)..add(const DiaryStarted()),
-        child: Scaffold(
-          body: DiaryView(
-            today: '2026-11-17',
-            parent: false,
-            mayWrite: mayWrite,
-            mayChange: mayChange ?? (_) => true,
-          ),
-        ),
-      ),
+      screen(mayWrite: mayWrite, mayChange: mayChange),
       textScale: textScale,
       size: size,
     );
     await tester.pumpAndSettle();
   }
 
+  /// A parent's screen: the diary of the child shown, and the day to choose.
+  Widget parentScreen() => MultiBlocProvider(
+    providers: [
+      BlocProvider(create: (_) => DiaryBloc(diary, studentId: 's1')),
+      BlocProvider(create: (_) => SectionDayBloc.dayOnly(clock: () => today)..add(const SectionDayStarted())),
+    ],
+    child: SectionDayListener(
+      onChosen: (context, chosen) => context.read<DiaryBloc>().add(DiaryRead(day: chosen.day)),
+      child: const Scaffold(body: DiaryView(parent: true)),
+    ),
+  );
+
   Future<void> pumpParent(WidgetTester tester, {double textScale = 1, Size size = const Size(400, 1400)}) async {
     when(() => diary.ofChild('s1', '2026-11-17')).thenAnswer((_) async => [mathsEntry]);
-    await tester.pumpAppScaled(
-      BlocProvider(
-        create: (_) => DiaryBloc(diary, attendance, studentId: 's1', clock: () => today)..add(const DiaryStarted()),
-        child: const Scaffold(body: DiaryView(today: '2026-11-17', parent: true)),
-      ),
-      textScale: textScale,
-      size: size,
-    );
+    await tester.pumpAppScaled(parentScreen(), textScale: textScale, size: size);
     await tester.pumpAndSettle();
   }
 
   group('reading the classes', () {
     testWidgets('shows a placeholder while it reads', (tester) async {
-      await tester.pumpAppScaled(
-        BlocProvider(
-          create: (_) => DiaryBloc(diary, attendance, institutionId: 'i1', clock: () => today),
-          child: const Scaffold(body: DiaryView(today: '2026-11-17', parent: false)),
-        ),
-      );
+      await tester.pumpAppScaled(screen(started: false));
       expect(find.byType(Semantics), findsWidgets);
       expect(find.byKey(const Key('diary.class')), findsNothing);
     });
 
     testWidgets('says plainly when the person may not see it', (tester) async {
-      when(() => attendance.sections('i1')).thenThrow(refusal('FORBIDDEN', status: 403));
+      load = () async => throw refusal('FORBIDDEN', status: 403);
       await pump(tester);
       expect(find.byKey(const Key('diary.forbidden')), findsOneWidget);
     });
 
     testWidgets('says why it could not read, and reads again on Try again', (tester) async {
       var calls = 0;
-      when(() => attendance.sections('i1')).thenAnswer((_) async {
+      load = () async {
         if (++calls == 1) throw refusal('SERVER_ERROR', status: 500);
-        return oneSection;
-      });
+        return oneSection.choices;
+      };
       await pump(tester);
       expect(find.byKey(const Key('diary.failed')), findsOneWidget);
       await tester.tap(find.text('Try again'));
@@ -116,13 +136,13 @@ void main() {
     });
 
     testWidgets('with no classes, says so', (tester) async {
-      when(() => attendance.sections('i1')).thenAnswer((_) async => const MarkingSections(classes: [], sections: []));
+      load = () async => (classes: const <ClassChoice>[], sections: const <SectionChoice>[]);
       await pump(tester);
       expect(find.byKey(const Key('diary.noSections')), findsOneWidget);
     });
 
     testWidgets('with a choice, asks for the class and the section first', (tester) async {
-      when(() => attendance.sections('i1')).thenAnswer((_) async => twoClasses);
+      load = () async => twoClasses.choices;
       await pump(tester);
       expect(find.byKey(const Key('diary.pick')), findsOneWidget);
       await tester.tap(find.byKey(const Key('diary.class')));
@@ -218,13 +238,7 @@ void main() {
 
     testWidgets('a parent whose child is blocked is told so', (tester) async {
       when(() => diary.ofChild('s1', '2026-11-17')).thenThrow(refusal('CHILD_ACCESS_BLOCKED', status: 403));
-      await tester.pumpAppScaled(
-        BlocProvider(
-          create: (_) => DiaryBloc(diary, attendance, studentId: 's1', clock: () => today)..add(const DiaryStarted()),
-          child: const Scaffold(body: DiaryView(today: '2026-11-17', parent: true)),
-        ),
-        size: const Size(400, 1400),
-      );
+      await tester.pumpAppScaled(parentScreen(), size: const Size(400, 1400));
       await tester.pumpAndSettle();
       expect(find.text("Access to this child's information is blocked. Contact the school."), findsOneWidget);
     });
@@ -262,6 +276,68 @@ void main() {
       expect(find.byKey(const Key('diaryForm.save')), findsNothing);
       // Once for the screen opening, once for what was saved.
       verify(() => diary.ofSection('sec1', '2026-11-17')).called(2);
+    });
+
+    testWidgets('shows the day an entry was saved for, not the day that was open', (tester) async {
+      const earlier = DiaryEntry(
+        id: 'd4',
+        version: 1,
+        sectionId: 'sec1',
+        subjectId: 'u2',
+        subjectName: 'Art',
+        day: '2026-11-16',
+        description: 'Bring crayons.',
+      );
+      when(() => diary.add('sec1', any())).thenAnswer((_) async => earlier);
+      when(() => diary.ofSection('sec1', '2026-11-16')).thenAnswer((_) async => [earlier]);
+      await pump(tester);
+      await open(tester);
+      await fill(tester);
+      await tester.tap(find.byKey(const Key('diaryForm.save')));
+      await tester.pumpAndSettle();
+      verify(() => diary.ofSection('sec1', '2026-11-16')).called(1);
+      expect(
+        find.descendant(of: find.byKey(const Key('diary.day')), matching: find.text('16-11-2026')),
+        findsOneWidget,
+      );
+      expect(find.byKey(const ValueKey('diary.entry.d4')), findsOneWidget);
+    });
+
+    testWidgets('lets the day be picked up to today and no later', (tester) async {
+      await pump(tester);
+      await open(tester);
+      await tester.tap(find.byKey(const Key('diaryForm.day')));
+      await tester.pumpAndSettle();
+      final next = tester.widget<IconButton>(find.widgetWithIcon(IconButton, Icons.chevron_right));
+      expect(next.onPressed, isNull, reason: 'November 2026 is the last month with a day to pick');
+    });
+
+    testWidgets('stops the description at the longest the server takes', (tester) async {
+      await pump(tester);
+      await open(tester);
+      await tester.enterText(find.byKey(const Key('diaryForm.description')), 'a' * (maxDiaryDescription + 50));
+      final field = tester.widget<TextField>(
+        find.descendant(of: find.byKey(const Key('diaryForm.description')), matching: find.byType(TextField)),
+      );
+      expect(field.controller!.text.length, maxDiaryDescription);
+    });
+
+    testWidgets('shows a refused field under it only, not also above the form', (tester) async {
+      when(() => diary.add('sec1', any())).thenThrow(
+        const ApiFailure(
+          statusCode: 400,
+          code: 'VALIDATION_FAILED',
+          message: 'server words',
+          fieldErrors: [FieldError(field: 'description', code: 'REQUIRED', message: 'x')],
+        ),
+      );
+      await pump(tester);
+      await open(tester);
+      await fill(tester);
+      await tester.tap(find.byKey(const Key('diaryForm.save')));
+      await tester.pumpAndSettle();
+      expect(find.text('This field is required.'), findsOneWidget);
+      expect(find.byKey(const Key('diaryForm.error')), findsNothing);
     });
 
     testWidgets('names a subject or a description left empty, and sends nothing', (tester) async {
@@ -349,6 +425,52 @@ void main() {
       expect(find.text('Diary entry saved'), findsOneWidget);
     });
 
+    testWidgets('asks for the subject again when the entry’s subject is no longer offered', (tester) async {
+      when(subjects.subjects).thenAnswer((_) async => [art]);
+      await pump(tester);
+      await open(tester);
+      await tester.tap(find.byKey(const Key('diaryForm.save')));
+      await tester.pumpAndSettle();
+      expect(find.text('This field is required.'), findsOneWidget);
+      verifyNever(() => diary.change(any(), any()));
+    });
+
+    testWidgets('keeps the day of an entry older than the window, which a text correction does not check', (
+      tester,
+    ) async {
+      const old = DiaryEntry(
+        id: 'd9',
+        version: 2,
+        sectionId: 'sec1',
+        subjectId: 'u1',
+        subjectName: 'Mathematics',
+        day: '2026-11-02',
+        description: 'Old note.',
+        teacherId: 't1',
+        teacherName: 'R. Nair',
+      );
+      when(() => diary.ofSection('sec1', any())).thenAnswer((_) async => [old]);
+      when(() => diary.change(any(), any())).thenAnswer((_) async => old);
+      await pump(tester);
+      await tester.tap(find.byKey(const ValueKey('diary.edit.d9')));
+      await tester.pumpAndSettle();
+      // The calendar opens on the entry's day, which is before the last 7 days, and confirming it keeps that day.
+      await tester.tap(find.byKey(const Key('diaryForm.day')));
+      await tester.pumpAndSettle();
+      expect(tester.takeException(), isNull);
+      await tester.tap(find.text('OK'));
+      await tester.pumpAndSettle();
+      await tester.enterText(find.byKey(const Key('diaryForm.description')), 'Old note, corrected.');
+      await tester.tap(find.byKey(const Key('diaryForm.save')));
+      await tester.pumpAndSettle();
+      verify(
+        () => diary.change(
+          old,
+          const DiaryInput(subjectId: 'u1', day: '2026-11-02', description: 'Old note, corrected.'),
+        ),
+      ).called(1);
+    });
+
     testWidgets('on an entry changed meanwhile, says so and hands back to the list, which reads the day again', (
       tester,
     ) async {
@@ -396,6 +518,22 @@ void main() {
       verify(() => diary.remove('d1')).called(1);
       expect(find.byKey(const ValueKey('diary.entry.d1')), findsNothing);
       expect(find.byKey(const ValueKey('diary.entry.d2')), findsOneWidget);
+    });
+
+    testWidgets('takes no other choice of class, section or day while the entry is going', (tester) async {
+      final pending = Completer<void>();
+      when(() => diary.remove('d1')).thenAnswer((_) => pending.future);
+      await pump(tester);
+      await ask(tester);
+      await tester.tap(find.text('Delete').last);
+      await tester.pump();
+      expect(tester.widget<MasterDropdown>(find.byKey(const Key('diary.class'))).onChanged, isNull);
+      expect(tester.widget<MasterDropdown>(find.byKey(const Key('diary.section'))).onChanged, isNull);
+      expect(tester.widget<DayField>(find.byKey(const Key('diary.day'))).onChanged, isNull);
+      pending.complete();
+      await tester.pumpAndSettle();
+      expect(tester.widget<DayField>(find.byKey(const Key('diary.day'))).onChanged, isNotNull);
+      expect(find.text('Diary entry deleted'), findsOneWidget);
     });
 
     testWidgets('keeps the entry when the person says Cancel', (tester) async {

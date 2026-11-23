@@ -3,7 +3,6 @@ import 'dart:async';
 import 'package:bravynix_school_erp/app/router/app_routes.dart';
 import 'package:bravynix_school_erp/features/academic_years/presentation/view/academic_year_form_page.dart';
 import 'package:bravynix_school_erp/features/academic_years/presentation/view/academic_years_page.dart';
-import 'package:bravynix_school_erp/features/attendance/presentation/bloc/attendance_bloc.dart';
 import 'package:bravynix_school_erp/features/attendance/presentation/view/attendance_calendar_page.dart';
 import 'package:bravynix_school_erp/features/attendance/presentation/view/attendance_page.dart';
 import 'package:bravynix_school_erp/features/auth/presentation/login/view/login_page.dart';
@@ -29,6 +28,7 @@ import 'package:bravynix_school_erp/features/platform_dues/presentation/view/pla
 import 'package:bravynix_school_erp/features/platform_dues/presentation/view/platform_dues_page.dart';
 import 'package:bravynix_school_erp/features/profile/presentation/profile_page.dart';
 import 'package:bravynix_school_erp/features/school_setup/presentation/school_setup_page.dart';
+import 'package:bravynix_school_erp/features/sections/domain/section_day.dart';
 import 'package:bravynix_school_erp/features/sections/presentation/view/section_form_page.dart';
 import 'package:bravynix_school_erp/features/sections/presentation/view/sections_page.dart';
 import 'package:bravynix_school_erp/features/staff/presentation/view/staff_form_page.dart';
@@ -190,8 +190,7 @@ GoRouter createRouter(SessionBloc session, {required SessionChanges changes}) {
       ),
       GoRoute(
         path: AppRoutes.attendance,
-        builder: (_, state) =>
-            AttendancePage(focus: state.extra is AttendanceFocus ? state.extra! as AttendanceFocus : null),
+        builder: (_, state) => AttendancePage(focus: state.extra is SectionDay ? state.extra! as SectionDay : null),
       ),
       GoRoute(path: AppRoutes.attendanceCalendar, builder: (_, _) => const AttendanceCalendarPage()),
       GoRoute(

@@ -6,6 +6,7 @@ import 'package:bravynix_school_erp/core/widgets/attendance_status_selector.dart
 import 'package:bravynix_school_erp/features/attendance/domain/attendance_repository.dart';
 import 'package:bravynix_school_erp/features/attendance/domain/attendance_roster.dart';
 import 'package:bravynix_school_erp/features/attendance/presentation/bloc/attendance_bloc.dart';
+import 'package:bravynix_school_erp/features/sections/domain/section_day.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 
@@ -14,23 +15,6 @@ import '../../helpers/mocks.dart';
 
 ApiFailure refusal(String code, {int status = 409}) => ApiFailure(statusCode: status, code: code, message: code);
 
-AttendanceReady ready({
-  MarkingSections choices = twoClasses,
-  String? classId,
-  String? sectionId,
-  String day = '2026-11-17',
-  AttendanceBoard board = const BoardEmpty(),
-  AttendanceOutcome? outcome,
-}) => AttendanceReady(
-  classes: choices.classes,
-  sections: choices.sections,
-  day: day,
-  classId: classId,
-  sectionId: sectionId,
-  board: board,
-  outcome: outcome,
-);
-
 void main() {
   late MockAttendanceRepository repository;
   var keys = 0;
@@ -38,209 +22,86 @@ void main() {
     repository = MockAttendanceRepository();
     keys = 0;
     registerFallbackValue(const <MarkChange>[]);
-    when(() => repository.sections('i1')).thenAnswer((_) async => twoClasses);
     when(() => repository.roster('sec1', '2026-11-17')).thenAnswer((_) async => openRoll);
   });
 
-  /// Today is the 17th of November 2026 in IST (04:00 UTC).
-  AttendanceBloc build() =>
-      AttendanceBloc(repository, 'i1', clock: () => DateTime.utc(2026, 11, 17, 4), newKey: () => 'key-${++keys}');
+  AttendanceBloc build() => AttendanceBloc(repository, newKey: () => 'key-${++keys}');
+
+  const section1 = SectionDay(sectionId: 'sec1', day: '2026-11-17');
 
   /// Opens the screen on section A of the 7th and waits for its roll.
   Future<AttendanceBloc> open() async {
-    final bloc = build()..add(const AttendanceStarted());
-    await bloc.stream.firstWhere((state) => state is AttendanceReady);
-    bloc
-      ..add(const AttendanceClassChosen('c7'))
-      ..add(const AttendanceSectionChosen('sec1'));
-    await bloc.stream.firstWhere((state) => state is AttendanceReady && state.board is BoardLoaded);
+    final bloc = build()..add(const AttendanceSelected(section1));
+    await bloc.stream.firstWhere((state) => state.board is BoardLoaded);
     return bloc;
   }
 
-  BoardLoaded boardOf(AttendanceBloc bloc) => (bloc.state as AttendanceReady).board as BoardLoaded;
-
-  group("opened on a register from a student's calendar", () {
-    AttendanceBloc buildOn(AttendanceFocus focus) => AttendanceBloc(
-      repository,
-      'i1',
-      clock: () => DateTime.utc(2026, 11, 17, 4),
-      focus: focus,
-    );
-
-    test('chooses its class, section and day, and reads that roll once', () async {
-      when(() => repository.roster('sec3', '2026-11-10')).thenAnswer((_) async => takenRoll);
-      final bloc = buildOn(const AttendanceFocus(sectionId: 'sec3', day: '2026-11-10'))..add(const AttendanceStarted());
-      await bloc.stream.firstWhere((state) => state is AttendanceReady && state.board is BoardLoaded);
-      expect(
-        bloc.state,
-        ready(classId: 'c8', sectionId: 'sec3', day: '2026-11-10', board: BoardLoaded(takenRoll, const {})),
-      );
-      verify(() => repository.roster('sec3', '2026-11-10')).called(1);
-      await bloc.close();
-    });
-
-    test('with a section of a class that has two, reads only the one named', () async {
-      when(() => repository.roster('sec2', '2026-11-10')).thenAnswer((_) async => openRoll);
-      final bloc = buildOn(const AttendanceFocus(sectionId: 'sec2', day: '2026-11-10'))..add(const AttendanceStarted());
-      await bloc.stream.firstWhere((state) => state is AttendanceReady && state.board is BoardLoaded);
-      expect((bloc.state as AttendanceReady).sectionId, 'sec2');
-      verify(() => repository.roster('sec2', '2026-11-10')).called(1);
-      verifyNever(() => repository.roster('sec1', any()));
-      await bloc.close();
-    });
-
-    test('ignores a section the Institution does not have, and leaves the choice to the person', () async {
-      final bloc = buildOn(const AttendanceFocus(sectionId: 'elsewhere', day: '2026-11-10'))
-        ..add(const AttendanceStarted());
-      await bloc.stream.firstWhere((state) => state is AttendanceReady);
-      expect(bloc.state, ready());
-      verifyNever(() => repository.roster(any(), any()));
-      await bloc.close();
-    });
-  });
+  BoardLoaded boardOf(AttendanceBloc bloc) => bloc.state.board as BoardLoaded;
 
   group('choosing', () {
     blocTest<AttendanceBloc, AttendanceState>(
-      'reads the classes and shows today, with nothing chosen when there is a choice',
+      'has nothing on the roll until a section is selected',
       build: build,
-      act: (bloc) => bloc.add(const AttendanceStarted()),
-      expect: () => [const AttendanceLoading(), ready()],
+      expect: () => const <AttendanceState>[],
+      verify: (bloc) {
+        expect(bloc.state, const AttendanceState());
+        verifyNever(() => repository.roster(any(), any()));
+      },
     );
 
     blocTest<AttendanceBloc, AttendanceState>(
-      'chooses the only class and its only section, and reads their roll',
+      'reads the roll of the section and day selected',
       build: build,
-      setUp: () => when(() => repository.sections('i1')).thenAnswer((_) async => oneSection),
-      act: (bloc) => bloc.add(const AttendanceStarted()),
+      act: (bloc) => bloc.add(const AttendanceSelected(section1)),
       expect: () => [
-        const AttendanceLoading(),
-        ready(choices: oneSection, classId: 'c7'),
-        ready(choices: oneSection, classId: 'c7', sectionId: 'sec1'),
-        ready(choices: oneSection, classId: 'c7', sectionId: 'sec1', board: const BoardLoading()),
-        ready(choices: oneSection, classId: 'c7', sectionId: 'sec1', board: const BoardLoaded(openRoll, {})),
-      ],
-    );
-
-    blocTest<AttendanceBloc, AttendanceState>(
-      'keeps the failure for the screen, and reads again on retry',
-      build: build,
-      setUp: () {
-        var calls = 0;
-        when(() => repository.sections('i1')).thenAnswer((_) async {
-          if (++calls == 1) throw refusal('FORBIDDEN', status: 403);
-          return twoClasses;
-        });
-      },
-      act: (bloc) async {
-        bloc.add(const AttendanceStarted());
-        await bloc.stream.firstWhere((state) => state is AttendanceFailed);
-        bloc.add(const AttendanceStarted());
-      },
-      expect: () => [
-        const AttendanceLoading(),
-        AttendanceFailed(refusal('FORBIDDEN', status: 403)),
-        const AttendanceLoading(),
-        ready(),
-      ],
-    );
-
-    blocTest<AttendanceBloc, AttendanceState>(
-      'reads the roll once a section is chosen in a class that has two',
-      build: build,
-      act: (bloc) async {
-        bloc.add(const AttendanceStarted());
-        await bloc.stream.firstWhere((state) => state is AttendanceReady);
-        bloc
-          ..add(const AttendanceClassChosen('c7'))
-          ..add(const AttendanceSectionChosen('sec1'));
-      },
-      skip: 3,
-      expect: () => [
-        ready(classId: 'c7', sectionId: 'sec1'),
-        ready(classId: 'c7', sectionId: 'sec1', board: const BoardLoading()),
-        ready(classId: 'c7', sectionId: 'sec1', board: const BoardLoaded(openRoll, {})),
+        const AttendanceState(board: BoardLoading()),
+        const AttendanceState(board: BoardLoaded(openRoll, {})),
       ],
       verify: (_) => verify(() => repository.roster('sec1', '2026-11-17')).called(1),
     );
 
-    test('puts the roll away with the class it was of, and chooses the only section of the next class', () async {
-      when(() => repository.roster('sec3', '2026-11-17')).thenAnswer((_) async => holidayRoll);
+    test('puts the roll away when no section is selected any more', () async {
       final bloc = await open();
-      bloc.add(const AttendanceClassChosen('c8'));
-      await bloc.stream.firstWhere((state) => state is AttendanceReady && state.board is BoardLoaded);
-      expect(
-        bloc.state,
-        ready(classId: 'c8', sectionId: 'sec3', board: const BoardLoaded(holidayRoll, {})),
-      );
+      bloc.add(const AttendanceSelected(null));
+      await bloc.stream.firstWhere((state) => state.board is BoardEmpty);
+      expect(bloc.state, const AttendanceState());
       await bloc.close();
     });
 
-    test('drops the roll being read when another class is chosen, so it never lands under the new class', () async {
+    test('drops the roll being read when the section is left, so it never lands under the next choice', () async {
       final slow = Completer<AttendanceRoster>();
       when(() => repository.roster('sec3', '2026-11-17')).thenAnswer((_) => slow.future);
-      final bloc = build()..add(const AttendanceStarted());
-      await bloc.stream.firstWhere((state) => state is AttendanceReady);
-      bloc
-        ..add(const AttendanceClassChosen('c8'))
-        ..add(const AttendanceSectionChosen('sec3'));
-      await bloc.stream.firstWhere((state) => state is AttendanceReady && state.board is BoardLoading);
-      // The 7th has two sections, so nothing is chosen in it.
-      bloc.add(const AttendanceClassChosen('c7'));
-      await bloc.stream.firstWhere((state) => state is AttendanceReady && state.classId == 'c7');
+      final bloc = build()..add(const AttendanceSelected(SectionDay(sectionId: 'sec3', day: '2026-11-17')));
+      await bloc.stream.firstWhere((state) => state.board is BoardLoading);
+      bloc.add(const AttendanceSelected(null));
+      await bloc.stream.firstWhere((state) => state.board is BoardEmpty);
       slow.complete(holidayRoll);
       await Future<void>.delayed(Duration.zero);
-      expect(bloc.state, ready(classId: 'c7'));
+      expect(bloc.state, const AttendanceState());
       await bloc.close();
     });
 
     test('reads the roll again for another day, and keeps the failure when it cannot be read', () async {
       when(() => repository.roster('sec1', '2026-11-16')).thenThrow(refusal('CURRENT_YEAR_REQUIRED', status: 422));
       final bloc = await open();
-      bloc.add(const AttendanceDayChosen('2026-11-16'));
-      await bloc.stream.firstWhere((state) => state is AttendanceReady && state.board is BoardFailed);
-      expect(
-        bloc.state,
-        ready(
-          classId: 'c7',
-          sectionId: 'sec1',
-          day: '2026-11-16',
-          board: BoardFailed(refusal('CURRENT_YEAR_REQUIRED', status: 422)),
-        ),
-      );
+      bloc.add(const AttendanceSelected(SectionDay(sectionId: 'sec1', day: '2026-11-16')));
+      await bloc.stream.firstWhere((state) => state.board is BoardFailed);
+      expect(bloc.state, AttendanceState(board: BoardFailed(refusal('CURRENT_YEAR_REQUIRED', status: 422))));
       when(() => repository.roster('sec1', '2026-11-16')).thenAnswer((_) async => takenRoll);
       bloc.add(const AttendanceRollRetried());
-      await bloc.stream.firstWhere((state) => state is AttendanceReady && state.board is BoardLoaded);
+      await bloc.stream.firstWhere((state) => state.board is BoardLoaded);
       expect(boardOf(bloc).roster, takenRoll);
       await bloc.close();
     });
 
-    test('ignores the choice of the day already shown, and of nothing', () async {
-      final bloc = await open();
-      final shown = bloc.state;
-      bloc
-        ..add(const AttendanceDayChosen('2026-11-17'))
-        ..add(const AttendanceSectionChosen('sec1'))
-        ..add(const AttendanceSectionChosen(null))
-        ..add(const AttendanceClassChosen(null))
-        ..add(const AttendanceClassChosen('c7'));
-      await Future<void>.delayed(Duration.zero);
-      expect(bloc.state, shown);
-      verify(() => repository.roster('sec1', '2026-11-17')).called(1);
-      await bloc.close();
-    });
-
-    test('shows the answer for the day last chosen, not a slower answer for the one before', () async {
+    test('shows the answer for the day last selected, not a slower answer for the one before', () async {
       final slow = Completer<AttendanceRoster>();
       when(() => repository.roster('sec1', '2026-11-17')).thenAnswer((_) => slow.future);
       when(() => repository.roster('sec1', '2026-11-16')).thenAnswer((_) async => takenRoll);
-      final bloc = build()..add(const AttendanceStarted());
-      await bloc.stream.firstWhere((state) => state is AttendanceReady);
-      bloc
-        ..add(const AttendanceClassChosen('c7'))
-        ..add(const AttendanceSectionChosen('sec1'));
-      await bloc.stream.firstWhere((state) => state is AttendanceReady && state.board is BoardLoading);
-      bloc.add(const AttendanceDayChosen('2026-11-16'));
-      await bloc.stream.firstWhere((state) => state is AttendanceReady && state.board is BoardLoaded);
+      final bloc = build()..add(const AttendanceSelected(section1));
+      await bloc.stream.firstWhere((state) => state.board is BoardLoading);
+      bloc.add(const AttendanceSelected(SectionDay(sectionId: 'sec1', day: '2026-11-16')));
+      await bloc.stream.firstWhere((state) => state.board is BoardLoaded);
       slow.complete(openRoll);
       await Future<void>.delayed(Duration.zero);
       expect(boardOf(bloc).roster, takenRoll);
@@ -273,10 +134,9 @@ void main() {
     test('has no change while every mark is the one the roll came with', () async {
       when(() => repository.roster('sec1', '2026-11-16')).thenAnswer((_) async => takenRoll);
       final bloc = await open();
-      bloc.add(const AttendanceDayChosen('2026-11-16'));
+      bloc.add(const AttendanceSelected(SectionDay(sectionId: 'sec1', day: '2026-11-16')));
       await bloc.stream.firstWhere(
-        (state) =>
-            state is AttendanceReady && state.board is BoardLoaded && (state.board as BoardLoaded).roster == takenRoll,
+        (state) => state.board is BoardLoaded && (state.board as BoardLoaded).roster == takenRoll,
       );
       expect(boardOf(bloc).changes, isEmpty);
       bloc.add(const AttendanceMarked('e2', AttendanceMark.absent));
@@ -307,7 +167,7 @@ void main() {
         ..add(const AttendanceSubmitted());
       final states = <AttendanceState>[];
       final listening = bloc.stream.listen(states.add);
-      await bloc.stream.firstWhere((state) => state is AttendanceReady && state.outcome != null);
+      await bloc.stream.firstWhere((state) => state.outcome != null);
       await listening.cancel();
       verify(
         () => repository.submit(
@@ -318,12 +178,9 @@ void main() {
           idempotencyKey: 'key-1',
         ),
       ).called(1);
-      final outcomes = [
-        for (final state in states)
-          if (state is AttendanceReady) state.outcome,
-      ];
+      final outcomes = [for (final state in states) state.outcome];
       expect(outcomes.whereType<AttendanceOutcome>(), [const AttendanceOutcome(AttendanceOutcomeKind.submitted, 3)]);
-      expect((bloc.state as AttendanceReady).board, BoardLoaded(takenRoll, const {}));
+      expect(bloc.state.board, BoardLoaded(takenRoll, const {}));
       await bloc.close();
     });
 
@@ -348,14 +205,13 @@ void main() {
           ..add(const AttendanceMarked('e2', AttendanceMark.absent))
           ..add(const AttendanceSubmitted());
         await bloc.stream.firstWhere(
-          (state) =>
-              state is AttendanceReady && state.board is BoardLoaded && (state.board as BoardLoaded).failure != null,
+          (state) => state.board is BoardLoaded && (state.board as BoardLoaded).failure != null,
         );
         expect(boardOf(bloc).failure?.code, 'DATE_IS_HOLIDAY');
         expect(boardOf(bloc).saving, isFalse);
         expect(boardOf(bloc).marks, {'e2': AttendanceMark.absent});
         bloc.add(const AttendanceSubmitted());
-        await bloc.stream.firstWhere((state) => state is AttendanceReady && state.outcome != null);
+        await bloc.stream.firstWhere((state) => state.outcome != null);
         final keysUsed = verify(
           () => repository.submit(
             sectionId: any(named: 'sectionId'),
@@ -383,15 +239,13 @@ void main() {
       final bloc = await open();
       bloc.add(const AttendanceSubmitted());
       await bloc.stream.firstWhere(
-        (state) =>
-            state is AttendanceReady && state.board is BoardLoaded && (state.board as BoardLoaded).failure != null,
+        (state) => state.board is BoardLoaded && (state.board as BoardLoaded).failure != null,
       );
       bloc
         ..add(const AttendanceMarked('e1', AttendanceMark.leave))
         ..add(const AttendanceSubmitted());
       await bloc.stream.firstWhere(
         (state) =>
-            state is AttendanceReady &&
             state.board is BoardLoaded &&
             (state.board as BoardLoaded).failure != null &&
             !(state.board as BoardLoaded).saving &&
@@ -429,8 +283,7 @@ void main() {
             ..add(const AttendanceMarked('e2', AttendanceMark.absent))
             ..add(const AttendanceSubmitted());
           await bloc.stream.firstWhere(
-            (state) =>
-                state is AttendanceReady && state.board is BoardLoaded && (state.board as BoardLoaded).failure != null,
+            (state) => state.board is BoardLoaded && (state.board as BoardLoaded).failure != null,
           );
           // The marks go with the roll they were made on.
           expect(boardOf(bloc), BoardLoaded(takenRoll, const {}, failure: refusal(code)));
@@ -458,14 +311,14 @@ void main() {
       when(() => repository.voidRegister('r1', 2, any())).thenAnswer((_) async => taken = false);
       final bloc = await open()
         ..add(const AttendanceSubmitted());
-      await bloc.stream.firstWhere((state) => state is AttendanceReady && state.outcome != null);
+      await bloc.stream.firstWhere((state) => state.outcome != null);
       bloc.add(const AttendanceVoided('Taken for the wrong day'));
       await bloc.stream.firstWhere(
-        (state) => state is AttendanceReady && state.outcome?.kind == AttendanceOutcomeKind.voided,
+        (state) => state.outcome?.kind == AttendanceOutcomeKind.voided,
       );
       bloc.add(const AttendanceSubmitted());
       await bloc.stream.firstWhere(
-        (state) => state is AttendanceReady && state.outcome?.kind == AttendanceOutcomeKind.submitted && taken,
+        (state) => state.outcome?.kind == AttendanceOutcomeKind.submitted && taken,
       );
       final keys = verify(
         () => repository.submit(
@@ -496,15 +349,12 @@ void main() {
       bloc
         ..add(const AttendanceSubmitted())
         ..add(const AttendanceSubmitted())
-        ..add(const AttendanceMarked('e1', AttendanceMark.absent))
-        ..add(const AttendanceDayChosen('2026-11-16'))
-        ..add(const AttendanceClassChosen('c8'));
+        ..add(const AttendanceMarked('e1', AttendanceMark.absent));
       await Future<void>.delayed(Duration.zero);
       expect(boardOf(bloc).saving, isTrue);
       expect(boardOf(bloc).marks, isEmpty);
-      expect((bloc.state as AttendanceReady).day, '2026-11-17');
       slow.complete(submitted);
-      await bloc.stream.firstWhere((state) => state is AttendanceReady && state.outcome != null);
+      await bloc.stream.firstWhere((state) => state.outcome != null);
       verify(
         () => repository.submit(
           sectionId: any(named: 'sectionId'),
@@ -531,14 +381,14 @@ void main() {
         ..add(const AttendanceMarked('e2', AttendanceMark.present))
         ..add(const AttendanceMarked('e3', AttendanceMark.late))
         ..add(const AttendanceCorrected());
-      await bloc.stream.firstWhere((state) => state is AttendanceReady && state.outcome != null);
+      await bloc.stream.firstWhere((state) => state.outcome != null);
       verify(
         () => repository.correct('r1', 2, const [
           MarkChange(enrolmentId: 'e2', mark: AttendanceMark.present),
           MarkChange(enrolmentId: 'e3', mark: AttendanceMark.late),
         ]),
       ).called(1);
-      expect((bloc.state as AttendanceReady).outcome, const AttendanceOutcome(AttendanceOutcomeKind.corrected, 3));
+      expect(bloc.state.outcome, const AttendanceOutcome(AttendanceOutcomeKind.corrected, 3));
       await bloc.close();
     });
 
@@ -550,8 +400,7 @@ void main() {
           ..add(const AttendanceMarked('e2', AttendanceMark.present))
           ..add(const AttendanceCorrected());
         await bloc.stream.firstWhere(
-          (state) =>
-              state is AttendanceReady && state.board is BoardLoaded && (state.board as BoardLoaded).failure != null,
+          (state) => state.board is BoardLoaded && (state.board as BoardLoaded).failure != null,
         );
         expect(boardOf(bloc), BoardLoaded(takenRoll, const {}, failure: refusal(code)));
         await bloc.close();
@@ -565,8 +414,7 @@ void main() {
         ..add(const AttendanceMarked('e2', AttendanceMark.present))
         ..add(const AttendanceCorrected());
       await bloc.stream.firstWhere(
-        (state) =>
-            state is AttendanceReady && state.board is BoardLoaded && (state.board as BoardLoaded).failure != null,
+        (state) => state.board is BoardLoaded && (state.board as BoardLoaded).failure != null,
       );
       expect(boardOf(bloc).marks, {'e2': AttendanceMark.present});
       expect(boardOf(bloc).failure?.code, 'NOT_ASSIGNED');
@@ -578,9 +426,9 @@ void main() {
       final bloc = await openTaken();
       when(() => repository.roster('sec1', '2026-11-17')).thenAnswer((_) async => openRoll);
       bloc.add(const AttendanceVoided('Taken for the wrong section'));
-      await bloc.stream.firstWhere((state) => state is AttendanceReady && state.outcome != null);
+      await bloc.stream.firstWhere((state) => state.outcome != null);
       verify(() => repository.voidRegister('r1', 2, 'Taken for the wrong section')).called(1);
-      expect((bloc.state as AttendanceReady).outcome, const AttendanceOutcome(AttendanceOutcomeKind.voided, 3));
+      expect(bloc.state.outcome, const AttendanceOutcome(AttendanceOutcomeKind.voided, 3));
       expect(boardOf(bloc).roster, openRoll);
       await bloc.close();
     });
@@ -590,8 +438,7 @@ void main() {
       final bloc = await openTaken();
       bloc.add(const AttendanceVoided('Taken for the wrong section'));
       await bloc.stream.firstWhere(
-        (state) =>
-            state is AttendanceReady && state.board is BoardLoaded && (state.board as BoardLoaded).failure != null,
+        (state) => state.board is BoardLoaded && (state.board as BoardLoaded).failure != null,
       );
       expect(boardOf(bloc).failure?.code, 'FORBIDDEN');
       expect(boardOf(bloc).roster, takenRoll);

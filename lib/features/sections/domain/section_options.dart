@@ -6,6 +6,9 @@ import 'package:bravynix_school_erp/features/sections/domain/section.dart';
 import 'package:bravynix_school_erp/features/sections/domain/sections_repository.dart';
 import 'package:equatable/equatable.dart';
 
+/// The classes and the sections to choose a section from.
+typedef SectionChoices = ({List<ClassChoice> classes, List<SectionChoice> sections});
+
 /// A section to choose from (a staff member leads or teaches it, a student sits in it), with the class it is in.
 class SectionChoice extends Equatable {
   const new({required this.id, required this.name, required this.classId});
@@ -60,6 +63,8 @@ class SectionOptions extends Equatable {
   final List<AcademicYear> years;
   final List<SectionChoice> sections;
   final List<ClassChoice> classes;
+
+  SectionChoices get choices => (classes: classes, sections: sections);
 
   /// The year to look at first: the current one, else the first; null when there is none.
   String? get firstYearId => years.where((year) => year.isCurrent).firstOrNull?.id ?? years.firstOrNull?.id;

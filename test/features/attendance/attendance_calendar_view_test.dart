@@ -7,12 +7,12 @@ import 'package:bravynix_school_erp/core/theme/app_colors.dart';
 import 'package:bravynix_school_erp/core/theme/app_theme.dart';
 import 'package:bravynix_school_erp/features/attendance/domain/attendance_calendar.dart';
 import 'package:bravynix_school_erp/features/attendance/domain/attendance_repository.dart';
-import 'package:bravynix_school_erp/features/attendance/presentation/bloc/attendance_bloc.dart';
 import 'package:bravynix_school_erp/features/attendance/presentation/bloc/attendance_calendar_bloc.dart';
 import 'package:bravynix_school_erp/features/attendance/presentation/view/attendance_calendar_page.dart';
 import 'package:bravynix_school_erp/features/attendance/presentation/view/attendance_calendar_view.dart';
 import 'package:bravynix_school_erp/features/auth/domain/auth_entities.dart';
 import 'package:bravynix_school_erp/features/children/presentation/bloc/active_child_bloc.dart';
+import 'package:bravynix_school_erp/features/sections/domain/section_day.dart';
 import 'package:bravynix_school_erp/l10n/gen/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/semantics.dart';
@@ -44,13 +44,13 @@ void main() {
   /// Today is the 17th of November 2026 in IST (04:00 UTC).
   DateTime clock() => DateTime.utc(2026, 11, 17, 4);
 
-  Future<List<AttendanceFocus>> pump(
+  Future<List<SectionDay>> pump(
     WidgetTester tester, {
     bool canCorrect = false,
     double textScale = 1,
     Size size = const Size(400, 1400),
   }) async {
-    final corrected = <AttendanceFocus>[];
+    final corrected = <SectionDay>[];
     await tester.pumpAppScaled(
       BlocProvider(
         create: (_) => AttendanceCalendarBloc(repository, 's1', clock: clock)..add(const AttendanceCalendarStarted()),
@@ -261,7 +261,7 @@ void main() {
       await tester.pumpAndSettle();
       await tester.tap(find.byKey(const Key('dayDetail.correct')));
       await tester.pumpAndSettle();
-      expect(corrected, [const AttendanceFocus(sectionId: 'sec1', day: '2026-11-03')]);
+      expect(corrected, [const SectionDay(sectionId: 'sec1', day: '2026-11-03')]);
     });
 
     testWidgets('says that no register was taken, and offers no Correct', (tester) async {
@@ -468,7 +468,7 @@ void main() {
       await tester.tap(find.byKey(const Key('dayDetail.correct')));
       await tester.pumpAndSettle();
       expect(find.text('register'), findsOneWidget);
-      expect(opened, const AttendanceFocus(sectionId: 'sec1', day: '2026-11-03'));
+      expect(opened, const SectionDay(sectionId: 'sec1', day: '2026-11-03'));
     });
   });
 }

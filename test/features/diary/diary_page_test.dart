@@ -1,23 +1,29 @@
+import 'dart:async';
+
 import 'package:bloc_test/bloc_test.dart';
 import 'package:bravynix_school_erp/app/di/injection.dart';
 import 'package:bravynix_school_erp/core/storage/institution_choice_store.dart';
-import 'package:bravynix_school_erp/features/attendance/domain/attendance_repository.dart';
+import 'package:bravynix_school_erp/features/academic_years/domain/academic_years_repository.dart';
 import 'package:bravynix_school_erp/features/auth/domain/auth_entities.dart';
 import 'package:bravynix_school_erp/features/auth/presentation/session/session_bloc.dart';
 import 'package:bravynix_school_erp/features/children/presentation/bloc/active_child_bloc.dart';
+import 'package:bravynix_school_erp/features/classes/domain/classes_repository.dart';
 import 'package:bravynix_school_erp/features/diary/domain/diary_repository.dart';
 import 'package:bravynix_school_erp/features/diary/presentation/view/diary_page.dart';
 import 'package:bravynix_school_erp/features/institutions/domain/institutions_repository.dart';
+import 'package:bravynix_school_erp/features/sections/domain/sections_repository.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 
-import '../../helpers/attendance.dart';
+import '../../helpers/academic_years.dart';
+import '../../helpers/classes.dart';
 import '../../helpers/diary.dart';
 import '../../helpers/institutions.dart';
 import '../../helpers/mocks.dart';
 import '../../helpers/pump_app.dart';
+import '../../helpers/sections.dart';
 
 class _MockSessionBloc extends MockBloc<SessionEvent, SessionState> implements SessionBloc;
 
@@ -28,24 +34,31 @@ class _MockActiveChildBloc extends MockBloc<ActiveChildEvent, ActiveChildState> 
 /// has it on a phone.
 void main() {
   late MockDiaryRepository diary;
-  late MockAttendanceRepository attendance;
+  late MockClassesRepository classes;
   late MockInstitutionsRepository institutions;
 
   setUp(() {
     diary = MockDiaryRepository();
-    attendance = MockAttendanceRepository();
+    classes = MockClassesRepository();
+    final years = MockAcademicYearsRepository();
+    final sections = MockSectionsRepository();
     institutions = MockInstitutionsRepository();
     when(institutions.institutions).thenAnswer(
       (_) async => [summary(), summary(id: 'i2', code: 'LVS', name: 'Lake View School')],
     );
+    // The sections a teacher leads or teaches are what CLS-01 and SEC-01 give: one class with one section.
     for (final id in ['i1', 'i2']) {
-      when(() => attendance.sections(id)).thenAnswer((_) async => oneSection);
+      when(() => years.years(id)).thenAnswer((_) async => [currentYear]);
+      when(() => classes.classes(id)).thenAnswer((_) async => [class1]);
     }
-    when(() => diary.ofSection('sec1', '2026-11-17')).thenAnswer((_) async => [mathsEntry, artEntry, noticeEntry]);
+    when(() => sections.sections('k1')).thenAnswer((_) async => [sectionA]);
+    when(() => diary.ofSection('e1', '2026-11-17')).thenAnswer((_) async => [mathsEntry, artEntry, noticeEntry]);
     when(() => diary.ofChild('s1', '2026-11-17')).thenAnswer((_) async => [mathsEntry]);
     getIt
       ..registerSingleton<DiaryRepository>(diary)
-      ..registerSingleton<AttendanceRepository>(attendance)
+      ..registerSingleton<AcademicYearsRepository>(years)
+      ..registerSingleton<ClassesRepository>(classes)
+      ..registerSingleton<SectionsRepository>(sections)
       ..registerSingleton<InstitutionsRepository>(institutions);
   });
   tearDown(getIt.reset);
@@ -131,8 +144,8 @@ void main() {
 
   testWidgets('reads the sections of the Institution chosen', (tester) async {
     await pump(tester, owner, at: 'i2');
-    verify(() => attendance.sections('i2')).called(1);
-    verifyNever(() => attendance.sections('i1'));
+    verify(() => classes.classes('i2')).called(1);
+    verifyNever(() => classes.classes('i1'));
   });
 
   group("a parent's", () {
@@ -164,6 +177,52 @@ void main() {
       await tester.pumpAndSettle();
     }
 
+    testWidgets('starts again on today for the next child, not on the day the last child was left on', (tester) async {
+      const meera = LinkedChild(
+        studentId: 's2',
+        firstName: 'Meera',
+        institutionName: 'Green Valley School',
+        isBlocked: false,
+      );
+      when(() => diary.ofChild('s1', '2026-11-16')).thenAnswer((_) async => [mathsEntry]);
+      when(() => diary.ofChild('s2', '2026-11-17')).thenAnswer((_) async => [artEntry]);
+      final session = _MockSessionBloc();
+      when(() => session.state).thenReturn(
+        const SessionAuthenticated(AuthSession(person: testPerson, contexts: [parent], activeContext: parent)),
+      );
+      final children = _MockActiveChildBloc();
+      final changes = StreamController<ActiveChildState>();
+      addTearDown(changes.close);
+      whenListen(
+        children,
+        changes.stream,
+        initialState: const ActiveChildReady(children: [diya, meera], selected: diya),
+      );
+      await tester.pumpAppScaled(
+        MultiBlocProvider(
+          providers: [
+            BlocProvider<SessionBloc>.value(value: session),
+            BlocProvider<ActiveChildBloc>.value(value: children),
+          ],
+          child: DiaryPage(clock: () => today),
+        ),
+        size: const Size(400, 1600),
+      );
+      await tester.pumpAndSettle();
+      // Diya's diary, on another day.
+      await tester.tap(find.byKey(const Key('diary.day')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('16').last);
+      await tester.tap(find.text('OK'));
+      await tester.pumpAndSettle();
+      verify(() => diary.ofChild('s1', '2026-11-16')).called(1);
+      changes.add(const ActiveChildReady(children: [diya, meera], selected: meera));
+      await tester.pumpAndSettle();
+      expect(find.text('Bring crayons.'), findsOneWidget);
+      verify(() => diary.ofChild('s2', '2026-11-17')).called(1);
+      verifyNever(() => diary.ofChild('s2', '2026-11-16'));
+    });
+
     testWidgets('says there is no child to show when there is none', (tester) async {
       await pumpParent(tester, const ActiveChildNone());
       expect(find.byKey(const Key('diary.noChild')), findsOneWidget);
@@ -175,7 +234,7 @@ void main() {
       expect(find.byKey(const Key('diary.add')), findsNothing);
       expect(button('edit', 'd1'), findsNothing);
       verify(() => diary.ofChild('s1', '2026-11-17')).called(1);
-      verifyNever(() => attendance.sections(any()));
+      verifyNever(() => classes.classes(any()));
     });
   });
 }

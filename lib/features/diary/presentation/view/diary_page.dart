@@ -6,24 +6,26 @@ import 'package:bravynix_school_erp/core/widgets/app_card.dart';
 import 'package:bravynix_school_erp/core/widgets/app_dialog.dart';
 import 'package:bravynix_school_erp/core/widgets/app_snackbar.dart';
 import 'package:bravynix_school_erp/core/widgets/app_top_bar.dart';
-import 'package:bravynix_school_erp/core/widgets/day_picker.dart';
 import 'package:bravynix_school_erp/core/widgets/inline_message.dart';
 import 'package:bravynix_school_erp/core/widgets/skeleton.dart';
 import 'package:bravynix_school_erp/core/widgets/state_panel.dart';
 import 'package:bravynix_school_erp/core/widgets/text_measure.dart';
-import 'package:bravynix_school_erp/features/attendance/domain/attendance_repository.dart';
+import 'package:bravynix_school_erp/features/academic_years/domain/academic_years_repository.dart';
 import 'package:bravynix_school_erp/features/auth/domain/auth_entities.dart';
 import 'package:bravynix_school_erp/features/auth/presentation/session/session_bloc.dart';
 import 'package:bravynix_school_erp/features/children/presentation/bloc/active_child_bloc.dart';
 import 'package:bravynix_school_erp/features/children/presentation/view/child_panel.dart';
+import 'package:bravynix_school_erp/features/classes/domain/classes_repository.dart';
 import 'package:bravynix_school_erp/features/diary/domain/diary_entry.dart';
 import 'package:bravynix_school_erp/features/diary/domain/diary_repository.dart';
 import 'package:bravynix_school_erp/features/diary/presentation/bloc/diary_bloc.dart';
 import 'package:bravynix_school_erp/features/diary/presentation/view/diary_error_text.dart';
 import 'package:bravynix_school_erp/features/diary/presentation/view/diary_form_sheet.dart';
 import 'package:bravynix_school_erp/features/institutions/presentation/view/institution_scope.dart';
-import 'package:bravynix_school_erp/features/masters/domain/master_entry.dart';
-import 'package:bravynix_school_erp/features/masters/presentation/view/master_dropdown.dart';
+import 'package:bravynix_school_erp/features/sections/domain/section_options.dart';
+import 'package:bravynix_school_erp/features/sections/domain/sections_repository.dart';
+import 'package:bravynix_school_erp/features/sections/presentation/bloc/section_day_bloc.dart';
+import 'package:bravynix_school_erp/features/sections/presentation/view/section_day_frame.dart';
 import 'package:bravynix_school_erp/l10n/gen/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -44,7 +46,6 @@ class DiaryPage extends StatelessWidget {
     final session = active is SessionAuthenticated ? active.session.activeContext : null;
     final parent = session?.role == RoleCode.studentParent;
     final admin = session?.role == RoleCode.societyOwner || session?.role == RoleCode.institutionAdmin;
-    final today = Formatters.schoolDay(clock());
     return Scaffold(
       body: Column(
         children: [
@@ -61,15 +62,20 @@ class DiaryPage extends StatelessWidget {
                 ? BlocBuilder<ActiveChildBloc, ActiveChildState>(
                     builder: (context, child) => child is ActiveChildReady
                         // A new key per child starts the diary again for that child, so the last child's never shows.
-                        ? BlocProvider(
+                        ? MultiBlocProvider(
                             key: ValueKey(child.selected.studentId),
-                            create: (_) => DiaryBloc(
-                              getIt<DiaryRepository>(),
-                              getIt<AttendanceRepository>(),
-                              studentId: child.selected.studentId,
-                              clock: clock,
-                            )..add(const DiaryStarted()),
-                            child: DiaryView(today: today, parent: true),
+                            providers: [
+                              BlocProvider(
+                                create: (_) => DiaryBloc(getIt<DiaryRepository>(), studentId: child.selected.studentId),
+                              ),
+                              BlocProvider(
+                                create: (_) => SectionDayBloc.dayOnly(clock: clock)..add(const SectionDayStarted()),
+                              ),
+                            ],
+                            child: SectionDayListener(
+                              onChosen: (context, chosen) => context.read<DiaryBloc>().add(DiaryRead(day: chosen.day)),
+                              child: const DiaryView(parent: true),
+                            ),
                           )
                         : StatePanel.empty(
                             key: const Key('diary.noChild'),
@@ -83,21 +89,35 @@ class DiaryPage extends StatelessWidget {
                       // An Owner or an Admin writes at every Institution they reach; a teacher at their own only (API
                       // design 10.14a): at another Institution of theirs they read.
                       final mayWrite = admin || institution.id == session?.homeInstitutionId;
-                      return BlocProvider(
-                        create: (_) => DiaryBloc(
-                          getIt<DiaryRepository>(),
-                          getIt<AttendanceRepository>(),
-                          institutionId: institution.id,
-                          clock: clock,
-                        )..add(const DiaryStarted()),
-                        child: DiaryView(
-                          today: today,
-                          parent: false,
-                          mayWrite: mayWrite,
-                          // An Owner or an Admin changes every entry, a teacher the ones they wrote.
-                          mayChange: (entry) =>
-                              mayWrite &&
-                              (admin || (entry.teacherId != null && entry.teacherId == session?.staffMemberId)),
+                      return MultiBlocProvider(
+                        providers: [
+                          BlocProvider(create: (_) => DiaryBloc(getIt<DiaryRepository>())),
+                          BlocProvider(
+                            // CLS-01 and SEC-01 give a teacher the sections they lead or teach, which is what the diary reads.
+                            create: (_) => SectionDayBloc(() async {
+                              final options = SectionOptionsSource(
+                                years: getIt<AcademicYearsRepository>(),
+                                classes: getIt<ClassesRepository>(),
+                                sections: getIt<SectionsRepository>(),
+                              );
+                              return (await options.read(institution.id)).choices;
+                            }, clock: clock)..add(const SectionDayStarted()),
+                          ),
+                        ],
+                        child: SectionDayListener(
+                          onChosen: (context, chosen) => context.read<DiaryBloc>().add(
+                            chosen.selection == null
+                                ? const DiaryCleared()
+                                : DiaryRead(sectionId: chosen.sectionId, day: chosen.day),
+                          ),
+                          child: DiaryView(
+                            parent: false,
+                            mayWrite: mayWrite,
+                            // An Owner or an Admin changes every entry, a teacher the ones they wrote.
+                            mayChange: (entry) =>
+                                mayWrite &&
+                                (admin || (entry.teacherId != null && entry.teacherId == session?.staffMemberId)),
+                          ),
                         ),
                       );
                     },
@@ -110,10 +130,7 @@ class DiaryPage extends StatelessWidget {
 }
 
 class DiaryView extends StatelessWidget {
-  const new({required this.today, required this.parent, this.mayWrite = false, this.mayChange = _never, super.key});
-
-  /// The school day (IST), `YYYY-MM-DD`: the last day that can be read or written.
-  final String today;
+  const new({required this.parent, this.mayWrite = false, this.mayChange = _never, super.key});
 
   /// A parent reads their child's diary; staff choose a section.
   final bool parent;
@@ -129,58 +146,53 @@ class DiaryView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
-    return BlocBuilder<DiaryBloc, DiaryState>(
-      builder: (context, state) => switch (state) {
-        DiaryLoading() => SkeletonCards(semanticLabel: l10n.loading, heights: const [64, 64, 120]),
-        DiaryFailed(:final failure) when failure.code == 'FORBIDDEN' => StatePanel.forbidden(
-          key: const Key('diary.forbidden'),
-          title: diaryErrorText(l10n, failure),
-        ),
-        DiaryFailed(:final failure) => StatePanel.error(
-          key: const Key('diary.failed'),
-          title: diaryErrorText(l10n, failure),
-          actionLabel: l10n.retry,
-          onAction: () => context.read<DiaryBloc>().add(const DiaryStarted()),
-        ),
-        DiaryReady(:final classes) when !parent && classes.isEmpty => StatePanel.empty(
-          key: const Key('diary.noSections'),
-          title: l10n.diaryNoSectionsTitle,
-          message: l10n.diaryNoSectionsMessage,
-        ),
-        DiaryReady() => _Screen(state: state, today: today, parent: parent, mayWrite: mayWrite, mayChange: mayChange),
-      },
+    return BlocListener<DiaryBloc, DiaryBoard>(
+      // An entry that was being deleted is gone from the list: said once.
+      listenWhen: (previous, current) =>
+          previous is DiaryBoardLoaded &&
+          previous.removing != null &&
+          current is DiaryBoardLoaded &&
+          current.removing == null &&
+          current.failure == null,
+      listener: (context, board) =>
+          AppSnackbar.show(context, message: l10n.diaryDeleted, kind: AppSnackbarKind.success),
+      child: SectionDayFrame(
+        keyPrefix: 'diary',
+        errorText: diaryErrorText,
+        noSectionsTitle: parent ? null : l10n.diaryNoSectionsTitle,
+        noSectionsMessage: parent ? null : l10n.diaryNoSectionsMessage,
+        builder: (context, chosen) => _Screen(chosen: chosen, parent: parent, mayWrite: mayWrite, mayChange: mayChange),
+      ),
     );
   }
 }
 
 class _Screen extends StatelessWidget {
-  const new({
-    required this.state,
-    required this.today,
-    required this.parent,
-    required this.mayWrite,
-    required this.mayChange,
-  });
+  const new({required this.chosen, required this.parent, required this.mayWrite, required this.mayChange});
 
-  final DiaryReady state;
-  final String today;
+  final SectionDayReady chosen;
   final bool parent;
   final bool mayWrite;
   final bool Function(DiaryEntry entry) mayChange;
 
   Future<void> _openForm(BuildContext context, {DiaryEntry? entry}) async {
-    final bloc = context.read<DiaryBloc>();
+    final diary = context.read<DiaryBloc>();
+    final picker = context.read<SectionDayBloc>();
     final l10n = AppLocalizations.of(context);
     final saved = await showDiaryFormSheet(
       context,
-      sectionId: state.sectionId!,
-      today: today,
-      day: state.day,
+      sectionId: chosen.sectionId!,
+      today: chosen.today,
+      day: chosen.day,
       entry: entry,
     );
     if (saved == null) return;
-    // The list reads the day the entry is on: the one it was written for, or the one it was found to be out of date at.
-    bloc.add(DiaryRead(day: saved.entry.day));
+    // The list shows the day the entry is on: the one it was written for, or the one it was found to be out of date at.
+    if (saved.entry.day == chosen.day) {
+      diary.add(const DiaryReloaded());
+    } else {
+      picker.add(SectionDayDayChosen(saved.entry.day));
+    }
     if (saved.saved && context.mounted) {
       AppSnackbar.show(context, message: l10n.diarySaved, kind: AppSnackbarKind.success);
     }
@@ -204,46 +216,27 @@ class _Screen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
-    final bloc = context.read<DiaryBloc>();
-    final end = Formatters.parseDay(today)!;
-    return ListView(
-      padding: const EdgeInsets.all(AppSpacing.screenMargin),
-      children: [
-        if (!parent) ...[
-          MasterDropdown(
-            key: const Key('diary.class'),
-            label: l10n.studentClass,
-            entries: [for (final choice in state.classes) MasterEntry(id: choice.id, name: choice.name)],
-            value: state.classId,
-            onChanged: (id) => bloc.add(DiaryClassChosen(id)),
+    return BlocBuilder<DiaryBloc, DiaryBoard>(
+      builder: (context, board) => ListView(
+        padding: const EdgeInsets.all(AppSpacing.screenMargin),
+        children: [
+          SectionDayFields(
+            keyPrefix: 'diary',
+            state: chosen,
+            dayLabel: l10n.diaryDate,
+            chooseSection: !parent,
+            // No other choice is taken while an entry is being deleted: its answer belongs to the list on screen.
+            enabled: board is! DiaryBoardLoaded || board.removing == null,
           ),
-          const SizedBox(height: AppSpacing.sm),
-          MasterDropdown(
-            key: const Key('diary.section'),
-            label: l10n.studentSection,
-            entries: [for (final choice in state.sectionsInClass) MasterEntry(id: choice.id, name: choice.name)],
-            value: state.sectionId,
-            onChanged: state.classId == null ? null : (id) => bloc.add(DiarySectionChosen(id)),
-          ),
-          const SizedBox(height: AppSpacing.sm),
+          const SizedBox(height: AppSpacing.md),
+          ..._body(context, l10n, board),
         ],
-        DayField(
-          key: const Key('diary.day'),
-          label: l10n.diaryDate,
-          day: state.day,
-          // The diary of the current year is what anyone looks at, so a year back is as far as the calendar goes.
-          firstDay: DateTime(end.year - 1, end.month, end.day),
-          lastDay: end,
-          onChanged: (day) => bloc.add(DiaryDayChosen(day)),
-        ),
-        const SizedBox(height: AppSpacing.md),
-        ..._body(context, l10n),
-      ],
+      ),
     );
   }
 
-  List<Widget> _body(BuildContext context, AppLocalizations l10n) {
-    switch (state.board) {
+  List<Widget> _body(BuildContext context, AppLocalizations l10n, DiaryBoard board) {
+    switch (board) {
       case DiaryBoardEmpty():
         return [
           StatePanel.empty(
@@ -262,7 +255,7 @@ class _Screen extends StatelessWidget {
             key: const Key('diary.entriesFailed'),
             title: diaryErrorText(l10n, failure),
             actionLabel: l10n.retry,
-            onAction: () => context.read<DiaryBloc>().add(const DiaryRead()),
+            onAction: () => context.read<DiaryBloc>().add(const DiaryReloaded()),
           ),
         ];
       case DiaryBoardLoaded(:final entries, :final removing, :final failure):
