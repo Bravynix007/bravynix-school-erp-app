@@ -4,11 +4,11 @@ import 'package:bravynix_school_erp/core/theme/app_spacing.dart';
 import 'package:bravynix_school_erp/core/widgets/app_top_bar.dart';
 import 'package:bravynix_school_erp/core/widgets/state_panel.dart';
 import 'package:bravynix_school_erp/features/attendance/domain/attendance_repository.dart';
-import 'package:bravynix_school_erp/features/attendance/presentation/bloc/attendance_bloc.dart';
 import 'package:bravynix_school_erp/features/attendance/presentation/bloc/attendance_calendar_bloc.dart';
 import 'package:bravynix_school_erp/features/attendance/presentation/view/attendance_calendar_view.dart';
 import 'package:bravynix_school_erp/features/children/presentation/bloc/active_child_bloc.dart';
 import 'package:bravynix_school_erp/features/children/presentation/view/child_panel.dart';
+import 'package:bravynix_school_erp/features/sections/domain/section_day.dart';
 import 'package:bravynix_school_erp/l10n/gen/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -108,7 +108,7 @@ class _CalendarOf extends StatelessWidget {
 
   final String studentId;
   final DateTime Function() clock;
-  final ValueChanged<AttendanceFocus>? onCorrect;
+  final ValueChanged<SectionDay>? onCorrect;
 
   @override
   Widget build(BuildContext context) => BlocProvider(

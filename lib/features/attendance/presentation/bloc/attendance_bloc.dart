@@ -1,10 +1,9 @@
 import 'package:bloc/bloc.dart';
-import 'package:bravynix_school_erp/core/format/formatters.dart';
 import 'package:bravynix_school_erp/core/network/api_failure.dart';
 import 'package:bravynix_school_erp/core/widgets/attendance_status_selector.dart';
 import 'package:bravynix_school_erp/features/attendance/domain/attendance_repository.dart';
 import 'package:bravynix_school_erp/features/attendance/domain/attendance_roster.dart';
-import 'package:bravynix_school_erp/features/sections/domain/section_options.dart';
+import 'package:bravynix_school_erp/features/sections/domain/section_day.dart';
 import 'package:equatable/equatable.dart';
 import 'package:uuid/uuid.dart';
 
@@ -15,38 +14,14 @@ sealed class AttendanceEvent extends Equatable {
   List<Object?> get props => [];
 }
 
-/// Opening the screen, and Try again after the classes could not be read.
-final class AttendanceStarted extends AttendanceEvent {
-  const new();
-}
+/// The section and day the screen chose, or null when no section is chosen: the roll of it is read.
+final class AttendanceSelected extends AttendanceEvent {
+  const new(this.selection);
 
-/// Another class chosen: its section has to be chosen too, unless it has only one.
-final class AttendanceClassChosen extends AttendanceEvent {
-  const new(this.id);
-
-  final String? id;
+  final SectionDay? selection;
 
   @override
-  List<Object?> get props => [id];
-}
-
-final class AttendanceSectionChosen extends AttendanceEvent {
-  const new(this.id);
-
-  final String? id;
-
-  @override
-  List<Object?> get props => [id];
-}
-
-/// Another day, `YYYY-MM-DD`.
-final class AttendanceDayChosen extends AttendanceEvent {
-  const new(this.day);
-
-  final String day;
-
-  @override
-  List<Object?> get props => [day];
+  List<Object?> get props => [selection];
 }
 
 /// Try again after the roll could not be read.
@@ -83,20 +58,6 @@ final class AttendanceVoided extends AttendanceEvent {
 
   @override
   List<Object?> get props => [reason];
-}
-
-/// A register to open on: the section and day a screen elsewhere (a student's calendar) points at. A section that is not
-/// among the Institution's is ignored, and the person chooses.
-class AttendanceFocus extends Equatable {
-  const new({required this.sectionId, required this.day});
-
-  final String sectionId;
-
-  /// `YYYY-MM-DD`.
-  final String day;
-
-  @override
-  List<Object?> get props => [sectionId, day];
 }
 
 enum AttendanceOutcomeKind { submitted, corrected, voided }
@@ -180,71 +141,20 @@ class BoardLoaded extends AttendanceBoard {
   List<Object?> get props => [roster, marks, saving, failure];
 }
 
-sealed class AttendanceState extends Equatable {
-  const new();
+/// The roll of the section and day chosen, and what the last action did.
+class AttendanceState extends Equatable {
+  const new({this.board = const BoardEmpty(), this.outcome});
 
-  @override
-  List<Object?> get props => [];
-}
-
-class AttendanceLoading extends AttendanceState {
-  const new();
-}
-
-/// The classes could not be read.
-class AttendanceFailed extends AttendanceState {
-  const new(this.failure);
-
-  final ApiFailure failure;
-
-  @override
-  List<Object?> get props => [failure];
-}
-
-/// The classes and sections to choose from, what is chosen, and the roll of it.
-class AttendanceReady extends AttendanceState {
-  const new({
-    required this.classes,
-    required this.sections,
-    required this.day,
-    this.classId,
-    this.sectionId,
-    this.board = const BoardEmpty(),
-    this.outcome,
-  });
-
-  final List<ClassChoice> classes;
-  final List<SectionChoice> sections;
-  final String? classId;
-  final String? sectionId;
-
-  /// `YYYY-MM-DD`.
-  final String day;
   final AttendanceBoard board;
 
   /// What the last action did; null after any later change, so the screen says it once.
   final AttendanceOutcome? outcome;
 
-  List<SectionChoice> get sectionsInClass => sections.inClass(classId);
-
-  AttendanceReady copyWith({
-    String? Function()? classId,
-    String? Function()? sectionId,
-    String? day,
-    AttendanceBoard? board,
-    AttendanceOutcome? outcome,
-  }) => AttendanceReady(
-    classes: classes,
-    sections: sections,
-    classId: classId == null ? this.classId : classId(),
-    sectionId: sectionId == null ? this.sectionId : sectionId(),
-    day: day ?? this.day,
-    board: board ?? this.board,
-    outcome: outcome,
-  );
+  AttendanceState copyWith({AttendanceBoard? board, AttendanceOutcome? outcome}) =>
+      AttendanceState(board: board ?? this.board, outcome: outcome);
 
   @override
-  List<Object?> get props => [classes, sections, classId, sectionId, day, board, outcome];
+  List<Object?> get props => [board, outcome];
 }
 
 /// Taking a section's attendance for a day, correcting it and voiding it (API design 10.10 to 10.12a). A register is one
@@ -252,13 +162,10 @@ class AttendanceReady extends AttendanceState {
 /// same submission, after an answer that was lost, carries the same Idempotency-Key and finds the first one done; any
 /// change to the marks or the roll starts a new attempt.
 class AttendanceBloc extends Bloc<AttendanceEvent, AttendanceState> {
-  new(this._attendance, this.institutionId, {this._clock = DateTime.now, this.focus, String Function()? newKey})
+  new(this._attendance, {String Function()? newKey})
     : _newKey = newKey ?? const Uuid().v4,
-      super(const AttendanceLoading()) {
-    on<AttendanceStarted>(_onStarted);
-    on<AttendanceClassChosen>(_onClassChosen);
-    on<AttendanceSectionChosen>(_onSectionChosen);
-    on<AttendanceDayChosen>(_onDayChosen);
+      super(const AttendanceState()) {
+    on<AttendanceSelected>(_onSelected);
     on<AttendanceRollRetried>((event, emit) => _read(emit));
     on<AttendanceMarked>(_onMarked);
     on<AttendanceSubmitted>(_onSubmitted);
@@ -267,13 +174,12 @@ class AttendanceBloc extends Bloc<AttendanceEvent, AttendanceState> {
   }
 
   final AttendanceRepository _attendance;
-  final String institutionId;
-  final AttendanceFocus? focus;
-  final DateTime Function() _clock;
   final String Function() _newKey;
   String? _key;
 
-  /// The roll being read, so an answer for a section or day the person has left is not shown.
+  /// The section and day on screen, and the roll being read of them, so an answer for a section or day the person has
+  /// left is not shown.
+  SectionDay? _selection;
   int _reading = 0;
 
   /// Refusals that mean the roll on screen is out of date: the register was taken or voided, or a student joined or
@@ -286,112 +192,42 @@ class AttendanceBloc extends Bloc<AttendanceEvent, AttendanceState> {
     'SESSION_VOIDED',
   };
 
-  void _ready(void Function(AttendanceReady ready) work) {
-    if (state case final AttendanceReady ready) work(ready);
-  }
-
-  Future<void> _onStarted(AttendanceStarted event, Emitter<AttendanceState> emit) async {
-    emit(const AttendanceLoading());
-    try {
-      final choices = await _attendance.sections(institutionId);
-      final single = choices.classes.length == 1 ? choices.classes.single.id : null;
-      emit(
-        AttendanceReady(
-          classes: choices.classes,
-          sections: choices.sections,
-          day: Formatters.schoolDay(_clock()),
-          classId: single,
-        ),
-      );
-      if (_focus(choices) case final target?) {
-        // The day first, so that the roll is read once, for the section chosen last.
-        add(AttendanceDayChosen(target.day));
-        add(AttendanceClassChosen(target.classId));
-        add(AttendanceSectionChosen(target.sectionId));
-      } else if (single != null) {
-        // A school with one class and one section has nothing to choose.
-        _chooseOnlySection();
-      }
-    } on ApiFailure catch (failure) {
-      emit(AttendanceFailed(failure));
-    }
-  }
-
-  /// The class and section [focus] points at, when the Institution has that section.
-  ({String classId, String sectionId, String day})? _focus(MarkingSections choices) {
-    final target = focus;
-    if (target == null) return null;
-    for (final section in choices.sections) {
-      if (section.id == target.sectionId) return (classId: section.classId, sectionId: section.id, day: target.day);
-    }
-    return null;
-  }
-
-  void _chooseOnlySection() => _ready((ready) {
-    final only = ready.sectionsInClass;
-    if (only.length == 1) add(AttendanceSectionChosen(only.single.id));
-  });
-
-  void _onClassChosen(AttendanceClassChosen event, Emitter<AttendanceState> emit) => _ready((ready) {
-    final id = event.id;
-    if (id == null || id == ready.classId || _busy(ready)) return;
+  Future<void> _onSelected(AttendanceSelected event, Emitter<AttendanceState> emit) {
+    _selection = event.selection;
+    if (_selection != null) return _read(emit);
     _reading++;
-    emit(ready.copyWith(classId: () => id, sectionId: () => null, board: const BoardEmpty()));
-    _chooseOnlySection();
-  });
-
-  Future<void> _onSectionChosen(AttendanceSectionChosen event, Emitter<AttendanceState> emit) async {
-    if (state case final AttendanceReady ready) {
-      final id = event.id;
-      if (id == null || id == ready.sectionId || _busy(ready)) return;
-      emit(ready.copyWith(sectionId: () => id));
-      await _read(emit);
-    }
+    emit(const AttendanceState());
+    return Future.value();
   }
-
-  Future<void> _onDayChosen(AttendanceDayChosen event, Emitter<AttendanceState> emit) async {
-    if (state case final AttendanceReady ready) {
-      if (event.day == ready.day || _busy(ready)) return;
-      emit(ready.copyWith(day: event.day));
-      await _read(emit);
-    }
-  }
-
-  /// No other choice is taken while an action is on its way: its answer belongs to the roll that was on screen.
-  bool _busy(AttendanceReady ready) => switch (ready.board) {
-    BoardLoaded(:final saving) => saving,
-    _ => false,
-  };
 
   /// Reads the roll of the chosen section and day; [failure] is a refusal to show over it (the roll it came from was out
   /// of date), and [outcome] what the last action did.
   Future<void> _read(Emitter<AttendanceState> emit, {ApiFailure? failure, AttendanceOutcome? outcome}) async {
-    if (state case final AttendanceReady ready when ready.sectionId != null) {
-      final token = ++_reading;
-      _key = null;
-      emit(ready.copyWith(board: const BoardLoading()));
-      AttendanceBoard board;
-      try {
-        final roster = await _attendance.roster(ready.sectionId!, ready.day);
-        board = BoardLoaded(roster, const {}, failure: failure);
-      } on ApiFailure catch (failed) {
-        board = BoardFailed(failed);
-      }
-      if (token != _reading) return;
-      if (state case final AttendanceReady current) emit(current.copyWith(board: board, outcome: outcome));
+    final selection = _selection;
+    if (selection == null) return;
+    final token = ++_reading;
+    _key = null;
+    emit(state.copyWith(board: const BoardLoading()));
+    AttendanceBoard board;
+    try {
+      final roster = await _attendance.roster(selection.sectionId, selection.day);
+      board = BoardLoaded(roster, const {}, failure: failure);
+    } on ApiFailure catch (failed) {
+      board = BoardFailed(failed);
     }
+    if (token == _reading) emit(state.copyWith(board: board, outcome: outcome));
   }
 
-  void _onMarked(AttendanceMarked event, Emitter<AttendanceState> emit) => _ready((ready) {
-    if (ready.board case final BoardLoaded board when !board.saving) {
+  void _onMarked(AttendanceMarked event, Emitter<AttendanceState> emit) {
+    if (state.board case final BoardLoaded board when !board.saving) {
       _key = null;
       emit(
-        ready.copyWith(
+        state.copyWith(
           board: board.copyWith(marks: {...board.marks, event.enrolmentId: event.mark}, failure: () => null),
         ),
       );
     }
-  });
+  }
 
   Future<void> _onSubmitted(AttendanceSubmitted event, Emitter<AttendanceState> emit) => _act(
     emit,
@@ -424,10 +260,9 @@ class AttendanceBloc extends Bloc<AttendanceEvent, AttendanceState> {
     Emitter<AttendanceState> emit,
     Future<AttendanceOutcome> Function(BoardLoaded board) work,
   ) async {
-    if (state case final AttendanceReady ready when ready.board is BoardLoaded) {
-      final board = ready.board as BoardLoaded;
+    if (state.board case final BoardLoaded board) {
       if (board.saving) return;
-      emit(ready.copyWith(board: board.copyWith(saving: true, failure: () => null)));
+      emit(state.copyWith(board: board.copyWith(saving: true, failure: () => null)));
       try {
         final outcome = await work(board);
         await _read(emit, outcome: outcome);
@@ -435,7 +270,7 @@ class AttendanceBloc extends Bloc<AttendanceEvent, AttendanceState> {
         if (_outOfDate.contains(failure.code)) {
           await _read(emit, failure: failure);
         } else {
-          emit(ready.copyWith(board: board.copyWith(saving: false, failure: () => failure)));
+          emit(state.copyWith(board: board.copyWith(saving: false, failure: () => failure)));
         }
       }
     }

@@ -22,7 +22,8 @@ Future<String?> pickSchoolDay(
   return picked == null ? null : Formatters.isoDay(picked);
 }
 
-/// A day that is always set: a date field that opens the calendar. [day] and [onChanged] carry `YYYY-MM-DD`.
+/// A day that is always set: a date field that opens the calendar. [day] and [onChanged] carry `YYYY-MM-DD`; with no
+/// [onChanged] the field is off.
 class DayField extends StatelessWidget {
   const new({
     required this.label,
@@ -36,7 +37,7 @@ class DayField extends StatelessWidget {
 
   final String label;
   final String day;
-  final ValueChanged<String> onChanged;
+  final ValueChanged<String>? onChanged;
   final DateTime firstDay;
   final DateTime lastDay;
   final String? error;
@@ -46,9 +47,11 @@ class DayField extends StatelessWidget {
     label: label,
     valueText: Formatters.schoolDate(day),
     error: error,
-    onTap: () async {
-      final picked = await pickSchoolDay(context, day: day, firstDay: firstDay, lastDay: lastDay);
-      if (picked != null) onChanged(picked);
-    },
+    onTap: onChanged == null
+        ? null
+        : () async {
+            final picked = await pickSchoolDay(context, day: day, firstDay: firstDay, lastDay: lastDay);
+            if (picked != null) onChanged!(picked);
+          },
   );
 }

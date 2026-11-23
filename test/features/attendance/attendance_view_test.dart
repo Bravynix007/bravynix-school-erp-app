@@ -2,10 +2,14 @@ import 'dart:async';
 
 import 'package:bravynix_school_erp/core/network/api_failure.dart';
 import 'package:bravynix_school_erp/core/widgets/attendance_status_selector.dart';
+import 'package:bravynix_school_erp/core/widgets/day_picker.dart';
 import 'package:bravynix_school_erp/features/attendance/domain/attendance_repository.dart';
 import 'package:bravynix_school_erp/features/attendance/domain/attendance_roster.dart';
 import 'package:bravynix_school_erp/features/attendance/presentation/bloc/attendance_bloc.dart';
 import 'package:bravynix_school_erp/features/attendance/presentation/view/attendance_page.dart';
+import 'package:bravynix_school_erp/features/masters/presentation/view/master_dropdown.dart';
+import 'package:bravynix_school_erp/features/sections/presentation/bloc/section_day_bloc.dart';
+import 'package:bravynix_school_erp/features/sections/presentation/view/section_day_frame.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -31,6 +35,26 @@ void main() {
   /// Today is the 17th of November 2026 in IST (04:00 UTC).
   DateTime clock() => DateTime.utc(2026, 11, 17, 4);
 
+  /// The screen as the page builds it: the attendance bloc and the bloc of the class, section and day, which tells the
+  /// attendance bloc what is chosen.
+  Widget screen({bool mayMark = true, bool mayVoid = false, bool started = true}) => MultiBlocProvider(
+    providers: [
+      BlocProvider(create: (_) => AttendanceBloc(repository, newKey: () => 'key-1')),
+      BlocProvider(
+        create: (_) {
+          final bloc = SectionDayBloc(() async => (await repository.sections('i1')).choices, clock: clock);
+          return started ? (bloc..add(const SectionDayStarted())) : bloc;
+        },
+      ),
+    ],
+    child: SectionDayListener(
+      onChosen: (context, chosen) => context.read<AttendanceBloc>().add(AttendanceSelected(chosen.selection)),
+      child: Scaffold(
+        body: AttendanceView(mayMark: mayMark, mayVoid: mayVoid),
+      ),
+    ),
+  );
+
   Future<void> pump(
     WidgetTester tester, {
     bool mayMark = true,
@@ -39,13 +63,7 @@ void main() {
     Size size = const Size(400, 1400),
   }) async {
     await tester.pumpAppScaled(
-      BlocProvider(
-        create: (_) =>
-            AttendanceBloc(repository, 'i1', clock: clock, newKey: () => 'key-1')..add(const AttendanceStarted()),
-        child: Scaffold(
-          body: AttendanceView(mayMark: mayMark, mayVoid: mayVoid, today: '2026-11-17'),
-        ),
-      ),
+      screen(mayMark: mayMark, mayVoid: mayVoid),
       textScale: textScale,
       size: size,
     );
@@ -67,12 +85,7 @@ void main() {
 
   group('reading the classes', () {
     testWidgets('shows a placeholder while it reads', (tester) async {
-      await tester.pumpAppScaled(
-        BlocProvider(
-          create: (_) => AttendanceBloc(repository, 'i1', clock: clock),
-          child: const Scaffold(body: AttendanceView(mayMark: true, mayVoid: false, today: '2026-11-17')),
-        ),
-      );
+      await tester.pumpAppScaled(screen(started: false));
       expect(find.byType(Semantics), findsWidgets);
       expect(find.byKey(const Key('attendance.class')), findsNothing);
     });
@@ -250,6 +263,10 @@ void main() {
       final card = find.byKey(const ValueKey('attendance.student.e2'));
       expect(find.descendant(of: card, matching: find.bySemanticsLabel('Absent')), findsNothing);
       expect(find.text('Confirm & Submit Attendance'), findsNothing);
+      // Nor the class, the section or the day: the answer belongs to the roll that is on screen.
+      expect(tester.widget<MasterDropdown>(find.byKey(const Key('attendance.class'))).onChanged, isNull);
+      expect(tester.widget<MasterDropdown>(find.byKey(const Key('attendance.section'))).onChanged, isNull);
+      expect(tester.widget<DayField>(find.byKey(const Key('attendance.day'))).onChanged, isNull);
       verify(
         () => repository.submit(
           sectionId: any(named: 'sectionId'),
@@ -261,6 +278,7 @@ void main() {
       ).called(1);
       slow.complete(submitted);
       await tester.pumpAndSettle();
+      expect(tester.widget<DayField>(find.byKey(const Key('attendance.day'))).onChanged, isNotNull);
     });
 
     testWidgets('says why a roll was read again over a day that cannot be marked', (tester) async {

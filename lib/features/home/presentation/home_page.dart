@@ -81,6 +81,14 @@ class HomePage extends StatelessWidget {
                     active.role == RoleCode.studentParent ? AppRoutes.attendanceCalendar : AppRoutes.attendance,
                   ),
                 ),
+              // Staff write the diary and a parent reads their child's.
+              if (active != null)
+                QuickAccessTile(
+                  key: const Key('home.quick.diary'),
+                  icon: Icons.menu_book_outlined,
+                  label: l10n.diaryTitle,
+                  onTap: () => context.push(AppRoutes.diary),
+                ),
               QuickAccessTile(
                 key: const Key('home.quick.events'),
                 icon: Icons.event_outlined,

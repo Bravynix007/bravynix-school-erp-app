@@ -33,6 +33,7 @@ void main() {
         [
           inboxItemJson(target: {'type': 1, 'id': 'a1'}),
           inboxItemJson(id: 'n2', isRead: true, target: {'type': 99, 'id': 'x'}),
+          inboxItemJson(id: 'n3', target: {'type': 2, 'id': 'd1', 'date': '2026-11-21'}),
         ],
         meta: {'limit': 20, 'nextCursor': 'c2', 'hasMore': true},
       ),
@@ -43,9 +44,14 @@ void main() {
     expect(page.items.first.target, const NotificationTarget(type: NotificationTargetType.attendance, id: 'a1'));
     expect(page.items.first.category, NotificationCategory.attendance);
     expect(page.items.first.senderDisplayName, 'Green Valley School');
-    expect(page.items.last.isRead, isTrue);
+    expect(page.items[1].isRead, isTrue);
     // A target this app version does not know cannot be opened.
-    expect(page.items.last.target, isNull);
+    expect(page.items[1].target, isNull);
+    // A diary entry says which day it is for, so the notice opens that day.
+    expect(
+      page.items.last.target,
+      const NotificationTarget(type: NotificationTargetType.diary, id: 'd1', day: '2026-11-21'),
+    );
   });
 
   test('the last page has no cursor', () async {

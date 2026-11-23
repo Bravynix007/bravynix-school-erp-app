@@ -9,22 +9,22 @@ import 'package:bravynix_school_erp/core/widgets/skeleton.dart';
 import 'package:bravynix_school_erp/core/widgets/status_chip.dart';
 import 'package:bravynix_school_erp/features/attendance/domain/attendance_calendar.dart';
 import 'package:bravynix_school_erp/features/attendance/domain/attendance_repository.dart';
-import 'package:bravynix_school_erp/features/attendance/presentation/bloc/attendance_bloc.dart';
 import 'package:bravynix_school_erp/features/attendance/presentation/bloc/day_detail_bloc.dart';
 import 'package:bravynix_school_erp/features/attendance/presentation/view/attendance_calendar_style.dart';
 import 'package:bravynix_school_erp/features/attendance/presentation/view/attendance_error_text.dart';
+import 'package:bravynix_school_erp/features/sections/domain/section_day.dart';
 import 'package:bravynix_school_erp/l10n/gen/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 /// A day of a student (ATT-08): how it was marked, and by whom. Answers the register to open when the person asks to
 /// correct it (only offered with [canCorrect]), or null when the sheet is closed.
-Future<AttendanceFocus?> showDayDetailSheet(
+Future<SectionDay?> showDayDetailSheet(
   BuildContext context, {
   required String studentId,
   required String day,
   required bool canCorrect,
-}) => showAppBottomSheet<AttendanceFocus>(
+}) => showAppBottomSheet<SectionDay>(
   context: context,
   // The title is the screen's name: a date in it would break across lines at a large text size.
   title: AppLocalizations.of(context).attendanceDayTitle,
@@ -116,7 +116,7 @@ class _Loaded extends StatelessWidget {
           AppButton(
             key: const Key('dayDetail.correct'),
             label: l10n.attendanceDayCorrect,
-            onPressed: () => Navigator.of(context).pop(AttendanceFocus(sectionId: section.id, day: detail.day)),
+            onPressed: () => Navigator.of(context).pop(SectionDay(sectionId: section.id, day: detail.day)),
           ),
         ],
       ],

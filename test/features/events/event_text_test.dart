@@ -49,6 +49,13 @@ void main() {
     expect(EventText.icon(schoolEvent(presetImageCode: 'unknown')), Icons.event_outlined);
   });
 
+  group('AppRoutes.diaryOn', () {
+    test('opens the diary on the day a notice names, and on today for none', () {
+      expect(AppRoutes.diaryOn('2026-11-21'), '/diary?day=2026-11-21');
+      expect(AppRoutes.diaryOn(null), '/diary');
+    });
+  });
+
   group('AppRoutes.event', () {
     test('encodes the ID it puts in the path', () {
       expect(AppRoutes.event('a/b c'), '/events/a%2Fb%20c');

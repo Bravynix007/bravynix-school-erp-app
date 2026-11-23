@@ -12,6 +12,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences_platform_interface/in_memory_shared_preferences_async.dart';
 import 'package:shared_preferences_platform_interface/shared_preferences_async_platform_interface.dart';
 
+import '../helpers/attendance.dart';
+import '../helpers/diary.dart';
 import '../helpers/events.dart';
 import '../helpers/fake_http.dart';
 import '../helpers/institutions.dart';
@@ -318,6 +320,81 @@ void main() {
     expect(find.text('Annual Day'), findsOneWidget);
     expect(adapter.requests.last.uri.path, '/v1/events/e1');
     expect(adapter.requests.last.uri.queryParameters, {'studentId': 's2'});
+    // The event names its child itself, so the child shown at the top is left as it was.
+    await tester.pageBack();
+    await tester.pumpAndSettle();
+    await tester.pageBack();
+    await tester.pumpAndSettle();
+    expect(find.text('Diya'), findsOneWidget);
+    expect(find.text('Arun'), findsNothing);
+  });
+
+  group('a notice about a child opens that child’s screen, not the one shown', () {
+    Map<String, Object?> child(String id, String name, String school) => {
+      'studentId': id,
+      'firstName': name,
+      'institutionName': school,
+      'isBlocked': false,
+    };
+
+    for (final (name, target, path, shows, asks)
+        in <(String, Map<String, Object?>, String, String, Map<String, String>)>[
+          (
+            'an absent alert opens the attendance calendar',
+            {'type': 1, 'id': 'x1'},
+            'students/s2/attendance',
+            '66.67%',
+            {},
+          ),
+          (
+            'a diary entry opens the diary on the day it is for',
+            {'type': 2, 'id': 'x1', 'date': '2026-11-10'},
+            'diary-entries',
+            'Exercise 4.2, questions 1 to 5.',
+            {'studentId': 's2', 'date': '2026-11-10'},
+          ),
+        ]) {
+      testWidgets(name, (tester) async {
+        final adapter = await start(
+          tester,
+          tokens: const AuthTokens(accessToken: 'a', refreshToken: 'r'),
+          reply: (requested) async => switch (requested) {
+            'notifications' => okReply(
+              [
+                inboxItemJson(target: target)..['studentId'] = 's2',
+              ],
+              meta: {'limit': 20, 'nextCursor': null, 'hasMore': false},
+            ),
+            'notifications/n1/read' => okReply(inboxItemJson(isRead: true)),
+            'students/s2/attendance' => okReply(calendarJson()),
+            'diary-entries' => okReply([diaryJson()]),
+            _ => okReply({
+              'person': {'id': 'p1', 'email': 'asha.rao@example.com', 'firstName': 'Asha', 'preferredLanguage': 'en'},
+              'contexts': [
+                {
+                  'roleCode': 5,
+                  'isBlocked': false,
+                  'children': [child('s1', 'Diya', 'Green Valley School'), child('s2', 'Arun', 'Lake View School')],
+                },
+              ],
+            }),
+          },
+        );
+        // Diya, the first child, is the one shown on the home.
+        expect(find.text('Diya'), findsOneWidget);
+        await tester.tap(find.byKey(const Key('home.bell')));
+        await tester.pumpAndSettle();
+        await tester.tap(find.byKey(const ValueKey('inbox.item.n1')));
+        await tester.pumpAndSettle();
+        expect(find.text(shows), findsOneWidget);
+        expect(find.text('Arun'), findsOneWidget);
+        expect(adapter.requests.last.uri.path, '/v1/$path');
+        expect(adapter.requests.last.uri.queryParameters['studentId'] ?? 's2', 's2');
+        for (final MapEntry(:key, :value) in asks.entries) {
+          expect(adapter.requests.last.uri.queryParameters[key], value, reason: key);
+        }
+      });
+    }
   });
 
   group('notifications', () {

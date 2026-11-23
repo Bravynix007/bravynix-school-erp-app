@@ -7,6 +7,7 @@ import 'package:bravynix_school_erp/features/blocks/domain/blocks_repository.dar
 import 'package:bravynix_school_erp/features/classes/domain/class_catalogue.dart';
 import 'package:bravynix_school_erp/features/classes/domain/classes_repository.dart';
 import 'package:bravynix_school_erp/features/classroom/domain/classroom.dart';
+import 'package:bravynix_school_erp/features/diary/domain/diary_repository.dart';
 import 'package:bravynix_school_erp/features/documents/domain/documents_repository.dart';
 import 'package:bravynix_school_erp/features/events/domain/events_repository.dart';
 import 'package:bravynix_school_erp/features/files/domain/file_opening.dart';
@@ -32,6 +33,8 @@ class MockTimeSlotsRepository extends Mock implements TimeSlotsRepository;
 class MockTimetableRepository extends Mock implements TimetableRepository;
 
 class MockAttendanceRepository extends Mock implements AttendanceRepository;
+
+class MockDiaryRepository extends Mock implements DiaryRepository;
 
 class MockClassCatalogue extends Mock implements ClassCatalogue;
 

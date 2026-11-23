@@ -3152,4 +3152,105 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get errorAttendanceCalendarNotFound => 'This student could not be found.';
+
+  @override
+  String get diaryTitle => 'Diary';
+
+  @override
+  String get diaryDate => 'Date';
+
+  @override
+  String get diarySubject => 'Subject';
+
+  @override
+  String get diaryDescription => 'Description';
+
+  @override
+  String diaryBy(String teacher) {
+    return 'By: $teacher';
+  }
+
+  @override
+  String get diaryAdd => 'Add entry';
+
+  @override
+  String get diaryAddTitle => 'Add diary entry';
+
+  @override
+  String get diaryEditTitle => 'Edit diary entry';
+
+  @override
+  String get diarySave => 'Save';
+
+  @override
+  String get diarySaved => 'Diary entry saved';
+
+  @override
+  String get diaryEdit => 'Edit entry';
+
+  @override
+  String get diaryDelete => 'Delete entry';
+
+  @override
+  String get diaryDeleteTitle => 'Delete this entry?';
+
+  @override
+  String get diaryDeleteMessage => 'The entry leaves the diary of the section, and its parents no longer see it.';
+
+  @override
+  String get diaryDeleteConfirm => 'Delete';
+
+  @override
+  String get diaryDeleted => 'Diary entry deleted';
+
+  @override
+  String get diaryChooseSectionTitle => 'Choose a section';
+
+  @override
+  String get diaryChooseSectionMessage => 'Choose a class and a section to read its diary.';
+
+  @override
+  String get diaryEmptyTitle => 'No diary entries';
+
+  @override
+  String get diaryEmptyMessage => 'Nothing was written in the diary for this day.';
+
+  @override
+  String get diaryNoSectionsTitle => 'No classes yet';
+
+  @override
+  String get diaryNoSectionsMessage => 'Add classes and sections in School setup, and their diary appears here.';
+
+  @override
+  String get diaryNoChildMessage => 'A child linked to you appears here, with their diary.';
+
+  @override
+  String get errorDiaryNotAssigned => 'You can read the diary of a section you lead or teach.';
+
+  @override
+  String get errorDiaryNotAssignedAdd =>
+      'You can write the diary for a subject you teach in a section, or any subject of a section you lead.';
+
+  @override
+  String get errorDiaryNotAssignedChange =>
+      'Only the teacher who wrote this entry, an Owner or an Admin can change it.';
+
+  @override
+  String get errorDiaryNoYear => 'No current academic year has been set up yet, so there is no diary.';
+
+  @override
+  String get errorDiaryNotFound =>
+      'The diary could not be found. The section may have been closed, or the child is no longer linked to you.';
+
+  @override
+  String get errorDiaryEntryGone => 'This entry could not be found. It may have been deleted.';
+
+  @override
+  String get errorDiaryFuture => 'This date has not come yet.';
+
+  @override
+  String get errorDiaryTooOld => 'An entry can be dated at most 7 days back.';
+
+  @override
+  String get errorDiaryOutsideYear => 'This date is outside the current academic year.';
 }
