@@ -6,6 +6,7 @@ import 'package:bravynix_school_erp/app/app.dart';
 import 'package:bravynix_school_erp/app/config/app_config.dart';
 import 'package:bravynix_school_erp/app/di/injection.dart';
 import 'package:bravynix_school_erp/core/bloc/app_bloc_observer.dart';
+import 'package:bravynix_school_erp/features/push/data/firebase_push_messaging.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 
@@ -24,6 +25,6 @@ Future<void> bootstrap() async {
   };
   Bloc.observer = AppBlocObserver(verbose: kDebugMode && !config.isProduction);
 
-  await configureDependencies(config);
+  await configureDependencies(config, push: await FirebasePushMessaging.start());
   runApp(const App());
 }

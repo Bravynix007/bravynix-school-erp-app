@@ -76,13 +76,14 @@ import 'package:get_it/get_it.dart';
 final GetIt getIt = GetIt.instance;
 
 /// Registers app-wide services. Tests override [device], [tokens],
-/// [installMarker] or [httpAdapter] to run without a phone or a network.
+/// [installMarker], [httpAdapter] or [push] to run without a phone or a network.
 Future<void> configureDependencies(
   AppConfig config, {
   AppDevice? device,
   TokenStorage? tokens,
   InstallMarker? installMarker,
   HttpClientAdapter? httpAdapter,
+  PushMessaging? push,
 }) async {
   await getIt.reset();
   final language = AppLanguage();
@@ -144,7 +145,7 @@ Future<void> configureDependencies(
     )
     ..registerLazySingleton<EventsRepository>(() => EventsRepositoryImpl(api: getIt()))
     ..registerLazySingleton<NotificationsRepository>(() => NotificationsRepositoryImpl(api: getIt()))
-    ..registerLazySingleton<PushMessaging>(UnavailablePushMessaging.new)
+    ..registerSingleton<PushMessaging>(push ?? const UnavailablePushMessaging())
     ..registerLazySingleton<PushDeviceRepository>(
       () => PushDeviceRepositoryImpl(api: getIt(), device: appDevice, language: () => language.value),
     )

@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:bravynix_school_erp/app/di/injection.dart';
 import 'package:bravynix_school_erp/app/router/app_router.dart';
 import 'package:bravynix_school_erp/app/router/app_routes.dart';
+import 'package:bravynix_school_erp/app/router/push_screens.dart';
 import 'package:bravynix_school_erp/core/l10n/app_language.dart';
 import 'package:bravynix_school_erp/core/network/api_events.dart';
 import 'package:bravynix_school_erp/core/network/api_failure.dart';
@@ -64,6 +65,11 @@ class _AppViewState extends State<AppView> {
   late final GoRouter _router = createRouter(_session, changes: _sessionChanges);
   late final StreamSubscription<ApiFailure> _updates;
   late final StreamSubscription<String> _pushTokens;
+  late final StreamSubscription<String> _pushTaps;
+
+  /// The route of an alert tapped before the person was signed in and working as a role (the app was started by it):
+  /// opened once they are.
+  String? _pendingRoute;
 
   @override
   void initState() {
@@ -72,12 +78,41 @@ class _AppViewState extends State<AppView> {
     _pushTokens = getIt<PushMessaging>().tokenRefreshes.listen((_) {
       if (_session.state is SessionAuthenticated) unawaited(getIt<PushRegistrar>().register());
     });
+    _pushTaps = getIt<PushMessaging>().screenTaps.listen(_openScreen);
+    unawaited(getIt<PushMessaging>().launchScreen().then((screen) => screen == null ? null : _openScreen(screen)));
+  }
+
+  void _openScreen(String screen) {
+    final route = routeOfPushScreen(screen);
+    if (route == null) return;
+    if (_session.state.activeRole != null) {
+      _push(route);
+    } else {
+      _pendingRoute = route;
+    }
+  }
+
+  /// After the frame, so the router has settled on the signed-in screen the alert opens above.
+  void _push(String route) {
+    WidgetsBinding.instance
+      ..addPostFrameCallback((_) {
+        if (mounted) unawaited(_router.push<void>(route));
+      })
+      ..scheduleFrame();
+  }
+
+  void _openPending() {
+    final route = _pendingRoute;
+    if (route == null) return;
+    _pendingRoute = null;
+    _push(route);
   }
 
   @override
   void dispose() {
     unawaited(_updates.cancel());
     unawaited(_pushTokens.cancel());
+    unawaited(_pushTaps.cancel());
     _router.dispose();
     _sessionChanges.dispose();
     super.dispose();
@@ -97,6 +132,11 @@ class _AppViewState extends State<AppView> {
           listenWhen: (previous, current) => current is SessionAuthenticated,
           // Alerts need this install's push token on the server, before a role is chosen too (ME-04).
           listener: (context, state) => unawaited(getIt<PushRegistrar>().register()),
+        ),
+        BlocListener<SessionBloc, SessionState>(
+          // Only with a role at work: before one is chosen every route leads back to the role chooser.
+          listenWhen: (previous, current) => current.activeRole != null,
+          listener: (context, state) => _openPending(),
         ),
         BlocListener<SessionBloc, SessionState>(
           listenWhen: childrenChanged,

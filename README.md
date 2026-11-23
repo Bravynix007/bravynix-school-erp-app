@@ -70,6 +70,35 @@ a second run. Without `LIVE_API` the files are skipped.
 it needs `psql` as the `postgres` user and the name of the backend's database
 (`--dart-define=LIVE_DB=school_erp_live`); without `LIVE_DB` it is skipped. Reseed before running it twice.
 
+## Push alerts (Firebase)
+
+Alerts arrive through Firebase Cloud Messaging (SDD 18). The Firebase client files are **not committed**: they hold the
+project's API key, so each machine and release job takes them from the Firebase console (project
+`bravynix-school-erp`, Project settings, Your apps). Without them the app still builds and runs, with no push:
+alerts reach the inbox only, and a prod release build refuses to start without the Android file.
+
+| File                       | Goes to                                                                      |
+| -------------------------- | ---------------------------------------------------------------------------- |
+| `google-services.json`     | `android/app/src/prod/`, and a copy in `src/dev/` and `src/staging/` (below) |
+| `GoogleService-Info.plist` | `ios/Runner/` (a build step copies it into the app)                          |
+
+Until the `.dev` and `.stg` Android apps are registered in Firebase, the dev and staging flavors reuse the prod app's
+file with only the package name changed:
+
+```bash
+cd android/app/src
+for flavor in dev:com.bravynix.schoolerp.dev staging:com.bravynix.schoolerp.stg; do
+  mkdir -p "${flavor%%:*}"
+  jq --arg id "${flavor##*:}" '.client[0].client_info.android_client_info.package_name = $id' \
+    prod/google-services.json > "${flavor%%:*}/google-services.json"
+done
+```
+
+On iOS, alerts also need the APNs authentication key uploaded in Firebase (Project settings, Cloud Messaging) and the
+Push Notifications capability on the App ID; the entitlement and the background mode are in the project. A tap on an
+alert opens the inbox, and the notice there opens what it is about. The server side is in
+`bravynix-school-erp-backend` (`PUSH_DRIVER=firebase`).
+
 ## Layout
 
 ```
