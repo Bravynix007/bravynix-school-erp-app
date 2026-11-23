@@ -2,10 +2,10 @@ import 'dart:async';
 
 import 'package:bravynix_school_erp/app/router/app_router.dart';
 import 'package:bravynix_school_erp/app/router/app_routes.dart';
-import 'package:bravynix_school_erp/features/attendance/presentation/bloc/attendance_bloc.dart';
 import 'package:bravynix_school_erp/features/attendance/presentation/view/attendance_page.dart';
 import 'package:bravynix_school_erp/features/auth/domain/auth_entities.dart';
 import 'package:bravynix_school_erp/features/auth/presentation/session/session_bloc.dart';
+import 'package:bravynix_school_erp/features/sections/domain/section_day.dart';
 import 'package:bravynix_school_erp/features/students/presentation/view/student_promote_page.dart';
 import 'package:bravynix_school_erp/features/time_slots/presentation/view/time_slot_form_page.dart';
 import 'package:bravynix_school_erp/features/timetable/presentation/view/entry_form_page.dart';
@@ -186,7 +186,7 @@ void main() {
     }
 
     test('opens on the register a calendar day hands over', () {
-      const focus = AttendanceFocus(sectionId: 'sec1', day: '2026-11-03');
+      const focus = SectionDay(sectionId: 'sec1', day: '2026-11-03');
       expect(pageFor(focus).focus, focus);
     });
 

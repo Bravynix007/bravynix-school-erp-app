@@ -11,6 +11,8 @@ class MarkingSections extends Equatable {
   final List<ClassChoice> classes;
   final List<SectionChoice> sections;
 
+  SectionChoices get choices => (classes: classes, sections: sections);
+
   @override
   List<Object?> get props => [classes, sections];
 }

@@ -6,11 +6,11 @@ import 'package:bravynix_school_erp/core/widgets/skeleton.dart';
 import 'package:bravynix_school_erp/core/widgets/stat_tile.dart';
 import 'package:bravynix_school_erp/core/widgets/state_panel.dart';
 import 'package:bravynix_school_erp/features/attendance/domain/attendance_calendar.dart';
-import 'package:bravynix_school_erp/features/attendance/presentation/bloc/attendance_bloc.dart';
 import 'package:bravynix_school_erp/features/attendance/presentation/bloc/attendance_calendar_bloc.dart';
 import 'package:bravynix_school_erp/features/attendance/presentation/view/attendance_calendar_style.dart';
 import 'package:bravynix_school_erp/features/attendance/presentation/view/attendance_error_text.dart';
 import 'package:bravynix_school_erp/features/attendance/presentation/view/day_detail_sheet.dart';
+import 'package:bravynix_school_erp/features/sections/domain/section_day.dart';
 import 'package:bravynix_school_erp/l10n/gen/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -25,7 +25,7 @@ class AttendanceCalendarView extends StatelessWidget {
   const new({required this.studentId, this.onCorrect, super.key});
 
   final String studentId;
-  final ValueChanged<AttendanceFocus>? onCorrect;
+  final ValueChanged<SectionDay>? onCorrect;
 
   @override
   Widget build(BuildContext context) {
@@ -78,7 +78,7 @@ class _Month extends StatelessWidget {
 
   final String studentId;
   final AttendanceCalendar calendar;
-  final ValueChanged<AttendanceFocus>? onCorrect;
+  final ValueChanged<SectionDay>? onCorrect;
 
   static String _percent(AppLocalizations l10n, double? value) => value == null
       ? l10n.attendanceCalendarNoRate

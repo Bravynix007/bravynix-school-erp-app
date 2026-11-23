@@ -6,6 +6,8 @@ import 'package:bravynix_school_erp/features/attendance/domain/attendance_reposi
 import 'package:bravynix_school_erp/features/attendance/domain/attendance_roster.dart';
 import 'package:bravynix_school_erp/features/attendance/presentation/bloc/attendance_bloc.dart';
 import 'package:bravynix_school_erp/features/attendance/presentation/view/attendance_page.dart';
+import 'package:bravynix_school_erp/features/sections/presentation/bloc/section_day_bloc.dart';
+import 'package:bravynix_school_erp/features/sections/presentation/view/section_day_frame.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -31,6 +33,26 @@ void main() {
   /// Today is the 17th of November 2026 in IST (04:00 UTC).
   DateTime clock() => DateTime.utc(2026, 11, 17, 4);
 
+  /// The screen as the page builds it: the attendance bloc and the bloc of the class, section and day, which tells the
+  /// attendance bloc what is chosen.
+  Widget screen({bool mayMark = true, bool mayVoid = false, bool started = true}) => MultiBlocProvider(
+    providers: [
+      BlocProvider(create: (_) => AttendanceBloc(repository, newKey: () => 'key-1')),
+      BlocProvider(
+        create: (_) {
+          final bloc = SectionDayBloc(() async => (await repository.sections('i1')).choices, clock: clock);
+          return started ? (bloc..add(const SectionDayStarted())) : bloc;
+        },
+      ),
+    ],
+    child: SectionDayListener(
+      onChosen: (context, chosen) => context.read<AttendanceBloc>().add(AttendanceSelected(chosen.selection)),
+      child: Scaffold(
+        body: AttendanceView(mayMark: mayMark, mayVoid: mayVoid),
+      ),
+    ),
+  );
+
   Future<void> pump(
     WidgetTester tester, {
     bool mayMark = true,
@@ -39,13 +61,7 @@ void main() {
     Size size = const Size(400, 1400),
   }) async {
     await tester.pumpAppScaled(
-      BlocProvider(
-        create: (_) =>
-            AttendanceBloc(repository, 'i1', clock: clock, newKey: () => 'key-1')..add(const AttendanceStarted()),
-        child: Scaffold(
-          body: AttendanceView(mayMark: mayMark, mayVoid: mayVoid, today: '2026-11-17'),
-        ),
-      ),
+      screen(mayMark: mayMark, mayVoid: mayVoid),
       textScale: textScale,
       size: size,
     );
@@ -67,12 +83,7 @@ void main() {
 
   group('reading the classes', () {
     testWidgets('shows a placeholder while it reads', (tester) async {
-      await tester.pumpAppScaled(
-        BlocProvider(
-          create: (_) => AttendanceBloc(repository, 'i1', clock: clock),
-          child: const Scaffold(body: AttendanceView(mayMark: true, mayVoid: false, today: '2026-11-17')),
-        ),
-      );
+      await tester.pumpAppScaled(screen(started: false));
       expect(find.byType(Semantics), findsWidgets);
       expect(find.byKey(const Key('attendance.class')), findsNothing);
     });

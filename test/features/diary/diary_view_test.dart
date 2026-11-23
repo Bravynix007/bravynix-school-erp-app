@@ -3,11 +3,13 @@ import 'dart:async';
 import 'package:bravynix_school_erp/app/di/injection.dart';
 import 'package:bravynix_school_erp/core/network/api_failure.dart';
 import 'package:bravynix_school_erp/core/widgets/app_button.dart';
-import 'package:bravynix_school_erp/features/attendance/domain/attendance_repository.dart';
 import 'package:bravynix_school_erp/features/diary/domain/diary_entry.dart';
 import 'package:bravynix_school_erp/features/diary/domain/diary_repository.dart';
 import 'package:bravynix_school_erp/features/diary/presentation/bloc/diary_bloc.dart';
 import 'package:bravynix_school_erp/features/diary/presentation/view/diary_page.dart';
+import 'package:bravynix_school_erp/features/sections/domain/section_options.dart';
+import 'package:bravynix_school_erp/features/sections/presentation/bloc/section_day_bloc.dart';
+import 'package:bravynix_school_erp/features/sections/presentation/view/section_day_frame.dart';
 import 'package:bravynix_school_erp/features/subjects/domain/subjects_repository.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -26,7 +28,7 @@ ApiFailure refusal(String code, {int status = 422}) =>
 
 void main() {
   late MockDiaryRepository diary;
-  late MockAttendanceRepository attendance;
+  late Future<SectionChoices> Function() load;
   late MockSubjectsRepository subjects;
   setUpAll(() {
     registerFallbackValue(const DiaryInput(subjectId: '', day: '', description: ''));
@@ -34,9 +36,8 @@ void main() {
   });
   setUp(() {
     diary = MockDiaryRepository();
-    attendance = MockAttendanceRepository();
+    load = () async => oneSection.choices;
     subjects = MockSubjectsRepository();
-    when(() => attendance.sections('i1')).thenAnswer((_) async => oneSection);
     when(() => diary.ofSection('sec1', '2026-11-17')).thenAnswer((_) async => [mathsEntry, artEntry, noticeEntry]);
     when(subjects.subjects).thenAnswer((_) async => [maths, art]);
     getIt
@@ -44,6 +45,32 @@ void main() {
       ..registerSingleton<SubjectsRepository>(subjects);
   });
   tearDown(getIt.reset);
+
+  /// The screen as the page builds it: the diary bloc and the bloc of the class, section and day, which tells the diary
+  /// bloc what is chosen.
+  Widget screen({
+    bool mayWrite = true,
+    bool Function(DiaryEntry entry)? mayChange,
+    bool started = true,
+  }) => MultiBlocProvider(
+    providers: [
+      BlocProvider(create: (_) => DiaryBloc(diary)),
+      BlocProvider(
+        create: (_) {
+          final bloc = SectionDayBloc(() => load(), clock: () => today);
+          return started ? (bloc..add(const SectionDayStarted())) : bloc;
+        },
+      ),
+    ],
+    child: SectionDayListener(
+      onChosen: (context, chosen) => context.read<DiaryBloc>().add(
+        chosen.selection == null ? const DiaryCleared() : DiaryRead(sectionId: chosen.sectionId, day: chosen.day),
+      ),
+      child: Scaffold(
+        body: DiaryView(parent: false, mayWrite: mayWrite, mayChange: mayChange ?? (_) => true),
+      ),
+    ),
+  );
 
   /// Opens the staff screen; [mayChange] says whose entries the person may edit and delete.
   Future<void> pump(
@@ -54,60 +81,50 @@ void main() {
     Size size = const Size(400, 1400),
   }) async {
     await tester.pumpAppScaled(
-      BlocProvider(
-        create: (_) => DiaryBloc(diary, attendance, institutionId: 'i1', clock: () => today)..add(const DiaryStarted()),
-        child: Scaffold(
-          body: DiaryView(
-            today: '2026-11-17',
-            parent: false,
-            mayWrite: mayWrite,
-            mayChange: mayChange ?? (_) => true,
-          ),
-        ),
-      ),
+      screen(mayWrite: mayWrite, mayChange: mayChange),
       textScale: textScale,
       size: size,
     );
     await tester.pumpAndSettle();
   }
 
+  /// A parent's screen: the diary of the child shown, and the day to choose.
+  Widget parentScreen() => MultiBlocProvider(
+    providers: [
+      BlocProvider(create: (_) => DiaryBloc(diary, studentId: 's1')),
+      BlocProvider(create: (_) => SectionDayBloc.dayOnly(clock: () => today)..add(const SectionDayStarted())),
+    ],
+    child: SectionDayListener(
+      onChosen: (context, chosen) => context.read<DiaryBloc>().add(DiaryRead(day: chosen.day)),
+      child: const Scaffold(body: DiaryView(parent: true)),
+    ),
+  );
+
   Future<void> pumpParent(WidgetTester tester, {double textScale = 1, Size size = const Size(400, 1400)}) async {
     when(() => diary.ofChild('s1', '2026-11-17')).thenAnswer((_) async => [mathsEntry]);
-    await tester.pumpAppScaled(
-      BlocProvider(
-        create: (_) => DiaryBloc(diary, attendance, studentId: 's1', clock: () => today)..add(const DiaryStarted()),
-        child: const Scaffold(body: DiaryView(today: '2026-11-17', parent: true)),
-      ),
-      textScale: textScale,
-      size: size,
-    );
+    await tester.pumpAppScaled(parentScreen(), textScale: textScale, size: size);
     await tester.pumpAndSettle();
   }
 
   group('reading the classes', () {
     testWidgets('shows a placeholder while it reads', (tester) async {
-      await tester.pumpAppScaled(
-        BlocProvider(
-          create: (_) => DiaryBloc(diary, attendance, institutionId: 'i1', clock: () => today),
-          child: const Scaffold(body: DiaryView(today: '2026-11-17', parent: false)),
-        ),
-      );
+      await tester.pumpAppScaled(screen(started: false));
       expect(find.byType(Semantics), findsWidgets);
       expect(find.byKey(const Key('diary.class')), findsNothing);
     });
 
     testWidgets('says plainly when the person may not see it', (tester) async {
-      when(() => attendance.sections('i1')).thenThrow(refusal('FORBIDDEN', status: 403));
+      load = () async => throw refusal('FORBIDDEN', status: 403);
       await pump(tester);
       expect(find.byKey(const Key('diary.forbidden')), findsOneWidget);
     });
 
     testWidgets('says why it could not read, and reads again on Try again', (tester) async {
       var calls = 0;
-      when(() => attendance.sections('i1')).thenAnswer((_) async {
+      load = () async {
         if (++calls == 1) throw refusal('SERVER_ERROR', status: 500);
-        return oneSection;
-      });
+        return oneSection.choices;
+      };
       await pump(tester);
       expect(find.byKey(const Key('diary.failed')), findsOneWidget);
       await tester.tap(find.text('Try again'));
@@ -116,13 +133,13 @@ void main() {
     });
 
     testWidgets('with no classes, says so', (tester) async {
-      when(() => attendance.sections('i1')).thenAnswer((_) async => const MarkingSections(classes: [], sections: []));
+      load = () async => (classes: const <ClassChoice>[], sections: const <SectionChoice>[]);
       await pump(tester);
       expect(find.byKey(const Key('diary.noSections')), findsOneWidget);
     });
 
     testWidgets('with a choice, asks for the class and the section first', (tester) async {
-      when(() => attendance.sections('i1')).thenAnswer((_) async => twoClasses);
+      load = () async => twoClasses.choices;
       await pump(tester);
       expect(find.byKey(const Key('diary.pick')), findsOneWidget);
       await tester.tap(find.byKey(const Key('diary.class')));
@@ -218,13 +235,7 @@ void main() {
 
     testWidgets('a parent whose child is blocked is told so', (tester) async {
       when(() => diary.ofChild('s1', '2026-11-17')).thenThrow(refusal('CHILD_ACCESS_BLOCKED', status: 403));
-      await tester.pumpAppScaled(
-        BlocProvider(
-          create: (_) => DiaryBloc(diary, attendance, studentId: 's1', clock: () => today)..add(const DiaryStarted()),
-          child: const Scaffold(body: DiaryView(today: '2026-11-17', parent: true)),
-        ),
-        size: const Size(400, 1400),
-      );
+      await tester.pumpAppScaled(parentScreen(), size: const Size(400, 1400));
       await tester.pumpAndSettle();
       expect(find.text("Access to this child's information is blocked. Contact the school."), findsOneWidget);
     });
