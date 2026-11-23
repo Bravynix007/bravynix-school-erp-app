@@ -8,9 +8,11 @@ import 'package:bravynix_school_erp/features/auth/domain/auth_entities.dart';
 import 'package:bravynix_school_erp/features/auth/presentation/session/session_bloc.dart';
 import 'package:bravynix_school_erp/features/children/presentation/bloc/active_child_bloc.dart';
 import 'package:bravynix_school_erp/features/classes/domain/classes_repository.dart';
+import 'package:bravynix_school_erp/features/classes/domain/school_class.dart';
 import 'package:bravynix_school_erp/features/diary/domain/diary_repository.dart';
 import 'package:bravynix_school_erp/features/diary/presentation/view/diary_page.dart';
 import 'package:bravynix_school_erp/features/institutions/domain/institutions_repository.dart';
+import 'package:bravynix_school_erp/features/sections/domain/section.dart';
 import 'package:bravynix_school_erp/features/sections/domain/sections_repository.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -36,12 +38,13 @@ void main() {
   late MockDiaryRepository diary;
   late MockClassesRepository classes;
   late MockInstitutionsRepository institutions;
+  late MockSectionsRepository sections;
 
   setUp(() {
     diary = MockDiaryRepository();
     classes = MockClassesRepository();
     final years = MockAcademicYearsRepository();
-    final sections = MockSectionsRepository();
+    sections = MockSectionsRepository();
     institutions = MockInstitutionsRepository();
     when(institutions.institutions).thenAnswer(
       (_) async => [summary(), summary(id: 'i2', code: 'LVS', name: 'Lake View School')],
@@ -140,6 +143,40 @@ void main() {
       ),
     );
     expect(button('edit', 'd3'), findsNothing);
+  });
+
+  testWidgets('takes the entries of the section left off the screen when the class chosen has several sections', (
+    tester,
+  ) async {
+    const class2 = SchoolClass(
+      id: 'k2',
+      institutionId: 'i1',
+      predefinedClass: class2Ref,
+      category: lowerPrimaryCategory,
+      displayName: 'Class 2',
+      sectionCount: 2,
+      version: 1,
+    );
+    when(() => classes.classes('i1')).thenAnswer((_) async => [class1, class2]);
+    when(() => sections.sections('k2')).thenAnswer(
+      (_) async => [
+        const Section(id: 'e7', classId: 'k2', predefinedSection: sectionARef, displayName: 'Section A', version: 1),
+        const Section(id: 'e8', classId: 'k2', predefinedSection: sectionBRef, displayName: 'Section B', version: 1),
+      ],
+    );
+    await pump(tester, owner);
+    await tester.tap(find.byKey(const Key('diary.class')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Class 1').last);
+    await tester.pumpAndSettle();
+    expect(find.text('Bring crayons.'), findsOneWidget);
+
+    await tester.tap(find.byKey(const Key('diary.class')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Class 2').last);
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('diary.pick')), findsOneWidget);
+    expect(find.text('Bring crayons.'), findsNothing);
   });
 
   testWidgets('reads the sections of the Institution chosen', (tester) async {

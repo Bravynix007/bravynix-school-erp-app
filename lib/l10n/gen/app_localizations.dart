@@ -5683,6 +5683,12 @@ abstract class AppLocalizations {
   /// **'Add classes and sections in School setup, and their diary appears here.'**
   String get diaryNoSectionsMessage;
 
+  /// No description provided for @diaryNoSubjects.
+  ///
+  /// In en, this message translates to:
+  /// **'None of the subjects you can write for in this section is open, so there is nothing to write the diary for. Ask the school to check the subjects of this section.'**
+  String get diaryNoSubjects;
+
   /// No description provided for @diaryNoChildMessage.
   ///
   /// In en, this message translates to:

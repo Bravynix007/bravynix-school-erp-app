@@ -392,6 +392,27 @@ void main() {
       expect(find.byKey(const Key('diaryForm.subject')), findsOneWidget);
     });
 
+    testWidgets('with no subject open to write for, says so and offers no Save', (tester) async {
+      when(() => diary.subjects('sec1')).thenAnswer((_) async => const []);
+      await pump(tester);
+      await open(tester);
+      expect(find.byKey(const Key('diaryForm.noSubjects')), findsOneWidget);
+      expect(find.byKey(const Key('diaryForm.save')), findsNothing);
+      expect(find.byKey(const Key('diaryForm.subject')), findsNothing);
+      await tester.tap(find.byKey(const Key('diaryForm.cancel')));
+      await tester.pumpAndSettle();
+      expect(find.byKey(const Key('diaryForm.noSubjects')), findsNothing);
+      verifyNever(() => diary.add(any(), any()));
+    });
+
+    testWidgets('says it whole at a large text scale on a small phone', (tester) async {
+      when(() => diary.subjects('sec1')).thenAnswer((_) async => const []);
+      await pump(tester, textScale: 3, size: const Size(320, 640));
+      await open(tester);
+      expect(tester.takeException(), isNull);
+      expect(find.byKey(const Key('diaryForm.noSubjects')), findsOneWidget);
+    });
+
     testWidgets('closes on Cancel without saving', (tester) async {
       await pump(tester);
       await open(tester);

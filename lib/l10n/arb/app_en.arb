@@ -1051,6 +1051,7 @@
   "diaryEmptyMessage": "Nothing was written in the diary for this day.",
   "diaryNoSectionsTitle": "No classes yet",
   "diaryNoSectionsMessage": "Add classes and sections in School setup, and their diary appears here.",
+  "diaryNoSubjects": "None of the subjects you can write for in this section is open, so there is nothing to write the diary for. Ask the school to check the subjects of this section.",
   "diaryNoChildMessage": "A child linked to you appears here, with their diary.",
   "errorDiaryNotAssigned": "You can read the diary of a section you lead or teach.",
   "errorDiaryNotAssignedAdd": "You can write the diary for a subject you teach in a section, or any subject of a section you lead.",
