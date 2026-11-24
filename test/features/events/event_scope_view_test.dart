@@ -159,6 +159,32 @@ void main() {
     expect(find.byKey(const Key('eventScope.error')), findsNothing);
   });
 
+  testWidgets('says under the Institution that the picture belongs to another one, in the app’s words', (tester) async {
+    when(
+      () => events.changeScope(
+        any(),
+        scope: any(named: 'scope'),
+        institutionId: any(named: 'institutionId'),
+      ),
+    ).thenThrow(
+      refusal(
+        'VALIDATION_FAILED',
+        status: 400,
+        fields: [const FieldError(field: 'institutionId', code: 'INVALID_VALUE', message: 'server words')],
+      ),
+    );
+    await pump(tester);
+    await tester.tap(find.text('One Institution'));
+    await tester.pumpAndSettle();
+    await chooseInstitution(tester, 'Sri Vidya High School');
+    await save(tester);
+    expect(
+      find.text("This event's picture belongs to another Institution. Change or remove the picture first."),
+      findsOneWidget,
+    );
+    expect(find.text('server words'), findsNothing);
+  });
+
   testWidgets('on an event changed meanwhile, says so and closes on Read the event again', (tester) async {
     when(
       () => events.changeScope(

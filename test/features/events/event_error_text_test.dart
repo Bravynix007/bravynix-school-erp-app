@@ -24,6 +24,7 @@ void main() {
     String? say(String field, String code) =>
         eventFieldError(l10n, _code('VALIDATION_FAILED', status: 400, fields: [error(field, code)]), field);
     expect(say('endDate', 'OUT_OF_RANGE'), l10n.errorEventEndBeforeStart);
+    expect(say('institutionId', 'INVALID_VALUE'), l10n.errorEventPictureInstitution);
     expect(say('holidayForStudents', 'REQUIRED'), l10n.errorEventHolidayWho);
     expect(say('title', 'REQUIRED'), l10n.errorFieldRequired);
     expect(say('holidayPredefinedClassIds', 'REFERENCE_INACTIVE'), l10n.errorReferenceInactive);

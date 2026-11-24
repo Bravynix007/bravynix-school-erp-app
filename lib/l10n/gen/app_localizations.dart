@@ -6043,6 +6043,12 @@ abstract class AppLocalizations {
   /// **'Leave every class unticked for all classes.'**
   String get eventHolidayClassesHelper;
 
+  /// No description provided for @errorEventPictureInstitution.
+  ///
+  /// In en, this message translates to:
+  /// **'This event\'s picture belongs to another Institution. Change or remove the picture first.'**
+  String get errorEventPictureInstitution;
+
   /// No description provided for @errorEventEndBeforeStart.
   ///
   /// In en, this message translates to:

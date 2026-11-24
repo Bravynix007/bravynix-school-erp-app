@@ -3407,6 +3407,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get eventHolidayClassesHelper => 'Leave every class unticked for all classes.';
 
   @override
+  String get errorEventPictureInstitution =>
+      'This event\'s picture belongs to another Institution. Change or remove the picture first.';
+
+  @override
   String get errorEventEndBeforeStart => 'The end cannot be before the start.';
 
   @override

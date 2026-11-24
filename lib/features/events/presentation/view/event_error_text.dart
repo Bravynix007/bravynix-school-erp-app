@@ -11,13 +11,14 @@ String eventErrorText(AppLocalizations l10n, ApiFailure failure) => switch (fail
   _ => apiErrorText(l10n, failure, notFound: l10n.errorEventNotFound),
 };
 
-/// What to say under [field] for a refusal that names it, or null when it does not: an end before the start, a holiday
-/// for nobody and a class or Institution closed meanwhile are said in the app's words; the rest keep the server's.
+/// What to say under [field] for a refusal that names it, or null when it does not: an end before the start, a picture that belongs to
+/// another Institution, a holiday for nobody and a class or Institution closed meanwhile are said in the app's words; the rest keep the server's.
 String? eventFieldError(AppLocalizations l10n, ApiFailure failure, String field) {
   final error = failure.fieldError(field);
   if (error == null) return null;
   return switch ((field, error.code)) {
     ('endDate', 'OUT_OF_RANGE') => l10n.errorEventEndBeforeStart,
+    ('institutionId', 'INVALID_VALUE') => l10n.errorEventPictureInstitution,
     ('holidayForStudents', FieldError.requiredCode) => l10n.errorEventHolidayWho,
     (_, 'REFERENCE_INACTIVE') => l10n.errorReferenceInactive,
     _ => fieldErrorText(l10n, error),
