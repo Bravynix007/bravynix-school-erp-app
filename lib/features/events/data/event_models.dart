@@ -18,6 +18,10 @@ abstract final class EventModels {
       scope: EventScope.fromCode(json['scope']) ?? (throw const FormatException('Unknown scope')),
       institutionId: json['institutionId'] as String?,
       presetImageCode: json['presetImageCode'] as String?,
+      image: switch (json['image']) {
+        final Map<String, dynamic> image => EventImage(id: image['id'] as String, url: image['url'] as String),
+        _ => null,
+      },
       isHoliday: json['isHoliday'] as bool,
       holidayType: HolidayType.fromCode(json['holidayType']),
       holidayForStudents: json['holidayForStudents'] as bool? ?? false,
@@ -44,6 +48,7 @@ abstract final class EventModels {
     'venue': input.venue,
     'audience': input.audience.code,
     'presetImageCode': input.presetImageCode,
+    'imageFileId': input.imageFileId,
     'isHoliday': input.isHoliday,
     'holidayType': input.isHoliday ? input.holidayType?.code : null,
     'holidayForStudents': input.isHoliday && input.holidayForStudents,

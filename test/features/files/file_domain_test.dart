@@ -19,6 +19,7 @@ void main() {
           'staffPhoto': 4,
           'studentDocument': 5,
           'staffDocument': 6,
+          'eventImage': 10,
           'importCsv': 12,
         },
       );
@@ -37,6 +38,7 @@ void main() {
         [
           FilePurpose.studentPhoto,
           FilePurpose.staffPhoto,
+          FilePurpose.eventImage,
         ],
       );
     });

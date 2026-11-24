@@ -54,6 +54,18 @@ enum HolidayType {
   }
 }
 
+/// The picture an organiser uploaded for an event: the file's ID, which a change sends back to keep it, and its public
+/// address, which anyone the event is shown to can open without signing in (API design 15.1).
+class EventImage extends Equatable {
+  const new({required this.id, required this.url});
+
+  final String id;
+  final String url;
+
+  @override
+  List<Object?> get props => [id, url];
+}
+
 /// One event or holiday (EVT-01, EVT-03). The days are school days, with no time zone.
 class SchoolEvent extends Equatable {
   const new({
@@ -73,6 +85,7 @@ class SchoolEvent extends Equatable {
     this.venue,
     this.institutionId,
     this.presetImageCode,
+    this.image,
     this.holidayType,
     this.holidayClassIds = const [],
   });
@@ -92,6 +105,9 @@ class SchoolEvent extends Equatable {
   /// Set exactly when [scope] is an Institution.
   final String? institutionId;
   final String? presetImageCode;
+
+  /// The event's own picture; never together with [presetImageCode].
+  final EventImage? image;
   final bool isHoliday;
   final HolidayType? holidayType;
   final bool holidayForStudents;
@@ -117,6 +133,7 @@ class SchoolEvent extends Equatable {
     scope,
     institutionId,
     presetImageCode,
+    image,
     isHoliday,
     holidayType,
     holidayForStudents,
@@ -139,6 +156,7 @@ class EventInput extends Equatable {
     this.description,
     this.venue,
     this.presetImageCode,
+    this.imageFileId,
     this.isHoliday = false,
     this.holidayType,
     this.holidayForStudents = false,
@@ -154,6 +172,9 @@ class EventInput extends Equatable {
   final String? description;
   final String? venue;
   final String? presetImageCode;
+
+  /// The uploaded picture, a Ready Event image; at most one of this and [presetImageCode].
+  final String? imageFileId;
   final bool isHoliday;
   final HolidayType? holidayType;
   final bool holidayForStudents;
@@ -172,6 +193,7 @@ class EventInput extends Equatable {
     description,
     venue,
     presetImageCode,
+    imageFileId,
     isHoliday,
     holidayType,
     holidayForStudents,

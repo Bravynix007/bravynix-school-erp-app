@@ -5,6 +5,7 @@ enum FilePurpose {
   staffPhoto(4, _images),
   studentDocument(5, _documents),
   staffDocument(6, _documents),
+  eventImage(10, _images),
   importCsv(12, ['text/csv']);
 
   new(this.code, this.contentTypes);

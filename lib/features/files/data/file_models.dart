@@ -3,13 +3,15 @@ import 'package:bravynix_school_erp/features/files/domain/chosen_file.dart';
 import 'package:bravynix_school_erp/features/files/domain/file_purpose.dart';
 import 'package:bravynix_school_erp/features/files/domain/uploaded_file.dart';
 
-/// Where and how to send the file (FIL-01 `upload`): the address, the form fields to send before the file, and when
-/// the ticket stops working.
+/// Where and how to send the file (FIL-01 `upload`). The local store takes a multipart form (`POST`) with the [fields]
+/// before the file; R2 takes the bytes alone (`PUT`) with the [headers] the ticket was signed for.
 class UploadTicket {
-  const new({required this.url, required this.fields});
+  const new({required this.url, required this.fields, this.method = 'POST', this.headers = const {}});
 
   final String url;
+  final String method;
   final Map<String, String> fields;
+  final Map<String, String> headers;
 }
 
 /// What FIL-01 answers.
@@ -29,10 +31,17 @@ abstract final class FileModels {
       fileId: json['fileId'] as String,
       ticket: UploadTicket(
         url: upload['url'] as String,
-        fields: {for (final field in jsonObject(upload['fields']).entries) field.key: field.value as String},
+        method: upload['method'] as String? ?? 'POST',
+        fields: _strings(upload['fields']),
+        headers: _strings(upload['headers']),
       ),
     );
   }
+
+  static Map<String, String> _strings(Object? raw) => {
+    if (raw != null)
+      for (final entry in jsonObject(raw).entries) entry.key: entry.value as String,
+  };
 
   static UploadedFile uploaded(Object? raw) {
     final json = jsonObject(raw);

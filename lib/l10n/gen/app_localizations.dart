@@ -5929,6 +5929,30 @@ abstract class AppLocalizations {
   /// **'Picture'**
   String get eventFieldPicture;
 
+  /// No description provided for @eventPictureOwn.
+  ///
+  /// In en, this message translates to:
+  /// **'Or use your own picture'**
+  String get eventPictureOwn;
+
+  /// No description provided for @eventPictureChooseInstitution.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose the Institution first, to add your own picture.'**
+  String get eventPictureChooseInstitution;
+
+  /// No description provided for @eventPictureLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Picture of the event'**
+  String get eventPictureLabel;
+
+  /// No description provided for @eventUploadingWait.
+  ///
+  /// In en, this message translates to:
+  /// **'Wait for the picture to finish sending.'**
+  String get eventUploadingWait;
+
   /// No description provided for @eventFieldInstitution.
   ///
   /// In en, this message translates to:
@@ -6018,6 +6042,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Leave every class unticked for all classes.'**
   String get eventHolidayClassesHelper;
+
+  /// No description provided for @errorEventPictureInstitution.
+  ///
+  /// In en, this message translates to:
+  /// **'This event\'s picture belongs to another Institution. Change or remove the picture first.'**
+  String get errorEventPictureInstitution;
 
   /// No description provided for @errorEventEndBeforeStart.
   ///

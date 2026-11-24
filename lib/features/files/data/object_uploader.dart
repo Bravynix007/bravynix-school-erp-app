@@ -4,7 +4,8 @@ import 'package:bravynix_school_erp/features/files/domain/chosen_file.dart';
 import 'package:dio/dio.dart';
 
 /// Sends the file to the store the ticket names (API design 15.1 step 2): a multipart form with every field of the
-/// ticket and then the file, and no Authorization header, because the ticket is the permission. This is the one place
+/// ticket and then the file (`POST`, the local store), or the bytes alone with the headers the ticket names (`PUT`,
+/// R2). Either way there is no Authorization header, because the ticket is the permission. This is the one place
 /// the app talks to the store, so it has its own Dio, with no base address and none of the API's interceptors.
 class ObjectUploader {
   const new(this._dio);
@@ -35,23 +36,38 @@ class ObjectUploader {
     void Function(double sent)? onProgress,
     CancelToken? cancelToken,
   }) async {
-    final form = FormData.fromMap({
-      ...ticket.fields,
-      'file': MultipartFile.fromBytes(
-        file.bytes,
-        filename: file.name,
-        contentType: DioMediaType.parse(file.contentType),
-      ),
-    });
+    void progress(int sent, int total) {
+      if (onProgress != null && total > 0) onProgress(sent / total);
+    }
+
     try {
-      await _dio.post<Object?>(
-        ticket.url,
-        data: form,
-        cancelToken: cancelToken,
-        onSendProgress: (sent, total) {
-          if (onProgress != null && total > 0) onProgress(sent / total);
-        },
-      );
+      if (ticket.method == 'PUT') {
+        // The ticket was signed for this type and size, so the headers are the ones it names. The length is left out
+        // because Dio sets it from the bytes, which are exactly the size the ticket was signed for; sending it twice
+        // would only risk two values.
+        await _dio.put<Object?>(
+          ticket.url,
+          data: file.bytes,
+          options: Options(
+            headers: {
+              for (final header in ticket.headers.entries)
+                if (header.key.toLowerCase() != 'content-length') header.key: header.value,
+            },
+          ),
+          cancelToken: cancelToken,
+          onSendProgress: progress,
+        );
+        return;
+      }
+      final form = FormData.fromMap({
+        ...ticket.fields,
+        'file': MultipartFile.fromBytes(
+          file.bytes,
+          filename: file.name,
+          contentType: DioMediaType.parse(file.contentType),
+        ),
+      });
+      await _dio.post<Object?>(ticket.url, data: form, cancelToken: cancelToken, onSendProgress: progress);
     } on DioException catch (error) {
       throw _failure(error);
     }

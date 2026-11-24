@@ -23,6 +23,7 @@ import 'package:bravynix_school_erp/features/events/domain/event.dart';
 import 'package:bravynix_school_erp/features/events/domain/events_repository.dart';
 import 'package:bravynix_school_erp/features/events/presentation/bloc/event_form_bloc.dart';
 import 'package:bravynix_school_erp/features/events/presentation/view/event_error_text.dart';
+import 'package:bravynix_school_erp/features/events/presentation/view/event_picture_field.dart';
 import 'package:bravynix_school_erp/features/events/presentation/view/event_scope_fields.dart';
 import 'package:bravynix_school_erp/features/events/presentation/view/event_text.dart';
 import 'package:bravynix_school_erp/features/institutions/domain/institutions_repository.dart';
@@ -95,6 +96,12 @@ class _EventFormViewState extends State<EventFormView> {
   late DateTime _end = widget.event?.endDate ?? widget.today;
   late EventAudience _audience = widget.event?.audience ?? EventAudience.everyone;
   late String? _preset = widget.event?.presetImageCode;
+
+  /// The uploaded picture the event will have: the one it holds, until it is replaced or taken off.
+  late String? _imageFileId = widget.event?.image?.id;
+
+  /// A picture is going to the store, and the form waits for it.
+  bool _uploading = false;
   late bool _isHoliday = widget.event?.isHoliday ?? false;
   late HolidayType? _holidayType = widget.event?.holidayType;
   late bool _forStudents = widget.event?.holidayForStudents ?? false;
@@ -116,7 +123,37 @@ class _EventFormViewState extends State<EventFormView> {
     'holidayForStudents',
     'holidayForStaff',
     'holidayPredefinedClassIds',
+    'imageFileId',
   };
+
+  /// The Institution a picture is uploaded for: the event's own, or for an event of the whole Society any one the person
+  /// reaches; null while a new Institution event has none chosen.
+  String? _uploadInstitution(EventOptions options) {
+    final event = widget.event;
+    if (event?.institutionId case final id?) return id;
+    final institutions = options.institutions;
+    if (event != null || _scope == EventScope.society) return institutions.firstOrNull?.id;
+    return offeredInstitution(institutions, _institutionId);
+  }
+
+  /// Changes where a new event belongs. A picture sent for one Institution is not valid for another, so when the
+  /// Institution a picture is uploaded for changes, the picture is let go and the field starts again.
+  void _place(EventOptions options, VoidCallback change) {
+    final before = _uploadInstitution(options);
+    setState(() {
+      change();
+      if (_uploadInstitution(options) != before) {
+        _imageFileId = null;
+        _uploading = false;
+      }
+    });
+  }
+
+  /// The picture the event holds, shown until another is chosen or it is taken off.
+  ImageProvider? get _currentPicture {
+    final image = widget.event?.image;
+    return image != null && image.id == _imageFileId ? NetworkImage(image.url) : null;
+  }
 
   /// What the form shows no field for: a refusal that names one of these is said above it.
   bool _namesOnly(ApiFailure failure) => failure.namesOnly(_fields);
@@ -148,6 +185,7 @@ class _EventFormViewState extends State<EventFormView> {
           description: _text(_description),
           venue: _text(_venue),
           presetImageCode: _preset,
+          imageFileId: _imageFileId,
           isHoliday: _isHoliday,
           holidayType: _holidayType,
           holidayForStudents: _forStudents,
@@ -217,7 +255,7 @@ class _EventFormViewState extends State<EventFormView> {
                 : StickyBottomActions(
                     primaryLabel: l10n.eventSave,
                     primaryLoading: editing.saving,
-                    onPrimary: editing.saving ? null : () => _submit(editing.options),
+                    onPrimary: editing.saving || _uploading ? null : () => _submit(editing.options),
                     secondaryLabel: l10n.cancel,
                     onSecondary: () => Navigator.maybePop(context),
                   ),
@@ -327,23 +365,40 @@ class _EventFormViewState extends State<EventFormView> {
           EventScopeFields(
             keyPrefix: 'eventForm',
             scope: _scope,
-            onScope: widget.owner ? (scope) => setState(() => _scope = scope) : null,
+            onScope: widget.owner ? (scope) => _place(options, () => _scope = scope) : null,
             institutions: options.institutions,
             institutionId: offeredInstitution(options.institutions, _institutionId),
-            onInstitution: (id) => setState(() => _institutionId = id),
+            onInstitution: (id) => _place(options, () => _institutionId = id),
             error: error('institutionId'),
           ),
         ],
         const SizedBox(height: AppSpacing.md),
         SectionHeader(title: l10n.eventFieldPicture),
         const SizedBox(height: AppSpacing.xs),
-        ChoiceChipGroup<String?>(
-          key: const Key('eventForm.picture'),
-          options: [null, ...EventText.presetIcons.keys],
-          labelOf: (code) => EventText.presetName(l10n, code),
-          selected: _preset,
-          onSelected: (code) => setState(() => _preset = code),
+        EventPictureField(
+          institutionId: _uploadInstitution(options),
+          preset: _preset,
+          current: _currentPicture,
+          onPreset: (code) => setState(() {
+            _preset = code;
+            if (code != null) _imageFileId = null;
+          }),
+          onImage: (id) => setState(() {
+            _imageFileId = id;
+            if (id != null) _preset = null;
+          }),
+          onRemoveCurrent: () => setState(() => _imageFileId = null),
+          onBusy: (busy) => setState(() => _uploading = busy),
+          error: error('imageFileId'),
         ),
+        if (_uploading) ...[
+          const SizedBox(height: AppSpacing.xs),
+          Text(
+            l10n.eventUploadingWait,
+            key: const Key('eventForm.uploadingWait'),
+            style: Theme.of(context).textTheme.bodySmall,
+          ),
+        ],
         const SizedBox(height: AppSpacing.md),
         AppSwitchTile(
           key: const Key('eventForm.holiday'),

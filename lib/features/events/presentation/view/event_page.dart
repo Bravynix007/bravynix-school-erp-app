@@ -1,6 +1,7 @@
 import 'package:bravynix_school_erp/app/di/injection.dart';
 import 'package:bravynix_school_erp/app/router/app_routes.dart';
 import 'package:bravynix_school_erp/core/network/api_failure.dart';
+import 'package:bravynix_school_erp/core/theme/app_colors.dart';
 import 'package:bravynix_school_erp/core/theme/app_spacing.dart';
 import 'package:bravynix_school_erp/core/widgets/app_button.dart';
 import 'package:bravynix_school_erp/core/widgets/app_card.dart';
@@ -156,6 +157,26 @@ class _Detail extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              if (event.image case final image?) ...[
+                // The event's own picture, which anyone it is shown to can open; one that does not load shows a quiet
+                // placeholder of the same size, so the page does not jump.
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(AppRadius.card),
+                  child: Image.network(
+                    image.url,
+                    key: const Key('event.image'),
+                    width: double.infinity,
+                    height: 180,
+                    fit: BoxFit.cover,
+                    semanticLabel: l10n.eventPictureLabel,
+                    errorBuilder: (_, _, _) => const ColoredBox(
+                      color: AppColors.sunken,
+                      child: Center(child: ExcludeSemantics(child: Icon(Icons.image_not_supported_outlined, size: 32))),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: AppSpacing.sm),
+              ],
               Row(
                 children: [
                   ExcludeSemantics(child: Icon(EventText.icon(event), size: 32, color: theme.colorScheme.primary)),

@@ -3350,6 +3350,18 @@ class AppLocalizationsEn extends AppLocalizations {
   String get eventFieldPicture => 'Picture';
 
   @override
+  String get eventPictureOwn => 'Or use your own picture';
+
+  @override
+  String get eventPictureChooseInstitution => 'Choose the Institution first, to add your own picture.';
+
+  @override
+  String get eventPictureLabel => 'Picture of the event';
+
+  @override
+  String get eventUploadingWait => 'Wait for the picture to finish sending.';
+
+  @override
   String get eventFieldInstitution => 'Institution';
 
   @override
@@ -3393,6 +3405,10 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get eventHolidayClassesHelper => 'Leave every class unticked for all classes.';
+
+  @override
+  String get errorEventPictureInstitution =>
+      'This event\'s picture belongs to another Institution. Change or remove the picture first.';
 
   @override
   String get errorEventEndBeforeStart => 'The end cannot be before the start.';

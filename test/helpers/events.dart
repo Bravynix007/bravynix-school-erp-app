@@ -13,6 +13,7 @@ SchoolEvent schoolEvent({
   DateTime? startDate,
   DateTime? endDate,
   String? presetImageCode,
+  EventImage? image,
   bool canEdit = false,
   EventScope scope = EventScope.society,
   String? institutionId,
@@ -28,6 +29,7 @@ SchoolEvent schoolEvent({
   scope: scope,
   institutionId: institutionId,
   presetImageCode: presetImageCode,
+  image: image,
   isHoliday: isHoliday,
   holidayType: holidayType,
   holidayForStudents: forStudents,
@@ -37,7 +39,7 @@ SchoolEvent schoolEvent({
   version: 1,
 );
 
-Map<String, Object?> eventJson({String id = 'e1', bool isHoliday = false}) => {
+Map<String, Object?> eventJson({String id = 'e1', bool isHoliday = false, Map<String, Object?>? image}) => {
   'id': id,
   'title': 'Annual Day',
   'description': null,
@@ -48,7 +50,8 @@ Map<String, Object?> eventJson({String id = 'e1', bool isHoliday = false}) => {
   'audience': 2,
   'scope': 2,
   'institutionId': 'i1',
-  'presetImageCode': 'cultural',
+  'presetImageCode': image == null ? 'cultural' : null,
+  'image': image,
   'isHoliday': isHoliday,
   'holidayType': isHoliday ? 2 : null,
   'holidayForStudents': isHoliday,

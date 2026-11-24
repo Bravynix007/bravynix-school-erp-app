@@ -5,12 +5,15 @@ import 'package:bravynix_school_erp/features/auth/presentation/session/session_b
 import 'package:bravynix_school_erp/features/classes/domain/class_catalogue.dart';
 import 'package:bravynix_school_erp/features/events/domain/events_repository.dart';
 import 'package:bravynix_school_erp/features/events/presentation/view/event_form_page.dart';
+import 'package:bravynix_school_erp/features/files/domain/file_picking.dart';
+import 'package:bravynix_school_erp/features/files/domain/files_repository.dart';
 import 'package:bravynix_school_erp/features/institutions/domain/institutions_repository.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 
+import '../../helpers/files.dart';
 import '../../helpers/institutions.dart';
 import '../../helpers/mocks.dart';
 import '../../helpers/pump_app.dart';
@@ -26,7 +29,9 @@ void main() {
     getIt
       ..registerSingleton<EventsRepository>(MockEventsRepository())
       ..registerSingleton<InstitutionsRepository>(institutions)
-      ..registerSingleton<ClassCatalogue>(catalogue);
+      ..registerSingleton<ClassCatalogue>(catalogue)
+      ..registerSingleton<FilesRepository>(MockFilesRepository())
+      ..registerSingleton<FilePicking>(FakeFilePicking());
   });
   tearDown(getIt.reset);
 

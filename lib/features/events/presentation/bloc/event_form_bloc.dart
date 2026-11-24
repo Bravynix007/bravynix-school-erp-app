@@ -110,8 +110,11 @@ class EventFormBloc extends Bloc<EventFormEvent, EventFormState> {
   Future<void> _onStarted(EventFormStarted event, Emitter<EventFormState> emit) async {
     emit(const EventFormLoading());
     try {
-      // One after the other: the first refusal is the one to show.
-      final institutions = existing == null ? await _institutions.institutions() : const <InstitutionSummary>[];
+      // One after the other: the first refusal is the one to show. A new event asks which Institution; a change to an
+      // event of the whole Society needs one to upload a picture for. An Institution's own event names its Institution.
+      final institutions = existing == null || existing?.scope == EventScope.society
+          ? await _institutions.institutions()
+          : const <InstitutionSummary>[];
       emit(EventFormEditing(EventOptions(institutions: institutions, classes: await _catalogue.all())));
     } on ApiFailure catch (failure) {
       emit(EventFormLoadFailed(failure));
