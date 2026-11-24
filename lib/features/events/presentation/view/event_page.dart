@@ -169,9 +169,15 @@ class _Detail extends StatelessWidget {
                     height: 180,
                     fit: BoxFit.cover,
                     semanticLabel: l10n.eventPictureLabel,
-                    errorBuilder: (_, _, _) => const ColoredBox(
-                      color: AppColors.sunken,
-                      child: Center(child: ExcludeSemantics(child: Icon(Icons.image_not_supported_outlined, size: 32))),
+                    errorBuilder: (_, _, _) => const SizedBox(
+                      key: Key('event.imagePlaceholder'),
+                      height: 180,
+                      child: ColoredBox(
+                        color: AppColors.sunken,
+                        child: Center(
+                          child: ExcludeSemantics(child: Icon(Icons.image_not_supported_outlined, size: 32)),
+                        ),
+                      ),
                     ),
                   ),
                 ),
