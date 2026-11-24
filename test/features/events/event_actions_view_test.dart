@@ -136,6 +136,8 @@ void main() {
         expect(tester.takeException(), isNull);
         expect(find.text('Annual Day'), findsOneWidget);
         expect(find.byIcon(Icons.image_not_supported_outlined), findsOneWidget);
+        // It keeps the room the picture would have had, so the page does not jump.
+        expect(tester.getSize(find.byKey(const Key('event.imagePlaceholder'))).height, eventPictureHeight);
       }, status: 404);
     });
 

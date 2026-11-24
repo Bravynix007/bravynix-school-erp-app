@@ -28,6 +28,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
+/// The height of an event's picture, and of the placeholder that stands in for one that does not load.
+const eventPictureHeight = 180.0;
+
 /// One event or holiday (EVT-03), opened from the list or from a notice. A parent reads it for the child they are
 /// viewing.
 class EventPage extends StatelessWidget {
@@ -166,12 +169,18 @@ class _Detail extends StatelessWidget {
                     image.url,
                     key: const Key('event.image'),
                     width: double.infinity,
-                    height: 180,
+                    height: eventPictureHeight,
                     fit: BoxFit.cover,
                     semanticLabel: l10n.eventPictureLabel,
-                    errorBuilder: (_, _, _) => const ColoredBox(
-                      color: AppColors.sunken,
-                      child: Center(child: ExcludeSemantics(child: Icon(Icons.image_not_supported_outlined, size: 32))),
+                    errorBuilder: (_, _, _) => const SizedBox(
+                      key: Key('event.imagePlaceholder'),
+                      height: eventPictureHeight,
+                      child: ColoredBox(
+                        color: AppColors.sunken,
+                        child: Center(
+                          child: ExcludeSemantics(child: Icon(Icons.image_not_supported_outlined, size: 32)),
+                        ),
+                      ),
                     ),
                   ),
                 ),
