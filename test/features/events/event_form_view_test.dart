@@ -660,6 +660,89 @@ void main() {
       });
     });
 
+    testWidgets('is let go when the scope changes the Institution it is uploaded for, and so is a send in flight', (
+      tester,
+    ) async {
+      await pump(tester);
+      await fill(tester);
+      await tester.ensureVisible(find.text('One Institution'));
+      await tester.tap(find.text('One Institution'));
+      await tester.pumpAndSettle();
+      await choose(tester, 'eventForm.institution', 'Lake View School');
+      await addPhoto(tester);
+      verifyUploadedFor('i2');
+      // Back to the whole Society: the picture was sent for Lake View, so it is not kept, and the tile is empty.
+      await tester.ensureVisible(find.text('The whole Society'));
+      await tester.tap(find.text('The whole Society'));
+      await tester.pumpAndSettle();
+      expect(find.text('Add photo'), findsOneWidget);
+      await save(tester);
+      verify(
+        () => events.create(
+          any(that: isA<EventInput>().having((input) => input.imageFileId, 'file', isNull)),
+          scope: EventScope.society,
+        ),
+      ).called(1);
+    });
+
+    testWidgets('does not stay held by a send the scope change abandoned', (tester) async {
+      final release = Completer<void>();
+      when(
+        () => files.upload(
+          any(),
+          purpose: any(named: 'purpose'),
+          institutionId: any(named: 'institutionId'),
+          onProgress: any(named: 'onProgress'),
+          cancelToken: any(named: 'cancelToken'),
+        ),
+      ).thenAnswer((_) async {
+        await release.future;
+        return uploadedPhoto;
+      });
+      await pump(tester);
+      await fill(tester);
+      await tester.ensureVisible(find.text('One Institution'));
+      await tester.tap(find.text('One Institution'));
+      await tester.pumpAndSettle();
+      await choose(tester, 'eventForm.institution', 'Lake View School');
+      await addPhoto(tester);
+      expect(find.byKey(const Key('eventForm.uploadingWait')), findsOneWidget);
+      await tester.ensureVisible(find.text('The whole Society'));
+      await tester.tap(find.text('The whole Society'));
+      await tester.pumpAndSettle();
+      expect(find.byKey(const Key('eventForm.uploadingWait')), findsNothing);
+      await save(tester);
+      verify(
+        () => events.create(
+          any(),
+          scope: EventScope.society,
+        ),
+      ).called(1);
+    });
+
+    testWidgets('of an event that has one is dropped for a preset chosen instead', (tester) async {
+      const image = EventImage(id: 'f7', url: 'https://files.test/public/f7');
+      final withImage = schoolEvent(image: image, scope: EventScope.institution, institutionId: 'i2', canEdit: true);
+      when(() => events.change(any(), any())).thenAnswer((_) async => withImage);
+      await withNetworkImages(() async {
+        await pump(tester, event: withImage);
+        await tester.ensureVisible(find.text('Exam'));
+        await tester.tap(find.descendant(of: find.byKey(const Key('eventForm.picture')), matching: find.text('Exam')));
+        await tester.pumpAndSettle();
+        await save(tester);
+        verify(
+          () => events.change(
+            withImage,
+            any(
+              that: isA<EventInput>()
+                  .having((input) => input.imageFileId, 'file', isNull)
+                  .having((input) => input.presetImageCode, 'preset', 'exam'),
+            ),
+          ),
+        ).called(1);
+      });
+    });
+
     testWidgets('puts a refusal that names the picture under it', (tester) async {
       when(() => events.change(any(), any())).thenThrow(
         refusal(

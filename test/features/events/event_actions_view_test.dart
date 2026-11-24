@@ -117,21 +117,26 @@ void main() {
       });
     });
 
-    testWidgets('has no picture to show for an event without one, and still reads when its picture will not load', (
-      tester,
-    ) async {
+    testWidgets('has no picture to show for an event without one', (tester) async {
       await pump(tester, schoolEvent());
       expect(find.byKey(const Key('event.image')), findsNothing);
-      // A picture that cannot be read leaves the page as it is without one.
-      await pump(
-        tester,
-        schoolEvent(
-          image: const EventImage(id: 'f1', url: 'https://files.test/public/missing'),
-        ),
-      );
-      await tester.pumpAndSettle();
-      expect(tester.takeException(), isNull);
-      expect(find.text('Annual Day'), findsOneWidget);
+    });
+
+    testWidgets('still reads when its picture will not load, and shows a placeholder in its place', (tester) async {
+      await withNetworkImages(() async {
+        await pump(
+          tester,
+          schoolEvent(
+            image: const EventImage(id: 'f1', url: 'https://files.test/public/gone'),
+          ),
+        );
+        // The picture is read outside the test's own clock.
+        await tester.runAsync(() => Future<void>.delayed(const Duration(milliseconds: 50)));
+        await tester.pumpAndSettle();
+        expect(tester.takeException(), isNull);
+        expect(find.text('Annual Day'), findsOneWidget);
+        expect(find.byIcon(Icons.image_not_supported_outlined), findsOneWidget);
+      }, status: 404);
     });
 
     testWidgets('offers no Edit or Delete when the person may not change it', (tester) async {

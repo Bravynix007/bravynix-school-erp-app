@@ -42,8 +42,9 @@ class ObjectUploader {
 
     try {
       if (ticket.method == 'PUT') {
-        // The ticket was signed for this type and size, so the headers are the ones it names; the length is the bytes'
-        // own, which the platform sets itself.
+        // The ticket was signed for this type and size, so the headers are the ones it names. The length is left out
+        // because Dio sets it from the bytes, which are exactly the size the ticket was signed for; sending it twice
+        // would only risk two values.
         await _dio.put<Object?>(
           ticket.url,
           data: file.bytes,

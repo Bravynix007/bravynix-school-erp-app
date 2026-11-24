@@ -83,6 +83,18 @@ void main() {
     verifyNever(() => bloc.add(any()));
   });
 
+  testWidgets('keeps showing the picture the record has when a replacement is refused, and says why', (tester) async {
+    await pump(
+      tester,
+      FileUploadFailed(pdf, problem: FileProblem.typeNotAllowed),
+      current: MemoryImage(photo.bytes),
+      onRemoveCurrent: () {},
+    );
+    expect(find.byType(Image), findsOneWidget);
+    expect(find.text('Change photo'), findsOneWidget);
+    expect(find.text("This kind of file can't be used here. Choose a different one."), findsOneWidget);
+  });
+
   testWidgets('shows the chosen photo and not the one the record has', (tester) async {
     await pump(
       tester,

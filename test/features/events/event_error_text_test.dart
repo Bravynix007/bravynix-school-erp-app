@@ -13,6 +13,7 @@ void main() {
 
   test('an Admin refused an event of the whole Society is told who may, and the rest reads as everywhere else', () {
     expect(eventErrorText(l10n, _code('SCOPE_NOT_ALLOWED', status: 403)), l10n.errorEventScopeNotAllowed);
+    expect(eventErrorText(l10n, _code('FILE_NOT_READY')), l10n.errorFileNotArrived);
     expect(eventErrorText(l10n, _code('NOT_FOUND', status: 404)), l10n.errorEventNotFound);
     expect(eventErrorText(l10n, _code('VERSION_CONFLICT', status: 409)), l10n.errorVersionConflict);
     expect(eventErrorText(l10n, _code('FORBIDDEN', status: 403)), l10n.errorForbidden);

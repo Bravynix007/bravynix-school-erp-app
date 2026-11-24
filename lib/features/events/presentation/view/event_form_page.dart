@@ -136,6 +136,19 @@ class _EventFormViewState extends State<EventFormView> {
     return offeredInstitution(institutions, _institutionId);
   }
 
+  /// Changes where a new event belongs. A picture sent for one Institution is not valid for another, so when the
+  /// Institution a picture is uploaded for changes, the picture is let go and the field starts again.
+  void _place(EventOptions options, VoidCallback change) {
+    final before = _uploadInstitution(options);
+    setState(() {
+      change();
+      if (_uploadInstitution(options) != before) {
+        _imageFileId = null;
+        _uploading = false;
+      }
+    });
+  }
+
   /// The picture the event holds, shown until another is chosen or it is taken off.
   ImageProvider? get _currentPicture {
     final image = widget.event?.image;
@@ -352,15 +365,10 @@ class _EventFormViewState extends State<EventFormView> {
           EventScopeFields(
             keyPrefix: 'eventForm',
             scope: _scope,
-            onScope: widget.owner ? (scope) => setState(() => _scope = scope) : null,
+            onScope: widget.owner ? (scope) => _place(options, () => _scope = scope) : null,
             institutions: options.institutions,
             institutionId: offeredInstitution(options.institutions, _institutionId),
-            onInstitution: (id) => setState(() {
-              _institutionId = id;
-              // A picture sent for one Institution is not valid for another: the field starts again.
-              _imageFileId = null;
-              _uploading = false;
-            }),
+            onInstitution: (id) => _place(options, () => _institutionId = id),
             error: error('institutionId'),
           ),
         ],

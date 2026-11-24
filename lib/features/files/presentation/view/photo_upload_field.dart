@@ -102,7 +102,8 @@ class _PhotoUploadFieldState extends State<PhotoUploadField> {
           _ => null,
         };
         final failure = state is FileUploadFailed && state.canRetry ? state.failure : null;
-        final kept = chosen == null && refusal == null ? widget.current : null;
+        // The picture the record has stays while a replacement is refused: the record keeps it.
+        final kept = chosen == null ? widget.current : null;
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
